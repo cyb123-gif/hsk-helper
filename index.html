@@ -95,7 +95,7 @@
         </div>
         <div class="chat-messages" id="chatMessages">
             <div class="message assistant-message">
-                <div class="bubble assistant-bubble">✨ 已加载 HSK1-5 完整语法库（与官方表格数量一致）。选择母语和AI难度，开始聊天！结束对话后自动分析语法并记录错句。</div>
+                <div class="bubble assistant-bubble">你好，我是你的AI语伴，我们一起聊天吧</div>
                 <div class="timestamp">刚刚</div>
             </div>
         </div>
@@ -352,7 +352,7 @@ ${historyStr}
         else if (key === '、' || key === '`') { e.preventDefault(); document.getElementById('practiceResetBtn')?.click(); }
         else if (key === '=') { e.preventDefault(); document.getElementById('practiceNewBtn')?.click(); }
     });
-    function init(){ loadFullState(); refreshAll(); addAssistantMessage(`✅ 已加载 HSK1-5 语法库，总计 ${grammarList.length} 条。选择母语和AI难度，开始聊天。`); apiKeyInput.value=localStorage.getItem(API_KEY_STORAGE)||'sk-10806fc904a04e618daa622fdb8d0878'; apiKeyInput.addEventListener('change',()=>localStorage.setItem(API_KEY_STORAGE,apiKeyInput.value)); sendBtn.onclick=handleUserMessage; endBtn.onclick=handleEndConversation; resetGlobalBtn.onclick=resetGlobal; downloadStatsBtn.onclick=downloadReport; userInput.addEventListener('keypress',e=>{ if(e.key==='Enter') handleUserMessage(); }); grammarViewLevel.addEventListener('change',()=>updateGrammarDisplayByLevel(parseInt(grammarViewLevel.value))); closeModalSpan.onclick=()=>modal.style.display='none'; closePracticeSpan.onclick=()=>practiceModal.style.display='none'; window.onclick=e=>{ if(e.target===modal) modal.style.display='none'; if(e.target===practiceModal) practiceModal.style.display='none'; }; setInterval(()=>{ let delta=(Date.now()-sessionStart)/60000; if(delta>0){ totalMinutes+=delta; sessionStart=Date.now(); saveFullState(); updateStatsUI(); } },60000); }
+    function init(){ loadFullState(); refreshAll(); apiKeyInput.value=localStorage.getItem(API_KEY_STORAGE)||'sk-10806fc904a04e618daa622fdb8d0878'; apiKeyInput.addEventListener('change',()=>localStorage.setItem(API_KEY_STORAGE,apiKeyInput.value)); sendBtn.onclick=handleUserMessage; endBtn.onclick=handleEndConversation; resetGlobalBtn.onclick=resetGlobal; downloadStatsBtn.onclick=downloadReport; userInput.addEventListener('keypress',e=>{ if(e.key==='Enter') handleUserMessage(); }); grammarViewLevel.addEventListener('change',()=>updateGrammarDisplayByLevel(parseInt(grammarViewLevel.value))); closeModalSpan.onclick=()=>modal.style.display='none'; closePracticeSpan.onclick=()=>practiceModal.style.display='none'; window.onclick=e=>{ if(e.target===modal) modal.style.display='none'; if(e.target===practiceModal) practiceModal.style.display='none'; }; setInterval(()=>{ let delta=(Date.now()-sessionStart)/60000; if(delta>0){ totalMinutes+=delta; sessionStart=Date.now(); saveFullState(); updateStatsUI(); } },60000); }
     init();
 })();
 </script>
