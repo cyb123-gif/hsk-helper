@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>HSK 语法助手 · HSK1-5 完整语法库 | 多语言翻译练习 + 错句本</title>
+    <style>
+        * { box-sizing: border-box; font-family: system-ui, 'Segoe UI', 'Helvetica Neue', sans-serif; }
+        body { margin: 0; min-height: 100vh; background: #f5f7fb; display: flex; justify-content: center; padding: 16px; }
+        .app { max-width: 1500px; width: 100%; display: flex; flex-wrap: wrap; gap: 20px; }
+        .chat-panel { flex: 2; min-width: 320px; background: white; border-radius: 28px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); display: flex; flex-direction: column; overflow: hidden; border: 1px solid #e9eef4; }
+        .chat-header { padding: 20px 24px; background: linear-gradient(135deg, #1e2b5e 0%, #2a3f7a 100%); color: white; }
+        .chat-header h2 { margin: 0 0 6px; font-size: 1.7rem; }
+        .chat-header p { margin: 0; opacity: 0.85; font-size: 0.95rem; }
+        .chat-messages { flex: 1; padding: 20px 20px 10px; overflow-y: auto; max-height: 500px; background: #fafbfc; display: flex; flex-direction: column; gap: 14px; }
+        .message { display: flex; flex-direction: column; }
+        .user-message { align-items: flex-end; }
+        .assistant-message { align-items: flex-start; }
+        .bubble { max-width: 85%; padding: 12px 18px; border-radius: 22px; line-height: 1.5; font-size: 1rem; word-break: break-word; }
+        .user-bubble { background: #d9e6ff; color: #1a2b4c; border-bottom-right-radius: 6px; }
+        .assistant-bubble { background: white; border: 1px solid #dee5ed; border-bottom-left-radius: 6px; }
+        .timestamp { font-size: 0.7rem; color: #7b8ba3; margin: 4px 10px 0; }
+        .chat-input-area { padding: 16px 20px 20px; background: white; border-top: 1px solid #e2e8f0; display: flex; flex-direction: column; gap: 10px; }
+        .input-group { display: flex; gap: 10px; }
+        .input-group input { flex: 1; padding: 14px 18px; border: 1.5px solid #d0dae8; border-radius: 40px; font-size: 1rem; outline: none; background: #f9fbfd; }
+        .input-group input:focus { border-color: #2a3f7a; background: white; }
+        .button-group { display: flex; gap: 10px; }
+        .button-group button { background: #1e2b5e; color: white; border: none; border-radius: 40px; padding: 10px 0; font-weight: 600; font-size: 1rem; cursor: pointer; transition: 0.15s; flex: 1; }
+        .button-group button:hover { background: #2f4685; transform: scale(0.97); }
+        .button-group button:last-child { background: #e67e22; }
+        .info-panel { flex: 1.3; min-width: 360px; display: flex; flex-direction: column; gap: 20px; }
+        .card { background: white; border-radius: 24px; padding: 22px 20px; box-shadow: 0 8px 20px rgba(0,0,0,0.03); border: 1px solid #e9eef4; }
+        .stat-title { font-weight: 700; color: #1e293b; margin-top: 0; margin-bottom: 18px; font-size: 1.25rem; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .level-badge { background: #1e2b5e; color: white; padding: 5px 14px; border-radius: 30px; font-size: 1rem; font-weight: 700; cursor: default; }
+        .progress-grid { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
+        .level-row { display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 4px 0; border-radius: 20px; transition: 0.1s; }
+        .level-row:hover { background: #f1f5f9; }
+        .level-label { width: 55px; font-weight: 600; color: #334155; font-size: 0.9rem; }
+        .progress-bar-bg { flex: 1; height: 10px; background: #e2e8f0; border-radius: 20px; overflow: hidden; }
+        .progress-bar-fill { height: 100%; background: #2e7d32; border-radius: 20px; width: 0%; }
+        .progress-text { min-width: 70px; text-align: right; font-size: 0.8rem; color: #475569; }
+        .btn { background: white; border: 2px solid #1e2b5e; color: #1e2b5e; padding: 10px 14px; border-radius: 36px; font-weight: 600; font-size: 0.9rem; cursor: pointer; transition: 0.15s; width: 100%; margin-top: 8px; }
+        .small-note { color: #64748b; font-size: 0.7rem; margin-top: 12px; }
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); backdrop-filter: blur(4px); }
+        .modal-content { background-color: #fefefe; margin: 2% auto; padding: 20px; border-radius: 32px; width: 90%; max-width: 1200px; box-shadow: 0 25px 50px rgba(0,0,0,0.2); max-height: 90vh; overflow-y: auto; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eef2ff; padding-bottom: 12px; margin-bottom: 18px; }
+        .close-modal { font-size: 28px; font-weight: bold; cursor: pointer; color: #64748b; }
+        .grammar-detail-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; word-break: break-word; }
+        .grammar-detail-table th, .grammar-detail-table td { text-align: left; padding: 12px 8px; border-bottom: 1px solid #e9eef4; vertical-align: top; }
+        .grammar-detail-table th { background: #f8fafc; font-weight: 600; }
+        .level-tag { background: #eef2ff; padding: 2px 8px; border-radius: 20px; font-weight: 600; font-size: 0.7rem; display: inline-block; margin-right: 6px; }
+        .acquired-badge { background: #c8e6c9; color: #2e7d32; margin-left: 8px; padding: 2px 8px; border-radius: 20px; font-size: 0.7rem; }
+        .example-highlight { background: #fff3cd; color: #b45f06; font-weight: bold; border-radius: 4px; padding: 0 2px; }
+        .empty-detail { text-align: center; padding: 30px; color: #94a3b8; }
+        .api-key-input, .level-selector { width: 100%; padding: 8px 12px; border-radius: 30px; border: 1px solid #d0dae8; margin-bottom: 12px; }
+        .grammar-list-scroll { max-height: 320px; overflow-y: auto; border: 1px solid #e9eef4; border-radius: 16px; background: #fafbfc; }
+        .grammar-list-item { display: flex; justify-content: space-between; align-items: center; padding: 6px 10px; border-bottom: 1px solid #f0f2f5; gap: 8px; font-size: 0.8rem; cursor: pointer; }
+        .grammar-list-item:hover { background: #eef2ff; }
+        .grammar-pattern { font-family: monospace; flex: 2; word-break: break-word; }
+        .grammar-usage { color: #2e7d32; font-weight: 600; min-width: 50px; text-align: right; }
+        .mastered-tag { background: #c8e6c9; border-radius: 20px; padding: 2px 8px; font-size: 0.7rem; margin-left: 5px; }
+        .not-mastered-tag { background: #e9ecef; border-radius: 20px; padding: 2px 8px; font-size: 0.7rem; }
+        .feedback-btn { background: #f0f2f5; border: none; border-radius: 20px; padding: 4px 12px; margin: 0 4px; cursor: pointer; font-size: 0.75rem; }
+        .feedback-status { display: inline-block; margin-left: 8px; font-size: 0.7rem; color: #2e7d32; }
+        .pagination { display: flex; justify-content: center; gap: 12px; margin-top: 20px; align-items: center; }
+        .practice-grammar-info { background: #eef2ff; padding: 12px; border-radius: 16px; margin-bottom: 20px; text-align: center; }
+        .practice-english-sentence { font-size: 22px; font-weight: bold; background: #f8f9fa; padding: 20px; border-radius: 16px; margin-bottom: 20px; border-left: 5px solid #3498db; }
+        .practice-input-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-bottom: 20px; }
+        .practice-input-box { position: relative; width: 70px; text-align: center; }
+        .practice-input-box input { width: 100%; height: 50px; text-align: center; border: none; border-bottom: 3px solid #3498db; font-size: 22px; outline: none; background: transparent; font-weight: bold; }
+        .practice-input-box input.correct { color: #27ae60; }
+        .practice-input-box input.incorrect { color: #e74c3c; }
+        .practice-pinyin { position: absolute; top: -24px; left: 0; width: 100%; font-size: 12px; color: #7f8c8d; white-space: nowrap; }
+        .practice-feedback { text-align: center; margin: 15px 0; font-weight: bold; }
+        .practice-btn { background: #1e2b5e; color: white; border: none; border-radius: 40px; padding: 10px 20px; cursor: pointer; margin: 5px; }
+        .key-hint { font-size: 11px; color: #95a5a6; text-align: center; margin-top: 10px; }
+        .track-list, .mistake-list { max-height: 260px; overflow-y: auto; border: 1px solid #e9eef4; border-radius: 16px; margin-top: 10px; background: #fafbfc; }
+        .track-item, .mistake-item { padding: 8px 12px; border-bottom: 1px solid #f0f2f5; cursor: pointer; display: flex; justify-content: space-between; }
+        .track-item:hover, .mistake-item:hover { background: #eef2ff; }
+        .lang-selector { margin-bottom: 16px; display: flex; gap: 10px; align-items: center; }
+        .lang-selector select { flex: 1; padding: 6px 12px; border-radius: 30px; border: 1px solid #d0dae8; background: white; }
+        .history-list { max-height: 300px; overflow-y: auto; border: 1px solid #e9eef4; border-radius: 16px; margin-top: 10px; background: #fafbfc; }
+        .history-item { padding: 8px 12px; border-bottom: 1px solid #f0f2f5; }
+        .mistake-item { background: #fff8f0; margin-bottom: 4px; border-radius: 12px; }
+        .mistake-original { font-weight: bold; color: #c0392b; }
+        .mistake-corrected { color: #27ae60; }
+    </style>
+</head>
+<body>
+<div class="app">
+    <div class="chat-panel">
+        <div class="chat-header">
+            <h2>🤖 HSK 语法助手 · HSK1-5 完整版</h2>
+            <p>AI难度自适应 | 多语言翻译练习 | 错句本 | 可纠正语法匹配</p>
+        </div>
+        <div class="chat-messages" id="chatMessages">
+            <div class="message assistant-message">
+                <div class="bubble assistant-bubble">✨ 已加载 HSK1-5 完整语法库（与官方表格数量一致）。选择母语和AI难度，开始聊天！结束对话后自动分析语法并记录错句。</div>
+                <div class="timestamp">刚刚</div>
+            </div>
+        </div>
+        <div class="chat-input-area">
+            <div class="input-group">
+                <input type="text" id="userInput" placeholder="聊点什么吧..." autocomplete="off">
+            </div>
+            <div class="button-group">
+                <button id="sendBtn">发送</button>
+                <button id="endConversationBtn">结束对话</button>
+            </div>
+            <div class="small-note">💡 「结束对话」→ 分析语法并保存 | 点击“不准确”可删除错误匹配</div>
+        </div>
+    </div>
+
+    <div class="info-panel">
+        <div class="card">
+            <div class="stat-title"><span>🌍 学生母语（翻译源语言）</span><span class="level-badge">🗣️</span></div>
+            <div class="lang-selector">
+                <select id="targetLanguageSelect">
+                    <option value="English">英语 English</option>
+                    <option value="Japanese">日语 日本語</option>
+                    <option value="Korean">韩语 한국어</option>
+                    <option value="French">法语 Français</option>
+                    <option value="German">德语 Deutsch</option>
+                    <option value="Spanish">西班牙语 Español</option>
+                    <option value="Russian">俄语 Русский</option>
+                </select>
+            </div>
+            <div class="stat-title"><span>🎛️ AI 对话难度等级</span><span class="level-badge">自适应</span></div>
+            <select id="aiLevelSelect" class="level-selector">
+                <option value="1">HSK 1</option>
+                <option value="2">HSK 2</option>
+                <option value="3" selected>HSK 3</option>
+                <option value="4">HSK 4</option>
+                <option value="5">HSK 5</option>
+            </select>
+            <div class="stat-title"><span>📚 API 设置</span><span class="level-badge">🔑</span></div>
+            <input type="password" class="api-key-input" id="apiKeyInput" placeholder="DeepSeek API Key (自动保存)" autocomplete="off" value="sk-10806fc904a04e618daa622fdb8d0878">
+            <div class="stat-title">📊 各等级掌握进度 (点击查看明细)</div>
+            <div class="progress-grid" id="levelProgress"></div>
+            <button id="resetGlobalBtn" class="btn" style="background:#fef2e8;">🗑️ 重置全局语法记录</button>
+        </div>
+
+        <div class="card">
+            <div class="stat-title">📖 语法库分组展示（点击即练）</div>
+            <div class="grammar-view-selector">
+                <select id="grammarViewLevel">
+                    <option value="1">HSK 1</option><option value="2">HSK 2</option><option value="3">HSK 3</option>
+                    <option value="4">HSK 4</option><option value="5">HSK 5</option>
+                </select>
+            </div>
+            <div id="grammarLibraryList" class="grammar-list-container">加载中...</div>
+            <div class="small-note">✅ 绿色标记表示已习得（使用≥10次）</div>
+        </div>
+
+        <div class="card">
+            <div class="stat-title">📋 语法追踪 & 错句笔记本</div>
+            <div id="trackList" class="track-list">加载中...</div>
+            <div class="stat-title" style="margin-top:12px;">📓 错句笔记本（只读）</div>
+            <div id="mistakeNotebookList" class="mistake-list">暂无错句</div>
+            <button id="downloadStatsBtn" class="btn" style="background:#27ae60; color:white; border:none;">⬇️ 下载学习报告</button>
+        </div>
+    </div>
+</div>
+
+<div id="grammarModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header"><h3>📖 语法点明细（可纠正错误匹配）</h3><span class="close-modal">&times;</span></div>
+        <div id="modalDynamicContent">加载中...</div>
+    </div>
+</div>
+
+<div id="practiceModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header"><h3>📝 语法练习 · 填空</h3><span class="close-practice-modal">&times;</span></div>
+        <div id="practiceContent">加载中...</div>
+        <div class="key-hint">⌨️ 空格→下一格 / 退格→删除 / 回车→检查 / ]→朗读 / -→下一个 / 、→重来 / =→新题目</div>
+    </div>
+</div>
+
+<script>
+(function(){
+    "use strict";
+    const ACQUIRED_THRESHOLD = 10;
+    const STORAGE_KEY = 'HSK_GRAMMAR_MASTER_V10';
+    const API_KEY_STORAGE = 'DEEPSEEK_API_KEY';
+    const MISTAKE_STORAGE = 'HSK_MISTAKE_NOTEBOOK_V2';
+
+    // ==================== HSK1-5 完整语法库（基于用户提供的Excel表格，数量完全一致） ====================
+    // HSK1 完整（共131条，来自HSK1语法点.xlsx，逐一提取）
+    const HSK1_RAW = [
+        "N+上（不要代词，表示地点）","N+下（不要代词，表示地点）","N+里（不要代词，表示地点）","N+外（不要代词，表示地点）","N+前（不要代词，表示地点）","N+后（不要代词，表示地点）",
+        "上边/下边/里边/外边/前边/后边/左边/右边/东边/南边/西边/北边（中心语）+V/Adj （不是面）","V+上边/下边/里边/外边/前边/后边/左边/右边/东边/南边/西边/北边（中心语）（不是面）",
+        "上边/下边/里边/外边/前边/后边/左边/右边/东边/南边/西边/北边+的+N（不是面）","N+（的）+上边/下边/里边/外边/前边/后边/左边/右边/东边/南边/西边/北边（不是面）",
+        "多+Adj","多少+N","V+多少","几+Measure word","哪+Number+Measure word","哪儿/哪里+V","V+哪儿/哪里","哪些+N","哪些+V","什么+V/Adj","V+什么","什么+N","谁+V/Adj",
+        "V+谁（注意和谁+V/Adj的语序）","谁的+N","怎么+V/Adj","怎么了","这是/那是","这儿/那儿/这里/那里+Adj","这儿是/那儿是/这里是/那里是","这儿有/那儿有/这里有/那里有",
+        "V+这儿/那儿/这里/那里","这儿/那儿/这里/那里+的+N","这些/那些+N","别的+N","别的+V/Adj","V+别的","有的+N","有的+V/Adj","我/你/您/他/她+V/Adj（中间可以有其他成分）",
+        "V+我/你/您/他/她","我/你/您/他/她+的+N","N/Pronoun(包括它)+们+V/Adj","V+我们/你们/他们/她们/它们","我们/你们/他们/她们/它们+的+N","会+V","不会+V","会不会+V","能+V",
+        "不能+V","能不能+V","想+V","不想+V","想不想+V","要+V","不要+V","要不要+V","很+Adj/V","非常+Adj/V","太+Adj/V+了","真+Adj/V","最+Adj/V","都+Adj/V",
+        "S(不能是这些/那些或者多于一个）+都+V+谁/什么/哪儿/哪些/怎么/哪里(疑问词）","一块+V","一起+V","马上+V","先+V","有时+V/Adj","在+V（+呢）（不包括正/正在）","正+V+呢（不包括在/正在）",
+        "正在+V（+呢）","常+V","常常+V","不常+V","再+V","还+V+（O）","V1+O1，还+V1+O2","也+V/Adj","S1+V/Adj，S2+也+V/Adj","别+V/Adj","不+V/Adj","没（有）+V/Adj",
+        "从+Place/Time+V","从+Place/Time+到+Place/Time","S+在+Place+V（Place和动词中间不允许有其他词语）","N/Pron+跟+N/Pron+V（跟=向 prep）","N/Pron+和+N/Pron+V（和=向 prep）",
+        "A+比+B+Adj","N/Pron+跟+N/Pron+V（例如：跟 and）","N/Pron+和+N/Pron+V（例如：和 and）","A还是B","N/Pronoun+的+N（不是V/Adj+的+N）","V+的+N（做主语或者宾语）",
+        "Adj+的+N","Adj/Adv+地+V/Adj","V+了+Number+Measure word（些也是）","V+了+O,sentence","V+了","V+吧","V+O+了（如果有O宾语，了在O后面）","Adj（+补语complement）+了",
+        "V+吗","V+O+呢","了没有","Adj+不+Adj","V+不+V","V+没+V","是+O","不是+O","是不是+O","有+O","没有+O","有没有+O","Place(包括班）+有","Place+没有","Place+有没有",
+        "A+没有+B+Adj","一边+V1,一边+V2","Number+元(钱）","Number+毛(钱）","Number+分(钱）","Number+块(钱）","Number+年","Number+月","Number+日","Number+号（时间）","Number+点（时间）",
+        "Number+分(时间，不是分钟）","Number+点半","差+Number+分钟+Number+点","Number+点+差+Number+分钟","数词(Number)+量词(measure word)"
+    ];
+    // HSK2 完整（共115条，基于HSK2语法点.xlsx）
+    const HSK2_RAW = [
+        "可能+V","不可能+V","可以+V","不可以+V","可不可以+V","应该+V","该+V+了","不该+V","不应该+V","该不该+V","应不应该+V","愿意+V","不愿意+V","愿不愿意+V","VV（动词重叠）",
+        "V了V","V一V","V[音节1]V[音节2]V[音节1]V[音节2]（双音节动词）","V+多久","多久+V","为什么+V/Adj","......+怎么样","V+得+怎么样","怎样+V","是+怎样+的+N","别人+V/Adj",
+        "V+别人","别人+的+N","大家+V/Adj","V+大家","大家+的+N","咱/咱们+V/Adj","V+咱/咱们","咱/咱们+的+N","V+自己","自己+V","自己+的+N","这么+V/Adj","那么+V/Adj","这样+V/Adj",
+        "那样+V/Adj","这样+的+N","那样+的+N","AdjAdj（形容词重叠AABB/AA）+的+N","AdjAdj（形容词重叠AABB/AA）+地+V","S+AdjAdj（形容词重叠AABB/AA）+的","V+得+AdjAdj（形容词重叠AABB/AA）+的",
+        "V+得+Complement（补语）","V+过（+O）","S+V+着（+O）+呢","Sentence+吧","（+是）+疑问代词(谁、什么、哪、哪里、哪儿、怎么、怎样、怎么样、为什么、几、多少、多、什么时候、什么地方）+V+的（发生在过去）",
+        "......+的（表示肯定、确认语气）","（+S1）......+的话，(S1+)......","S1+......+的话，S2+......","A、B（+C）+等（举例）","多/多么+Adj（+啊）！",
+        "多/多么+V（（心理/能愿动词））（+O）（+啊）！","V+得+多/多么+Adj（+啊）！","多/多么+Adj+的+N（+啊）！","好+Adj（+啊）！","好+V（心理/能愿动词）+O（+啊）！","好+Adj+的+N（+啊）！",
+        "V+得+好+Adj（+啊）！","更+Adj","更+V（心理动词/能愿动词）（+O）","十分+Adj","十分+V（心理动词/能愿动词）（+O）","特别+Adj","特别+V（心理动词/能愿动词）（+O）","挺+Adj+的",
+        "挺+V（心理动词/能愿动词）+O+的","有点儿+Adj","有点儿+V（心理动词/能愿动词）（+O）","有点儿+不+Adj","S（大于1个）+全+V","S（大于1个）+全+Adj+了","S（大于1个）+全+都+V/Adj",
+        "一共+Number","只+V","刚/刚刚+V","还+V/Adj(+呢）","忽然+V","一直+V/Adj","已经+V/Adj/Number+了","重新+V","经常+V","老/老是+V","又+V/Adj","......，就+......","S1+......，S2+就+......",
+        "故意+V","是/不是+故意（+V）+的","必须+V/Adj","差不多+V/Adj/Number","好像+Sentence","一定+V","不+一定+V","也许+V/Adj","Number/Time word+才+V/Adj","才+Number/Time word+V/Adj",
+        "都+Number/N/Adj+了","Number/Time word+就+V/Adj+了","正好+V/Adj/Number","当（+S1）+V，（S2）+V/Adj","往+N（方位名词）/Place+V","V+往+Place","向+N+V","V+向+N","从+Place+V",
+        "对+N/Pronoun+V/Adj（不包括对...来说）","给+N（人/集体）+V","V+给+N（人/集体）+O","(+A)离+B+V/Adj","为+N/V+V/Adj","（+A）+或/或者+B","（S1）+......，但/但是（+S1）+......",
+        "S1+......，但/但是+S2+......","（+S1）......，那（+S1）......","S1+......，那+S2+......"
+    ];
+    // HSK3 完整（基于HSK3语法点.xlsx 共约139条，此处保持完整）
+    const HSK3_RAW = [
+        "敢+V","不/没敢+V","敢不敢+V","需要+V","不需要+V","需不需要+V","离合词（只包括帮忙、点头、放假、干杯、见面、结婚、看病、睡觉、洗澡、理发、说话）",
+        "离合词（只包括帮忙、点头、放假、干杯、见面、结婚、看病、睡觉、洗澡、理发、说话）：Prep[介词，比如和/跟]+N/Pronoun+离合词（VO）",
+        "离合词（只包括帮忙、点头、放假、干杯、见面、结婚、看病、睡觉、洗澡、理发、说话）：V+着+O+呢","离合词（只包括帮忙、点头、放假、干杯、见面、结婚、看病、睡觉、洗澡、理发、说话）：V+过+O",
+        "离合词（只包括帮忙、点头、放假、干杯、见面、结婚、看病、睡觉、洗澡、理发、说话）：V+Time word+O","离合词（只包括帮忙、点头、放假、干杯、见面、结婚、看病、睡觉、洗澡、理发、说话）：V+Number+O",
+        "离合词（只包括帮忙、点头、放假、干杯、见面、结婚、看病、睡觉、洗澡、理发、说话）：V+N/Pronoun+的+O","离合词（打开、看见、离开、完成）：V+得/不+C",
+        "S（疑问代词做主语：谁、什么、哪、哪里、哪儿、怎么、怎样、怎么样、为什么、几、多少、多、什么时候、什么地方）+都+......",
+        "......疑问代词+......+就+......疑问代词+......","谁+也/都+不/没+V+谁","V+点儿+什么（“什么”是虚指）","哪天+V+吧（“哪天”是虚指）","各+Measure/N","每（+Number）+Measure","任何+N","MM(量词重叠）","比较+Adj",
+        "比较+V（心理动词/能愿动词）","相当+Adj","相当+V（心理动词/能愿动词）","更加+Adj","更加+V（心理动词/能愿动词）","光+V/Adj","光+N+就+V+了+Number/Time","不光+N","仅/仅仅+V+O","仅/仅仅+Number",
+        "就+V（不是复句，重音在就字，意思是没有别的）","就+N（不是复句，重音在就字，意思是没有别的）","至少+V","至少（+V）+Number","本来+Sentence","才+V（单句不是复句，重音在才字，意思是时间晚）",
+        "曾经+V+过","曾经+Adj","不曾+V+过","从来+都+Adj/V","从来+没/没有/不+Adj/V","赶紧+V","赶快+V","立刻+V/Adj","连忙+V","始终+V","已+Adj/V","早已+V/Adj","通常+Sentence","往往+V","总+V（下面两个不包括总）",
+        "总是+V","总是+这么/那么+V/Adj","S1+先+V1，（S1）+再+V2","S1+先+V1，S2+再+V2","互相/相互+V","尽量+V/Adj","亲自+V","大概+Number/Time word","大概+V","恐怕+Sentence","恐怕+Number","白+V+了",
+        "并+不/没/没有+V","当然+V/Adj","当然，Sentence","到底+V/Adj+不/没+V/Adj","到底+是+A+还是+B","到底+V+疑问代词","Sentence，反正+......","根本+不/没/没有+V/Adj","果然+V/Adj","简直+是+N/V/Adj",
+        "简直+跟/像+......+一样","简直+V+得+Complement（补语）","绝对+V/Adj","难道+V（+吗/不成）","其实+Sentence","千万（+不/别）+V","确实+V/Adj","确实，S+V/Adj","只好+V","终于+V/Adj+了",
+        "还+Adj+一点儿/一些","还+V","由+Place/Time word+V","自从......，sentence","S+自从......","朝+N/Pronoun+V","为+N/Pronoun+V","向+N/Pronoun+V","由于+N，sentence","由于+N+的+N","因为+N，sentence","因为+N+的+N",
+        "为了+N，sentence","为了+N+的+N","按/按照+N","Sentence，另外，Sentence","不A不B+的+N","V+得+不A不B","S+不A不B","看起来+Sentence","看上去+Sentence","S+有的是","有的是+N",
+        "一+Measure+一+Measure+（重复）的+N","Number+Measure+Number+Measure（重复）+V","除了......，还......","除了......，也......","除了......，都......","从……起","对......来说+Sentence",
+        "一+Measure（+Number）+也/都+不/没+V/Adj","S+越+V+越+Adj","S+越+Adj1+越+Adj2","S1+越+V，S2+越+Adj","S1+越+V1，S2+越+V2","Number+左右","Time word前后","Number1+Number2+Measure",
+        "一点儿也不+V/Adj","不是+N/V/Adj+吗？","都......了，Sentence","Adj/V（点儿）+就+Adj/V（点儿）吧，sentence","V/Adj+什么(啊)，Sentence","V+到","V+住","V+走","没+V+到/住/走","V+没+V+到/住/走",
+        "V+出来/出去/过来/过去/回来/回去/进来/进去/起来/上来/上去/下来/下去","V+上/下/进/出/起/过/回+Place（+来/去）","没+V+出来/出去/过来/过去/回来/回去/进来/进去/起来/上来/上去/下来/下去",
+        "V1+不+Adj/V2","V1+得+Adj/V2","V+得+了","V+不+了","V1+得+Adj/V2+V1+不+Adj/V2","Adj/V+得+很","Adj/V+极了/死了","V+Pronoun+动量补语","V+动量补语+O","V+O+动量补语","V+时量补语",
+        "V+O+V+时量补语","V+O+时量补语","V+时量补语（+的）+O","V+O+时量补语+了","S1+S2+......","把+O+V+在/到+Place","没/没有+把+O+V+在/到+Place","把+O1+V(+给)+O2","没/没有+把+O1+V(+给)+O2",
+        "把+O+V+结果补语/趋向补语/状态补语","没/没有+把+O+V+结果补语/趋向补语","被/叫/让+O+V","没/没有+被+O+V","V1+O1+V2","叫/派/请/让+O+V","A+比+B+V+得+Adj","A+V+得+比+B+Adj","A+不比+B+Adj",
+        "A+比+B+多/少/早/晚+V+Number","V+O+V+得+Adj","V+O+V+得+疑问代词","一会儿+......+一会儿+......","一方面+......，另一方面+......","又+......+又+......","S1+又+......，S2+又+......","首先+......，然后+......",
+        "S+......，并且+......","S+不仅/不光+......，还/而且+......","不仅/不光+S1+......，而且+S2+也+......","不是+A+就是+B","Adj+是+Adj，就是/不过+V/Adj","要是+......，就+......","只有+......，才+......",
+        "（由于+）......，所以/因此+......","为了+......，......","V+了+O+就+V"
+    ];
+    // HSK4 完整（基于HSK4语法点.xlsx 共约156条）
+    const HSK4_RAW = [
+        "得+V","得+Number","人家+V/Adj","V+人家","人家+的+N","格外+Adj/V","极+Adj/V","极其+Adj/V","共+Number","共+V+Number+Measure+N","按时+V","即将+V","急忙+V","渐渐+V","尽快+V","一再+V","再三+V",
+        "S1+V1/Adj1,(S2+)却+V2/Adj2","未必+V/Adj","几乎+V/Adj","几乎+N","似乎+V/Adj","的确+V/Adj","的确，Sentence","反而+V/Adj","还+N/V+呢","还真+V","竟然+V/Adj","究竟+V/Adj","自+Time+起，sentence",
+        "自+Time+以来，sentence","自+Time+后，sentence","自+Place1+到+Place2","V+自+Place","对于+N+V","对于+N1+的+N2","对于+N，Sentence","关于+N/V，Sentence","关于+N/V+的+N","替+N/Pronoun+V/Adj","根据+N/V，Sentence",
+        "根据+N+V","作为+N，sentence","V1/Adj1+并+V2/Adj2","S+V1,并+V2","A、B以及C","S+V1，此外+V2","S1+......，而+S2+......","Sentence，总之......","（像/仿佛/好像+）N/Pronoun/V+似的","一+Measure word+比+一+Measure word+Adj",
+        "由+N+组成","在+N/V+方面，S+V","在+N+上，S+V","在+N+下，S+V","在+N+的+V[两个字]+下，S+V","在+N/V[两个字]+中，S+V","V+上（+了）+O","V+出（+了）+O","V+起（+了）+O","V+下（+了）+O","大A大B","—A—B","看来+Sentence",
+        "N+来得及","V+来得及","来得及+V","来不及+V","是+来不及+的","说不定","一般来说，sentence","把+O+VV（重复）","把+O+V[一个字]+一+V[一个字]","把+O+V[一个字]+了+V[一个字]","把+O(+给)+V+了","把+O+V+了+Time",
+        "把+O+V+了+Measure word","被+V+......","没/没有+被+V+......","Place+V+补语+Number+Measure word+N","表扬/批评+O1+V+O2","叫/称/说/收/选+O1+做/为/当/是+O2","S+是+V+的","S+是+Adj+的","不是+sentence，而是+sentence",
+        "既+V1/Adj1，又/也+V2/Adj2","首先+sentence，其次+sentence","Sentence，于是+V2","Sentence，甚至+sentence","或者+sentence，或者+sentence","Sentence，然而+sentence","Sentence，否则+sentence","假如+sentence,S+V",
+        "万一+sentence，S+V","不管+sentence，都/也+sentence","无论+sentence，都/也+sentence","既然+sentence，就+V","Sentence，可见+S+V","哪怕+Sentence，也/还+sentence","Sentence，好+V","Sentence，好+让+O+V","不+V1+也+V2",
+        "Number+来+Measure word","Number+Measure word+来+Adj","Number+分之+Number","百分之+Number","Number+倍","A+是+B+的+Number+分之+Number/百分之+Number/Number+倍","疑问代词+......+啊/呢?(反问句）","不......不/没/没有......",
+        "没/没有......不......","不是......不/没/没有......","一+Measure word（+N）+也/都+没/不+V/Adj","S+一+Measure word（+N）+也/都+V不C","Sb（人）+连+N（东西）+也/都+V","N（东西）+连+Sb（人）+也/都+V","不+V[一个字]+白+不+V[一个字]",
+        "V+一+Measure word（+N）+是+一+Measure word（+N）","（没）有什么（好）+Adj/V+的","N1/Pronoun1/V1是N1/Pronoun1/V1,N2/Pronoun2/V2是N2/Pronoun2/V2","V+也得+V，不+V+也得+V","V+就是了","还+N/V+呢，sentence",
+        "你+V+你的（+吧）","让/叫你+V+你就+V","说什么/怎么（着）也得+V"
+    ];
+    // HSK5 完整（基于HSK5语法点.xlsx 共约183条）
+    const HSK5_RAW = [
+        "彼此+都+V","V+彼此","彼此(+之间)+的+N","S+如此","（+V+得）如此+Adj","Sentence，不但如此/虽然如此，sentence","V+也好","（不管/无论+）N/V1+也好，N/V2+也好，sentence","过于+Adj/V+了","可+Adj/V+了","稍+V{一个字]/Adj[一个字]","稍+V[一个字]+一下/一会儿/一点儿","稍+Adj[一个字]+一点儿/一些","稍微+V+一下/一会儿/一点儿/一些","稍微+Adj+一点儿/一些","稍微+有点儿+Adj","稍微+V[一个字]+一/了+V[一个字]","尤其+Adj","Sentence，尤其+是+N","Sentence，尤其（+是）+V","大都+V/Adj","不时（+地）+V","将+V","将要+V（+了）","仍旧+V","仍旧+没/没有/不+V","时常+V","时刻+V","依旧+Adj/V","一向+V","偶尔+V","再次+V","不要/避免+再次+V","偷偷（+地）+V","没（有）/不+偷偷（+地）+V","毕竟+V/Adj","Sentence，不免+V/Adj","差（一）点儿+（就）+V","倒是+V/Adj","V[一个字]+得+倒是+Adj","S+倒是+V/Adj，就是/可是+sentence","干脆+V","就+是/在+N","就+V/Adj","居然+V","S+可+V","S+可+不+Adj","V+得+可+不+Adj","明明+V/Adj，sentence","总算+V","随着+N+的+V，Sentence","随着+N+的+V（+而）+Adj","将+N+V","由+N/Pronoun(+来）+V","凭（+着）+N+V","凭（+着）+N，Sentence","依据+N+V","依据+N，Sentence","依照+N+V","依照+N，Sentence","Sentence，从而+V","Sentence，加上（+S）+V/Adj，（所以）+sentence","Sentence，完了+V","一旦+V，sentence","V+上（+O）+了","V+起来+了","V+起+O+来+了","V+下去","V+下来（+了）","S+V[一个字]+得（+O）","V+不得（+O）","V+得+V+不得","V/Adj+得+不得了","V/Adj+得+慌","V/Adj+得+厉害","V/Adj+坏+了","V/Adj+透(+O)+了","再也不+V+了","再也没+V+过","怎么都/也+不+V","怎么都/也+V+不+Adj/V","怎么都/也+没+V","V1+也不是，V2+也不是","Adj+得+V1+也不是，V2+也不是","V1+也+V1+不得，V2+也+V2+不得","V1+得+V2+也+V2+不得，V3+也+V3+不得","N1/V1/Adj1+是它，N2/V2/Adj2+也是它","V/Adj着+也是+V/Adj着，sentence","V1/N1/Pronoun1+归+V1/N1/Pronoun1，V2/N2/Pronoun2+归+V2/N2/Pronoun2，sentence","不管怎么说，sentence","看/瞧+Pronoun+V/Adj+的","真+有+Pronoun+的","V/Adj/Pronoun+什么+V/Adj/Pronoun","什么+N/V/Adj+不+N/V/Adj（+的）","V来V去","V/Adj+着+V/Adj着（+就）+V","S+没+N1/V1/Adj1+没+N2/V2/Adj2","没+N1/V1/Adj1+没+N2/V2/Adj2+的+N","没+N1/V1/Adj1+没+N2/V2/Adj2+地+V","说+V/Adj+就+V/Adj","说+V/Adj+就+V/Adj+的+N","有+N1/V1/Adj1+有+N2/V2/Adj2","有+N1/V1+有+N2/V2+的+N","有+V1+有+V2+地+V","被+V+得+有+N1/Adj1+有+N2/Adj2","S+不得了","不得了了，sentence","不得了+的+N","S+不敢当","（S+）得了（+啊/吧），sentence","Sentence+得了","用不着+V","S+用不着","从+N+来看，Sentence","S+到+N+为止","到+N+为止，Sentence","V+到+N/VP+为止","够+Adj/V+的","拿......来说，Sentence","S+Adj1/V1+的+Adj1/V1,Adj2/V2+的+Adj2/V2","V+得+Adj1/V1+的+Adj1/V1,Adj2/V2+的+Adj2/V2","在+N/Pronoun+看来，Sentence","有+着+O","Place+有+着+O","Place+V+有+O","把+O+adverbial（状语）+V","把+O+一+V[一个字]","把+O+V+了","把+O1+V+O2","S（patient[受事]）+V（+了）","S+叫/令/使/让+Sb+V","跟+N/Pronoun/V+相比,sentence","N1/Pronoun1+Adj+N2/Pronoun2+Number","或是+N1/V1，或是+N2/V2","尽管+sentence，但是/可是+sentence","一旦+V，就+V","要是+Sentence，就+V，否则+Sentence","除非+Sentence，才+V","除非+sentence，否则/不然+Sentence","sentence，因而+sentence","即使+Sentence，也+V","Sentence，为的是+V","Sentence，以便+V","没有+N1+就没有+N2","（S+）再+Adj+也+V"
+    ];
+    const LEVEL_MAP = {1: HSK1_RAW, 2: HSK2_RAW, 3: HSK3_RAW, 4: HSK4_RAW, 5: HSK5_RAW};
+    // 例句映射简化（使用表格中的典型例句）
+    const EXAMPLE_MAP = new Map();
+    const HSK1_EXAMPLES = {"N+上（不要代词，表示地点）":"书在桌子上","N+下":"小狗在桌下睡觉","N+里":"礼物在书包里","会+V":"我男朋友会打篮球","能+V":"小王能来上课","想+V":"我想学中文","一边+V1,一边+V2":"他一边走路，一边唱歌"};
+    const HSK2_EXAMPLES = {"可能+V":"他可能出去了","可以+V":"我们可以去看电影","应该+V":"你应该去上课","V+过":"我去过中国"};
+    const HSK3_EXAMPLES = {"敢+V":"我敢说他一定不知道","需要+V":"她需要休息","把+O+V+在/到+Place":"老师把书放在桌子上了"};
+    const HSK4_EXAMPLES = {"得+V":"我得去上课了","人家+V/Adj":"人家都走了，你怎么还不走？","把+O+VV":"同学们再把试卷检查检查"};
+    const HSK5_EXAMPLES = {"彼此+都+V":"彼此都不认识","一旦+V，sentence":"一旦有什么困难，尽管来找我","即使+Sentence，也+V":"即使生病了，也坚持工作"};
+    for(let p of HSK1_RAW) EXAMPLE_MAP.set(p, HSK1_EXAMPLES[p] || "书在桌子上");
+    for(let p of HSK2_RAW) EXAMPLE_MAP.set(p, HSK2_EXAMPLES[p] || "他可能出去了");
+    for(let p of HSK3_RAW) EXAMPLE_MAP.set(p, HSK3_EXAMPLES[p] || "我敢说他一定不知道");
+    for(let p of HSK4_RAW) EXAMPLE_MAP.set(p, HSK4_EXAMPLES[p] || "我得去上课了");
+    for(let p of HSK5_RAW) EXAMPLE_MAP.set(p, HSK5_EXAMPLES[p] || "彼此都不认识");
+
+    let grammarList = [], usedMap = new Map();
+    let mistakeNotebook = [];
+    let currentSessionClauses = [], chatHistory = [];
+    let sessionStart = Date.now(), sessionNewCategories = 0, totalMinutes = 0;
+    let currentPracticeGrammar = null, lastGeneratedSentences = new Map();
+
+    // DOM
+    const chatMessages = document.getElementById('chatMessages'), userInput = document.getElementById('userInput');
+    const sendBtn = document.getElementById('sendBtn'), endBtn = document.getElementById('endConversationBtn');
+    const levelProgressDiv = document.getElementById('levelProgress'), resetGlobalBtn = document.getElementById('resetGlobalBtn');
+    const apiKeyInput = document.getElementById('apiKeyInput'), grammarLibraryList = document.getElementById('grammarLibraryList');
+    const grammarViewLevel = document.getElementById('grammarViewLevel'), trackListDiv = document.getElementById('trackList');
+    const downloadStatsBtn = document.getElementById('downloadStatsBtn'), aiLevelSelect = document.getElementById('aiLevelSelect');
+    const targetLangSelect = document.getElementById('targetLanguageSelect'), mistakeNotebookDiv = document.getElementById('mistakeNotebookList');
+    const modal = document.getElementById('grammarModal'), practiceModal = document.getElementById('practiceModal');
+    const modalContentDiv = document.getElementById('modalDynamicContent'), closeModalSpan = document.querySelector('.close-modal');
+    const closePracticeSpan = document.querySelector('.close-practice-modal');
+
+    function escapeHtml(s){ return String(s).replace(/[&<>]/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])); }
+    function addMessage(role, content, isHtml=false){ const div=document.createElement('div'); div.className=`message ${role}-message`; div.innerHTML=`<div class="bubble ${role}-bubble">${isHtml?content:escapeHtml(content)}</div><div class="timestamp">${new Date().toLocaleTimeString()}</div>`; chatMessages.appendChild(div); chatMessages.scrollTop=chatMessages.scrollHeight; }
+    function addAssistantMessage(txt, isHtml=false){ addMessage('assistant', txt, isHtml); }
+    function splitClauses(text){ return text.split(/[，,。；;！!？?]+/).filter(s=>s.trim().length>0).map(s=>s.trim()); }
+    function saveFullState(){ const entries=Array.from(usedMap.entries()).map(([k,v])=>({key:k, value:{count:v.count, level:v.level, examples:v.examples}})); localStorage.setItem(STORAGE_KEY, JSON.stringify({entries})); localStorage.setItem(MISTAKE_STORAGE, JSON.stringify(mistakeNotebook)); localStorage.setItem('HSK_TOTAL_MINUTES', totalMinutes); }
+    function loadFullState(){ const raw=localStorage.getItem(STORAGE_KEY); if(raw){ try{ const state=JSON.parse(raw); if(state.entries){ usedMap.clear(); for(let e of state.entries) usedMap.set(e.key, {count:e.value.count, level:e.value.level, examples:e.value.examples||[]}); } }catch(e){} } const mins=localStorage.getItem('HSK_TOTAL_MINUTES'); if(mins) totalMinutes=parseFloat(mins)||0; const mistakeRaw=localStorage.getItem(MISTAKE_STORAGE); if(mistakeRaw) mistakeNotebook=JSON.parse(mistakeRaw); else mistakeNotebook=[]; renderMistakeBook(); }
+    function renderMistakeBook(){ if(!mistakeNotebookDiv) return; if(mistakeNotebook.length===0){ mistakeNotebookDiv.innerHTML='<div class="empty-detail">暂无错句，结束对话后自动记录</div>'; return; } let html=''; for(let item of mistakeNotebook){ html+=`<div class="mistake-item"><div class="mistake-original">❌ ${escapeHtml(item.original)}</div><div>✅ ${escapeHtml(item.corrected)}</div><div>📌 ${escapeHtml(item.grammarPattern||'无')} (HSK${item.level})</div></div>`; } mistakeNotebookDiv.innerHTML=html; }
+    function addMistake(original, corrected, grammarPattern, level){ mistakeNotebook.unshift({original, corrected, grammarPattern, level}); if(mistakeNotebook.length>50) mistakeNotebook.pop(); saveFullState(); renderMistakeBook(); }
+    function buildFullGrammarList(){ let arr=[]; for(let lv=1;lv<=5;lv++) for(let p of LEVEL_MAP[lv]) arr.push({pattern:p, level:lv}); return arr; }
+    function refreshAll(){ grammarList=buildFullGrammarList(); renderLevelProgress(); updateGrammarDisplayByLevel(parseInt(grammarViewLevel.value)); renderTrackList(); saveFullState(); }
+    function renderLevelProgress(){ const totalByLevel=new Map(), usedByLevel=new Map(); for(let i=1;i<=5;i++){ totalByLevel.set(i,0); usedByLevel.set(i,0); } grammarList.forEach(g=>{ totalByLevel.set(g.level, totalByLevel.get(g.level)+1); }); for(let [_,entry] of usedMap.entries()) usedByLevel.set(entry.level, usedByLevel.get(entry.level)+1); let html=''; for(let lv=1;lv<=5;lv++){ const total=totalByLevel.get(lv)||0, used=usedByLevel.get(lv)||0; const percent=total===0?0:(used/total*100).toFixed(1); html+=`<div class="level-row" data-level="${lv}"><span>HSK ${lv}</span><div class="progress-bar-bg"><div class="progress-bar-fill" style="width:${percent}%;"></div></div><span>${used}/${total}</span></div>`; } levelProgressDiv.innerHTML=html; document.querySelectorAll('.level-row').forEach(row=>row.addEventListener('click',()=>openGrammarDetailModal(parseInt(row.dataset.level)))); }
+    function updateGrammarDisplayByLevel(level){ const patterns=LEVEL_MAP[level]; if(!patterns){ grammarLibraryList.innerHTML='<div>暂无语法</div>'; return; } let html=`<div class="grammar-list-scroll">`; for(let pattern of patterns){ const entry=usedMap.get(pattern); const count=entry?entry.count:0; let status=''; if(count>=ACQUIRED_THRESHOLD) status=`<span class="mastered-tag">✅已习得</span>`; else if(count===0) status=`<span class="not-mastered-tag">📖未用</span>`; let example=EXAMPLE_MAP.get(pattern)||''; let titleAttr=example?` title="${escapeHtml(example)}"`:''; html+=`<div class="grammar-list-item" data-pattern="${escapeHtml(pattern)}" data-level="${level}"${titleAttr}><span class="grammar-pattern">${escapeHtml(pattern.length>55?pattern.slice(0,52)+'…':pattern)}</span><span class="grammar-usage">${count}</span>${status}</div>`; } html+=`</div>`; grammarLibraryList.innerHTML=html; document.querySelectorAll('.grammar-list-item').forEach(el=>el.addEventListener('click',()=>{ const pat=el.dataset.pattern, lv=parseInt(el.dataset.level); currentPracticeGrammar={pattern:pat, level:lv}; generateAndShowPractice(pat,lv); })); }
+    function renderTrackList(){ const items=Array.from(usedMap.entries()).map(([pat,entry])=>({pattern:pat, level:entry.level, count:entry.count})); items.sort((a,b)=>a.level-b.level); if(items.length===0){ trackListDiv.innerHTML='<div class="empty-detail">暂无语法记录</div>'; return; } let html=''; for(let item of items){ html+=`<div class="track-item" data-pattern="${escapeHtml(item.pattern)}"><span>HSK${item.level} ${escapeHtml(item.pattern.slice(0,45))}</span><span>${item.count}</span></div>`; } trackListDiv.innerHTML=html; document.querySelectorAll('.track-item').forEach(el=>el.addEventListener('click',()=>{ const pat=el.dataset.pattern; const entry=usedMap.get(pat); if(entry) openGrammarDetailModalWithEntry(pat,entry); })); }
+    function openGrammarDetailModalWithEntry(pattern, entry){ const items=[{pattern, level:entry.level, count:entry.count, examples:entry.examples}]; renderGrammarDetailModal(items); modal.style.display='block'; }
+    function openGrammarDetailModal(level=null){ const items=[]; for(let [pattern,entry] of usedMap.entries()) if(level===null||entry.level===level) items.push({pattern, level:entry.level, count:entry.count, examples:entry.examples}); items.sort((a,b)=>a.level-b.level); renderGrammarDetailModal(items); modal.style.display='block'; }
+    function renderGrammarDetailModal(items){ if(items.length===0){ modalContentDiv.innerHTML='<div class="empty-detail">无语法使用记录</div>'; return; } let html=`<table class="grammar-detail-table"><thead><tr><th>语法格式</th><th>次数</th><th>例句(可纠正)</th></tr></thead><tbody>`; for(let it of items){ const fixed=extractFixedChars(it.pattern); let exHtml=''; for(let ex of it.examples){ exHtml+=`<div>📌 ${highlightFixedWords(ex.sentence, fixed)} <button class="feedback-correct" data-pattern="${escapeHtml(it.pattern)}" data-sentence="${escapeHtml(ex.sentence)}">✅准确</button> <button class="feedback-incorrect" data-pattern="${escapeHtml(it.pattern)}" data-sentence="${escapeHtml(ex.sentence)}">❌不准确</button></div>`; } html+=`<tr><td><span class="level-tag">HSK${it.level}</span> ${escapeHtml(it.pattern)}${it.count>=ACQUIRED_THRESHOLD?' <span class="acquired-badge">已习得</span>':''}</td><td>✖️ ${it.count}</td><td>${exHtml||'—'}</td>`; } html+=`</tbody></table>`; modalContentDiv.innerHTML=html; document.querySelectorAll('.feedback-correct, .feedback-incorrect').forEach(btn=>{ btn.addEventListener('click',()=>{ const pattern=btn.dataset.pattern, sentence=btn.dataset.sentence, entry=usedMap.get(pattern); if(!entry) return; if(btn.classList.contains('feedback-correct')){ const ex=entry.examples.find(e=>e.sentence===sentence); if(ex) ex.feedback=true; saveFullState(); openGrammarDetailModal(); } else { const idx=entry.examples.findIndex(e=>e.sentence===sentence); if(idx!==-1) entry.examples.splice(idx,1); if(entry.count>0) entry.count--; if(entry.count===0) usedMap.delete(pattern); saveFullState(); refreshAll(); if(modal.style.display==='block') openGrammarDetailModal(); } }); }); }
+    function extractFixedChars(pattern){ let noParen=pattern.replace(/[（(][^）)]*[）)]/g,''); const parts=noParen.split('+'); const fixed=[]; for(let part of parts){ if(/[\/A-Za-z]/.test(part)&&!/[\u4e00-\u9fa5]/.test(part)) continue; const chinese=part.match(/[\u4e00-\u9fa5]+/g); if(chinese) fixed.push(...chinese); else if(part.trim().length>0) fixed.push(part); } return fixed; }
+    function highlightFixedWords(sentence, fixedWords){ if(!fixedWords.length) return escapeHtml(sentence); let result=escapeHtml(sentence); for(let w of fixedWords) result=result.replace(new RegExp(escapeHtml(w),'g'),`<span class="example-highlight">${escapeHtml(w)}</span>`); return result; }
+    function updateStatsUI(){ document.getElementById('statSessionTime').innerText=Math.floor((Date.now()-sessionStart)/60000)+"分钟"; document.getElementById('statTotalTime').innerText=Math.floor(totalMinutes)+"分钟"; document.getElementById('statSessionNew').innerText=sessionNewCategories; document.getElementById('statTotalCategories').innerText=usedMap.size; }
+    function resetGlobal(){ if(confirm("重置所有语法记录？")){ usedMap.clear(); mistakeNotebook=[]; saveFullState(); refreshAll(); addAssistantMessage("已重置全局语法记录。"); } }
+    async function chatWithContext(userMsg){ const apiKey=apiKeyInput.value.trim(); if(!apiKey) return "❌ 请填写API Key。"; const level=parseInt(aiLevelSelect.value); const system=`你是HSK${level}级中文对话助手。请用自然的中文回复，保持友好且切题。句子长度适中，不要太短也不要太长。使用符合HSK${level}级的词汇和语法。`; const messages=[{role:'system',content:system},...chatHistory,{role:'user',content:userMsg}]; try{ const resp=await fetch('https://api.deepseek.com/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${apiKey}`}, body:JSON.stringify({model:'deepseek-chat', messages, temperature:0.7})}); const data=await resp.json(); let reply=data.choices[0].message.content; reply=reply.replace(/\n/g,'<br>'); chatHistory.push({role:'user',content:userMsg},{role:'assistant',content:reply}); if(chatHistory.length>30) chatHistory=chatHistory.slice(-30); return reply; }catch(e){ return `网络错误`; } }
+    async function analyzeGrammarBatch(clauses){ const apiKey=apiKeyInput.value.trim(); if(!apiKey) return null; const activeList=grammarList.filter(g=>{ const e=usedMap.get(g.pattern); return !e||e.count<ACQUIRED_THRESHOLD; }); if(activeList.length===0) return []; const prompt=`你是语法匹配专家。根据语法表格输出每个句子匹配的语法格式。表格：${activeList.map(g=>`${g.pattern}(HSK${g.level})`).join("\n")}。输出JSON：[{"sentence":"...","matches":[{"pattern":"...","level":1}]}]`; try{ const resp=await fetch('https://api.deepseek.com/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${apiKey}`}, body:JSON.stringify({model:'deepseek-chat', messages:[{role:'system',content:prompt},{role:'user',content:`句子列表: ${JSON.stringify(clauses)}`}], temperature:0.1, response_format:{type:'json_object'}})}); const data=await resp.json(); let content=data.choices[0].message.content; content=content.replace(/```json/g,'').replace(/```/g,'').trim(); return JSON.parse(content); }catch(e){ return null; } }
+    function findMatchingPattern(returnedPattern){ return grammarList.find(g=>g.pattern===returnedPattern)||grammarList.find(g=>g.pattern.includes(returnedPattern)||returnedPattern.includes(g.pattern)); }
+    function mergeAnalysisResults(results){ if(!results) return; let newCount=0; for(let item of results){ for(let match of (item.matches||[])){ const gram=findMatchingPattern(match.pattern); if(!gram) continue; const entry=usedMap.get(gram.pattern); const sentence=item.sentence; if(entry&&entry.count>=ACQUIRED_THRESHOLD) continue; const sameExists=entry?entry.examples.some(ex=>ex.sentence===sentence):false; if(!entry){ usedMap.set(gram.pattern,{count:1, level:gram.level, examples:[{sentence, feedback:null}]}); newCount++; } else if(!sameExists && entry.count<ACQUIRED_THRESHOLD){ entry.count++; entry.examples.push({sentence, feedback:null}); usedMap.set(gram.pattern,entry); } } } if(newCount) sessionNewCategories+=newCount; saveFullState(); refreshAll(); }
+    async function handleEndConversation(){ if(currentSessionClauses.length===0){ addAssistantMessage("本轮没有句子。"); return; } addAssistantMessage(`🔍 正在分析${currentSessionClauses.length}个句子...`); const analysis=await analyzeGrammarBatch(currentSessionClauses); if(analysis) mergeAnalysisResults(analysis); currentSessionClauses=[]; addAssistantMessage("✅ 语法分析完成，错句已自动收录（若有）。"); }
+    async function handleUserMessage(){ let text=userInput.value.trim(); if(!text) return; userInput.value=''; addMessage('user',text); currentSessionClauses.push(...splitClauses(text)); const reply=await chatWithContext(text); if(reply) addAssistantMessage(reply); else addAssistantMessage("回复失败"); }
+    function downloadReport(){ let content="学习报告\n语法点使用统计:\n"+Array.from(usedMap.entries()).map(([p,e])=>`${p}:${e.count}次`).join("\n")+"\n\n错句本:\n"+mistakeNotebook.map(m=>`${m.original} -> ${m.corrected}`).join("\n"); const blob=new Blob([content],{type:'text/plain'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='hsk_report.txt'; a.click(); }
+    let practiceIsSpeaking=false;
+    function speakChinese(text){ if('speechSynthesis' in window && !practiceIsSpeaking){ practiceIsSpeaking=true; window.speechSynthesis.cancel(); const utter=new SpeechSynthesisUtterance(text); utter.lang='zh-CN'; utter.rate=0.9; utter.onend=()=>{ practiceIsSpeaking=false; }; window.speechSynthesis.speak(utter); } }
+    function parsePinyinString(str){ const chars=[], pinyins=[]; let i=0; while(i<str.length){ const ch=str[i]; if(ch.match(/[\u4e00-\u9fff]/)){ if(i+1<str.length && str[i+1]==='('){ const close=str.indexOf(')',i+2); if(close!==-1){ chars.push(ch); pinyins.push(str.substring(i+2,close)); i=close+1; continue; } } chars.push(ch); pinyins.push(null); i++; } else i++; } return {chars, pinyins}; }
+    function renderPractice(exerciseData){ const { grammarPattern, grammarLevel, english, hint, chineseRaw, chars, pinyins } = exerciseData; let html=`<div class="practice-grammar-info"><strong>🎯 ${escapeHtml(grammarPattern)} (HSK${grammarLevel})</strong></div><div class="practice-english-sentence">${escapeHtml(english)}<div class="practice-hint">📝 提示：${escapeHtml(hint)}</div></div><div class="practice-input-container" id="practiceInputContainer"></div><div class="practice-feedback" id="practiceFeedback"></div><div style="text-align:center;"><button class="practice-btn" id="practiceCheckBtn">✓ 检查 (回车)</button><button class="practice-btn" id="practiceResetBtn">⟳ 重来 (、)</button><button class="practice-btn" id="practiceNewBtn">✨ 新题目 (=)</button><button class="practice-btn" id="practiceNextBtn">⏩ 下一个 (-)</button><button class="practice-btn" id="practiceSpeakBtn">🔊 朗读 (])</button></div>`; practiceContent.innerHTML=html; const container=document.getElementById('practiceInputContainer'); const inputBoxes=[]; for(let i=0;i<chars.length;i++){ const box=document.createElement('div'); box.className='practice-input-box'; const input=document.createElement('input'); input.type='text'; input.removeAttribute('maxlength'); input.dataset.correct=chars[i]; const pinyinSpan=document.createElement('div'); pinyinSpan.className='practice-pinyin'; pinyinSpan.textContent=pinyins[i]||''; box.appendChild(input); box.appendChild(pinyinSpan); container.appendChild(box); inputBoxes.push(input); let isComposing=false; input.addEventListener('compositionstart',()=>{ isComposing=true; }); input.addEventListener('compositionend',()=>{ isComposing=false; const fullText=input.value; if(fullText.length===0) return; const chineseChars=fullText.split('').filter(ch=>/[\u4e00-\u9fff]/.test(ch)); if(chineseChars.length===0) return; input.value=chineseChars[0]; input.classList.add('completed'); let fillIndex=i+1; for(let j=1;j<chineseChars.length && fillIndex<inputBoxes.length;j++){ const targetInput=inputBoxes[fillIndex]; if(targetInput){ targetInput.value=chineseChars[j]; targetInput.classList.add('completed'); } fillIndex++; } if(fillIndex<inputBoxes.length) inputBoxes[fillIndex].focus(); else if(inputBoxes.length>0) inputBoxes[inputBoxes.length-1].focus(); }); input.addEventListener('input',(e)=>{ if(isComposing) return; const val=input.value; if(val.length===1 && /[\u4e00-\u9fff]/.test(val)){ input.classList.add('completed'); if(i+1<inputBoxes.length) inputBoxes[i+1].focus(); } else if(val.length===0) input.classList.remove('completed','correct','incorrect'); }); input.addEventListener('keydown',(e)=>{ if(e.key==='Backspace'){ if(input.value!==''){ input.value=''; input.classList.remove('completed','correct','incorrect'); e.preventDefault(); } else if(i>0){ const prev=inputBoxes[i-1]; prev.value=''; prev.classList.remove('completed','correct','incorrect'); prev.focus(); e.preventDefault(); } } else if(e.key==='ArrowLeft'){ e.preventDefault(); if(i>0) inputBoxes[i-1].focus(); } else if(e.key==='ArrowRight'){ e.preventDefault(); if(i+1<inputBoxes.length) inputBoxes[i+1].focus(); } else if(e.key===' '){ e.preventDefault(); if(i+1<inputBoxes.length) inputBoxes[i+1].focus(); } else if(e.key==='Enter'){ e.preventDefault(); document.getElementById('practiceCheckBtn').click(); } }); } setTimeout(()=>{ if(inputBoxes.length) inputBoxes[0].focus(); },100); document.getElementById('practiceCheckBtn').onclick=()=>{ let allCorrect=true; inputBoxes.forEach(inp=>{ const user=inp.value.trim(); const correct=inp.dataset.correct; if(user===correct){ inp.classList.add('correct'); inp.classList.remove('incorrect'); } else{ inp.classList.add('incorrect'); inp.classList.remove('correct'); allCorrect=false; } }); const fb=document.getElementById('practiceFeedback'); if(allCorrect){ fb.textContent='✅ 完全正确！'; fb.style.color='#27ae60'; } else{ fb.textContent='❌ 有错误，再试试看！'; fb.style.color='#e74c3c'; } }; document.getElementById('practiceResetBtn').onclick=()=>{ inputBoxes.forEach(inp=>{ inp.value=''; inp.classList.remove('correct','incorrect','completed'); }); document.getElementById('practiceFeedback').textContent=''; if(inputBoxes.length) inputBoxes[0].focus(); }; document.getElementById('practiceNewBtn').onclick=()=>{ if(currentPracticeGrammar) generateAndShowPractice(currentPracticeGrammar.pattern, currentPracticeGrammar.level, true); else alert("请重新点击语法点。"); }; document.getElementById('practiceNextBtn').onclick=()=>{ if(!currentPracticeGrammar) return; const currentLevel=currentPracticeGrammar.level; const patternList=LEVEL_MAP[currentLevel]; if(!patternList||patternList.length===0){ alert("当前等级没有其他语法点。"); return; } const currentIndex=patternList.findIndex(p=>p===currentPracticeGrammar.pattern); let nextIndex=(currentIndex+1)%patternList.length; const nextPattern=patternList[nextIndex]; currentPracticeGrammar={pattern:nextPattern, level:currentLevel}; generateAndShowPractice(nextPattern, currentLevel, true); }; document.getElementById('practiceSpeakBtn').onclick=()=>{ speakChinese(chineseRaw); }; }
+    async function generateAndShowPractice(grammarPattern, grammarLevel, forceNew=false){ const apiKey=apiKeyInput.value.trim(); if(!apiKey){ alert("请填写API Key"); return; } const targetLang=targetLangSelect.value; practiceContent.innerHTML='<div class="loading">🤖 生成题目中...</div>'; practiceModal.style.display='block'; if(!lastGeneratedSentences.has(grammarPattern)) lastGeneratedSentences.set(grammarPattern,new Set()); const historySet=lastGeneratedSentences.get(grammarPattern); let historyStr=""; if(historySet.size>0) historyStr="不要与以下任何句子相同："+Array.from(historySet).join("；")+"。"; const prompt=`你是一位 HSK 汉语教师。请根据以下语法点生成一个“${targetLang}译中文”练习题。
+语法点模式：${grammarPattern} (HSK${grammarLevel})
+要求：
+1. 生成一个${targetLang}句子，其中必须使用该语法结构。只能使用${targetLang}，禁止使用英语或其他语言。
+2. 给出该语法点的具体形式（作为提示）。
+3. 给出完整正确的中文翻译（带拼音标注，拼音用括号跟在每个汉字后面，例如：我(wǒ) 去(qù) 上(shàng) 课(kè)）。
+4. 同时返回中文句子不带拼音的纯文本。
+${historyStr}
+输出格式为 JSON：{"english": "${targetLang}句子", "hint": "语法结构", "chinese": "带拼音的中文", "chineseRaw": "不带拼音的中文"}
+请直接输出 JSON，不要有任何额外解释。`; try{ const resp=await fetch('https://api.deepseek.com/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${apiKey}`}, body:JSON.stringify({model:'deepseek-chat', messages:[{role:'user',content:prompt}], temperature:0.9, response_format:{type:'json_object'}})}); const data=await resp.json(); let content=data.choices[0].message.content; content=content.replace(/```json/g,'').replace(/```/g,'').trim(); let aiResult=JSON.parse(content); const {chars,pinyins}=parsePinyinString(aiResult.chinese); const chineseRaw=aiResult.chineseRaw||aiResult.chinese.replace(/\([^)]+\)/g,''); historySet.add(chineseRaw); if(historySet.size>5){ const arr=Array.from(historySet); arr.shift(); lastGeneratedSentences.set(grammarPattern,new Set(arr)); } const exerciseData={grammarPattern, grammarLevel, english:aiResult.english, hint:aiResult.hint, chineseRaw, chars, pinyins}; renderPractice(exerciseData); }catch(err){ practiceContent.innerHTML=`<div class="loading" style="color:red;">❌ 生成失败：${err.message}</div>`; } }
+    // 快捷键监听（使用自定义键位）
+    document.addEventListener('keydown', (e) => {
+        if (practiceModal.style.display !== 'block') return;
+        const key = e.key;
+        if (key === ']') { e.preventDefault(); document.getElementById('practiceSpeakBtn')?.click(); }
+        else if (key === '-') { e.preventDefault(); document.getElementById('practiceNextBtn')?.click(); }
+        else if (key === '、' || key === '`') { e.preventDefault(); document.getElementById('practiceResetBtn')?.click(); }
+        else if (key === '=') { e.preventDefault(); document.getElementById('practiceNewBtn')?.click(); }
+    });
+    function init(){ loadFullState(); refreshAll(); addAssistantMessage(`✅ 已加载 HSK1-5 语法库，总计 ${grammarList.length} 条。选择母语和AI难度，开始聊天。`); apiKeyInput.value=localStorage.getItem(API_KEY_STORAGE)||'sk-10806fc904a04e618daa622fdb8d0878'; apiKeyInput.addEventListener('change',()=>localStorage.setItem(API_KEY_STORAGE,apiKeyInput.value)); sendBtn.onclick=handleUserMessage; endBtn.onclick=handleEndConversation; resetGlobalBtn.onclick=resetGlobal; downloadStatsBtn.onclick=downloadReport; userInput.addEventListener('keypress',e=>{ if(e.key==='Enter') handleUserMessage(); }); grammarViewLevel.addEventListener('change',()=>updateGrammarDisplayByLevel(parseInt(grammarViewLevel.value))); closeModalSpan.onclick=()=>modal.style.display='none'; closePracticeSpan.onclick=()=>practiceModal.style.display='none'; window.onclick=e=>{ if(e.target===modal) modal.style.display='none'; if(e.target===practiceModal) practiceModal.style.display='none'; }; setInterval(()=>{ let delta=(Date.now()-sessionStart)/60000; if(delta>0){ totalMinutes+=delta; sessionStart=Date.now(); saveFullState(); updateStatsUI(); } },60000); }
+    init();
+})();
+</script>
+</body>
+</html>
