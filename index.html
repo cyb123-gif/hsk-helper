@@ -6482,10 +6482,12 @@ async function handleEndConversation(){ if(chatAbortController){ chatAbortContro
     let practiceIsSpeaking=false;
     // ========== 语音朗读 ==========
     // 解锁移动端音频播放（微信等WebView首次需用户手势激活AudioContext）
+    let unlockedAudio = null;
     (function unlockAudio(){
         const events=['touchstart','touchend','click'];
         function unlock(){
-            const a=new Audio(); a.play().then(()=>{ a.pause(); a.currentTime=0; }).catch(()=>{});
+            unlockedAudio = new Audio();
+            unlockedAudio.play().then(()=>{ unlockedAudio.pause(); unlockedAudio.currentTime=0; }).catch(()=>{});
             events.forEach(e=>document.removeEventListener(e,unlock));
         }
         events.forEach(e=>document.addEventListener(e,unlock,{once:true}));
@@ -6551,7 +6553,7 @@ async function handleEndConversation(){ if(chatAbortController){ chatAbortContro
             utter.onstart=()=>{ spoken=true; };
             utter.onend=()=>{ practiceIsSpeaking=false; };
             utter.onerror=()=>{ if(!spoken) doTTS(); else practiceIsSpeaking=false; };
-            setTimeout(()=>{ if(!spoken&&practiceIsSpeaking){ synth.cancel(); doTTS(); } },4000);
+            setTimeout(()=>{ if(!spoken&&practiceIsSpeaking){ synth.cancel(); doTTS(); } },1500);
             if(isIOS){ try { synth.speak(utter); } catch(_) { doTTS(); } }
             else { setTimeout(()=>{ try { synth.speak(utter); } catch(_) { doTTS(); } },80); }
         };
@@ -6564,13 +6566,14 @@ async function handleEndConversation(){ if(chatAbortController){ chatAbortContro
     }
     let ttsAudio = null;
     async function ttsBaiduFallback(text){
-        if(ttsAudio){ ttsAudio.pause(); ttsAudio=null; }
         const fb=document.getElementById('practiceFeedback');
         try {
             const url=`https://fanyi.baidu.com/gettts?lan=zh&text=${encodeURIComponent(text)}&spd=3&source=web`;
-            ttsAudio=new Audio(url);
-            ttsAudio.onended=()=>{ ttsAudio=null; practiceIsSpeaking=false; };
-            ttsAudio.onerror=()=>{ ttsAudio=null; practiceIsSpeaking=false; if(fb) fb.textContent='🔇 语音暂不可用'; };
+            if(unlockedAudio){ ttsAudio=unlockedAudio; unlockedAudio=null; }
+            else { ttsAudio=new Audio(); }
+            ttsAudio.src=url;
+            ttsAudio.onended=()=>{ practiceIsSpeaking=false; };
+            ttsAudio.onerror=()=>{ practiceIsSpeaking=false; if(fb) fb.textContent='🔇 语音暂不可用'; };
             practiceIsSpeaking=true;
             ttsAudio.play();
         } catch(e){ practiceIsSpeaking=false; if(fb) fb.textContent='🔇 语音暂不可用'; }
