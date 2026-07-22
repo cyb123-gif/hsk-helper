@@ -6525,11 +6525,12 @@ async function handleEndConversation(){ if(chatAbortController){ chatAbortContro
         if(!('speechSynthesis' in window)){ ttsFallbackSpeak(text); return; }
         const synth = window.speechSynthesis;
         if(!synth){ ttsFallbackSpeak(text); return; }
-        if(!speechAvailable && !isIOS){ ttsFallbackSpeak(text); return; }
-        if(practiceIsSpeaking) return;
-        practiceIsSpeaking=true;
         // iOS: prime engine on first speak (needs user gesture context)
         if(isIOS && !speechAvailable){ primeSpeechSynthesis(); speechAvailable=true; }
+        if(practiceIsSpeaking) return;
+        practiceIsSpeaking=true;
+        let ttsFired=false;
+        const doTTS=()=>{ if(!ttsFired){ ttsFired=true; practiceIsSpeaking=false; ttsFallbackSpeak(text); } };
         try { synth.resume(); } catch(_) {}
         synth.cancel();
         const utter=new SpeechSynthesisUtterance(text);
@@ -6538,14 +6539,9 @@ async function handleEndConversation(){ if(chatAbortController){ chatAbortContro
         const voices = synth.getVoices();
         const zhVoice = voices.find(v => v.lang.startsWith('zh'));
         if (zhVoice) utter.voice = zhVoice;
-        utter.onend=()=>{ practiceIsSpeaking=false; };
-        utter.onerror=(e)=>{
-            practiceIsSpeaking=false;
-            if(e.error==='language-unavailable'||e.error==='voice-unavailable'){
-                showToast(t('toast.no_chinese_voice'));
-            }
-        };
-        // iOS: speak directly (no delay needed), Chrome: small delay to avoid cancel-before-speak bug
+        utter.onerror=()=>{ doTTS(); };
+        const fbTimer=setTimeout(()=>{ if(practiceIsSpeaking){ synth.cancel(); doTTS(); } },3000);
+        utter.onend=()=>{ clearTimeout(fbTimer); practiceIsSpeaking=false; };
         if(isIOS){
             try { synth.speak(utter); } catch(_) { practiceIsSpeaking=false; }
         } else {
@@ -6558,7 +6554,10 @@ async function handleEndConversation(){ if(chatAbortController){ chatAbortContro
     async function ttsFallbackSpeak(text){
         if(ttsAudio){ ttsAudio.pause(); ttsAudio=null; }
         try {
-            const resp=await fetch(`https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=zh-CN&client=tw-ob`);
+            const ssml=`<speak version='1.0' xml:lang='zh-CN'><voice xml:lang='zh-CN' xml:gender='Female' name='zh-CN-XiaoxiaoNeural'>${text}</voice></speak>`;
+            const resp=await fetch('https://speech.platform.bing.com/consumer/speech/synthesize/readaloud/edge/v1?TrustedClientToken=6A5AA1D4EAFF4E9FB37E23D68491D6F4',{
+                method:'POST', headers:{'Content-Type':'application/ssml+xml'}, body:ssml
+            });
             if(!resp.ok) return;
             const blob=await resp.blob();
             const url=URL.createObjectURL(blob);
