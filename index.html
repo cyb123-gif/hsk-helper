@@ -6531,53 +6531,49 @@ async function handleEndConversation(){ if(chatAbortController){ chatAbortContro
     }
 
     function speakChinese(text){
-        if(!('speechSynthesis' in window)){ showToast(t('toast.no_speech_support')); return; }
+        if(!('speechSynthesis' in window)){ ttsBaiduFallback(text); return; }
         const synth = window.speechSynthesis;
-        if(!synth){ showToast(t('toast.no_speech_support')); return; }
+        if(!synth){ ttsBaiduFallback(text); return; }
         if(isIOS && !speechAvailable){ primeSpeechSynthesis(); speechAvailable=true; }
         if(practiceIsSpeaking) return;
         practiceIsSpeaking=true;
+        let ttsDone=false;
+        const doTTS=()=>{ if(!ttsDone){ ttsDone=true; practiceIsSpeaking=false; ttsBaiduFallback(text); } };
         const doSpeak=()=>{
             try { synth.resume(); } catch(_) {}
             synth.cancel();
             const utter=new SpeechSynthesisUtterance(text);
-            utter.lang='zh-CN';
-            utter.rate=0.9;
+            utter.lang='zh-CN'; utter.rate=0.9;
             const voices=synth.getVoices();
             const zhVoice=voices.find(v=>v.lang.startsWith('zh'));
             if(zhVoice) utter.voice=zhVoice;
+            let spoken=false;
+            utter.onstart=()=>{ spoken=true; };
             utter.onend=()=>{ practiceIsSpeaking=false; };
-            utter.onerror=()=>{ practiceIsSpeaking=false; showToast(t('toast.no_chinese_voice')); };
-            const fbTimer=setTimeout(()=>{ if(practiceIsSpeaking){ synth.cancel(); practiceIsSpeaking=false; showToast(t('toast.no_chinese_voice')); } },5000);
-            utter.onend=()=>{ clearTimeout(fbTimer); practiceIsSpeaking=false; };
-            if(isIOS){ try { synth.speak(utter); } catch(_) { practiceIsSpeaking=false; } }
-            else { setTimeout(()=>{ try { synth.speak(utter); } catch(_) { practiceIsSpeaking=false; } },80); }
+            utter.onerror=()=>{ if(!spoken) doTTS(); else practiceIsSpeaking=false; };
+            setTimeout(()=>{ if(!spoken&&practiceIsSpeaking){ synth.cancel(); doTTS(); } },4000);
+            if(isIOS){ try { synth.speak(utter); } catch(_) { doTTS(); } }
+            else { setTimeout(()=>{ try { synth.speak(utter); } catch(_) { doTTS(); } },80); }
         };
         let voices=synth.getVoices();
         if(voices&&voices.length>0){ doSpeak(); return; }
-        // Voices not yet loaded - wait for them (common on Android/iOS)
         let resolved=false;
         const onLoad=()=>{ if(!resolved){ resolved=true; synth.removeEventListener('voiceschanged',onLoad); doSpeak(); } };
         synth.addEventListener('voiceschanged',onLoad);
         setTimeout(()=>{ if(!resolved){ resolved=true; synth.removeEventListener('voiceschanged',onLoad); doSpeak(); } },2000);
     }
     let ttsAudio = null;
-    async function ttsFallbackSpeak(text){
+    async function ttsBaiduFallback(text){
         if(ttsAudio){ ttsAudio.pause(); ttsAudio=null; }
+        const fb=document.getElementById('practiceFeedback');
         try {
-            const ssml=`<speak version='1.0' xml:lang='zh-CN'><voice xml:lang='zh-CN' xml:gender='Female' name='zh-CN-XiaoxiaoNeural'>${text}</voice></speak>`;
-            const resp=await fetch('https://speech.platform.bing.com/consumer/speech/synthesize/readaloud/edge/v1?TrustedClientToken=6A5AA1D4EAFF4E9FB37E23D68491D6F4',{
-                method:'POST', headers:{'Content-Type':'application/ssml+xml'}, body:ssml
-            });
-            if(!resp.ok) return;
-            const blob=await resp.blob();
-            const url=URL.createObjectURL(blob);
+            const url=`https://fanyi.baidu.com/gettts?lan=zh&text=${encodeURIComponent(text)}&spd=3&source=web`;
             ttsAudio=new Audio(url);
-            ttsAudio.onended=()=>{ URL.revokeObjectURL(url); ttsAudio=null; practiceIsSpeaking=false; };
-            ttsAudio.onerror=()=>{ URL.revokeObjectURL(url); ttsAudio=null; practiceIsSpeaking=false; };
+            ttsAudio.onended=()=>{ ttsAudio=null; practiceIsSpeaking=false; };
+            ttsAudio.onerror=()=>{ ttsAudio=null; practiceIsSpeaking=false; if(fb) fb.textContent='🔇 语音暂不可用'; };
             practiceIsSpeaking=true;
             ttsAudio.play();
-        } catch(e){ /* silently fail */ }
+        } catch(e){ practiceIsSpeaking=false; if(fb) fb.textContent='🔇 语音暂不可用'; }
     }
     function parsePinyinString(str){ const chars=[], pinyins=[]; let i=0; while(i<str.length){ const ch=str[i]; if(ch.match(/[\u4e00-\u9fff]/)){ if(i+1<str.length && str[i+1]==='('){ const close=str.indexOf(')',i+2); if(close!==-1){ const rawPinyin=str.substring(i+2,close); let gStart=i, gEnd=i+1; while(gEnd<str.length&&str[gEnd].match(/[\u4e00-\u9fff]/)&&gEnd+1<str.length&&str[gEnd+1]!=='('){ gEnd++; } const cnGroup=str.substring(gStart,gEnd); if(cnGroup.length>1){ const syllables=rawPinyin.match(/(?:[bpmfdtnlgkhjqxzcsryw](?:h)?|[aeiouü])[aeiouü]*[āáǎàēéěèīíǐìōóǒòūúǔùǖǘǚǜ][aeiouü]*(?:ng?)?/gi); if(syllables&&syllables.length===cnGroup.length){ for(let k=0;k<cnGroup.length;k++){ chars.push(cnGroup[k]); pinyins.push(syllables[k]); } i=close+1; continue; } } chars.push(ch); pinyins.push(rawPinyin); i=close+1; continue; } } chars.push(ch); pinyins.push(null); i++; } else i++; } return {chars, pinyins}; }
     function renderPractice(exerciseData){ if(practiceAutoSpeakTimer){ clearTimeout(practiceAutoSpeakTimer); practiceAutoSpeakTimer=null; } window.speechSynthesis?.cancel(); practiceIsSpeaking=false; const { grammarPattern, grammarLevel, english, hint, chineseRaw, chars, pinyins, briefExplanation, isVocab } = exerciseData; let headerHtml='<div class="practice-grammar-info"><strong>'+ (isVocab?'📖 ':'🎯 ') + escapeHtml(grammarPattern) + (isVocab?'':' ('+t('level.hsk_prefix')+grammarLevel+')') + '</strong>'+ (briefExplanation?'<div style="margin-top:6px;font-size:0.85rem;color:#475569;">💡 '+escapeHtml(briefExplanation)+'</div>':'') +'</div>'; let html=headerHtml+'<div class="practice-english-sentence">'+escapeHtml(english)+'<div class="practice-hint">'+t('practice.hint_prefix')+escapeHtml(hint)+'</div></div><div class="practice-input-container" id="practiceInputContainer"></div><div class="practice-feedback" id="practiceFeedback"></div><div style="text-align:center;"><button class="practice-btn" id="practiceCheckBtn">'+t('practice.check')+'</button><button class="practice-btn" id="practiceResetBtn">'+t('practice.reset')+'</button><button class="practice-btn" id="practiceNewBtn">'+t('practice.new')+'</button><button class="practice-btn" id="practiceNextBtn">'+t('practice.next')+'</button><button class="practice-btn speak-btn" id="practiceSpeakBtn">'+t('practice.speak')+'</button><button class="practice-btn" id="practicePinyinBtn">'+t('practice.pinyin')+'</button></div>'; practiceContent.innerHTML=html; const container=document.getElementById('practiceInputContainer'); const inputBoxes=[]; for(let i=0;i<chars.length;i++){ const box=document.createElement('div'); box.className='practice-input-box'; const input=document.createElement('input'); input.type='text'; input.removeAttribute('maxlength'); input.dataset.correct=chars[i]; const pinyinSpan=document.createElement('div'); pinyinSpan.className='practice-pinyin'; pinyinSpan.textContent=pinyins[i]||''; box.appendChild(input); box.appendChild(pinyinSpan); container.appendChild(box); inputBoxes.push(input); let isComposing=false; input.addEventListener('compositionstart',()=>{ isComposing=true; }); input.addEventListener('compositionend',()=>{ isComposing=false; const fullText=input.value; if(fullText.length===0) return; const chineseChars=fullText.split('').filter(ch=>/[\u4e00-\u9fff]/.test(ch)); if(chineseChars.length===0) return; input.value=chineseChars[0]; input.classList.remove('correct','incorrect'); input.classList.add('completed'); let fillIndex=i+1; for(let j=1;j<chineseChars.length && fillIndex<inputBoxes.length;j++){ const targetInput=inputBoxes[fillIndex]; if(targetInput){ targetInput.value=chineseChars[j]; targetInput.classList.remove('correct','incorrect'); targetInput.classList.add('completed'); } fillIndex++; } if(fillIndex<inputBoxes.length) inputBoxes[fillIndex].focus(); else if(inputBoxes.length>0) inputBoxes[inputBoxes.length-1].focus(); }); input.addEventListener('input',(e)=>{ if(isComposing) return; const val=input.value; if(val.length===0){ input.classList.remove('completed','correct','incorrect'); } else { const cc=val.split('').filter(ch=>/[\u4e00-\u9fff]/.test(ch)); if(cc.length>0){ input.value=cc[0]; input.classList.remove('correct','incorrect'); input.classList.add('completed'); let fi=i+1; for(let j=1;j<cc.length&&fi<inputBoxes.length;j++){ const ti=inputBoxes[fi]; if(ti){ ti.value=cc[j]; ti.classList.remove('correct','incorrect'); ti.classList.add('completed'); } fi++; } if(fi<inputBoxes.length) inputBoxes[fi].focus(); else if(inputBoxes.length>0) inputBoxes[inputBoxes.length-1].focus(); } } }); input.addEventListener('keydown',(e)=>{ if(e.key==='Backspace'){ if(input.value!==''){ input.value=''; input.classList.remove('completed','correct','incorrect'); e.preventDefault(); } else if(i>0){ const prev=inputBoxes[i-1]; prev.value=''; prev.classList.remove('completed','correct','incorrect'); prev.focus(); e.preventDefault(); } } else if(e.key==='ArrowLeft'){ e.preventDefault(); if(i>0) inputBoxes[i-1].focus(); } else if(e.key==='ArrowRight'){ e.preventDefault(); if(i+1<inputBoxes.length) inputBoxes[i+1].focus(); } else if(e.key===' '){ e.preventDefault(); if(i+1<inputBoxes.length) inputBoxes[i+1].focus(); } else if(e.key==='Enter'){ e.preventDefault(); document.getElementById('practiceCheckBtn').click(); } }); } setTimeout(()=>{ if(inputBoxes.length) inputBoxes[0].focus(); },100); let practiceChecked=false; document.getElementById('practiceCheckBtn').onclick=()=>{ if(practiceChecked) return; practiceChecked=true; let allCorrect=true; inputBoxes.forEach(inp=>{ const user=inp.value.trim(); const correct=inp.dataset.correct; if(user===correct){ inp.classList.add('correct'); inp.classList.remove('incorrect'); } else{ inp.classList.add('incorrect'); inp.classList.remove('correct'); allCorrect=false; } }); const fb=document.getElementById('practiceFeedback'); if(allCorrect){ fb.textContent=t('practice.correct_feedback'); fb.style.color='#27ae60'; } else{ fb.textContent=t('practice.incorrect_feedback'); fb.style.color='#e74c3c'; } if(isVocab){ const vEntry=vocabUsedMap.get(grammarPattern.replace('词汇: ','')); if(vEntry){ vEntry.practiceCount=(vEntry.practiceCount||0)+1; vocabUsedMap.set(grammarPattern.replace('词汇: ',''),vEntry); saveVocabState(); renderVocabLibrary(vEntry.level); renderVocabTrackList(); } } else { const gEntry=usedMap.get(grammarPattern); if(gEntry){ gEntry.practiceCount=(gEntry.practiceCount||0)+1; usedMap.set(grammarPattern,gEntry); saveFullState(); updateGrammarDisplayByLevel(grammarLevel); renderTrackList(); } } }; document.getElementById('practiceResetBtn').onclick=()=>{ inputBoxes.forEach(inp=>{ inp.value=''; inp.classList.remove('correct','incorrect','completed'); }); document.getElementById('practiceFeedback').textContent=''; if(inputBoxes.length) inputBoxes[0].focus(); }; document.getElementById('practiceNewBtn').onclick=()=>{ if(currentPracticeVocab) generateVocabPractice(currentPracticeVocab.word, currentPracticeVocab.level); else if(currentPracticeGrammar) generateAndShowPractice(currentPracticeGrammar.pattern, currentPracticeGrammar.level, true); else alert(t('practice.retry_alert')); }; document.getElementById('practiceNextBtn').onclick=()=>{ if(currentPracticeVocab){ const vocabLevel=currentPracticeVocab.level; const words=VOCAB_LEVEL_MAP[vocabLevel]; if(!words) return; const idx=words.findIndex(v=>v.w===currentPracticeVocab.word); const nextIdx=(idx+1)%words.length; const nw=words[nextIdx]; currentPracticeVocab={word:nw.w, level:nw.l}; generateVocabPractice(nw.w, nw.l); } else if(currentPracticeGrammar){ const currentLevel=currentPracticeGrammar.level; const patternList=LEVEL_MAP[currentLevel]; if(!patternList||patternList.length===0){ alert(t('practice.no_more_alert')); return; } const currentIndex=patternList.findIndex(p=>p===currentPracticeGrammar.pattern); let nextIndex=(currentIndex+1)%patternList.length; const nextPattern=patternList[nextIndex]; currentPracticeGrammar={pattern:nextPattern, level:currentLevel}; generateAndShowPractice(nextPattern, currentLevel, true); } }; document.getElementById('practiceSpeakBtn').onclick=()=>{ speakChinese(chineseRaw); }; document.getElementById('practicePinyinBtn').onclick=()=>{ document.getElementById('practiceInputContainer').classList.toggle('show-pinyin'); }; practiceAutoSpeakTimer=setTimeout(()=>speakChinese(chineseRaw),500); }
