@@ -6480,7 +6480,16 @@ async function handleEndConversation(){ if(chatAbortController){ chatAbortContro
     function downloadFavoriteReport(){ let rpt=t('report.fav_title')+new Date().toLocaleString()+'\n\n'; for(let item of favoriteSentences) rpt+='🇨🇳 '+item.chinese+'\n🌐 '+(item.translation||'')+'\n📅 '+(item.date||'')+'\n\n'; if(favoriteSentences.length===0) rpt+=t('report.no_favs')+'\n'; const blob=new Blob([rpt],{type:'text/plain;charset=utf-8'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='Favorites.txt'; a.click(); }
     function downloadReport(){ downloadGrammarReport(); }
     let practiceIsSpeaking=false;
-    // iOS 语音合成解锁：每次练习点击时在用户手势中 prime 引擎
+    // ========== 语音朗读 ==========
+    // 解锁移动端音频播放（微信等WebView首次需用户手势激活AudioContext）
+    (function unlockAudio(){
+        const events=['touchstart','touchend','click'];
+        function unlock(){
+            const a=new Audio(); a.play().then(()=>{ a.pause(); a.currentTime=0; }).catch(()=>{});
+            events.forEach(e=>document.removeEventListener(e,unlock));
+        }
+        events.forEach(e=>document.addEventListener(e,unlock,{once:true}));
+    })();
     let speechAvailable = false;
     const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
     function detectSpeechSupport(){
