@@ -6531,33 +6531,35 @@ async function handleEndConversation(){ if(chatAbortController){ chatAbortContro
     }
 
     function speakChinese(text){
-        if(!('speechSynthesis' in window)){ ttsFallbackSpeak(text); return; }
+        if(!('speechSynthesis' in window)){ showToast(t('toast.no_speech_support')); return; }
         const synth = window.speechSynthesis;
-        if(!synth){ ttsFallbackSpeak(text); return; }
-        // iOS: prime engine on first speak (needs user gesture context)
+        if(!synth){ showToast(t('toast.no_speech_support')); return; }
         if(isIOS && !speechAvailable){ primeSpeechSynthesis(); speechAvailable=true; }
         if(practiceIsSpeaking) return;
         practiceIsSpeaking=true;
-        let ttsFired=false;
-        const doTTS=()=>{ if(!ttsFired){ ttsFired=true; practiceIsSpeaking=false; ttsFallbackSpeak(text); } };
-        try { synth.resume(); } catch(_) {}
-        synth.cancel();
-        const utter=new SpeechSynthesisUtterance(text);
-        utter.lang='zh-CN';
-        utter.rate=0.9;
-        const voices = synth.getVoices();
-        const zhVoice = voices.find(v => v.lang.startsWith('zh'));
-        if (zhVoice) utter.voice = zhVoice;
-        utter.onerror=()=>{ doTTS(); };
-        const fbTimer=setTimeout(()=>{ if(practiceIsSpeaking){ synth.cancel(); doTTS(); } },3000);
-        utter.onend=()=>{ clearTimeout(fbTimer); practiceIsSpeaking=false; };
-        if(isIOS){
-            try { synth.speak(utter); } catch(_) { practiceIsSpeaking=false; }
-        } else {
-            setTimeout(() => {
-                try { synth.speak(utter); } catch(_) { practiceIsSpeaking = false; }
-            }, 80);
-        }
+        const doSpeak=()=>{
+            try { synth.resume(); } catch(_) {}
+            synth.cancel();
+            const utter=new SpeechSynthesisUtterance(text);
+            utter.lang='zh-CN';
+            utter.rate=0.9;
+            const voices=synth.getVoices();
+            const zhVoice=voices.find(v=>v.lang.startsWith('zh'));
+            if(zhVoice) utter.voice=zhVoice;
+            utter.onend=()=>{ practiceIsSpeaking=false; };
+            utter.onerror=()=>{ practiceIsSpeaking=false; showToast(t('toast.no_chinese_voice')); };
+            const fbTimer=setTimeout(()=>{ if(practiceIsSpeaking){ synth.cancel(); practiceIsSpeaking=false; showToast(t('toast.no_chinese_voice')); } },5000);
+            utter.onend=()=>{ clearTimeout(fbTimer); practiceIsSpeaking=false; };
+            if(isIOS){ try { synth.speak(utter); } catch(_) { practiceIsSpeaking=false; } }
+            else { setTimeout(()=>{ try { synth.speak(utter); } catch(_) { practiceIsSpeaking=false; } },80); }
+        };
+        let voices=synth.getVoices();
+        if(voices&&voices.length>0){ doSpeak(); return; }
+        // Voices not yet loaded - wait for them (common on Android/iOS)
+        let resolved=false;
+        const onLoad=()=>{ if(!resolved){ resolved=true; synth.removeEventListener('voiceschanged',onLoad); doSpeak(); } };
+        synth.addEventListener('voiceschanged',onLoad);
+        setTimeout(()=>{ if(!resolved){ resolved=true; synth.removeEventListener('voiceschanged',onLoad); doSpeak(); } },2000);
     }
     let ttsAudio = null;
     async function ttsFallbackSpeak(text){
