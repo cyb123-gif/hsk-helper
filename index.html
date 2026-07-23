@@ -6560,12 +6560,18 @@ async function handleEndConversation(){ if(chatAbortController){ chatAbortContro
         practiceIsSpeaking=true;
         let ttsDone=false;
         const doTTS=()=>{ if(!ttsDone){ ttsDone=true; practiceIsSpeaking=false; ttsBaiduFallback(text); } };
-        const doSpeak=(voiceObj)=>{
+        const doSpeak=()=>{
             try { synth.resume(); } catch(_) {}
             synth.cancel();
             const utter=new SpeechSynthesisUtterance(text);
             utter.lang='zh-CN';
             const rateSlider=document.getElementById('speechRateSlider');
+            // 每次从 voice 列表按 name 重新查找，因为 cancel() 会使旧引用失效
+            const zhVoices=synth.getVoices().filter(v=>v.lang.startsWith('zh'));
+            let voiceObj=null;
+            const savedName=localStorage.getItem('PREFERRED_VOICE_NAME');
+            if(savedName) voiceObj=zhVoices.find(v=>v.name===savedName||v.voiceURI===savedName);
+            if(!voiceObj&&zhVoices.length>0){ voiceObj=zhVoices[0]; localStorage.setItem('PREFERRED_VOICE_NAME',voiceObj.name); }
             if(voiceObj) utter.voice=voiceObj;
             utter.rate=rateSlider?parseFloat(rateSlider.value):1.15;
             let spoken=false;
