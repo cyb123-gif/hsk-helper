@@ -6450,6 +6450,13 @@ const HSK2_VOCAB = [
     function updateStatsUI(){ const el=document.getElementById('usageTimer'); if(el){ const h=Math.floor(totalMinutes/60); const m=Math.floor(totalMinutes%60); el.textContent='⏱ '+(h>0?h+'h ':'')+m+'m'; } }
     function resetGlobal(){ if(confirm(t('reset.confirm'))){ usedMap.clear(); favoriteSentences=[]; saveFullState(); refreshAll(); addAssistantMessage(t('reset.done')); } }
     async function chatWithContext(userMsg, signal){ const apiKey=apiKeyInput.value.trim(); if(!apiKey) return null; const level=parseInt(aiLevelSelect.value); const targetLang=targetLangSelect.value; const system=`你是HSK${level}级中文对话助手。请用自然的中文回复。使用符合HSK${level}级的词汇和语法。
+【对话引导 - 激发学生继续聊】
+每条回复的末尾，请自然地从以下方式中选一种来延续对话（不要生硬重复）：
+- 提出一个与话题相关的开放式问题，引导学生表达自己的看法
+- 分享一个有趣的小知识或新鲜见闻（用HSK${level}级能理解的词汇）
+- 假设一个情景让学生思考和回应（如果是你，你会怎么做？）
+- 表达你对学生刚才说的话的好奇，追问细节
+目的：让学生有表达欲，主动想回复，而不是觉得对话结束了。
 【重要纠错规则】
 1. 你是中文对话伙伴。如果学生的句子语法正确、意思清楚，直接自然继续对话，不要用"哦，你是说"回述原句。标点缺失不算错误，不要修改学生的用词。
 2. 口语省略（如省略主语、宾语）、母语者也会用的移位表达不算错误，不要纠正。
