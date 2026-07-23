@@ -6027,9 +6027,18 @@ const HSK2_VOCAB = [
         if (zmsInput) zmsInput.placeholder = t('zms.placeholder');
         const zmsBtn = document.getElementById('zenmeshuoBtn');
         if (zmsBtn) zmsBtn.innerHTML = t('zms.button');
-        // 小提示
-        const smallNote = document.querySelector('.small-note');
-        if (smallNote) smallNote.textContent = t('panel.note');
+        // 结束对话醒目提示
+        const endHint = document.querySelector('.end-conversation-hint');
+        if (endHint) {
+            const hintMap = { 'Chinese':'⚠️ 聊天结束后请务必点击「结束对话」→ 分析语法并保存学习记录', 'English':'⚠️ Please remember to click "End Conversation" after chatting → analyze grammar & save', 'Japanese':'⚠️ チャット終了後は必ず「会話を終了」をクリック→文法を分析して保存', 'Korean':'⚠️ 채팅 후 꼭 "대화 종료"를 클릭→문법 분석 및 저장', 'French':'⚠️ Cliquez sur "Terminer" après avoir discuté → analyser et enregistrer', 'German':'⚠️ Bitte klicken Sie nach dem Chat auf "Beenden" → Grammatik analysieren & speichern', 'Spanish':'⚠️ Haz clic en "Terminar" al finalizar → analizar y guardar', 'Russian':'⚠️ Нажмите "Завершить" после чата → анализ и сохранение', 'Thai':'⚠️ คลิก "จบการสนทนา" หลังจากแชท → วิเคราะห์และบันทึก', 'Italian':'⚠️ Clicca "Termina" dopo la chat → analizza e salva' };
+            endHint.textContent = hintMap[lang] || hintMap['English'];
+        }
+        // 朗读语速标签
+        const rateSpan = document.getElementById('speechRateSlider').previousElementSibling;
+        if (rateSpan) {
+            const rateMap = { 'Chinese':'🗣️ 朗读语速', 'English':'🗣️ Speech Speed', 'Japanese':'🗣️ 読み上げ速度', 'Korean':'🗣️ 읽기 속도', 'French':'🗣️ Vitesse de lecture', 'German':'🗣️ Sprechgeschwindigkeit', 'Spanish':'🗣️ Velocidad de lectura', 'Russian':'🗣️ Скорость речи', 'Thai':'🗣️ ความเร็วในการพูด', 'Italian':'🗣️ Velocità di lettura' };
+            rateSpan.textContent = rateMap[lang] || rateMap['English'];
+        }
         // 自动朗读标签
         const autoReadLabel = document.getElementById('autoReadLabel');
         if (autoReadLabel) autoReadLabel.childNodes[autoReadLabel.childNodes.length-1].textContent = ' '+t('panel.auto_read');
