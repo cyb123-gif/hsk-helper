@@ -6560,12 +6560,14 @@ async function handleEndConversation(){ if(chatAbortController){ chatAbortContro
         practiceIsSpeaking=true;
         let ttsDone=false;
         const doTTS=()=>{ if(!ttsDone){ ttsDone=true; practiceIsSpeaking=false; ttsBaiduFallback(text); } };
-        const doSpeak=()=>{
+        const doSpeak=(voiceObj)=>{
             try { synth.resume(); } catch(_) {}
             synth.cancel();
             const utter=new SpeechSynthesisUtterance(text);
-            utter.lang='zh-CN'; const rateSlider=document.getElementById('speechRateSlider'); utter.rate=rateSlider?parseFloat(rateSlider.value):1.15;
-            const voices=synth.getVoices().filter(v=>v.lang.startsWith("zh")); let picked=null; const preferredName=localStorage.getItem("PREFERRED_VOICE"); if(preferredName) picked=voices.find(v=>v.name===preferredName||v.voiceURI===preferredName); if(!picked) picked=voices.find(v=>v.name.includes("Tingting")||v.name.includes("zh-CN"))||voices[0]; if(picked){ utter.voice=picked; if(!preferredName||preferredName!==picked.name) localStorage.setItem("PREFERRED_VOICE",picked.name); }
+            utter.lang='zh-CN';
+            const rateSlider=document.getElementById('speechRateSlider');
+            if(voiceObj) utter.voice=voiceObj;
+            utter.rate=rateSlider?parseFloat(rateSlider.value):1.15;
             let spoken=false;
             utter.onstart=()=>{ spoken=true; };
             utter.onend=()=>{ practiceIsSpeaking=false; };
@@ -6574,12 +6576,14 @@ async function handleEndConversation(){ if(chatAbortController){ chatAbortContro
             if(isIOS){ try { synth.speak(utter); } catch(_) { doTTS(); } }
             else { setTimeout(()=>{ try { synth.speak(utter); } catch(_) { doTTS(); } },80); }
         };
-        let voices=synth.getVoices();
-        if(voices&&voices.length>0){ doSpeak(); return; }
+        // 复用缓存的 voice 对象引用，避免每次 getVoices() 顺序变化
+        if(window._cachedZhVoice){ doSpeak(window._cachedZhVoice); return; }
+        let voices=synth.getVoices().filter(v=>v.lang.startsWith('zh'));
+        if(voices.length>0){ window._cachedZhVoice=voices[0]; doSpeak(window._cachedZhVoice); return; }
         let resolved=false;
-        const onLoad=()=>{ if(!resolved){ resolved=true; synth.removeEventListener('voiceschanged',onLoad); doSpeak(); } };
+        const onLoad=()=>{ if(!resolved){ resolved=true; synth.removeEventListener('voiceschanged',onLoad); voices=synth.getVoices().filter(v=>v.lang.startsWith('zh')); if(voices.length>0) window._cachedZhVoice=voices[0]; doSpeak(window._cachedZhVoice||null); } };
         synth.addEventListener('voiceschanged',onLoad);
-        setTimeout(()=>{ if(!resolved){ resolved=true; synth.removeEventListener('voiceschanged',onLoad); doSpeak(); } },2000);
+        setTimeout(()=>{ if(!resolved){ resolved=true; synth.removeEventListener('voiceschanged',onLoad); voices=synth.getVoices().filter(v=>v.lang.startsWith('zh')); if(voices.length>0) window._cachedZhVoice=voices[0]; doSpeak(window._cachedZhVoice||null); } },2000);
     }
     let ttsAudio = null;
     function stopAllSpeech(){ if(practiceAutoSpeakTimer){ clearTimeout(practiceAutoSpeakTimer); practiceAutoSpeakTimer=null; } try{ const synth=window.speechSynthesis; if(synth){ synth.pause(); synth.cancel(); synth.resume(); synth.cancel(); } }catch(_){} if(ttsAudio){ try{ ttsAudio.pause(); ttsAudio.src=''; ttsAudio.load(); }catch(_){} ttsAudio=null; } practiceIsSpeaking=false; }
