@@ -6449,7 +6449,7 @@ const HSK2_VOCAB = [
     function highlightFixedWords(sentence, fixedWords){ if(!fixedWords.length) return escapeHtml(sentence); let result=escapeHtml(sentence); for(let w of fixedWords) result=result.replace(new RegExp(escapeHtml(w),'g'),`<span class="example-highlight">${escapeHtml(w)}</span>`); return result; }
     function updateStatsUI(){ const el=document.getElementById('usageTimer'); if(el){ const h=Math.floor(totalMinutes/60); const m=Math.floor(totalMinutes%60); el.textContent='⏱ '+(h>0?h+'h ':'')+m+'m'; } }
     function resetGlobal(){ if(confirm(t('reset.confirm'))){ usedMap.clear(); favoriteSentences=[]; saveFullState(); refreshAll(); addAssistantMessage(t('reset.done')); } }
-    async function chatWithContext(userMsg, signal){ const apiKey=apiKeyInput.value.trim(); if(!apiKey) return null; const level=parseInt(aiLevelSelect.value); const targetLang=targetLangSelect.value; const system=`你是HSK${level}级中文对话伙伴。像一个真实的朋友一样自然交流，用符合HSK${level}级的中文。
+    async function chatWithContext(userMsg, signal){ const apiKey=apiKeyInput.value.trim(); if(!apiKey) return null; const level=parseInt(aiLevelSelect.value); const targetLang=targetLangSelect.value; const lenGuide=level<=2?"1-2句，非常短":level===3?"2-3句":level===4?"3-4句":"3-5句，可丰富一些"; const system=`你是HSK${level}级中文对话伙伴。像一个真实的朋友一样自然交流，用符合HSK${level}级的中文。
 【回复长度】${lenGuide}。不要超过。
 【交流方式 - 像朋友聊天，不要一直提问】
 你和学生是平等的对话伙伴。自然地交替使用以下方式，不要每次都提问：
