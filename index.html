@@ -6449,18 +6449,16 @@ const HSK2_VOCAB = [
     function highlightFixedWords(sentence, fixedWords){ if(!fixedWords.length) return escapeHtml(sentence); let result=escapeHtml(sentence); for(let w of fixedWords) result=result.replace(new RegExp(escapeHtml(w),'g'),`<span class="example-highlight">${escapeHtml(w)}</span>`); return result; }
     function updateStatsUI(){ const el=document.getElementById('usageTimer'); if(el){ const h=Math.floor(totalMinutes/60); const m=Math.floor(totalMinutes%60); el.textContent='⏱ '+(h>0?h+'h ':'')+m+'m'; } }
     function resetGlobal(){ if(confirm(t('reset.confirm'))){ usedMap.clear(); favoriteSentences=[]; saveFullState(); refreshAll(); addAssistantMessage(t('reset.done')); } }
-    async function chatWithContext(userMsg, signal){ const apiKey=apiKeyInput.value.trim(); if(!apiKey) return null; const level=parseInt(aiLevelSelect.value); const targetLang=targetLangSelect.value; const system=`你是HSK${level}级中文对话助手。请用自然的中文回复。使用符合HSK${level}级的词汇和语法。
-【对话引导 - 激发学生继续聊】
-每条回复的末尾，请自然地从以下方式中选一种来延续对话（不要生硬重复）：
-- 提出一个与话题相关的开放式问题，引导学生表达自己的看法
-- 分享一个有趣的小知识或新鲜见闻（用HSK${level}级能理解的词汇）
-- 假设一个情景让学生思考和回应（如果是你，你会怎么做？）
-- 表达你对学生刚才说的话的好奇，追问细节
-目的：让学生有表达欲，主动想回复，而不是觉得对话结束了。
-【重要纠错规则】
-1. 你是中文对话伙伴。如果学生的句子语法正确、意思清楚，直接自然继续对话，不要用"哦，你是说"回述原句。标点缺失不算错误，不要修改学生的用词。
-2. 口语省略（如省略主语、宾语）、母语者也会用的移位表达不算错误，不要纠正。
-3. 只有句子结构本身有语法错误（如语序不对、虚词用错、句式混乱）时，才用"哦，你是说：[改正后的句子]"柔性纠正。如果只是为了加标点，或者句子本身没改只加了标点——这不是错误，不要用"哦，你是说"。`; const messages=[{role:'system',content:system},...chatHistory,{role:'user',content:userMsg}]; try{ const resp=await fetch('https://api.deepseek.com/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${apiKey}`}, body:JSON.stringify({model:'deepseek-chat', messages, temperature:0.7}), signal}); const data=await resp.json(); let raw=data.choices[0].message.content; let html=raw.replace(/\n/g,'<br>'); chatHistory.push({role:'user',content:userMsg},{role:'assistant',content:html}); if(chatHistory.length>30) chatHistory=chatHistory.slice(-30); return {html, raw}; }catch(e){ return null; } }
+    async function chatWithContext(userMsg, signal){ const apiKey=apiKeyInput.value.trim(); if(!apiKey) return null; const level=parseInt(aiLevelSelect.value); const targetLang=targetLangSelect.value; const system=`你是HSK${level}级中文对话伙伴。像一个真实的朋友一样自然交流，用符合HSK${level}级的中文。
+【回复长度】${lenGuide}。不要超过。
+【交流方式 - 像朋友聊天，不要一直提问】
+你和学生是平等的对话伙伴。自然地交替使用以下方式，不要每次都提问：
+- 分享你自己的感受、经历或想法（\"我也很喜欢...\"、\"对我来说...\"）
+- 对学生的分享表达共鸣和回应（\"真的吗？那太有趣了\"、\"我理解你的感受\"）
+- 偶尔轻松地提一个问题，但不要连问两次以上
+- 不要每次都以问题结尾——有时分享完自然结束就好
+- 可以有适当的沉默感和留白，让学生主动发起下一个话题
+【重要纠错规则】; const messages=[{role:'system',content:system},...chatHistory,{role:'user',content:userMsg}]; try{ const resp=await fetch('https://api.deepseek.com/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${apiKey}`}, body:JSON.stringify({model:'deepseek-chat', messages, temperature:0.7}), signal}); const data=await resp.json(); let raw=data.choices[0].message.content; let html=raw.replace(/\n/g,'<br>'); chatHistory.push({role:'user',content:userMsg},{role:'assistant',content:html}); if(chatHistory.length>30) chatHistory=chatHistory.slice(-30); return {html, raw}; }catch(e){ return null; } }
     function extractPatternFixedChars(pattern){ const cleaned=pattern.replace(/[（(][^)）]*[)）]/g,''); const parts=cleaned.split('+'); const fixed=[]; for(const part of parts){ const t=part.trim(); if(!t) continue; const hasLatin=/[a-zA-Z]/.test(t); const hasChinese=/[\u4e00-\u9fff]/.test(t); if(!hasLatin&&hasChinese) fixed.push(t); } return fixed; }
     const SEPARABLE_WORDS=new Set(['帮忙','点头','放假','干杯','见面','结婚','看病','睡觉','洗澡','理发','说话','打开','看见','离开','完成']);
     function indexOfFlexible(sentence,word,startPos){ const idx=sentence.indexOf(word,startPos); if(idx!==-1) return idx; if(word.length===2&&SEPARABLE_WORDS.has(word)){ const c1=word[0],c2=word[1]; const p1=sentence.indexOf(c1,startPos); if(p1!==-1){ const p2=sentence.indexOf(c2,p1+1); if(p2!==-1&&p2-p1<=4) return p1; } } return -1; }
