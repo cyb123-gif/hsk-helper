@@ -49,6 +49,8 @@
         .progress-text { min-width: 70px; text-align: right; font-size: 0.8rem; color: #475569; }
         .btn { background: white; border: 2px solid #1e2b5e; color: #1e2b5e; padding: 10px 14px; border-radius: 36px; font-weight: 600; font-size: 0.9rem; cursor: pointer; transition: 0.15s; width: 100%; margin-top: 8px; }
         .small-note { color: #64748b; font-size: 0.7rem; margin-top: 12px; }
+        .end-conversation-hint { display: block; margin-top: 12px; padding: 12px 16px; background: linear-gradient(135deg, #fff3e0, #ffe0b2); border: 2px solid #e67e22; border-radius: 14px; color: #c0392b; font-size: 0.88rem; font-weight: 700; text-align: center; animation: hintPulse 2s ease-in-out infinite; }
+        @keyframes hintPulse { 0%, 100% { border-color: #e67e22; box-shadow: 0 0 0 0 rgba(230,126,34,0.3); } 50% { border-color: #f39c12; box-shadow: 0 0 0 6px rgba(230,126,34,0); } }
         .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); backdrop-filter: blur(4px); }
         .modal-content { background-color: #fefefe; margin: 2% auto; padding: 20px; border-radius: 32px; width: 90%; max-width: 1200px; box-shadow: 0 25px 50px rgba(0,0,0,0.2); max-height: 90vh; overflow-y: auto; }
         .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eef2ff; padding-bottom: 12px; margin-bottom: 18px; }
@@ -227,7 +229,7 @@
                 <button id="zenmeshuoBtn">💬 怎么说</button>
             </div>
             <div id="zenmeshuoResult" class="zenmeshuo-result"></div>
-            <div class="small-note">💡 「结束对话」→ 分析语法并保存 | 点击“不准确”可删除错误匹配</div>
+            <div class="end-conversation-hint">⚠️ 聊天结束后请务必点击「结束对话」→ 分析语法并保存学习记录</div>
         </div>
     </div>
 
@@ -259,6 +261,11 @@
             <label id="autoReadLabel" style="display:flex;align-items:center;gap:8px;margin-top:10px;cursor:pointer;font-size:0.85rem;color:#475569;">
                 <input type="checkbox" id="autoReadCheckbox"> 🔊 自动朗读AI回复
             </label>
+            <div style="display:flex;align-items:center;gap:8px;margin-top:8px;font-size:0.85rem;color:#475569;">
+                <span>🗣️ 朗读语速</span>
+                <input type="range" id="speechRateSlider" min="0.6" max="1.8" step="0.05" value="1.15" style="flex:1;">
+                <span id="speechRateLabel" style="min-width:35px;text-align:right;">1.15x</span>
+            </div>
             <div class="stat-title"><span>📚 API 设置</span><span class="level-badge">🔑</span></div>
             <input type="password" class="api-key-input" id="apiKeyInput" placeholder="DeepSeek API Key" autocomplete="off" value="sk-10806fc904a04e618daa622fdb8d0878">
             <div class="stat-title"><span>📊 各等级掌握进度 (点击查看明细)</span></div>
@@ -6548,7 +6555,7 @@ async function handleEndConversation(){ if(chatAbortController){ chatAbortContro
             try { synth.resume(); } catch(_) {}
             synth.cancel();
             const utter=new SpeechSynthesisUtterance(text);
-            utter.lang='zh-CN'; utter.rate=1.15;
+            utter.lang='zh-CN'; const rateSlider=document.getElementById('speechRateSlider'); utter.rate=rateSlider?parseFloat(rateSlider.value):1.15;
             const voices=synth.getVoices();
             const zhVoice=voices.find(v=>v.lang.startsWith('zh'));
             if(zhVoice) utter.voice=zhVoice;
@@ -6614,6 +6621,12 @@ async function handleEndConversation(){ if(chatAbortController){ chatAbortContro
             initVoiceRecognition();
         targetLangSelect.addEventListener('change',()=>{ applyLanguage(); });
         aiLevelSelect.addEventListener('change',()=>{ showToast(t('toast.level_changed')+aiLevelSelect.value); });
+        const speechRateSlider=document.getElementById('speechRateSlider'), speechRateLabel=document.getElementById('speechRateLabel');
+        if(speechRateSlider){
+            const savedRate=localStorage.getItem('SPEECH_RATE');
+            if(savedRate){ speechRateSlider.value=savedRate; if(speechRateLabel) speechRateLabel.textContent=parseFloat(savedRate).toFixed(2)+'x'; }
+            speechRateSlider.addEventListener('input',()=>{ const v=parseFloat(speechRateSlider.value); if(speechRateLabel) speechRateLabel.textContent=v.toFixed(2)+'x'; localStorage.setItem('SPEECH_RATE',v); });
+        }
         if(document.getElementById('downloadVocabBtn')) document.getElementById('downloadVocabBtn').onclick=downloadVocabReport;
         if(document.getElementById('vocabViewLevel')){ document.getElementById('vocabViewLevel').addEventListener('change',()=>renderVocabLibrary(parseInt(document.getElementById('vocabViewLevel').value))); renderVocabLibrary(parseInt(document.getElementById('vocabViewLevel').value)); }
         renderVocabLevelProgress();
