@@ -6826,7 +6826,8 @@ async function handleEndConversation(){ if(chatAbortController){ chatAbortContro
         utter.onend=()=>{ practiceIsSpeaking=false; };
         utter.onerror=()=>{ if(!spoken) onFail(); else practiceIsSpeaking=false; };
         setTimeout(()=>{ if(!spoken&&practiceIsSpeaking){ synth.cancel(); onFail(); } },2000);
-        try { synth.speak(utter); } catch(_) { onFail(); }
+        if(isIOS){ try { synth.speak(utter); } catch(_) { onFail(); } }
+        else { setTimeout(()=>{ try { synth.speak(utter); } catch(_) { onFail(); } },80); }
     }
     function stopAllSpeech(){ if(practiceAutoSpeakTimer){ clearTimeout(practiceAutoSpeakTimer); practiceAutoSpeakTimer=null; } try{ const synth=window.speechSynthesis; if(synth){ synth.pause(); synth.cancel(); synth.resume(); synth.cancel(); } }catch(_){} practiceIsSpeaking=false; }
     function parsePinyinString(str){ const chars=[], pinyins=[]; let i=0; while(i<str.length){ const ch=str[i]; if(ch.match(/[\u4e00-\u9fff]/)){ if(i+1<str.length && str[i+1]==='('){ const close=str.indexOf(')',i+2); if(close!==-1){ const rawPinyin=str.substring(i+2,close); let gStart=i, gEnd=i+1; while(gEnd<str.length&&str[gEnd].match(/[\u4e00-\u9fff]/)&&gEnd+1<str.length&&str[gEnd+1]!=='('){ gEnd++; } const cnGroup=str.substring(gStart,gEnd); if(cnGroup.length>1){ const syllables=rawPinyin.match(/(?:[bpmfdtnlgkhjqxzcsryw](?:h)?|[aeiouü])[aeiouü]*[āáǎàēéěèīíǐìōóǒòūúǔùǖǘǚǜ][aeiouü]*(?:ng?)?/gi); if(syllables&&syllables.length===cnGroup.length){ for(let k=0;k<cnGroup.length;k++){ chars.push(cnGroup[k]); pinyins.push(syllables[k]); } i=close+1; continue; } } chars.push(ch); pinyins.push(rawPinyin); i=close+1; continue; } } chars.push(ch); pinyins.push(null); i++; } else i++; } return {chars, pinyins}; }
@@ -6851,7 +6852,7 @@ async function handleEndConversation(){ if(chatAbortController){ chatAbortContro
     function showToast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2000); }
     // ========== 登录系统 ==========
     function hashPassword(password, username){ let hash=0; const str=password+':'+username; for(let i=0;i<str.length;i++){ const char=str.charCodeAt(i); hash=((hash<<5)-hash)+char; hash|=0; } return 'fallback_'+Math.abs(hash).toString(16); }
-    async function tryCryptoHash(password, username){ try { const encoder=new TextEncoder(); const data=encoder.encode(password+':'+username); const hashPromise=crypto.subtle.digest('SHA-256',data); const timeoutPromise=new Promise((_,reject)=>setTimeout(()=>reject(new Error('timeout')),1500)); const hash=await Promise.race([hashPromise,timeoutPromise]); return Array.from(new Uint8Array(hash)).map(b=>b.toString(16).padStart(2,'0')).join(''); } catch(e) { return null; } }
+    async function tryCryptoHash(password, username){ try { const encoder=new TextEncoder(); const data=encoder.encode(password+':'+username); const hashPromise=crypto.subtle.digest('SHA-256',data); const timeoutPromise=new Promise((_,reject)=>setTimeout(()=>reject(new Error('timeout')),500)); const hash=await Promise.race([hashPromise,timeoutPromise]); return Array.from(new Uint8Array(hash)).map(b=>b.toString(16).padStart(2,'0')).join(''); } catch(e) { return null; } }
     function getUsers(){ const raw=localStorage.getItem(USERS_STORAGE); return raw?JSON.parse(raw):{}; }
     function saveUsers(users){ localStorage.setItem(USERS_STORAGE, JSON.stringify(users)); }
     function updateHeaderUser(){ const el=document.getElementById('headerUsername'); if(currentUser){ el.innerHTML=t('user.welcome')+escapeHtml(currentUser)+' <span class="logout-link" id="logoutLink">'+t('user.logout')+'</span>'; document.getElementById('logoutLink').onclick=handleLogout; } else { el.innerHTML=''; } }
