@@ -6773,6 +6773,7 @@ async function handleEndConversation(){ if(chatAbortController){ chatAbortContro
         } catch(_) {}
     }
 
+    let speakRetryCount = 0;
     function speakChinese(text){
         if(!('speechSynthesis' in window)){ practiceIsSpeaking=false; showToast(t('toast.no_speech_support')); return; }
         const synth = window.speechSynthesis;
@@ -6781,8 +6782,21 @@ async function handleEndConversation(){ if(chatAbortController){ chatAbortContro
         if(practiceIsSpeaking){ try { synth.cancel(); } catch(_) {} practiceIsSpeaking=false; }
         if(practiceAutoSpeakTimer){ clearTimeout(practiceAutoSpeakTimer); practiceAutoSpeakTimer=null; }
         practiceIsSpeaking=true;
+        speakRetryCount=0;
         let ttsDone=false;
-        const onFail=()=>{ if(!ttsDone){ ttsDone=true; practiceIsSpeaking=false; showToast(t('toast.no_speech_support')); } };
+        const onFail=()=>{
+            if(!ttsDone){
+                ttsDone=true; practiceIsSpeaking=false;
+                if(speakRetryCount<2){
+                    speakRetryCount++;
+                    primeSpeechSynthesis();
+                    setTimeout(()=>speakChinese(text), 400);
+                } else {
+                    speakRetryCount=0;
+                    showToast(t('toast.no_speech_support'));
+                }
+            }
+        };
         const doSpeak=()=>{
             try { synth.resume(); } catch(_) {}
             synth.cancel();
