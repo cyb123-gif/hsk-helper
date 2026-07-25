@@ -6790,13 +6790,12 @@ async function handleEndConversation(){ if(chatAbortController){ chatAbortContro
         } catch(_) {}
     }
 
-    function speakChinese(text){
+    function speakChinese(text, retry){
         if(!('speechSynthesis' in window)){ practiceIsSpeaking=false; showToast(t('toast.no_speech_support')); return; }
         const synth = window.speechSynthesis;
         if(!synth){ practiceIsSpeaking=false; showToast(t('toast.no_speech_support')); return; }
         if(practiceAutoSpeakTimer){ clearTimeout(practiceAutoSpeakTimer); practiceAutoSpeakTimer=null; }
         practiceIsSpeaking=true;
-        // 直接 speak——synth.speak() 会自动中断正在播的，不需要先 cancel（cancel 会丢失用户手势授权）
         const utter=new SpeechSynthesisUtterance(text);
         utter.lang='zh-CN';
         const rateSlider=document.getElementById('speechRateSlider');
@@ -6804,10 +6803,15 @@ async function handleEndConversation(){ if(chatAbortController){ chatAbortContro
         let started=false;
         utter.onstart=()=>{ started=true; };
         utter.onend=()=>{ practiceIsSpeaking=false; };
-        utter.onerror=()=>{ if(!started){ practiceIsSpeaking=false; showToast(t('toast.no_speech_support')); } else practiceIsSpeaking=false; };
-        // 1.2 秒还没开始就提示失败
-        setTimeout(()=>{ if(!started&&practiceIsSpeaking){ synth.cancel(); practiceIsSpeaking=false; showToast(t('toast.no_speech_support')); } },1200);
-        try { synth.speak(utter); } catch(_) { practiceIsSpeaking=false; showToast(t('toast.no_speech_support')); }
+        utter.onerror=()=>{ practiceIsSpeaking=false; if(!started&&!retry){ synth.cancel(); setTimeout(()=>speakChinese(text,true),100); } else if(!started) showToast(t('toast.no_speech_support')); };
+        setTimeout(()=>{
+            if(!started&&practiceIsSpeaking){
+                synth.cancel(); practiceIsSpeaking=false;
+                if(!retry){ setTimeout(()=>speakChinese(text,true),100); }
+                else showToast(t('toast.no_speech_support'));
+            }
+        },1500);
+        try { synth.speak(utter); } catch(_) { practiceIsSpeaking=false; if(!retry) setTimeout(()=>speakChinese(text,true),100); else showToast(t('toast.no_speech_support')); }
     }
     function stopAllSpeech(){ if(practiceAutoSpeakTimer){ clearTimeout(practiceAutoSpeakTimer); practiceAutoSpeakTimer=null; } try{ const synth=window.speechSynthesis; if(synth){ synth.pause(); synth.cancel(); synth.resume(); synth.cancel(); } }catch(_){} practiceIsSpeaking=false; }
     function parsePinyinString(str){ const chars=[], pinyins=[]; let i=0; while(i<str.length){ const ch=str[i]; if(ch.match(/[\u4e00-\u9fff]/)){ if(i+1<str.length && str[i+1]==='('){ const close=str.indexOf(')',i+2); if(close!==-1){ const rawPinyin=str.substring(i+2,close); let gStart=i, gEnd=i+1; while(gEnd<str.length&&str[gEnd].match(/[\u4e00-\u9fff]/)&&gEnd+1<str.length&&str[gEnd+1]!=='('){ gEnd++; } const cnGroup=str.substring(gStart,gEnd); if(cnGroup.length>1){ const syllables=rawPinyin.match(/(?:[bpmfdtnlgkhjqxzcsryw](?:h)?|[aeiouü])[aeiouü]*[āáǎàēéěèīíǐìōóǒòūúǔùǖǘǚǜ][aeiouü]*(?:ng?)?/gi); if(syllables&&syllables.length===cnGroup.length){ for(let k=0;k<cnGroup.length;k++){ chars.push(cnGroup[k]); pinyins.push(syllables[k]); } i=close+1; continue; } } chars.push(ch); pinyins.push(rawPinyin); i=close+1; continue; } } chars.push(ch); pinyins.push(null); i++; } else i++; } return {chars, pinyins}; }
