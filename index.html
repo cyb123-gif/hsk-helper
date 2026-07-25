@@ -6792,7 +6792,6 @@ async function handleEndConversation(){ if(chatAbortController){ chatAbortContro
 
     let speakRetryCount = 0;
     let _speechToastShown = false;
-    let _speechWarmed = false;
     function speakChinese(text){
         if(!('speechSynthesis' in window)){ practiceIsSpeaking=false; if(!_speechToastShown){_speechToastShown=true;showToast(t('toast.no_speech_support'));} return; }
         const synth = window.speechSynthesis;
@@ -6807,26 +6806,26 @@ async function handleEndConversation(){ if(chatAbortController){ chatAbortContro
             const rateSlider=document.getElementById('speechRateSlider');
             utter.rate=rateSlider?parseFloat(rateSlider.value):1.15;
             let spoken=false;
-            utter.onstart=()=>{ spoken=true; speakRetryCount=0; };
+            utter.onstart=()=>{ spoken=true; };
             utter.onend=()=>{ practiceIsSpeaking=false; };
             utter.onerror=()=>{
                 if(!spoken){
                     practiceIsSpeaking=false;
                     if(speakRetryCount<1){
                         speakRetryCount++;
-                        setTimeout(()=>{ synth.cancel(); doSpeak(0); }, 200);
+                        // 重试前先做完整预热：cancel → 等 100ms → prime → 等 200ms → speak
+                        synth.cancel();
+                        primeSpeechSynthesis();
+                        setTimeout(()=>{ synth.cancel(); doSpeak(200); }, 300);
                     } else {
                         if(!_speechToastShown){_speechToastShown=true;showToast(t('toast.no_speech_support'));}
                     }
                 } else practiceIsSpeaking=false;
             };
-            setTimeout(()=>{ if(!spoken&&practiceIsSpeaking){ synth.cancel(); practiceIsSpeaking=false; } },2000);
+            setTimeout(()=>{ if(!spoken&&practiceIsSpeaking){ synth.cancel(); practiceIsSpeaking=false; } },3000);
             const speakNow=()=>{ try { synth.speak(utter); } catch(_) { practiceIsSpeaking=false; } };
             if(delay>0){ setTimeout(speakNow, delay); } else { speakNow(); }
         };
-        // 首次调用时预热语音引擎（解决冷启动第一次不读）
-        if(!_speechWarmed){ _speechWarmed=true; primeSpeechSynthesis(); }
-        // 先取消已有语音，等 120ms 让 cancel 完成再播新的（避免 Chrome/Edge 竞态 bug）
         synth.cancel();
         doSpeak(120);
     }
