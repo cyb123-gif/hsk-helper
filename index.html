@@ -6760,6 +6760,23 @@ async function handleEndConversation(){ if(chatAbortController){ chatAbortContro
             }
         },3000);
     }
+    // Chrome 必须在用户点击中直接调用 speak() 才解锁语音。首次点击页面时激活。
+    let _speechUnlocked = false;
+    document.addEventListener('click', function unlockSpeechOnce() {
+        if (_speechUnlocked) return;
+        _speechUnlocked = true;
+        if (!('speechSynthesis' in window)) return;
+        const s = window.speechSynthesis;
+        if (!s) return;
+        s.cancel();
+        const u = new SpeechSynthesisUtterance('');
+        u.volume = 0;
+        u.rate = 1;
+        try { s.speak(u); } catch(_) {}
+        // 也预加载中文语音列表
+        s.getVoices();
+    }, { once: false });
+
     function primeSpeechSynthesis() {
         if (!('speechSynthesis' in window)) return;
         const synth = window.speechSynthesis;
