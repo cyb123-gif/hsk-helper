@@ -6807,43 +6807,26 @@ async function handleEndConversation(){ if(chatAbortController){ chatAbortContro
                 if(speakRetryCount<2){
                     speakRetryCount++;
                     primeSpeechSynthesis();
-                    setTimeout(()=>speakChinese(text), 400);
+                    setTimeout(()=>speakChinese(text), 500);
                 } else {
                     speakRetryCount=0;
                     showToast(t('toast.no_speech_support'));
                 }
             }
         };
-        const doSpeak=()=>{
-            try { synth.resume(); } catch(_) {}
-            synth.cancel();
-            const utter=new SpeechSynthesisUtterance(text);
-            utter.lang='zh-CN';
-            const rateSlider=document.getElementById('speechRateSlider');
-            // 每次从 voice 列表按 name 重新查找，因为 cancel() 会使旧引用失效
-            const zhVoices=synth.getVoices().filter(v=>v.lang.startsWith('zh'));
-            let voiceObj=null;
-            const savedName=localStorage.getItem('PREFERRED_VOICE_NAME');
-            if(savedName) voiceObj=zhVoices.find(v=>v.name===savedName||v.voiceURI===savedName);
-            if(!voiceObj&&zhVoices.length>0){ voiceObj=zhVoices[0]; localStorage.setItem('PREFERRED_VOICE_NAME',voiceObj.name); }
-            if(voiceObj) utter.voice=voiceObj;
-            utter.rate=rateSlider?parseFloat(rateSlider.value):1.15;
-            let spoken=false;
-            utter.onstart=()=>{ spoken=true; };
-            utter.onend=()=>{ practiceIsSpeaking=false; };
-            utter.onerror=()=>{ if(!spoken) onFail(); else practiceIsSpeaking=false; };
-            setTimeout(()=>{ if(!spoken&&practiceIsSpeaking){ synth.cancel(); onFail(); } },1500);
-            if(isIOS){ try { synth.speak(utter); } catch(_) { onFail(); } }
-            else { setTimeout(()=>{ try { synth.speak(utter); } catch(_) { onFail(); } },80); }
-        };
-        // 复用缓存的 voice 对象引用，避免每次 getVoices() 顺序变化
-        if(window._cachedZhVoice){ doSpeak(window._cachedZhVoice); return; }
-        let voices=synth.getVoices().filter(v=>v.lang.startsWith('zh'));
-        if(voices.length>0){ window._cachedZhVoice=voices[0]; doSpeak(window._cachedZhVoice); return; }
-        let resolved=false;
-        const onLoad=()=>{ if(!resolved){ resolved=true; synth.removeEventListener('voiceschanged',onLoad); voices=synth.getVoices().filter(v=>v.lang.startsWith('zh')); if(voices.length>0) window._cachedZhVoice=voices[0]; doSpeak(window._cachedZhVoice||null); } };
-        synth.addEventListener('voiceschanged',onLoad);
-        setTimeout(()=>{ if(!resolved){ resolved=true; synth.removeEventListener('voiceschanged',onLoad); voices=synth.getVoices().filter(v=>v.lang.startsWith('zh')); if(voices.length>0) window._cachedZhVoice=voices[0]; doSpeak(window._cachedZhVoice||null); } },2000);
+        try { synth.resume(); } catch(_) {}
+        synth.cancel();
+        const utter=new SpeechSynthesisUtterance(text);
+        utter.lang='zh-CN';
+        const rateSlider=document.getElementById('speechRateSlider');
+        utter.rate=rateSlider?parseFloat(rateSlider.value):1.15;
+        // 不强制选 voice，设 lang='zh-CN' 让浏览器自己匹配系统中文语音
+        let spoken=false;
+        utter.onstart=()=>{ spoken=true; speakRetryCount=0; };
+        utter.onend=()=>{ practiceIsSpeaking=false; };
+        utter.onerror=()=>{ if(!spoken) onFail(); else practiceIsSpeaking=false; };
+        setTimeout(()=>{ if(!spoken&&practiceIsSpeaking){ synth.cancel(); onFail(); } },2000);
+        try { synth.speak(utter); } catch(_) { onFail(); }
     }
     function stopAllSpeech(){ if(practiceAutoSpeakTimer){ clearTimeout(practiceAutoSpeakTimer); practiceAutoSpeakTimer=null; } try{ const synth=window.speechSynthesis; if(synth){ synth.pause(); synth.cancel(); synth.resume(); synth.cancel(); } }catch(_){} practiceIsSpeaking=false; }
     function parsePinyinString(str){ const chars=[], pinyins=[]; let i=0; while(i<str.length){ const ch=str[i]; if(ch.match(/[\u4e00-\u9fff]/)){ if(i+1<str.length && str[i+1]==='('){ const close=str.indexOf(')',i+2); if(close!==-1){ const rawPinyin=str.substring(i+2,close); let gStart=i, gEnd=i+1; while(gEnd<str.length&&str[gEnd].match(/[\u4e00-\u9fff]/)&&gEnd+1<str.length&&str[gEnd+1]!=='('){ gEnd++; } const cnGroup=str.substring(gStart,gEnd); if(cnGroup.length>1){ const syllables=rawPinyin.match(/(?:[bpmfdtnlgkhjqxzcsryw](?:h)?|[aeiouü])[aeiouü]*[āáǎàēéěèīíǐìōóǒòūúǔùǖǘǚǜ][aeiouü]*(?:ng?)?/gi); if(syllables&&syllables.length===cnGroup.length){ for(let k=0;k<cnGroup.length;k++){ chars.push(cnGroup[k]); pinyins.push(syllables[k]); } i=close+1; continue; } } chars.push(ch); pinyins.push(rawPinyin); i=close+1; continue; } } chars.push(ch); pinyins.push(null); i++; } else i++; } return {chars, pinyins}; }
