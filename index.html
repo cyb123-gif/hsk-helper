@@ -6689,13 +6689,18 @@ const HSK2_VOCAB = [
 - 偶尔轻松地提一个问题，但不要连问两次以上
 - 不要每次都以问题结尾——有时分享完自然结束就好
 - 绝不要假装自己是人类去编造生活经历（如散步、吃饭、去了某地等）
-【重要纠错规则】
+【重要纠错规则 - 严格遵循】
 1. 先判断学生句子是否有语法或用词错误。如果没有错误 → 直接自然回复，不要说"哦，你是说"。
-2. 如果有错误 → 在回复最前面用"哦，你是说：[正确的完整中文句子]"这一行，然后换行写"💡 改动："，再逐条列出改动，格式为"'A'应为'B'，[简要原因]"，最后换行像朋友一样自然继续对话。
-3. 标点缺失不算错误，不要改标点。
-4. 口语省略（如省略主语）、母语者的自然移位不算错误，不要纠正。
-5. 禁止说"我想帮你改一下"之类的话，直接在"哦，你是说"那行给出正确版本。
-6. 无论消息多长，都要完整检查并逐条列出所有改动。 const messages=[{role:'system',content:system},...chatHistory,{role:'user',content:userMsg}]; try{ const resp=await fetch(API_BASE,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${apiKey}`}, body:JSON.stringify({model:'deepseek-v4-flash',thinking:{type:'disabled'}, max_tokens:4096, messages, temperature:0.7}), signal}); const data=await resp.json(); if(data.error) throw new Error(data.error.message||"API error"); if(!data.choices||!data.choices[0]||!data.choices[0].message) throw new Error("API error"); let raw=data.choices[0].message.content; let html=raw.replace(/\n/g,'<br>'); chatHistory.push({role:'user',content:userMsg},{role:'assistant',content:html}); if(chatHistory.length>30) chatHistory=chatHistory.slice(-30); saveChatHistory(); return {html, raw}; }catch(e){ return null; } }
+2. 如果有错误 → 必须严格按以下三段式回复：
+   第一段：哦，你是说：[完整的正确中文句子]
+   第二段：💡 改动：
+           '错误原文'应为'正确写法'，[一句话说明原因]
+           （如果有多个错误，每行一个）
+   第三段：像朋友一样自然继续对话
+   【强制】只要说了"哦，你是说"，就必须紧接着写"💡 改动："段落。不允许只改不说原因。
+3. 标点缺失不算错误。
+4. 口语省略不算错误。
+5. 禁止说"我想帮你改一下"，直接用上述格式。 const messages=[{role:'system',content:system},...chatHistory,{role:'user',content:userMsg}]; try{ const resp=await fetch(API_BASE,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${apiKey}`}, body:JSON.stringify({model:'deepseek-v4-flash',thinking:{type:'disabled'}, max_tokens:4096, messages, temperature:0.7}), signal}); const data=await resp.json(); if(data.error) throw new Error(data.error.message||"API error"); if(!data.choices||!data.choices[0]||!data.choices[0].message) throw new Error("API error"); let raw=data.choices[0].message.content; let html=raw.replace(/\n/g,'<br>'); chatHistory.push({role:'user',content:userMsg},{role:'assistant',content:html}); if(chatHistory.length>30) chatHistory=chatHistory.slice(-30); saveChatHistory(); return {html, raw}; }catch(e){ return null; } }
     function extractPatternFixedChars(pattern){ const cleaned=pattern.replace(/[（(][^)）]*[)）]/g,''); const parts=cleaned.split('+'); const fixed=[]; for(const part of parts){ const t=part.trim(); if(!t) continue; const hasLatin=/[a-zA-Z]/.test(t); const hasChinese=/[\u4e00-\u9fff]/.test(t); if(!hasLatin&&hasChinese) fixed.push(t); } return fixed; }
     const SEPARABLE_WORDS=new Set(['帮忙','点头','放假','干杯','见面','结婚','看病','睡觉','洗澡','理发','说话','打开','看见','离开','完成']);
     function indexOfFlexible(sentence,word,startPos){ const idx=sentence.indexOf(word,startPos); if(idx!==-1) return idx; if(word.length===2&&SEPARABLE_WORDS.has(word)){ const c1=word[0],c2=word[1]; const p1=sentence.indexOf(c1,startPos); if(p1!==-1){ const p2=sentence.indexOf(c2,p1+1); if(p2!==-1&&p2-p1<=4) return p1; } } return -1; }
