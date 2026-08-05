@@ -6360,6 +6360,13 @@ const HSK2_VOCAB = [
         const mtw = document.getElementById('modeTabWriting'); if(mtw) mtw.textContent = t('mode.writing');
         const wta = document.getElementById('writingTextarea'); if(wta) wta.placeholder = t('writing.placeholder');
         const wsb = document.getElementById('writingSubmitBtn'); if(wsb) wsb.textContent = t('writing.submit');
+        // 写作结果正在显示 → 自动用新语言重新分析
+        const wResults = document.getElementById('writingResults');
+        if (wResults && wResults.classList.contains('active') && lastWritingText) {
+            const ta = document.getElementById('writingTextarea');
+            ta.value = lastWritingText;
+            handleWritingSubmit();
+        }
     }
 
     // 模式切换
@@ -6388,10 +6395,12 @@ const HSK2_VOCAB = [
     document.getElementById('modeTabWriting').onclick = () => switchMode('writing');
 
     // 写作提交
+    let lastWritingText = '';
     async function handleWritingSubmit() {
         const textarea = document.getElementById('writingTextarea');
         const text = textarea.value.trim();
         if (!text) { alert(t('writing.no_text')); return; }
+        lastWritingText = text;
         const submitBtn = document.getElementById('writingSubmitBtn');
         const resultsDiv = document.getElementById('writingResults');
         submitBtn.disabled = true; submitBtn.textContent = t('writing.submitting');
