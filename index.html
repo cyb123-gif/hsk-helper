@@ -6365,7 +6365,7 @@ const HSK2_VOCAB = [
         if (wResults && wResults.classList.contains('active') && lastWritingText) {
             const ta = document.getElementById('writingTextarea');
             ta.value = lastWritingText;
-            handleWritingSubmit();
+            handleWritingSubmit(true);
         }
     }
 
@@ -6396,14 +6396,14 @@ const HSK2_VOCAB = [
 
     // 写作提交
     let lastWritingText = '';
-    async function handleWritingSubmit() {
+    async function handleWritingSubmit(skipAnalysis = false) {
         const textarea = document.getElementById('writingTextarea');
         const text = textarea.value.trim();
         if (!text) { alert(t('writing.no_text')); return; }
         lastWritingText = text;
         const submitBtn = document.getElementById('writingSubmitBtn');
         const resultsDiv = document.getElementById('writingResults');
-        submitBtn.disabled = true; submitBtn.textContent = t('writing.submitting');
+        if (!skipAnalysis) { submitBtn.disabled = true; submitBtn.textContent = t('writing.submitting'); }
         const apiKey = apiKeyInput.value.trim();
         if (!apiKey) { alert(t('api_key_required')); submitBtn.disabled = false; submitBtn.textContent = t('writing.submit'); return; }
         const targetLang = targetLangSelect.value;
@@ -6428,6 +6428,7 @@ const HSK2_VOCAB = [
             if (result.corrected) html += `<div class="writing-corrected"><h4>${t('writing.corrected')}</h4><p>${fmt(result.corrected)}</p></div>`;
             resultsDiv.innerHTML = html;
             resultsDiv.classList.add('active');
+            if (!skipAnalysis) {
             // 触发语法和词汇分析（只分析原始版本）
             try {
                 const clauses = splitClauses(text);
@@ -6437,11 +6438,12 @@ const HSK2_VOCAB = [
                 if (vocabAnalysis) mergeVocabResults(vocabAnalysis);
                 renderLevelProgress(); renderVocabLevelProgress(); renderTrackList(); renderVocabTrackList();
             } catch(e) {}
+            }
         } catch(e) {
             resultsDiv.innerHTML = `<div class="writing-section" style="color:#e74c3c;">${t('writing.fail')}</div>`;
             resultsDiv.classList.add('active');
         }
-        submitBtn.disabled = false; submitBtn.textContent = t('writing.submit');
+        if (!skipAnalysis) { submitBtn.disabled = false; submitBtn.textContent = t('writing.submit'); }
     }
     document.getElementById('writingSubmitBtn').onclick = handleWritingSubmit;
 
