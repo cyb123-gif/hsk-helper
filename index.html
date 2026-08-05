@@ -4812,6 +4812,8 @@ const HSK2_VOCAB = [
             'toast.lang_changed':'Native language switched to: ',
             'toast.level_changed':'AI level switched to: HSK ',
             'toast.fav_added':'Added to favorites',
+            'toast.writing_submitted':'✅ Essay submitted, correcting...',
+            'toast.writing_relang':'🔄 Re-correcting in new language...',
             'toast.no_speech_support':'⚠️ Browser does not support speech synthesis',
             'toast.no_chinese_voice':'⚠️ Chinese voice not found, please add Chinese language pack in system settings',
             'reset.confirm':'Reset all grammar records?',
@@ -6201,6 +6203,8 @@ const HSK2_VOCAB = [
         'report.fav_title':'收藏笔记本\n生成时间：', 'report.no_favs':'暂无收藏句子',
         'toast.lang_changed':'母语已切换为：', 'toast.level_changed':'AI难度已切换为：HSK ',
         'toast.fav_added':'已添加到收藏笔记本',
+        'toast.writing_submitted':'✅ 作文已提交，正在批改...',
+        'toast.writing_relang':'🔄 正在用新语言重新批改...',
         'toast.no_speech_support':'⚠️ 此浏览器不支持语音朗读',
         'toast.no_chinese_voice':'⚠️ 未找到中文语音，请在系统设置中添加中文语言包',
         'reset.confirm':'重置所有语法记录？', 'reset.done':'已重置全局语法记录。',
@@ -6365,6 +6369,7 @@ const HSK2_VOCAB = [
         if (wResults && wResults.classList.contains('active') && lastWritingText) {
             const ta = document.getElementById('writingTextarea');
             ta.value = lastWritingText;
+            showToast(t('toast.writing_relang'));
             handleWritingSubmit(true);
         }
     }
@@ -6403,7 +6408,7 @@ const HSK2_VOCAB = [
         lastWritingText = text;
         const submitBtn = document.getElementById('writingSubmitBtn');
         const resultsDiv = document.getElementById('writingResults');
-        if (!skipAnalysis) { submitBtn.disabled = true; submitBtn.textContent = t('writing.submitting'); }
+        if (!skipAnalysis) { submitBtn.disabled = true; submitBtn.textContent = t('writing.submitting'); showToast(t('toast.writing_submitted')); }
         const apiKey = apiKeyInput.value.trim();
         if (!apiKey) { alert(t('api_key_required')); submitBtn.disabled = false; submitBtn.textContent = t('writing.submit'); return; }
         const targetLang = targetLangSelect.value;
@@ -6813,7 +6818,7 @@ const HSK2_VOCAB = [
 【重要纠错规则】
 1. 你是中文对话伙伴。如果学生的句子语法正确、意思清楚，直接自然继续对话，不要用"哦，你是说"回述原句。标点缺失不算错误，不要修改学生的用词。
 2. 口语省略（如省略主语、宾语）、母语者也会用的移位表达不算错误，不要纠正。
-3. 语法错误（语序不对、虚词用错、句式混乱）或词语用错时，必须按以下格式分行输出纠正（每项一行）：\n❌ [学生的错误原句]\n✅ [正确的句子]\n💡 [简短解释原因]\n然后自然继续对话。标点缺失不算错误。
+3. 语法错误（语序不对、虚词用错、句式混乱）或词语用错时，严格按以下格式纠正，每次纠正必须包含三行：\n❌ [学生错误原句]\n✅ [正确句子]\n💡 [解释：为什么错、怎么改]\n然后自然继续对话。禁止使用"哦，你是说"格式。标点缺失不算错误。
 4. 【长度无关 - 必须逐句纠错】无论学生发的消息是一句话还是一大段话、无论内容多长，你必须逐句检查。长段落不能跳过纠错！每一句都像短句一样仔细检查。发现错误就必须纠正，绝不能因为消息长就忽略。`; const messages=[{role:'system',content:system},...chatHistory,{role:'user',content:userMsg}]; try{ const resp=await fetch(API_BASE,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${apiKey}`}, body:JSON.stringify({model:'deepseek-v4-flash',thinking:{type:'disabled'}, max_tokens:4096, messages, temperature:0.6}), signal}); const data=await resp.json(); if(data.error) throw new Error(data.error.message||"API error"); if(!data.choices||!data.choices[0]||!data.choices[0].message) throw new Error("API error"); let raw=data.choices[0].message.content; let html=raw.replace(/\n/g,'<br>'); chatHistory.push({role:'user',content:userMsg},{role:'assistant',content:raw}); if(chatHistory.length>30) chatHistory=chatHistory.slice(-30); saveChatHistory(); return {html, raw}; }catch(e){ return null; } }
     function extractPatternFixedChars(pattern){ const cleaned=pattern.replace(/[（(][^)）]*[)）]/g,''); const parts=cleaned.split('+'); const fixed=[]; for(const part of parts){ const t=part.trim(); if(!t) continue; const hasLatin=/[a-zA-Z]/.test(t); const hasChinese=/[\u4e00-\u9fff]/.test(t); if(!hasLatin&&hasChinese) fixed.push(t); } return fixed; }
     const SEPARABLE_WORDS=new Set(['帮忙','点头','放假','干杯','见面','结婚','看病','睡觉','洗澡','理发','说话','打开','看见','离开','完成']);
