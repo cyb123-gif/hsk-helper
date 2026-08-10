@@ -7303,11 +7303,11 @@ function renderPractice(exerciseData) {
                         chars: chars.join(''), pinyins: pinyins.join(' '),
                         date: new Date().toISOString().slice(0,10)
                     });
-                    // 学习模式：同词出4句，自动跳下一句；4句后跳到下一个词
+                    // 学习模式：同词出3句，自动跳下一句；4句后跳到下一个词
                     if(window._pendingLearnWord && !window._testExamMode){
                         window._learnSentenceCount = (window._learnSentenceCount||0) + 1;
                         var w = window._pendingLearnWord, lvl = window._pendingLearnLevel || 1;
-                        if(window._learnSentenceCount < 4){
+                        if(window._learnSentenceCount < 3){
                             setTimeout(()=>{ if(window._pendingLearnWord===w) generateVocabPractice(w, lvl); }, 600);
                         } else {
                             window._learnSentenceCount = 0; window._pendingLearnWord = null;
