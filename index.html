@@ -7283,11 +7283,8 @@ function renderPractice(exerciseData) {
             var fb = document.getElementById('practiceFeedback');
             if (allCorrect) {
                 var fbText = t('practice.correct_feedback');
-                if (isVocab && window._pendingLearnWord) {
-                    var lvl = currentLearnTab || parseInt(document.getElementById('learnLevelSelect').value);
-                    var lp = learnPlan[lvl];
-                    var lwd = lp && lp.words[window._pendingLearnWord];
-                    var nextRound = (lwd && lwd.learnRound || 0) + 1;
+                if (window._pendingLearnWord) {
+                    var nextRound = (window._learnSentenceCount || 0) + 1;
                     fbText += ' (' + nextRound + '/3轮)';
                 }
                 fb.textContent = fbText;
