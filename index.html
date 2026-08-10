@@ -7243,7 +7243,7 @@ function renderPractice(exerciseData) {
                 } else if (e.key === 'ArrowLeft') { e.preventDefault(); if (i > 0) inputBoxes[i - 1].focus(); }
                 else if (e.key === 'ArrowRight') { e.preventDefault(); if (i + 1 < inputBoxes.length) inputBoxes[i + 1].focus(); }
                 else if (e.key === ' ') { e.preventDefault(); if (i + 1 < inputBoxes.length) inputBoxes[i + 1].focus(); }
-                else if (e.key === 'Enter') { e.preventDefault(); document.getElementById('practiceCheckBtn').click(); }
+                else if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); document.getElementById('practiceCheckBtn').click(); }
             });
         }
         setTimeout(function () { if (inputBoxes.length) inputBoxes[0].focus(); }, 100);
