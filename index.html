@@ -7284,7 +7284,7 @@ function renderPractice(exerciseData) {
             if (allCorrect) {
                 var fbText = t('practice.correct_feedback');
                 if (window._pendingLearnWord) {
-                    fbText += ' (' + (window._learnSentenceCount||1) + '/3轮)';
+                    fbText += ' (' + ((window._learnRound||0)+1) + '/3轮)';
                 }
                 fb.textContent = fbText;
                 fb.style.color = '#27ae60';
@@ -7299,19 +7299,19 @@ function renderPractice(exerciseData) {
                         chars: chars.join(''), pinyins: pinyins.join(' '),
                         date: new Date().toISOString().slice(0,10)
                     });
-                    // 学习模式：同词出3句，3句后跳到下一个词
+                    // 学习模式：每个词精确3句
                     if(window._pendingLearnWord && !window._testExamMode){
-                        var curRound = window._learnSentenceCount||1;
-                        if(curRound < 3){
-                            window._learnSentenceCount = curRound + 1;
+                        window._learnRound = (window._learnRound||0) + 1;
+                        var cur = window._learnRound;
+                        if(cur < 3){
                             var w = window._pendingLearnWord, lvl = window._pendingLearnLevel || 1;
-                            setTimeout(()=>{ if(window._pendingLearnWord===w) generateVocabPractice(w, lvl); }, 600);
+                            setTimeout(function(){ if(window._pendingLearnWord===w) generateVocabPractice(w, lvl); }, 600);
                         } else {
-                            window._learnSentenceCount = 1; window._pendingLearnWord = null;
+                            window._learnRound = 0; window._pendingLearnWord = null;
                             // 标记当前词为已完成，然后继续下一个
                             window._learnedFinished = window._learnedFinished || [];
                             window._learnedFinished.push({w:w, lvl:lvl});
-                            setTimeout(()=>{ learnNextWord(); }, 800);
+                            setTimeout(function(){ learnNextWord(); }, 800);
                             
                         }
                     }
@@ -7598,7 +7598,7 @@ async function generateAndShowPractice(grammarPattern, grammarLevel, forceNew=fa
                     currentPracticeVocab = null;
                     window._pendingLearnWord = grammar;
                     window._pendingLearnLevel = lvl;
-                    window._learnSentenceCount = 1;
+                    window._learnRound = 0;
                     generateAndShowPractice(grammar, lvl);
                     return;
                 }
@@ -7606,7 +7606,7 @@ async function generateAndShowPractice(grammarPattern, grammarLevel, forceNew=fa
                 currentPracticeGrammar = null;
                 window._pendingLearnWord = word;
                 window._pendingLearnLevel = lvl;
-                window._learnSentenceCount = 1;
+                window._learnRound = 0;
                 generateVocabPractice(word, lvl);
             });
         });
@@ -7988,7 +7988,7 @@ function learnNextWord(){
     var remaining=allItems.filter(function(a){ return !finished.some(function(f){ return f.w===a.w&&f.lvl===a.lvl; }); });
     if(remaining.length===0){
         window._learnedFinished=[]; window._pendingLearnWord=null;
-        window._learnSentenceCount=1;
+        window._learnRound=0;
         practiceModal.style.display='none'; stopAllSpeech(); practiceGenerating=false;
         document.body.style.overflow='';
         showToast('已学完 '+allItems.length+' 个词条/语法，今日学习任务结束！');
@@ -7997,7 +7997,7 @@ function learnNextWord(){
     var next=remaining[0];
     window._pendingLearnWord=next.w;
     window._pendingLearnLevel=next.lvl;
-    window._learnSentenceCount=1;
+    window._learnRound=0;
     if(next.type==='grammar'){
         currentPracticeGrammar={pattern:next.w,level:next.lvl};
         currentPracticeVocab=null;
