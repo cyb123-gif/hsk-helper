@@ -6863,7 +6863,7 @@ const HSK2_VOCAB = [
     }    function escapeHtml(s){ return String(s).replace(/[&<>]/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])); }
     function safeJsonParse(raw){ let c=String(raw).replace(/```json\s*/gi,'').replace(/```/g,'').trim(); c=c.replace(/[\x00-\x08\x0b\x0c\x0e-\x1f]/g,''); try{ return JSON.parse(c); }catch(e1){ const m=c.match(/\{[\s\S]*\}/); if(m){ let fixed=m[0]; fixed=fixed.replace(/,\s*([}\]])/g,'$1'); fixed=fixed.replace(/[\x00-\x08\x0b\x0c\x0e-\x1f]/g,''); try{ return JSON.parse(fixed); }catch(e2){ return {}; } } return {}; } }
     function stripHtml(s){ return s.replace(/<[^>]*>/g,''); }
-    function addMessage(role, content, isHtml, rawText){ const div=document.createElement('div'); div.className='message ' + role + '-message'; const displayContent=isHtml?content:escapeHtml(content); const raw=rawText||(isHtml?stripHtml(content):content); if(role==='assistant'){ const msgId='msg_'+Date.now()+'_'+Math.random().toString(36).slice(2,6); const safeRaw=escapeHtml(raw).replace(/'/g,"\\'").replace(/"/g,'&quot;'); div.innerHTML='<div class="bubble assistant-bubble">'+displayContent+'<div class="how-say-btns"><button onclick="window._translateToggle(\''+safeRaw+'\',\''+msgId+'\')" id="'+msgId+'_btn">'+t('chat.translate')+'</button><button class="speak-btn" onclick="window._readMsg(\''+safeRaw+'\')" style="font-size:0.72rem;padding:4px 10px;border-radius:14px;border:1px solid #d0d8e4;background:#f8fafc;cursor:pointer;">'+t('chat.speak')+'</button><button onclick="addFavorite(\''+safeRaw+'\',\'\')" style="font-size:0.72rem;padding:4px 10px;border-radius:14px;border:1px solid #f0c040;background:#fffde7;cursor:pointer;color:#e67e22;">⭐</button><span class="translation-line" id="'+msgId+'_tr" style="display:none"></span></div></div><div class="timestamp">'+new Date().toLocaleTimeString()+'</div>'; chatMessages.appendChild(div); chatMessages.scrollTop=chatMessages.scrollHeight; if(!isIOS&&document.getElementById('autoReadCheckbox')&&document.getElementById('autoReadCheckbox').checked){ setTimeout(()=>speakChinese(raw),300); } } else { div.innerHTML='<div class="bubble '+role+'-bubble">'+displayContent+'</div><div class="timestamp">'+new Date().toLocaleTimeString()+'</div>'; chatMessages.appendChild(div); chatMessages.scrollTop=chatMessages.scrollHeight; } }
+    function addMessage(role, content, isHtml, rawText){ const div=document.createElement('div'); div.className='message ' + role + '-message'; const displayContent=isHtml?content:escapeHtml(content); const raw=rawText||(isHtml?stripHtml(content):content); if(role==='assistant'){ const msgId='msg_'+Date.now()+'_'+Math.random().toString(36).slice(2,6); const safeRaw=escapeHtml(raw).replace(/'/g,"\\'").replace(/"/g,'&quot;'); div.innerHTML='<div class="bubble assistant-bubble">'+displayContent+'<div class="how-say-btns"><button onclick="window._translateToggle(\''+safeRaw+'\',\''+msgId+'\')" id="'+msgId+'_btn">'+t('chat.translate')+'</button><button class="speak-btn" onclick="window._readMsg(\''+safeRaw+'\')" style="font-size:0.72rem;padding:4px 10px;border-radius:14px;border:1px solid #d0d8e4;background:#f8fafc;cursor:pointer;">'+t('chat.speak')+'</button><button onclick="window._favMsg(\''+safeRaw+'\',\'\')" style="font-size:0.72rem;padding:4px 10px;border-radius:14px;border:1px solid #f0c040;background:#fffde7;cursor:pointer;color:#e67e22;">⭐</button><span class="translation-line" id="'+msgId+'_tr" style="display:none"></span></div></div><div class="timestamp">'+new Date().toLocaleTimeString()+'</div>'; chatMessages.appendChild(div); chatMessages.scrollTop=chatMessages.scrollHeight; if(!isIOS&&document.getElementById('autoReadCheckbox')&&document.getElementById('autoReadCheckbox').checked){ setTimeout(()=>speakChinese(raw),300); } } else { div.innerHTML='<div class="bubble '+role+'-bubble">'+displayContent+'</div><div class="timestamp">'+new Date().toLocaleTimeString()+'</div>'; chatMessages.appendChild(div); chatMessages.scrollTop=chatMessages.scrollHeight; } }
     function addAssistantMessage(txt, isHtml, rawText){ addMessage('assistant', txt, isHtml, rawText); }
     window._translateToggle=async function(text, msgId){ const btn=document.getElementById(msgId+'_btn'); const trEl=document.getElementById(msgId+'_tr'); if(trEl.dataset.translated==='1'){ if(trEl.style.display==='none'){ trEl.style.display='block'; btn.textContent=t('chat.hide_translation'); } else { trEl.style.display='none'; btn.textContent=t('chat.translate'); } return; } btn.disabled=true; btn.textContent=t('chat.translating'); trEl.style.display='block'; trEl.textContent='⏳ ...'; const apiKey=apiKeyInput.value.trim(); if(!apiKey){ trEl.textContent=t('api_key_required'); btn.disabled=false; btn.textContent=t('chat.translate'); return; } const targetLang=targetLangSelect.value; try{ const resp=await fetch(API_BASE,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey}, body:JSON.stringify({model:'deepseek-v4-flash',thinking:{type:'disabled'}, max_tokens:4096, messages:[{role:'user',content:'请将以下中文逐行翻译成'+targetLang+'，保持原来的分行格式，每行单独翻译：\n'+text}], temperature:0.3})}); const data=await resp.json(); if(data.error) throw new Error(data.error.message||"API error"); if(!data.choices||!data.choices[0]||!data.choices[0].message) throw new Error("API error"); const tr=data.choices[0].message.content.trim(); const origLines=text.split('\n'); const trLines=tr.split('\n'); let resultHtml=''; const maxLines=Math.max(origLines.length, trLines.length); for(let i=0;i<maxLines;i++){ const o=(origLines[i]||'').trim(); const t=(trLines[i]||'').trim(); resultHtml+='<div style="margin-bottom:2px;"><b>'+escapeHtml(o)+'</b> → <b style="color:#27ae60">'+escapeHtml(t)+'</b></div>'; } trEl.innerHTML=resultHtml; trEl.dataset.translated='1'; btn.textContent=t('chat.hide_translation'); btn.disabled=false; }catch(e){ trEl.textContent=t('chat.translation_fail'); btn.disabled=false; btn.textContent=t('chat.translate'); } };
     window._readMsg=function(text){ speakChinese(text); };
@@ -6903,6 +6903,7 @@ const HSK2_VOCAB = [
     function renderFavoriteBook(){ const el=document.getElementById('favoriteNotebookList'); if(!el) return; if(favoriteSentences.length===0){ el.innerHTML='<div class="empty-detail">'+t('panel.empty_favs')+'</div>'; return; } let html=''; for(let item of favoriteSentences){ html+=`<div class="mistake-item"><div class="mistake-original">🇨🇳 ${escapeHtml(item.chinese)}</div><div>🌐 ${escapeHtml(item.translation||'')}</div><div style="font-size:0.7rem;color:#94a3b8;">📅 ${item.date||''} <button class="feedback-btn feedback-incorrect" onclick="window._removeFavorite('${escapeHtml(item.chinese).replace(/'/g,"\\'")}')" style="margin-left:8px;">`+t('zms.remove')+`</button></div></div>`; } el.innerHTML=html; }
     window._removeFavorite=function(chinese){ favoriteSentences=favoriteSentences.filter(f=>f.chinese!==chinese); saveFullState(); renderFavoriteBook(); showToast(t('zms.removed')); }
     function addFavorite(chinese, translation){ if(favoriteSentences.some(f=>f.chinese===chinese)){ showToast(t('zms.already_fav')); return; } favoriteSentences.unshift({chinese, translation, date:getLocalDate()}); if(favoriteSentences.length>50) favoriteSentences.pop(); saveFullState(); renderFavoriteBook(); showToast(t('toast.fav_added')); }
+    window._favMsg=function(text){ addFavorite(text,''); };
     function addQueriedItem(text, type, translation, originalQuery){ if(queriedItems.some(q=>q.text===text)) return; queriedItems.unshift({text, type, date:new Date().toISOString(), translation:translation||'', originalQuery:originalQuery||''}); if(queriedItems.length>200) queriedItems.pop(); saveFullState(); renderQueriedBook(); }
     function isQueriedSentence(sentence){ return queriedItems.some(q=>q.type==='sentence'&&q.text===sentence); }
     function isQueriedWord(word){ return queriedItems.some(q=>q.type==='word'&&q.text===word); }
@@ -7301,7 +7302,7 @@ function renderPractice(exerciseData) {
                     if(window._pendingLearnWord && !window._testExamMode){
                         window._learnSentenceCount = (window._learnSentenceCount||0) + 1;
                         var w = window._pendingLearnWord, lvl = window._pendingLearnLevel || 1;
-                        if(window._learnSentenceCount < 3){
+                        if(window._learnSentenceCount < 4){
                             setTimeout(()=>{ if(window._pendingLearnWord===w) generateVocabPractice(w, lvl); }, 600);
                         } else {
                             window._learnSentenceCount = 0; window._pendingLearnWord = null;
@@ -7321,7 +7322,7 @@ function renderPractice(exerciseData) {
                     if(!testModeState || testModeState.queue.length <= 0){
                         setTimeout(()=>{ window._testExamMode=false; showTestExamResult(); }, 600);
                     } else {
-                        setTimeout(()=>testModeNext(), 500);
+                        setTimeout(()=>{ showTestNextBtn(); }, 600);
                     }
                 }
             } else {
@@ -7340,7 +7341,7 @@ function renderPractice(exerciseData) {
                         if (!vEntry.practiceTimestamps) vEntry.practiceTimestamps = [];
                         vEntry.practiceTimestamps.push(new Date().toISOString().slice(0, 19));
                         if (!vEntry.practiceExamples) vEntry.practiceExamples = [];
-                        vEntry.practiceExamples.push({ sentence: chineseRaw, date: new Date().toISOString().slice(0, 19) });
+                        if(!vEntry.practiceExamples.some(function(ex){return ex.sentence===chineseRaw;})) vEntry.practiceExamples.push({ sentence: chineseRaw, date: new Date().toISOString().slice(0, 19) });
                         vocabUsedMap.set(word, vEntry);
                         saveVocabState();
                         renderVocabLibrary(vEntry.level);
@@ -7354,7 +7355,7 @@ function renderPractice(exerciseData) {
                         if (!gEntry.practiceTimestamps) gEntry.practiceTimestamps = [];
                         gEntry.practiceTimestamps.push(new Date().toISOString().slice(0, 19));
                         if (!gEntry.practiceExamples) gEntry.practiceExamples = [];
-                        gEntry.practiceExamples.push({ sentence: chineseRaw, date: new Date().toISOString().slice(0, 19) });
+                        if(!gEntry.practiceExamples.some(function(ex){return ex.sentence===chineseRaw;})) gEntry.practiceExamples.push({ sentence: chineseRaw, date: new Date().toISOString().slice(0, 19) });
                         usedMap.set(grammarPattern, gEntry);
                         saveFullState();
                         updateGrammarDisplayByLevel(grammarLevel);
@@ -7764,6 +7765,7 @@ async function generateAndShowPractice(grammarPattern, grammarLevel, forceNew=fa
             showToast('✅ 测试完成！'); testModeState=null; window._dictationMode = false; return;
         }
         if(testModeState.queue.length===0){
+            if(!window._testExamMode){ showTestExamResult(); return; }
             testModeState.queue = shuffleArray([...testModeState.tested]);
             testModeState.tested = [];
             if(!window._testExamMode) showToast('🔄 已练完一轮，重新开始');
@@ -7787,7 +7789,7 @@ async function generateAndShowPractice(grammarPattern, grammarLevel, forceNew=fa
                 collocationRaw: item.collocation||''
             };
             stopAllSpeech(); primeSpeechSynthesis();
-            practiceContent.innerHTML=''; practiceModal.style.display='block'; document.body.style.overflow='hidden';
+            practiceContent.innerHTML=''; practiceModal.style.display='block'; document.body.style.overflow='hidden'; setTimeout(()=>speakChinese(item.chineseRaw||item.word),400);
             if(testModeState.type==='vocab'){ currentPracticeVocab={word:item.word, level:item.level}; currentPracticeGrammar=null; }
             else { currentPracticeGrammar={pattern:item.word, level:item.level}; currentPracticeVocab=null; }
             renderPractice(exData);
@@ -7888,7 +7890,20 @@ async function generateAndShowPractice(grammarPattern, grammarLevel, forceNew=fa
         window._dictationMode = true; // 听打模式：隐藏词语名+外语句子+搭配
         testModeNext();
     };
-    function showTestExamResult(){
+    function showTestNextBtn(){
+    var fb=document.getElementById('practiceFeedback');
+    if(fb){ fb.innerHTML+=' <button id="testNextManualBtn" onclick="window._testNextManual()" style="background:#1e2b5e;color:#fff;border:none;padding:6px 16px;border-radius:14px;cursor:pointer;font-size:0.85rem;margin-left:8px;">▶ 下一题</button>'; }
+}
+window._testNextManual=function(){
+    var btn=document.getElementById('testNextManualBtn');
+    if(btn) btn.remove();
+    window._testModePending=false;
+    stopAllSpeech();
+    if(testModeState&&testModeState.queue.length>0){ testModeNext(); }
+    else if(window._testExamMode){ showTestExamResult(); }
+    else { showTestExamResult(); }
+};
+function showTestExamResult(){
         const correct = window._testExamCorrect || 0;
         const total = window._testExamTotal || 0;
         const percent = total>0 ? Math.round(correct/total*100) : 0;
@@ -7957,6 +7972,7 @@ async function generateAndShowPractice(grammarPattern, grammarLevel, forceNew=fa
     function finishInit(){ detectSpeechSupport(); primeSpeechSynthesis(); loadFullState(); updateStatsUI(); applyLanguage(); refreshAll(); sendBtn.onclick=handleUserMessage; endBtn.onclick=handleEndConversation;
             initVoiceRecognition();
         document.getElementById('chatHistoryBtn').onclick = showChatHistory;
+        const histBtn=document.getElementById('chatHistoryBtn'); if(histBtn){ const histMap={'Chinese':'📜 历史','English':'📜 History','Japanese':'📜 履歴','Korean':'📜 기록','French':'📜 Historique','German':'📜 Verlauf','Spanish':'📜 Historial','Russian':'📜 История','Thai':'📜 ประวัติ','Italian':'📜 Cronologia'}; histBtn.textContent=histMap[targetLangSelect.value]||'📜 History'; }
         targetLangSelect.addEventListener('change',()=>{ applyLanguage(); });
         aiLevelSelect.addEventListener('change',()=>{ showToast(t('toast.level_changed')+aiLevelSelect.value); });
         const speechRateSlider=document.getElementById('speechRateSlider'), speechRateLabel=document.getElementById('speechRateLabel');
