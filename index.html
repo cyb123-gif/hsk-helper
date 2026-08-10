@@ -7284,7 +7284,8 @@ function renderPractice(exerciseData) {
             if (allCorrect) {
                 var fbText = t('practice.correct_feedback');
                 if (window._pendingLearnWord) {
-                    fbText += ' (' + ((window._learnRound||0)+1) + '/3轮)';
+                    var nextR = (window._learnRound||0) + 1;
+                    fbText += ' (' + nextR + '/3轮)';
                 }
                 fb.textContent = fbText;
                 fb.style.color = '#27ae60';
@@ -7301,9 +7302,8 @@ function renderPractice(exerciseData) {
                     });
                     // 学习模式：每个词精确3句
                     if(window._pendingLearnWord && !window._testExamMode){
-                        window._learnRound = (window._learnRound||0) + 1;
-                        var cur = window._learnRound;
-                        if(cur < 3){
+                        window._learnRound = nextR;
+                        if(nextR < 3){
                             var w = window._pendingLearnWord, lvl = window._pendingLearnLevel || 1;
                             setTimeout(function(){ if(window._pendingLearnWord===w) generateVocabPractice(w, lvl); }, 600);
                         } else {
