@@ -8043,8 +8043,8 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
         const lv2=parseInt(lv), gl2=parseInt(gl);
         const curData=window._learnCustomData[lv2]=window._learnCustomData[lv2]||{vocab:[],grammar:[]};
         const s=document.getElementById('lcs_'+type); if(!s) return;
-        if(type==='vocab'){ const vocab=VOCAB_LEVEL_MAP[lv2]||[]; curData.vocab=[]; for(let o of s.options) if(o.selected){ const i=parseInt(o.value); if(i<vocab.length) curData.vocab.push(vocab[i].w); } }
-        else { const gr=LEVEL_MAP[gl2]||[]; curData.grammar=[]; for(let o of s.options) if(o.selected){ const i=parseInt(o.value); if(i<gr.length) curData.grammar.push(gr[i]); } }
+        if(type==='vocab'){ const vocab=VOCAB_LEVEL_MAP[lv2]||[]; for(let o of s.options) if(o.selected){ const i=parseInt(o.value); if(i<vocab.length&&!curData.vocab.includes(vocab[i].w)) curData.vocab.push(vocab[i].w); } }
+        else { const gr=LEVEL_MAP[gl2]||[]; for(let o of s.options) if(o.selected){ const i=parseInt(o.value); if(i<gr.length&&!curData.grammar.includes(gr[i])) curData.grammar.push(gr[i]); } }
         document.getElementById('learnCustomList').style.display='none';
         saveLearnCustomData();
         if(!learnPlan[lv2]){ learnPlan[lv2]={dailyCount:99,startDate:getLocalDate(),words:{},nextIndex:0}; saveLearnPlan(); }
