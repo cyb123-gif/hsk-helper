@@ -6478,6 +6478,7 @@ const HSK2_VOCAB = [
         // 更新「怎么说」输入框占位文字
         const zi = document.getElementById('zenmeshuoInput'); if(zi) zi.placeholder = t('zms.placeholder');
         const wi = document.getElementById('wZenmeshuoInput'); if(wi) wi.placeholder = t('zms.placeholder');
+        const wb = document.getElementById('wZenmeshuoBtn'); if(wb) wb.textContent = t('zms.button');
         // 写作结果正在显示 → 自动用新语言重新分析
         const wResults = document.getElementById('writingResults');
         if (wResults && wResults.classList.contains('active') && lastWritingText) {
