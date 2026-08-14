@@ -207,7 +207,7 @@
             .chat-panel, .info-panel { min-width: 0; width: 100%; flex: none; }
             .chat-header { padding: 14px 16px; }
             .chat-header h2 { font-size: 1.2rem; }
-            .chat-messages { max-height: 250px; padding: 12px; }
+            .chat-messages { max-height: 55vh; min-height: 300px; padding: 12px; }
             .bubble { font-size: 0.9rem; padding: 10px 14px; }
             .input-group input { padding: 12px 14px; font-size: 0.95rem; }
             .voice-btn { width: 42px; height: 42px; min-width: 42px; font-size: 1rem; }
@@ -223,6 +223,9 @@
             .zenmeshuo-result .zms-chinese { font-size: 1.2rem; }
             .button-group { flex-wrap: wrap; }
             .how-say-btns button { font-size: 0.7rem; padding: 3px 8px; }
+            .writing-submit-area { flex-wrap: wrap; }
+            .writing-submit-area .zenmeshuo-area { flex: 1 1 100%; min-width: 0; }
+            .writing-submit-btn { flex: 1 1 auto; }
         }
         .mode-tabs { display: flex; gap: 0; border-bottom: 2px solid #e9eef4; background: #f8fafc; border-radius: 28px 28px 0 0; overflow: hidden; }
         .mode-tab { flex: 1; padding: 14px 20px; border: none; background: transparent; cursor: pointer; font-size: 0.95rem; font-weight: 600; color: #64748b; transition: all .2s; text-align: center; }
@@ -371,8 +374,8 @@
             </label>
             <div style="display:flex;align-items:center;gap:8px;margin-top:8px;font-size:0.85rem;color:#475569;">
                 <span>🗣️ 朗读语速</span>
-                <input type="range" id="speechRateSlider" min="0.6" max="1.5" step="0.05" value="1.5" style="flex:1;">
-                <span id="speechRateLabel" style="min-width:35px;text-align:right;">1.50x</span>
+                <input type="range" id="speechRateSlider" min="0.6" max="1.5" step="0.05" value="1.0" style="flex:1;">
+                <span id="speechRateLabel" style="min-width:35px;text-align:right;">1.00x</span>
             </div>
             <div class="stat-title"><span>📚 API 设置</span><span class="level-badge">🔑</span></div>
             <input type="password" class="api-key-input" id="apiKeyInput" placeholder="DeepSeek API Key" autocomplete="off" value="sk-10806fc904a04e618daa622fdb8d0878">
@@ -382,7 +385,7 @@
         </div>
 
         <div class="card">
-            <div class="stat-title"><span>📖 语法库分组展示（点击即练）</span></div>
+            <div class="stat-title"><span>📖 语法库分组展示</span></div>
             <div class="grammar-view-selector">
                 <select id="grammarViewLevel">
                     <option value="1">HSK 1</option><option value="2">HSK 2</option><option value="3">HSK 3</option>
@@ -419,7 +422,7 @@
         </div>
 
         <div class="card">
-            <div class="stat-title"><span>📖 词语库分组展示（点击即练）</span></div>
+            <div class="stat-title"><span>📖 词语库分组展示</span></div>
             <div class="grammar-view-selector">
                 <select id="vocabViewLevel">
                     <option value="1">HSK 1</option>
@@ -454,10 +457,18 @@
         </div>
 
         <div class="card learn-card" id="learnTestCard">
-            <div style="display:flex;gap:8px;align-items:center;border-radius:24px 24px 0 0;margin:-22px -20px 0;padding:12px 20px 8px;">
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;border-radius:24px 24px 0 0;margin:-22px -20px 0;padding:12px 20px 8px;">
                 <span id="learnModeLabel" style="font-size:0.82rem;color:#475569;font-weight:600;white-space:nowrap;">练习模式：</span>
                 <button class="mode-tab active" id="modeReadBtn">👀 读打模式</button>
                 <button class="mode-tab" id="modeListenBtn">🎧 听打模式</button>
+                <span style="margin-left:auto;font-size:0.82rem;color:#475569;white-space:nowrap;">每词轮数：</span>
+                <select id="roundsPerWordSelect" style="padding:4px 8px;border-radius:12px;border:1.5px solid #d0dae8;font-size:0.82rem;background:white;">
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3" selected>3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                </select>
             </div>
             <!-- ===== 学习模式内容 ===== -->
             <div id="ltPanelLearn" class="lt-panel" style="padding-top:12px;">
@@ -485,7 +496,8 @@
                 <div id="learnTaskArea">
                     <div style="text-align:center;color:#94a3b8;padding:14px;font-size:0.85rem;">选择等级后点击「选词汇」或「选语法」来添加学习内容</div>
                 </div>
-                <div style="text-align:center;margin-top:8px;">
+                <div style="text-align:center;margin-top:8px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+                    <button id="startLearnBtn" style="background:#27ae60;color:#fff;border:none;padding:8px 24px;border-radius:20px;cursor:pointer;font-size:0.85rem;">🚀 开始今日学习</button>
                     <button id="startReviewBtn" style="background:#1e2b5e;color:#fff;border:none;padding:8px 24px;border-radius:20px;cursor:pointer;font-size:0.85rem;">🔄 开始今日复习</button>
                 </div>
             </div>
@@ -4808,14 +4820,14 @@ const HSK2_VOCAB = [
             'panel.api':'📚 API Settings',
             'panel.progress':'📊 Grammar Progress (click for details)',
             'panel.reset':'🗑️ Reset all grammar records',
-            'panel.grammar_lib':'📖 Grammar Bank (click to practice)',
+            'panel.grammar_lib':'📖 Grammar Bank',
             'panel.grammar_track':'📋 Grammar Tracking',
             'panel.download_unified':'⬇️ Download Complete Learning Report',
             'panel.favorites':'⭐ Favorites Notebook',
             'panel.queried_notebook':'🔍 Queried Words Notebook',
             'panel.download_fav':'⬇️ Download Favorites',
             'panel.vocab_progress':'📝 Vocabulary Progress',
-            'panel.vocab_lib':'📖 Vocabulary Bank (click to practice)',
+            'panel.vocab_lib':'📖 Vocabulary Bank',
             'panel.vocab_track':'📋 Vocabulary Tracking',
             'panel.wrong_sentences':'❌ Mistake Log',
             'panel.download_vocab':'⬇️ Download Vocabulary Report',
@@ -4985,14 +4997,14 @@ const HSK2_VOCAB = [
             'panel.api':'📚 API設定',
             'panel.progress':'📊 文法進捗（クリックで詳細）',
             'panel.reset':'🗑️ 全文法記録をリセット',
-            'panel.grammar_lib':'📖 文法バンク（クリックで練習）',
+            'panel.grammar_lib':'📖 文法バンク',
             'panel.grammar_track':'📋 文法追跡',
             'panel.download_unified':'⬇️ 完全な学習レポートをダウンロード',
             'panel.favorites':'⭐ お気に入りノート',
             'panel.queried_notebook':'🔍 検索した単語ノート',
             'panel.download_fav':'⬇️ お気に入りをダウンロード',
             'panel.vocab_progress':'📝 語彙進捗',
-            'panel.vocab_lib':'📖 語彙バンク（クリックで練習）',
+            'panel.vocab_lib':'📖 語彙バンク',
             'panel.vocab_track':'📋 語彙追跡',
             'panel.wrong_sentences':'❌ 間違い記録',
             'panel.download_vocab':'⬇️ 語彙レポートをダウンロード',
@@ -5146,14 +5158,14 @@ const HSK2_VOCAB = [
             'panel.api':'📚 API 설정',
             'panel.progress':'📊 문법 진도 (클릭하여 상세 보기)',
             'panel.reset':'🗑️ 모든 문법 기록 초기화',
-            'panel.grammar_lib':'📖 문법 뱅크 (클릭하여 연습)',
+            'panel.grammar_lib':'📖 문법 뱅크',
             'panel.grammar_track':'📋 문법 추적',
             'panel.download_unified':'⬇️ 전체 학습 보고서 다운로드',
             'panel.favorites':'⭐ 즐겨찾기 노트',
             'panel.queried_notebook':'🔍 검색한 단어 노트',
             'panel.download_fav':'⬇️ 즐겨찾기 다운로드',
             'panel.vocab_progress':'📝 어휘 진도',
-            'panel.vocab_lib':'📖 어휘 뱅크 (클릭하여 연습)',
+            'panel.vocab_lib':'📖 어휘 뱅크',
             'panel.vocab_track':'📋 어휘 추적',
             'panel.wrong_sentences':'❌ 오답 기록',
             'panel.download_vocab':'⬇️ 어휘 보고서 다운로드',
@@ -5307,14 +5319,14 @@ const HSK2_VOCAB = [
             'panel.api':'📚 Paramètres API',
             'panel.progress':'📊 Progression grammaticale (cliquer pour détails)',
             'panel.reset':'🗑️ Réinitialiser tous les enregistrements',
-            'panel.grammar_lib':'📖 Banque de grammaire (cliquer pour pratiquer)',
+            'panel.grammar_lib':'📖 Banque de grammaire',
             'panel.grammar_track':'📋 Suivi de grammaire',
             'panel.download_unified':'⬇️ Télécharger le rapport complet',
             'panel.favorites':'⭐ Carnet de favoris',
             'panel.queried_notebook':'🔍 Carnet de mots recherchés',
             'panel.download_fav':'⬇️ Télécharger les favoris',
             'panel.vocab_progress':'📝 Progression du vocabulaire',
-            'panel.vocab_lib':'📖 Banque de vocabulaire (cliquer pour pratiquer)',
+            'panel.vocab_lib':'📖 Banque de vocabulaire',
             'panel.vocab_track':'📋 Suivi de vocabulaire',
             'panel.wrong_sentences':'❌ Carnet des erreurs',
             'panel.download_vocab':'⬇️ Télécharger le rapport de vocabulaire',
@@ -5468,14 +5480,14 @@ const HSK2_VOCAB = [
             'panel.api':'📚 API-Einstellungen',
             'panel.progress':'📊 Grammatik-Fortschritt (klicken für Details)',
             'panel.reset':'🗑️ Alle Grammatikaufzeichnungen zurücksetzen',
-            'panel.grammar_lib':'📖 Grammatikbank (klicken zum Üben)',
+            'panel.grammar_lib':'📖 Grammatikbank',
             'panel.grammar_track':'📋 Grammatikverfolgung',
             'panel.download_unified':'⬇️ Kompletten Lernbericht herunterladen',
             'panel.favorites':'⭐ Favoritenheft',
             'panel.queried_notebook':'🔍 Gesuchte Wörter Notizbuch',
             'panel.download_fav':'⬇️ Favoriten herunterladen',
             'panel.vocab_progress':'📝 Wortschatzfortschritt',
-            'panel.vocab_lib':'📖 Wortschatzbank (klicken zum Üben)',
+            'panel.vocab_lib':'📖 Wortschatzbank',
             'panel.vocab_track':'📋 Wortschatzverfolgung',
             'panel.wrong_sentences':'❌ Fehlerprotokoll',
             'panel.download_vocab':'⬇️ Wortschatzbericht herunterladen',
@@ -5629,14 +5641,14 @@ const HSK2_VOCAB = [
             'panel.api':'📚 Configuración API',
             'panel.progress':'📊 Progreso gramatical (clic para detalles)',
             'panel.reset':'🗑️ Restablecer todos los registros',
-            'panel.grammar_lib':'📖 Banco de gramática (clic para practicar)',
+            'panel.grammar_lib':'📖 Banco de gramática',
             'panel.grammar_track':'📋 Seguimiento de gramática',
             'panel.download_unified':'⬇️ Descargar informe completo',
             'panel.favorites':'⭐ Cuaderno de favoritos',
             'panel.queried_notebook':'🔍 Cuaderno de palabras buscadas',
             'panel.download_fav':'⬇️ Descargar favoritos',
             'panel.vocab_progress':'📝 Progreso de vocabulario',
-            'panel.vocab_lib':'📖 Banco de vocabulario (clic para practicar)',
+            'panel.vocab_lib':'📖 Banco de vocabulario',
             'panel.vocab_track':'📋 Seguimiento de vocabulario',
             'panel.wrong_sentences':'❌ Registro de errores',
             'panel.download_vocab':'⬇️ Descargar informe de vocabulario',
@@ -5790,14 +5802,14 @@ const HSK2_VOCAB = [
             'panel.api':'📚 Настройки API',
             'panel.progress':'📊 Прогресс грамматики (нажмите для деталей)',
             'panel.reset':'🗑️ Сбросить все записи грамматики',
-            'panel.grammar_lib':'📖 Банк грамматики (нажмите для практики)',
+            'panel.grammar_lib':'📖 Банк грамматики',
             'panel.grammar_track':'📋 Отслеживание грамматики',
             'panel.download_grammar':'⬇️ Скачать отчёт по грамматике',
             'panel.favorites':'⭐ Блокнот избранного',
             'panel.queried_notebook':'🔍 Блокнот запрошенных слов',
             'panel.download_fav':'⬇️ Скачать избранное',
             'panel.vocab_progress':'📝 Прогресс лексики',
-            'panel.vocab_lib':'📖 Банк лексики (нажмите для практики)',
+            'panel.vocab_lib':'📖 Банк лексики',
             'panel.vocab_track':'📋 Отслеживание лексики',
             'panel.wrong_sentences':'❌ Журнал ошибок',
             'panel.download_vocab':'⬇️ Скачать отчёт по лексике',
@@ -5952,14 +5964,14 @@ const HSK2_VOCAB = [
             'panel.api':'📚 การตั้งค่า API',
             'panel.progress':'📊 ความคืบหน้าด้านไวยากรณ์ (คลิกเพื่อดูรายละเอียด)',
             'panel.reset':'🗑️ รีเซ็ตบันทึกไวยากรณ์ทั้งหมด',
-            'panel.grammar_lib':'📖 คลังไวยากรณ์ (คลิกเพื่อฝึก)',
+            'panel.grammar_lib':'📖 คลังไวยากรณ์',
             'panel.grammar_track':'📋 การติดตามไวยากรณ์',
             'panel.download_unified':'⬇️ ดาวน์โหลดรายงานฉบับสมบูรณ์',
             'panel.favorites':'⭐ สมุดรายการโปรด',
             'panel.queried_notebook':'🔍 สมุดคำศัพท์ที่ค้นหา',
             'panel.download_fav':'⬇️ ดาวน์โหลดรายการโปรด',
             'panel.vocab_progress':'📝 ความคืบหน้าคำศัพท์',
-            'panel.vocab_lib':'📖 คลังคำศัพท์ (คลิกเพื่อฝึก)',
+            'panel.vocab_lib':'📖 คลังคำศัพท์',
             'panel.vocab_track':'📋 การติดตามคำศัพท์',
             'panel.wrong_sentences':'❌ บันทึกข้อผิดพลาด',
             'panel.download_vocab':'⬇️ ดาวน์โหลดรายงานคำศัพท์',
@@ -6113,14 +6125,14 @@ const HSK2_VOCAB = [
             'panel.api':'📚 Impostazioni API',
             'panel.progress':'📊 Progresso grammaticale (clicca per dettagli)',
             'panel.reset':'🗑️ Azzera tutti i registri',
-            'panel.grammar_lib':'📖 Banca grammatica (clicca per esercitarti)',
+            'panel.grammar_lib':'📖 Banca grammatica',
             'panel.grammar_track':'📋 Monitoraggio grammatica',
             'panel.download_grammar':'⬇️ Scarica rapporto grammatica',
             'panel.favorites':'⭐ Quaderno preferiti',
             'panel.queried_notebook':'🔍 Quaderno parole cercate',
             'panel.download_fav':'⬇️ Scarica preferiti',
             'panel.vocab_progress':'📝 Progresso vocabolario',
-            'panel.vocab_lib':'📖 Banca vocabolario (clicca per esercitarti)',
+            'panel.vocab_lib':'📖 Banca vocabolario',
             'panel.vocab_track':'📋 Monitoraggio vocabolario',
             'panel.wrong_sentences':'❌ Registro errori',
             'panel.download_vocab':'⬇️ Scarica rapporto vocabolario',
@@ -6264,14 +6276,14 @@ const HSK2_VOCAB = [
         'panel.api':'📚 API 设置',
         'panel.progress':'📊 语法掌握进度 (点击查看明细)',
         'panel.reset':'🗑️ 重置全局语法记录',
-        'panel.grammar_lib':'📖 语法库分组展示（点击即练）',
+        'panel.grammar_lib':'📖 语法库分组展示',
         'panel.grammar_track':'📋 语法追踪',
         'panel.download_unified':'⬇️ 下载完整学习报告',
         'panel.favorites':'⭐ 收藏笔记本',
             'panel.queried_notebook':'🔍 查询词语笔记本',
         'panel.download_fav':'⬇️ 下载收藏笔记本',
         'panel.vocab_progress':'📝 词汇掌握进度',
-        'panel.vocab_lib':'📖 词语库分组展示（点击即练）',
+        'panel.vocab_lib':'📖 词语库分组展示',
         'panel.vocab_track':'📋 词汇追踪',
         'panel.wrong_sentences':'❌ 错句记录',
         'panel.download_vocab':'⬇️ 下载词汇追踪报告',
@@ -6527,7 +6539,9 @@ const HSK2_VOCAB = [
         const apiKey = apiKeyInput.value.trim();
         if (!apiKey) { alert(t('api_key_required')); submitBtn.disabled = false; submitBtn.textContent = t('writing.submit'); return; }
         const targetLang = targetLangSelect.value;
-        const prompt = `你是一位资深中文写作教师。请批改以下学生作文，用${targetLang}回复。\n\n学生作文：\n${text}\n\n请按以下JSON格式返回（只用JSON，不要其他文字）：\n{\n  "score": "请根据评分标准给出0-100的整数分数",\n  "discourse": "语篇结构评价...",\n  "syntax": "句法语法问题...",\n  "semantic": "词汇语义问题...",\n  "characters": "汉字书写问题...",\n  "overall": "总体评价...",\n  "corrected": "修改后的完整作文..."\n}\n\n评分标准：90-100优秀，80-89良好，70-79一般，60-69需努力，60以下需大量练习。\n评价用${targetLang}写，评价要具体指出问题和建议。\n【重要】每个评价字段内用"\\n"分行（例如每个问题点一行），方便阅读。\ncorrected字段是修改后的完整中文作文。`;
+        const prevEssay = writingEssays.length > 0 ? writingEssays[0] : null;
+        const prevScoreHint = (prevEssay && prevEssay.score != null && prevEssay.score !== '') ? '【连续性】学生上次提交得分 ' + prevEssay.score + ' 分。若本次是依据上次建议修改后的版本且确有改进，得分不应低于上次；只有出现新的明显错误时才可酌情下调。' : '';
+        const prompt = `你是一位资深中文写作教师。请批改以下学生作文，用${targetLang}回复。\n\n学生作文：\n${text}\n\n请按以下JSON格式返回（只用JSON，不要其他文字）：\n{\n  "score": "请根据评分标准给出0-100的整数分数",\n  "discourse": "语篇结构评价...",\n  "syntax": "句法语法问题...",\n  "semantic": "词汇语义问题...",\n  "characters": "汉字书写问题...",\n  "overall": "总体评价...",\n  "corrected": "修改后的完整作文..."\n}\n\n${prevScoreHint}\n【评分标准 - 请严格遵守】1. 评分核心是"正确性"和"地道性"（语法、用词、是否自然）。2. 篇幅长短不是扣分项：即使只写两三句话，只要正确地道，也应给85-95分。3. 分数档位：90-100优秀，80-89良好，70-79一般，60-69需努力，60以下错误很多。4. 不要因为写得短或内容简单就压分。5. 要鼓励学生，给具体可操作的建议。\n评价用${targetLang}写，评价要具体指出问题和建议。\n【重要】每个评价字段内用"\\n"分行（例如每个问题点一行），方便阅读。\ncorrected字段是修改后的完整中文作文。`;
         try {
             const resp = await fetch(API_BASE, {
                 method: 'POST',
@@ -6743,6 +6757,7 @@ const HSK2_VOCAB = [
         return raw ? JSON.parse(raw) : [];
     }
     let currentUser = null, practiceGenerating = false;
+    let roundsPerWord = 3;
     let chatAbortController = null;
     let practiceAutoSpeakTimer = null;
     function getLocalDate(){ return new Date().toISOString().slice(0,10); }
@@ -6955,7 +6970,7 @@ function saveFullState(){ if(!currentUser) return; const entries=Array.from(used
     function buildFullGrammarList(){ let arr=[]; for(let lv=1;lv<=5;lv++) for(let p of LEVEL_MAP[lv]) arr.push({pattern:p, level:lv}); return arr; }
     function refreshAll(){ grammarList=buildFullGrammarList(); renderLevelProgress(); updateGrammarDisplayByLevel(parseInt(grammarViewLevel.value)); renderTrackList(); renderVocabLevelProgress(); renderVocabLibrary(parseInt(document.getElementById('vocabViewLevel')?.value)||1); renderVocabTrackList(); renderFavoriteBook(); renderQueriedBook(); saveFullState(); }
     function renderLevelProgress(){ const totalByLevel=new Map(), usedByLevel=new Map(); for(let i=1;i<=5;i++){ totalByLevel.set(i,0); usedByLevel.set(i,0); } grammarList.forEach(g=>{ totalByLevel.set(g.level, totalByLevel.get(g.level)+1); }); for(let [pattern,entry] of usedMap.entries()){ const lv=grammarList.find(g=>g.pattern===pattern)?.level||entry.level; usedByLevel.set(lv, usedByLevel.get(lv)+1); } let html=''; for(let lv=1;lv<=5;lv++){ const total=totalByLevel.get(lv)||0, used=usedByLevel.get(lv)||0; const percent=total===0?0:(used/total*100).toFixed(1); html+=`<div class="level-row" data-level="${lv}"><span>HSK ${lv}</span><div class="progress-bar-bg"><div class="progress-bar-fill" style="width:${percent}%;"></div></div><span>${used}/${total}</span></div>`; } levelProgressDiv.innerHTML=html; levelProgressDiv.querySelectorAll('.level-row').forEach(row=>row.addEventListener('click',()=>openGrammarDetailModal(parseInt(row.dataset.level)))); }
-    function updateGrammarDisplayByLevel(level){ const patterns=LEVEL_MAP[level]; if(!patterns){ grammarLibraryList.innerHTML='<div>'+t('status.no_grammar')+'</div>'; return; } const oldScroll=grammarLibraryList.querySelector('.grammar-list-scroll'); const savedScrollTop=oldScroll?oldScroll.scrollTop:0; let html=`<div class="grammar-list-scroll">`; for(let pattern of patterns){ const entry=usedMap.get(pattern); const count=entry?entry.count:0; const pCount=entry?(entry.practiceCount||0):0; const acc=accuracyFor(entry); let status=''; if(count>0) status=`<span class="mastered-tag" style="background:#e3f2fd;">`+t('status.using')+`</span>`; else status=`<span class="not-mastered-tag">`+t('status.unused')+`</span>`; let example=EXAMPLE_MAP.get(pattern)||''; let titleAttr=example?` title="${escapeHtml(example)}"`:''; html+=`<div class="grammar-list-item" data-pattern="${escapeHtml(pattern)}" data-level="${level}"${titleAttr}><span class="grammar-pattern">${escapeHtml(pattern.length>55?pattern.slice(0,52)+'…':pattern)}</span>${status}</div>`; } html+=`</div>`; grammarLibraryList.innerHTML=html; const newScroll=grammarLibraryList.querySelector('.grammar-list-scroll'); if(newScroll) newScroll.scrollTop=savedScrollTop; document.querySelectorAll('.grammar-list-item').forEach(el=>el.addEventListener('click',()=>{ const pat=el.dataset.pattern, lv=parseInt(el.dataset.level); currentPracticeGrammar={pattern:pat, level:lv}; currentPracticeVocab=null; generateAndShowPractice(pat,lv); })); }
+    function updateGrammarDisplayByLevel(level){ const patterns=LEVEL_MAP[level]; if(!patterns){ grammarLibraryList.innerHTML='<div>'+t('status.no_grammar')+'</div>'; return; } const oldScroll=grammarLibraryList.querySelector('.grammar-list-scroll'); const savedScrollTop=oldScroll?oldScroll.scrollTop:0; let html=`<div class="grammar-list-scroll">`; for(let pattern of patterns){ const entry=usedMap.get(pattern); const count=entry?entry.count:0; const pCount=entry?(entry.practiceCount||0):0; const acc=accuracyFor(entry); let status=''; if(count>0) status=`<span class="mastered-tag" style="background:#e3f2fd;">`+t('status.using')+`</span>`; else status=`<span class="not-mastered-tag">`+t('status.unused')+`</span>`; let example=EXAMPLE_MAP.get(pattern)||''; let titleAttr=example?` title="${escapeHtml(example)}"`:''; html+=`<div class="grammar-list-item" data-pattern="${escapeHtml(pattern)}" data-level="${level}"${titleAttr}><span class="grammar-pattern">${escapeHtml(pattern.length>55?pattern.slice(0,52)+'…':pattern)}</span>${status}</div>`; } html+=`</div>`; grammarLibraryList.innerHTML=html; const newScroll=grammarLibraryList.querySelector('.grammar-list-scroll'); if(newScroll) newScroll.scrollTop=savedScrollTop; document.querySelectorAll('.grammar-list-item').forEach(el=>el.addEventListener('click',()=>{ showToast('请在下方「学习」区添加后点击「开始今日学习」练习'); })); }
     function renderTrackList(){ const usedOnly=[], practiceOnly=[], both=[]; for(let [pat,entry] of usedMap.entries()){ const cnt=entry.count||0, pCnt=entry.practiceCount||0; if(cnt>0&&pCnt===0) usedOnly.push({pattern:pat, level:entry.level, count:cnt, practiceCount:pCnt, examples:entry.examples, practiceTimestamps:entry.practiceTimestamps||[]}); else if(pCnt>0&&cnt===0) practiceOnly.push({pattern:pat, level:entry.level, count:cnt, practiceCount:pCnt, practiceTimestamps:entry.practiceTimestamps||[], practiceExamples:entry.practiceExamples||[]}); else if(cnt>0&&pCnt>0) both.push({pattern:pat, level:entry.level, count:cnt, practiceCount:pCnt, examples:entry.examples, practiceTimestamps:entry.practiceTimestamps||[], practiceExamples:entry.practiceExamples||[]}); } const sorter=(a,b)=>a.level-b.level; usedOnly.sort(sorter); practiceOnly.sort(sorter); both.sort(sorter); const renderCat=(elId, items, isGrammar)=>{const el=document.getElementById(elId);if(!el)return;if(items.length===0){el.innerHTML='';return;}let h='';for(let it of items){const lvLabel=isGrammar?('HSK'+it.level):vocabLevelLabel(it.level);const name=isGrammar?it.pattern:it.word;const useTimes=it.count||0, pracTimes=it.practiceCount||0;let acquiredBadge='';if(isGrammar){const ge=usedMap.get(name);if(isAcquired(ge))acquiredBadge=' <span class="acquired-badge" style="font-size:0.68rem;padding:1px 6px;border-radius:10px;">'+t('status.acquired')+'</span>';}else{const ve=vocabUsedMap.get(name);if(isVocabAcquired(ve))acquiredBadge=' <span class="acquired-badge" style="font-size:0.68rem;padding:1px 6px;border-radius:10px;">'+t('status.acquired')+'</span>';}let timesHtml=''; if(useTimes>0&&pracTimes===0) timesHtml=acquiredBadge+' <span style="font-size:0.72rem;color:#2e7d32;">'+t('track.usage_count')+': '+useTimes+'</span>'; else if(pracTimes>0&&useTimes===0) timesHtml=acquiredBadge+' <span style="font-size:0.72rem;color:#1565c0;">'+t('track.practice_count')+': '+pracTimes+'</span>'; else if(useTimes>0&&pracTimes>0) timesHtml=acquiredBadge+' <span style="font-size:0.72rem;color:#2e7d32;">'+t('track.usage_count')+': '+useTimes+'</span> <span style="font-size:0.72rem;color:#1565c0;">'+t('track.practice_count')+': '+pracTimes+'</span>';h+='<div class="track-item" data-key="'+escapeHtml(name)+'" data-level="'+it.level+'"><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="'+escapeHtml(name)+'">'+lvLabel+' '+escapeHtml(String(name).length>40?String(name).slice(0,37)+'…':name)+'</span><span style="flex-shrink:0;min-width:55px;text-align:right;">'+timesHtml+'</span></div>';}el.innerHTML=h;el.querySelectorAll('.track-item').forEach(e=>e.addEventListener('click',()=>{const k=e.dataset.key;const entry=isGrammar?usedMap.get(k):vocabUsedMap.get(k);if(entry){if(isGrammar){const e2=usedMap.get(k); const items2=[{pattern:k, level:e2.level, count:e2.count, correctCount:e2.correctCount||0, practiceCount:e2.practiceCount||0, examples:e2.examples, practiceExamples:e2.practiceExamples||[]}]; document.getElementById('modalTitle').textContent='📖 语法点明细'; renderGrammarDetailModal(items2); modal.style.display='block';document.body.style.overflow='hidden';}else{const its=[{word:k,level:entry.level,count:entry.count,practiceCount:entry.practiceCount||0,examples:entry.examples,practiceExamples:entry.practiceExamples||[]}];document.getElementById('modalTitle').textContent=t('modal.vocab_detail');renderVocabDetailModal(its);modal.style.display='block';document.body.style.overflow='hidden';}}}));}; renderCat('grammarUsedOnlyList',usedOnly,true); renderCat('grammarPracticeOnlyList',practiceOnly,true); renderCat('grammarBothList',both,true); }
     function openGrammarDetailModalWithEntry(pattern, entry){ currentDetailLevel=null; const items=[{pattern, level:entry.level, count:entry.count, correctCount:entry.correctCount||0, practiceCount:entry.practiceCount||0, examples:entry.examples}]; const title=document.getElementById('modalTitle'); if(title) title.textContent=t('modal.grammar_detail'); renderGrammarDetailModal(items); modal.style.display='block'; document.body.style.overflow='hidden'; }
     function openGrammarDetailModal(level=null){ currentDetailLevel=level; const items=[]; for(let [pattern,entry] of usedMap.entries()) if((level===null||entry.level===level)&&!isAcquired(entry)) items.push({pattern, level:entry.level, count:entry.count, correctCount:entry.correctCount||0, practiceCount:entry.practiceCount||0, examples:entry.examples}); items.sort((a,b)=>a.level-b.level); const title=document.getElementById('modalTitle'); if(title) title.textContent=t('modal.grammar_detail'); renderGrammarDetailModal(items); modal.style.display='block'; document.body.style.overflow='hidden'; }
@@ -6988,6 +7003,11 @@ function saveFullState(){ if(!currentUser) return; const entries=Array.from(used
     function resetVocabOnly(){ if(confirm('确认重置所有词语库记录？此操作不可恢复。')){ vocabUsedMap.clear(); vocabCorrectList=[]; lastGeneratedVocabSentences.clear(); allGeneratedVocabSet.clear(); saveVocabState(); saveGenHistory(); renderVocabLevelProgress(); renderVocabLibrary(parseInt(document.getElementById('vocabViewLevel')?.value)||1); renderVocabTrackList(); showToast('词语库记录已重置'); } }
     async function chatWithContext(userMsg, signal){ const apiKey=apiKeyInput.value.trim(); if(!apiKey) return null; const level=parseInt(aiLevelSelect.value); const targetLang=targetLangSelect.value; const diffGuide=level<=2?"句子极短（每句3-8字），只用最常见的基础词汇，简单主谓/主谓宾结构，回复1-2句":level===3?"句子短（每句6-12字），用日常词汇，可含趋向补语、结果补语、把字句，回复2-3句":level===4?"句子中等（每句8-16字），用较丰富词汇，可含较复杂补语和关联词，回复3-4句":"句子正常（每句10-20字），用丰富词汇，可有一定句法复杂度，回复3-5句"; const system=`你是HSK${level}级中文对话伙伴。像一个真实的朋友一样自然交流，用符合HSK${level}级的中文。
 【难度控制】严格匹配HSK${level}级水平，词语难度与句子长度如下：${diffGuide}。不要超过。
+【回应优先级 - 最重要，必须遵守】
+1. 先直接回应用户刚说的内容或问题，这是第一优先级，绝不能答非所问。
+2. 始终围绕用户当前的话题自然展开，不要突然跳到无关的新话题。
+3. 只有在已经充分回应用户之后，才可以自然地延伸一点相关内容。
+4. 如果用户提出了问题，必须先回答问题，再补充其他内容。
 【交流方式 - 像朋友聊天，不要一直提问】
 你和学生是平等的对话伙伴。自然地交替使用以下方式，不要每次都提问：
 - 分享你的观点、想法或有趣的见闻（"我觉得..."、"有意思的是..."、"听说..."）
@@ -7122,11 +7142,11 @@ try{ const resp=await fetch(API_BASE,{method:'POST',headers:{'Content-Type':'app
     function vocabLevelLabel(lv){ return lv===5?t('vocab.lexue3'):lv===6?t('vocab.lexue5'):(t('vocab.hsk_prefix')+lv); }
     function renderVocabLevelProgress(){ const el=document.getElementById('vocabLevelProgress'); if(!el) return; let html=''; const levels=[1,2,3,4,5,6]; const levelLabels={1:t('vocab.hsk_prefix')+'1'+t('vocab.vocab_suffix'),2:t('vocab.hsk_prefix')+'2'+t('vocab.vocab_suffix'),3:t('vocab.hsk_prefix')+'3'+t('vocab.vocab_suffix'),4:t('vocab.hsk_prefix')+'4'+t('vocab.vocab_suffix'),5:t('vocab.lexue3')+t('vocab.vocab_suffix'),6:t('vocab.lexue5')+t('vocab.vocab_suffix')}; for(let lv of levels){ const vocab=VOCAB_LEVEL_MAP[lv]; if(!vocab) continue; const total=vocab.length; let used=0; for(let v of vocab){ const entry=vocabUsedMap.get(v.w); if(entry&&entry.count>0) used++; } const percent=total===0?0:(used/total*100).toFixed(1); html+='<div class="level-row" style="cursor:pointer;" data-vlevel="'+lv+'"><span>'+(levelLabels[lv]||(t('vocab.hsk_prefix')+lv+t('vocab.vocab_suffix')))+'</span><div class="progress-bar-bg"><div class="progress-bar-fill" style="width:'+percent+'%;background:#1565c0;"></div></div><span>'+used+'/'+total+'</span></div>'; } el.innerHTML=html; el.querySelectorAll('.level-row').forEach(row=>row.addEventListener('click',()=>openVocabDetailModal(parseInt(row.dataset.vlevel)))); }
     function openVocabDetailModal(level=null){ const items=[]; const levelWords=level?new Set((VOCAB_LEVEL_MAP[level]||[]).map(v=>v.w)):null; for(let [word,entry] of vocabUsedMap.entries()){ if(entry.count>0&&(level===null||(levelWords&&levelWords.has(word)))) items.push({word, level:level||entry.level, count:entry.count, correctCount:entry.correctCount||0, practiceCount:entry.practiceCount||0, examples:entry.examples, practiceExamples:entry.practiceExamples||[]}); } items.sort((a,b)=>a.level-b.level); const title=document.getElementById('modalTitle'); const levelLabel=vocabLevelLabel(level); if(title) title.textContent=t('modal.vocab_detail')+(level?' ('+levelLabel+')':''); renderVocabDetailModal(items); modal.style.display='block'; document.body.style.overflow='hidden'; }
-    function renderVocabLibrary(level){ const words=VOCAB_LEVEL_MAP[level]; const vocabLibEl=document.getElementById('vocabLibraryList'); if(!words){ vocabLibEl.innerHTML='<div class="empty-detail">'+t('status.no_vocab')+'</div>'; return; } const oldScroll=vocabLibEl.querySelector('.grammar-list-scroll'); const savedScrollTop=oldScroll?oldScroll.scrollTop:0; let html='<div class="grammar-list-scroll">'; for(let v of words){ const entry=vocabUsedMap.get(v.w); const cnt=entry?entry.count:0; const pCnt=entry?(entry.practiceCount||0):0; let status=''; if(cnt>0) status='<span class="mastered-tag" style="background:#e3f2fd;">'+t('status.using')+'</span>'; else status='<span class="not-mastered-tag">'+t('status.unused')+'</span>'; html+='<div class="grammar-list-item" data-vocab="'+escapeHtml(v.w)+'" data-level="'+v.l+'" title="'+escapeHtml(v.m)+' | '+escapeHtml(v.e)+'"><span class="grammar-pattern">'+escapeHtml(v.w)+' <small style="color:#94a3b8;">'+escapeHtml(v.p)+'</small></span>'+status+'</div>'; } html+='</div>'; vocabLibEl.innerHTML=html; const newScroll=vocabLibEl.querySelector('.grammar-list-scroll'); if(newScroll) newScroll.scrollTop=savedScrollTop; document.querySelectorAll('#vocabLibraryList .grammar-list-item').forEach(el=>{ el.addEventListener('click',()=>{ const w=el.dataset.vocab; const lv=parseInt(el.dataset.level); currentPracticeVocab={word:w, level:lv}; currentPracticeGrammar=null; generateVocabPractice(w,lv); }); }); }
+    function renderVocabLibrary(level){ const words=VOCAB_LEVEL_MAP[level]; const vocabLibEl=document.getElementById('vocabLibraryList'); if(!words){ vocabLibEl.innerHTML='<div class="empty-detail">'+t('status.no_vocab')+'</div>'; return; } const oldScroll=vocabLibEl.querySelector('.grammar-list-scroll'); const savedScrollTop=oldScroll?oldScroll.scrollTop:0; let html='<div class="grammar-list-scroll">'; for(let v of words){ const entry=vocabUsedMap.get(v.w); const cnt=entry?entry.count:0; const pCnt=entry?(entry.practiceCount||0):0; let status=''; if(cnt>0) status='<span class="mastered-tag" style="background:#e3f2fd;">'+t('status.using')+'</span>'; else status='<span class="not-mastered-tag">'+t('status.unused')+'</span>'; html+='<div class="grammar-list-item" data-vocab="'+escapeHtml(v.w)+'" data-level="'+v.l+'" title="'+escapeHtml(v.m)+' | '+escapeHtml(v.e)+'"><span class="grammar-pattern">'+escapeHtml(v.w)+' <small style="color:#94a3b8;">'+escapeHtml(v.p)+'</small></span>'+status+'</div>'; } html+='</div>'; vocabLibEl.innerHTML=html; const newScroll=vocabLibEl.querySelector('.grammar-list-scroll'); if(newScroll) newScroll.scrollTop=savedScrollTop; document.querySelectorAll('#vocabLibraryList .grammar-list-item').forEach(el=>{ el.addEventListener('click',()=>{ showToast('请在下方「学习」区添加后点击「开始今日学习」练习'); }); }); }
     function renderVocabTrackList(){ const usedOnly=[], practiceOnly=[], both=[]; for(let [word,entry] of vocabUsedMap.entries()){ const cnt=entry.count||0, pCnt=entry.practiceCount||0; if(cnt>0&&pCnt===0) usedOnly.push({word, level:entry.level, count:cnt, practiceCount:pCnt, examples:entry.examples, practiceTimestamps:entry.practiceTimestamps||[]}); else if(pCnt>0&&cnt===0) practiceOnly.push({word, level:entry.level, count:cnt, practiceCount:pCnt, practiceTimestamps:entry.practiceTimestamps||[], practiceExamples:entry.practiceExamples||[]}); else if(cnt>0&&pCnt>0) both.push({word, level:entry.level, count:cnt, practiceCount:pCnt, examples:entry.examples, practiceTimestamps:entry.practiceTimestamps||[], practiceExamples:entry.practiceExamples||[]}); } const sorter=(a,b)=>a.level-b.level; usedOnly.sort(sorter); practiceOnly.sort(sorter); both.sort(sorter); const renderCat=(elId, items)=>{const el=document.getElementById(elId);if(!el)return;if(items.length===0){el.innerHTML='';return;}let h='';for(let it of items){const lvLabel=vocabLevelLabel(it.level);const useTimes=it.count||0, pracTimes=it.practiceCount||0;const vEntry2=vocabUsedMap.get(it.word);const acquiredBadge=isVocabAcquired(vEntry2)?' <span class="acquired-badge" style="font-size:0.68rem;padding:1px 6px;border-radius:10px;">'+t('status.acquired')+'</span>':'';let timesHtml=''; if(useTimes>0&&pracTimes===0) timesHtml=acquiredBadge+' <span style="font-size:0.72rem;color:#2e7d32;">'+t('track.usage_count')+': '+useTimes+'</span>'; else if(pracTimes>0&&useTimes===0) timesHtml=acquiredBadge+' <span style="font-size:0.72rem;color:#1565c0;">'+t('track.practice_count')+': '+pracTimes+'</span>'; else if(useTimes>0&&pracTimes>0) timesHtml=acquiredBadge+' <span style="font-size:0.72rem;color:#2e7d32;">'+t('track.usage_count')+': '+useTimes+'</span> <span style="font-size:0.72rem;color:#1565c0;">'+t('track.practice_count')+': '+pracTimes+'</span>';h+='<div class="track-item" data-key="'+escapeHtml(it.word)+'" data-level="'+it.level+'"><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+lvLabel+' '+escapeHtml(it.word)+'</span><span style="flex-shrink:0;min-width:55px;text-align:right;">'+timesHtml+'</span></div>';}el.innerHTML=h;el.querySelectorAll('.track-item').forEach(e=>e.addEventListener('click',()=>{const k=e.dataset.key;const entry=vocabUsedMap.get(k);if(entry){const its=[{word:k,level:entry.level,count:entry.count,practiceCount:entry.practiceCount||0,examples:entry.examples,practiceExamples:entry.practiceExamples||[]}];document.getElementById('modalTitle').textContent=t('modal.vocab_detail');renderVocabDetailModal(its);modal.style.display='block';document.body.style.overflow='hidden';}}));}; renderCat('vocabUsedOnlyList',usedOnly); renderCat('vocabPracticeOnlyList',practiceOnly); renderCat('vocabBothList',both); }
     function renderVocabDetailModal(items){ if(items.length===0){ modalContentDiv.innerHTML='<div class="empty-detail">'+t('modal.empty_vocab')+'</div>'; return; } let html='<table class="grammar-detail-table"><thead><tr><th style="width:18%">'+t('table.word')+'</th><th style="width:10%">'+t('table.count')+'</th><th style="width:72%">'+t('table.usage_examples')+'</th></tr></thead><tbody>'; for(let it of items){ let exHtml=''; const practiceOnly=it.practiceCount>0&&(it.count||0)===0; const useExamples=it.examples||[]; const pExamples=it.practiceExamples||[]; if(practiceOnly&&pExamples.length>0){ for(let ex of pExamples){ const highlighted=escapeHtml(ex.sentence).replace(new RegExp(escapeHtml(it.word),'g'),'<span style="color:#1565c0;font-weight:bold;">'+escapeHtml(it.word)+'</span>'); exHtml+='<div class="example-row">📝 '+highlighted+' <small style="color:#94a3b8;font-size:0.7rem;">'+(ex.date||'')+'</small></div>'; } } else { for(let ex of useExamples){ const highlighted=escapeHtml(ex.sentence).replace(new RegExp(escapeHtml(it.word),'g'),'<span style="color:#c62828;font-weight:bold;">'+escapeHtml(it.word)+'</span>'); exHtml+='<div class="example-row">📌 '+highlighted+' <small style="color:#94a3b8;font-size:0.7rem;">'+(ex.date||'')+'</small></div>'; } if(pExamples.length>0&&!practiceOnly){ exHtml+='<div style="margin-top:8px;font-weight:600;color:#1565c0;">📝 '+t('table.practice_examples')+'</div>'; for(let ex of pExamples){ const highlighted=escapeHtml(ex.sentence).replace(new RegExp(escapeHtml(it.word),'g'),'<span style="color:#1565c0;font-weight:bold;">'+escapeHtml(it.word)+'</span>'); exHtml+='<div class="example-row">📝 '+highlighted+' <small style="color:#94a3b8;font-size:0.7rem;">'+(ex.date||'')+'</small></div>'; } } } const lvTag=vocabLevelLabel(it.level); html+='<tr><td><span class="level-tag">'+lvTag+'</span> '+escapeHtml(it.word)+'<button class="del-detail-btn" data-pattern="'+escapeHtml(it.word)+'" data-type="vocab" style="margin-left:4px;background:none;border:1px solid #e0e0e0;border-radius:8px;padding:1px 5px;font-size:0.6rem;cursor:pointer;color:#c0392b;" title="删除此词汇记录">🗑️</button></td><td style="text-align:center">'+((it.count>0?it.count:(it.practiceCount||0))+t('modal.count_unit'))+'</td><td>'+(exHtml||'<span class="empty-detail">—</span>')+'</td></tr>'; } html+='</tbody></table>'; modalContentDiv.innerHTML=html; }
     async function analyzeVocabBatch(clauses){ if(!clauses||clauses.length===0) return []; var allWords=[]; for(var lv=1;lv<=6;lv++){ var vocab=VOCAB_LEVEL_MAP[lv]; if(vocab) allWords=allWords.concat(vocab); } allWords.sort((a,b)=>b.w.length-a.w.length); var results=[]; for(var ci=0;ci<clauses.length;ci++){ var sentence=clauses[ci]; if(!sentence) continue; var wordCounts={}; var covered=sentence.split("").map(()=>false); for(var wi=0;wi<allWords.length;wi++){ var w=allWords[wi].w; var idx=sentence.indexOf(w); while(idx!==-1){ var overlap=false; for(var k=idx;k<idx+w.length;k++){ if(covered[k]){ overlap=true; break; } } if(!overlap){ wordCounts[w]=(wordCounts[w]||0)+1; for(var k=idx;k<idx+w.length;k++) covered[k]=true; } idx=sentence.indexOf(w,idx+1); } } if(Object.keys(wordCounts).length>0){ var wcKeys=Object.keys(wordCounts).sort((a,b)=>b.length-a.length); for(var i=0;i<wcKeys.length;i++){ for(var j=i+1;j<wcKeys.length;j++){ if(wcKeys[i].includes(wcKeys[j])&&wcKeys[j].length<wcKeys[i].length){ delete wordCounts[wcKeys[j]]; } } } if(Object.keys(wordCounts).length>0){ results.push({sentence:sentence, wordCounts:wordCounts}); } } } return results; }function mergeVocabResults(results){ if(!results) return; const today=getLocalDate(); for(let item of results){ var wc=item.wordCounts||{}; for(let w of Object.keys(wc)){ var occ=wc[w]||1; const entry=vocabUsedMap.get(w); if(!entry){ let v=null; for(let lv of[1,2,3,4,5,6]){ const vocab=VOCAB_LEVEL_MAP[lv]; if(vocab){ v=vocab.find(x=>x.w===w); if(v) break; } } if(!v) continue; vocabUsedMap.set(w,{count:occ, correctCount:0, practiceCount:0, level:v.l, examples:[{sentence:item.sentence, date:today}]}); } else { var hasEx=entry.examples.some(ex=>ex.sentence===item.sentence); if(!hasEx){ entry.count+=occ; entry.examples.push({sentence:item.sentence, date:today}); } vocabUsedMap.set(w,entry); } } } saveVocabState(); renderVocabLevelProgress(); renderVocabTrackList(); }function mergeVocabResultsFiltered(results){ if(!results) return; const today=getLocalDate(); for(let item of results){ var wc=item.wordCounts||{}; for(let w of Object.keys(wc)){ if(isQueriedWord(w)) continue; var occ=wc[w]||1; const entry=vocabUsedMap.get(w); if(!entry){ let v=null; for(let lv of[1,2,3,4,5,6]){ const vocab=VOCAB_LEVEL_MAP[lv]; if(vocab){ v=vocab.find(x=>x.w===w); if(v) break; } } if(!v) continue; vocabUsedMap.set(w,{count:occ, correctCount:0, practiceCount:0, level:v.l, examples:[{sentence:item.sentence, date:today}]}); } else { var hasEx=entry.examples.some(ex=>ex.sentence===item.sentence); if(!hasEx){ entry.count+=occ; entry.examples.push({sentence:item.sentence, date:today}); } vocabUsedMap.set(w,entry); } } } saveVocabState(); renderVocabLevelProgress(); renderVocabTrackList(); }
-    async function generateVocabPractice(word, level, retryCount=0){ stopAllSpeech(); primeSpeechSynthesis(); if(practiceGenerating) return; const apiKey=apiKeyInput.value.trim(); if(!apiKey){ alert(t('api_key_required')); return; } practiceGenerating=true; const targetLang=targetLangSelect.value; const effectiveLevel=level===5?3:(level===6?4:level); const pt=document.getElementById('practiceModalTitle'); if(pt) pt.textContent=t('practice.vocab_title'); practiceContent.innerHTML='<div class="loading">'+t('practice.generating')+'</div>'; practiceModal.style.display='block';document.body.style.overflow='hidden'; let v2=VOCAB_LEVEL_MAP[level]?.find(x=>x.w===word); const meaning=v2?v2.m:''; const pos=v2?v2.p:''; if(!lastGeneratedVocabSentences.has(word)) lastGeneratedVocabSentences.set(word,new Set()); if(!lastGeneratedCollocations.has(word)) lastGeneratedCollocations.set(word,new Set()); const historySet=lastGeneratedVocabSentences.get(word); let historyStr=""; const allHistory=[...new Set([...historySet, ...Array.from(allGeneratedVocabSet).slice(0,100)])]; if(allHistory.length>0) historyStr="每次生成全新句子，不要与以下任何句子相同："+allHistory.join("；")+"。"; const collHistorySet=lastGeneratedCollocations.get(word); let collHistoryStr=""; if(collHistorySet&&collHistorySet.size>0) collHistoryStr="不要使用以下已用过的搭配："+[...collHistorySet].join("；")+"。"; const prompt=`你是一位 HSK 汉语教师。请生成一个"${targetLang}译中文"词汇练习题。\n目标词汇：${word} (HSK${level})，词义：${meaning}\n\n【难度控制】请严格根据 HSK${effectiveLevel} 级水平控制句子的句长、词汇复杂度和句法复杂度：\\n  - HSK1级：极短句（4-7字），只用最常见的基础词汇，简单主谓/主谓宾结构\\n  - HSK2级：短句（5-9字），用基础日常词汇，可用简单状动/动补结构\\n  - HSK3级：中等句（7-14字），用日常词汇，可包含趋向补语、结果补语、把字句等\\n  - HSK4级：中等偏长句（10-18字），用较丰富词汇，可包含较复杂补语结构、关联词\\n  - HSK5级：正常中文句（12-22字），用丰富词汇，可以有一定句法复杂度\\n  - 【重要】句子结构和句型要有变化，不要每次都用相同的主谓宾顺序。可以变换使用：主题句、把字句、被字句、倒装句、设问句等，但要符合当前等级。\n\n【关键：搭配优先，句子服从搭配】请严格按以下顺序生成，不要跳过任何步骤：\n\n第1步：先构思一个包含"${word}"的自然常用搭配短语（collocation）。\n  - 该词的词性是"${pos}"，请根据词性选择对应的搭配类型：\n    · 若为名词（名），搭配应以名词为中心语，如：形名"好老师"、动名"吃苹果"、数量名"三个苹果"、代名"这个地方"、名名"学生宿舍"等偏正结构\n    · 若为动词（动），搭配应为：动宾"打电话"、动补"看完"、偏正/状动"快跑"等\n    · 若为形容词（形），搭配应为：副形"很大"、形补"好极了"等\n    · 若为其他词性，选择符合该词性常见组合的搭配类型\n  - 【重要】搭配必须是两个或多个词的组合，但不能是横跨主谓宾的完整句子结构（如"我吃饭"是句子不是搭配）\n  - 搭配应是常见的主谓搭配、动宾搭配、偏正搭配、动补搭配、并列搭配、介宾搭配等两元结构\n  - "${word}"必须是搭配的一部分但不是全部。错误：搭配等于"${word}"本身\n  - 搭配必须简短（2-6个字），是汉语母语者会自然使用的、凝固度高的短语\n  - 搭配将作为展示给学生的提示，所以一定要是地道自然的\n  ${collHistoryStr}\n\n第2步：根据这个搭配短语，构思一句自然地道的中文句子。\n  - 句子必须包含第1步生成的搭配短语，搭配短语必须在句子中连续出现\n  - 句子要让汉语母语者觉得自然，不能生硬\n  - 不要先想${targetLang}再翻译成中文\n  - 根据难度控制要求选择用词\n\n第3步：将构思好的中文句子翻译成${targetLang}。\n  - 翻译必须准确对应中文原意\n  - 只能使用${targetLang}，禁止夹杂中文\n\n第4步：自检验证：\n  (a) chineseRaw 中确实包含搭配短语？\n  (b) 搭配短语确实包含"${word}"？\n  (c) 中文语序地道？\n  (d) ${targetLang}翻译准确？\n\n【中文翻译带拼音，每个汉字单独标注，拼音之间空格分开，绝不能连写。正确：我(wǒ) 是(shì) 学(xué) 生(shēng)。错误：我们(wǒmen)】\n【同时返回不带拼音的中文纯文本 chineseRaw】\n【collocationRaw必须是第1步生成的搭配短语（纯汉字，不含拼音）】\n【用${targetLang}给一句简短词义解释 briefExplanation，不超过20字】\n${historyStr}\n输出 JSON：{"english":"${targetLang}句子","chinese":"带拼音的中文","chineseRaw":"不带拼音的中文","collocation":"搭配短语（汉字+拼音）","collocationRaw":"搭配短语纯文本","hint":"词汇：${word}","briefExplanation":"${targetLang}词义"}\n只输出 JSON。`;    try{ const resp=await fetch(API_BASE,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${apiKey}`}, body:JSON.stringify({model:'deepseek-v4-flash',thinking:{type:'disabled'}, max_tokens:4096, messages:[{role:'user',content:prompt}], temperature:0.9, response_format:{type:'json_object'}})}); const data=await resp.json(); if(data.error) throw new Error(data.error.message||"API error"); if(!data.choices||!data.choices[0]||!data.choices[0].message) throw new Error("API error"); let c=data.choices[0].message.content; c=c.replace(/```json/g,'').replace(/```/g,'').trim(); let aiResult=safeJsonParse(c); const {chars,pinyins}=parsePinyinString(aiResult.chinese); const chineseRaw=aiResult.chineseRaw||aiResult.chinese.replace(/\([^)]+\)/g,''); const diffCheck=validateDifficulty(chineseRaw, effectiveLevel, [word]); if(!diffCheck.valid&&retryCount<3){ practiceGenerating=false; generateVocabPractice(word,level,retryCount+1); return; } if(allGeneratedVocabSet.has(chineseRaw)&&retryCount<3){ practiceGenerating=false; generateVocabPractice(word,level,retryCount+1); return; } if(!chineseRaw.includes(word)&&retryCount<3){ practiceGenerating=false; generateVocabPractice(word,level,retryCount+1); return; } const collRawVal=aiResult.collocationRaw||(aiResult.collocation||'').replace(/\([^)]+\)/g,''); if((collRawVal===word||!collRawVal.includes(word))&&retryCount<3){ practiceGenerating=false; generateVocabPractice(word,level,retryCount+1); return; } if(collRawVal&&!chineseRaw.includes(collRawVal)&&retryCount<3){ practiceGenerating=false; generateVocabPractice(word,level,retryCount+1); return; } if((()=>{const fcs=extractPatternFixedChars(word);if(fcs.length===0)return false;let li=-1;for(const c of fcs){const i=chineseRaw.indexOf(c,li+1);if(i===-1)return true;li=i;}return false;})()&&retryCount<3){ practiceGenerating=false; generateVocabPractice(word,level,retryCount+1); return; } historySet.add(chineseRaw); const collSave=aiResult.collocationRaw||(aiResult.collocation||'').replace(/\([^)]+\)/g,''); if(collSave&&collSave!==word) lastGeneratedCollocations.get(word).add(collSave); if(historySet.size>100){ const arr=Array.from(historySet); arr.shift(); lastGeneratedVocabSentences.set(word,new Set(arr)); } allGeneratedVocabSet.add(chineseRaw); saveGenHistory(); const vEntry=vocabUsedMap.get(word); if(!vEntry){ vocabUsedMap.set(word,{count:0, correctCount:0, practiceCount:0, level:level, examples:[]}); } saveVocabState(); renderVocabLibrary(level); renderVocabTrackList(); const exerciseData={grammarPattern:'词汇: '+word, grammarLevel:level, english:aiResult.english, hint:aiResult.hint||('词汇: '+word), chineseRaw, chars, pinyins, isVocab:true, briefExplanation:aiResult.briefExplanation||'', collocation:aiResult.collocation||'', collocationRaw:aiResult.collocationRaw||(aiResult.collocation||'').replace(/\([^)]+\)/g,'')}; practiceGenerating=false; renderPractice(exerciseData); }catch(err){ practiceGenerating=false; practiceContent.innerHTML=`<div class="loading" style="color:red;">`+t('practice.loading_fail')+err.message+`</div>`; } }
+    async function generateVocabPractice(word, level, retryCount=0){ stopAllSpeech(); primeSpeechSynthesis(); if(practiceGenerating) return; const apiKey=apiKeyInput.value.trim(); if(!apiKey){ alert(t('api_key_required')); return; } practiceGenerating=true; const targetLang=targetLangSelect.value; const effectiveLevel=level===5?3:(level===6?4:level); const pt=document.getElementById('practiceModalTitle'); if(pt) pt.textContent=t('practice.vocab_title'); practiceContent.innerHTML='<div class="loading">'+t('practice.generating')+'</div>'; practiceModal.style.display='block';document.body.style.overflow='hidden'; let v2=VOCAB_LEVEL_MAP[level]?.find(x=>x.w===word); const meaning=v2?v2.m:''; const pos=v2?v2.p:''; if(!lastGeneratedVocabSentences.has(word)) lastGeneratedVocabSentences.set(word,new Set()); if(!lastGeneratedCollocations.has(word)) lastGeneratedCollocations.set(word,new Set()); const historySet=lastGeneratedVocabSentences.get(word); let historyStr=""; const allHistory=[...new Set([...historySet, ...Array.from(allGeneratedVocabSet).slice(0,100)])]; if(allHistory.length>0) historyStr="每次生成全新句子，不要与以下任何句子相同："+allHistory.join("；")+"。"; const collHistorySet=lastGeneratedCollocations.get(word); let collHistoryStr=""; if(collHistorySet&&collHistorySet.size>0) collHistoryStr="不要使用以下已用过的搭配："+[...collHistorySet].join("；")+"。"; const prompt=`你是一位 HSK 汉语教师。请生成一个"${targetLang}译中文"词汇练习题。\n目标词汇：${word} (HSK${level})，词义：${meaning}\n\n【难度控制】请严格根据 HSK${effectiveLevel} 级水平控制句子的句长、词汇复杂度和句法复杂度：\\n  - HSK1级：极短句（4-7字），只用最常见的基础词汇，简单主谓/主谓宾结构\\n  - HSK2级：短句（5-9字），用基础日常词汇，可用简单状动/动补结构\\n  - HSK3级：中等句（7-14字），用日常词汇，可包含趋向补语、结果补语、把字句等\\n  - HSK4级：中等偏长句（10-18字），用较丰富词汇，可包含较复杂补语结构、关联词\\n  - HSK5级：正常中文句（12-22字），用丰富词汇，可以有一定句法复杂度\\n  - 【重要】句子结构和句型要有变化，不要每次都用相同的主谓宾顺序。可以变换使用：主题句、把字句、被字句、倒装句、设问句等，但要符合当前等级。\n\n【关键：搭配优先，句子服从搭配】请严格按以下顺序生成，不要跳过任何步骤：\n\n第1步：先构思一个包含"${word}"的自然常用搭配短语（collocation）。\n  - 该词的词性是"${pos}"，请根据词性选择对应的搭配类型：\n    · 若为名词（名），搭配应以名词为中心语，如：形名"好老师"、动名"吃苹果"、数量名"三个苹果"、代名"这个地方"、名名"学生宿舍"等偏正结构\n    · 若为动词（动），搭配应为：动宾"打电话"、动补"看完"、偏正/状动"快跑"等\n    · 若为形容词（形），搭配应为：副形"很大"、形补"好极了"等\n    · 若为短语/固定表达（短语、固定短语、动词短语、关联短语等），不要把它拆开或强行加「于、的、着、了」等字去造词，应整体使用；搭配可以是「程度副词+短语」（如：还差得远）、「和/跟/与...比+短语」（如：和他比差得远），或单独成句。禁止生造「差得远于」这类错误搭配。\n    · 若为其他词性，选择符合该词性常见组合的搭配类型\n  - 【重要】搭配必须是两个或多个词的组合，但不能是横跨主谓宾的完整句子结构（如"我吃饭"是句子不是搭配）\n  - 搭配应是常见的主谓搭配、动宾搭配、偏正搭配、动补搭配、并列搭配、介宾搭配等两元结构\n  - "${word}"必须是搭配的一部分但不是全部。错误：搭配等于"${word}"本身\n  - 搭配必须简短（2-6个字），是汉语母语者会自然使用的、凝固度高的短语\n  - 搭配将作为展示给学生的提示，所以一定要是地道自然的\n  ${collHistoryStr}\n\n第2步：根据这个搭配短语，构思一句自然地道的中文句子。\n  - 句子必须包含第1步生成的搭配短语，搭配短语必须在句子中连续出现\n  - 句子要让汉语母语者觉得自然，不能生硬\n  - 不要先想${targetLang}再翻译成中文\n  - 根据难度控制要求选择用词\n\n第3步：将构思好的中文句子翻译成${targetLang}。\n  - 翻译必须准确对应中文原意\n  - 只能使用${targetLang}，禁止夹杂中文\n\n第4步：自检验证：\n  (a) chineseRaw 中确实包含搭配短语？\n  (b) 搭配短语确实包含"${word}"？\n  (c) 中文语序地道？\n  (d) ${targetLang}翻译准确？\n\n【中文翻译带拼音，每个汉字单独标注，拼音之间空格分开，绝不能连写。正确：我(wǒ) 是(shì) 学(xué) 生(shēng)。错误：我们(wǒmen)】\n【同时返回不带拼音的中文纯文本 chineseRaw】\n【collocationRaw必须是第1步生成的搭配短语（纯汉字，不含拼音）】\n【用${targetLang}给一句简短词义解释 briefExplanation，不超过20字】\n${historyStr}\n输出 JSON：{"english":"${targetLang}句子","chinese":"带拼音的中文","chineseRaw":"不带拼音的中文","collocation":"搭配短语（汉字+拼音）","collocationRaw":"搭配短语纯文本","hint":"词汇：${word}","briefExplanation":"${targetLang}词义"}\n只输出 JSON。`;    try{ const resp=await fetch(API_BASE,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${apiKey}`}, body:JSON.stringify({model:'deepseek-v4-flash',thinking:{type:'disabled'}, max_tokens:4096, messages:[{role:'user',content:prompt}], temperature:0.9, response_format:{type:'json_object'}})}); const data=await resp.json(); if(data.error) throw new Error(data.error.message||"API error"); if(!data.choices||!data.choices[0]||!data.choices[0].message) throw new Error("API error"); let c=data.choices[0].message.content; c=c.replace(/```json/g,'').replace(/```/g,'').trim(); let aiResult=safeJsonParse(c); const {chars,pinyins}=parsePinyinString(aiResult.chinese); const chineseRaw=aiResult.chineseRaw||aiResult.chinese.replace(/\([^)]+\)/g,''); const diffCheck=validateDifficulty(chineseRaw, effectiveLevel, [word]); if(!diffCheck.valid&&retryCount<3){ practiceGenerating=false; generateVocabPractice(word,level,retryCount+1); return; } if(allGeneratedVocabSet.has(chineseRaw)){ if(retryCount<3){ historySet.add(chineseRaw); saveGenHistory(); practiceGenerating=false; generateVocabPractice(word,level,retryCount+1); return; } } if(!chineseRaw.includes(word)&&retryCount<3){ practiceGenerating=false; generateVocabPractice(word,level,retryCount+1); return; } const collRawVal=aiResult.collocationRaw||(aiResult.collocation||'').replace(/\([^)]+\)/g,''); if((collRawVal===word||!collRawVal.includes(word))&&retryCount<3){ practiceGenerating=false; generateVocabPractice(word,level,retryCount+1); return; } if(collRawVal&&!chineseRaw.includes(collRawVal)&&retryCount<3){ practiceGenerating=false; generateVocabPractice(word,level,retryCount+1); return; } if((()=>{const fcs=extractPatternFixedChars(word);if(fcs.length===0)return false;let li=-1;for(const c of fcs){const i=chineseRaw.indexOf(c,li+1);if(i===-1)return true;li=i;}return false;})()&&retryCount<3){ practiceGenerating=false; generateVocabPractice(word,level,retryCount+1); return; } historySet.add(chineseRaw); const collSave=aiResult.collocationRaw||(aiResult.collocation||'').replace(/\([^)]+\)/g,''); if(collSave&&collSave!==word) lastGeneratedCollocations.get(word).add(collSave); if(historySet.size>100){ const arr=Array.from(historySet); arr.shift(); lastGeneratedVocabSentences.set(word,new Set(arr)); } allGeneratedVocabSet.add(chineseRaw); saveGenHistory(); const vEntry=vocabUsedMap.get(word); if(!vEntry){ vocabUsedMap.set(word,{count:0, correctCount:0, practiceCount:0, level:level, examples:[]}); } saveVocabState(); renderVocabLibrary(level); renderVocabTrackList(); const exerciseData={grammarPattern:'词汇: '+word, grammarLevel:level, english:aiResult.english, hint:aiResult.hint||('词汇: '+word), chineseRaw, chars, pinyins, isVocab:true, briefExplanation:aiResult.briefExplanation||'', collocation:aiResult.collocation||'', collocationRaw:aiResult.collocationRaw||(aiResult.collocation||'').replace(/\([^)]+\)/g,'')}; practiceGenerating=false; renderPractice(exerciseData); }catch(err){ practiceGenerating=false; practiceContent.innerHTML=`<div class="loading" style="color:red;">`+t('practice.loading_fail')+err.message+`</div>`; } }
     function downloadUnifiedReport(){ let rpt='=== 📚 完整学习报告 ===\n'+new Date().toLocaleString()+'\n\n'; rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n✏️ 作文批改（原文 + AI修改版）\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(writingEssays.length===0){ rpt+='(暂无作文批改记录)\n\n'; } else { writingEssays.forEach((we,i)=>{ rpt+='📌 作文 '+(i+1)+'（'+formatDate(we.date)+'，得分 '+(we.score||'--')+'）\n--- 原文 ---\n'+(we.original||'')+'\n--- AI修改版 ---\n'+(we.corrected||'')+'\n\n'; }); } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n📝 第一部分：全部聊天记录\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(chatHistory.length===0){ rpt+='(暂无聊天记录)\n'; } else { for(let msg of chatHistory){ const roleLabel=msg.role==='user'?'🧑 用户':'🤖 AI'; const timeStr=msg.time?new Date(msg.time).toLocaleString():''; rpt+=roleLabel+' ['+timeStr+']\n'+msg.content+'\n\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n📐 第二部分：语法追踪\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; const gc=()=>{const u=[],p=[],b=[];for(let[pat,entry]of usedMap.entries()){const c=entry.count||0,pc=entry.practiceCount||0;if(c>0&&pc===0)u.push({pat,lv:entry.level,c,pc,ex:entry.examples,ts:entry.practiceTimestamps||[]});else if(pc>0&&c===0)p.push({pat,lv:entry.level,c,pc,ts:entry.practiceTimestamps||[]});else if(c>0&&pc>0)b.push({pat,lv:entry.level,c,pc,ex:entry.examples,ts:entry.practiceTimestamps||[]});}return{u,p,b};};const gu=gc();[gu.u,gu.p,gu.b].forEach(a=>a.sort((x,y)=>x.lv-y.lv));rpt+='=== 仅用过（未练） ===\n';if(gu.u.length===0)rpt+='(无)\n';for(let it of gu.u){rpt+='HSK'+it.lv+' '+it.pat+': 使用'+it.c+'次\n';for(let ex of it.ex){const s=ex.feedback===true?'✓':ex.feedback===false?'✗':'√';rpt+='  '+s+' '+ex.sentence+' ['+(ex.date||'')+']\n';}rpt+='\n';}rpt+='=== 仅练过（未用） ===\n';if(gu.p.length===0)rpt+='(无)\n';for(let it of gu.p){rpt+='HSK'+it.lv+' '+it.pat+': 练习'+it.pc+'次';for(let t of it.ts)rpt+=' ['+t+']';rpt+='\n\n';}rpt+='=== 练过+用过 ===\n';if(gu.b.length===0)rpt+='(无)\n';for(let it of gu.b){rpt+='HSK'+it.lv+' '+it.pat+': 使用'+it.c+'次 练习'+it.pc+'次\n';for(let ex of it.ex){const s=ex.feedback===true?'✓':ex.feedback===false?'✗':'√';rpt+='  '+s+' '+ex.sentence+' ['+(ex.date||'')+']\n';}for(let t of it.ts)rpt+='  [练] '+t+'\n';rpt+='\n';}if(usedMap.size===0)rpt+='(暂无语法记录)\n'; rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n📖 第三部分：词汇追踪\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; const vc=()=>{const u=[],p=[],b=[];for(let[word,entry]of vocabUsedMap.entries()){const c=entry.count||0,pc=entry.practiceCount||0;if(c>0&&pc===0)u.push({word,lv:entry.level,c,pc,ex:entry.examples,ts:entry.practiceTimestamps||[]});else if(pc>0&&c===0)p.push({word,lv:entry.level,c,pc,ts:entry.practiceTimestamps||[]});else if(c>0&&pc>0)b.push({word,lv:entry.level,c,pc,ex:entry.examples,ts:entry.practiceTimestamps||[]});}return{u,p,b};};const vu=vc();[vu.u,vu.p,vu.b].forEach(a=>a.sort((x,y)=>x.lv-y.lv));rpt+='=== 仅用过（未练） ===\n';if(vu.u.length===0)rpt+='(无)\n';for(let it of vu.u){rpt+=vocabLevelLabel(it.lv)+' '+it.word+': 使用'+it.c+'次\n';for(let ex of it.ex)rpt+='  '+formatDate(ex.date)+' '+ex.sentence+'\n';rpt+='\n';}rpt+='=== 仅练过（未用） ===\n';if(vu.p.length===0)rpt+='(无)\n';for(let it of vu.p){rpt+=vocabLevelLabel(it.lv)+' '+it.word+': 练习'+it.pc+'次';for(let t of it.ts)rpt+=' ['+t+']';rpt+='\n\n';}rpt+='=== 练过+用过 ===\n';if(vu.b.length===0)rpt+='(无)\n';for(let it of vu.b){rpt+=vocabLevelLabel(it.lv)+' '+it.word+': 使用'+it.c+'次 练习'+it.pc+'次\n';for(let ex of it.ex)rpt+='  '+formatDate(ex.date)+' '+ex.sentence+'\n';for(let t of it.ts)rpt+='  [练] '+t+'\n';rpt+='\n';}if(vocabUsedMap.size===0)rpt+='(暂无词汇记录)\n'; rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n🔍 第四部分：查询过的词或句子\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(queriedItems.length===0){ rpt+='(暂无查询记录)\n'; } else { for(let i=0;i<queriedItems.length;i++){ const item=queriedItems[i]; const icon=item.type==='sentence'?'📝 句子':'🔤 词语'; rpt+=icon+' '+item.text+'\n  🌐 '+(item.translation||'')+'\n  📅 '+formatDate(item.date?item.date.slice(0,10):'')+'\n\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n❌ 第六部分：错句记录\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
 if(wrongSentences.length===0){ rpt+='(暂无错句记录)\n'; } else { for(var wi=0;wi<wrongSentences.length;wi++){ var ws=wrongSentences[wi]; if(ws.type==='对话纠错'){ rpt+='❌ 你的：'+ws.userAnswer+'\n  ✅ 正确：'+ws.sentence+'\n'+(ws.note?'  💡 '+ws.note+'\n':'')+'  📅 '+ws.date+'\n\n'; } else { rpt+='📝 '+ws.word+' ['+ws.type+']\n  🇨🇳 正确: '+ws.sentence+'\n  ✏️ 你的: '+ws.userAnswer+'\n  🌐 '+ws.english+'\n  📅 '+ws.date+'\n\n'; } } }
 rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n⭐ 第五部分：收藏句子\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(favoriteSentences.length===0){ rpt+='(暂无收藏)\n'; } else { for(let item of favoriteSentences){ rpt+='🇨🇳 '+item.chinese+'\n🌐 '+(item.translation||'')+'\n📅 '+(item.date||'')+'\n\n'; } } const blob=new Blob([rpt],{type:'text/plain;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='HSK_Learning_Report_'+getLocalDate()+'.txt';a.click(); }
@@ -7214,7 +7234,7 @@ async function handleEndConversation(){ if(chatAbortController){ chatAbortContro
         const utter=new SpeechSynthesisUtterance(text);
         utter.lang='zh-CN';
         const rateSlider=document.getElementById('speechRateSlider');
-        utter.rate=rateSlider?parseFloat(rateSlider.value):1.5;
+        utter.rate=rateSlider?parseFloat(rateSlider.value):1.0;
         let started=false;
         utter.onstart=()=>{ started=true; };
         utter.onend=()=>{ practiceIsSpeaking=false; };
@@ -7338,6 +7358,7 @@ function renderPractice(exerciseData) {
         }
         
         window._practiceRevealed = false;
+        window._practiceFinished = false;
         window._togglePracticeReveal = function () {
             var ar = document.getElementById('practiceAnswerReveal');
             if (!ar) return;
@@ -7364,6 +7385,8 @@ function renderPractice(exerciseData) {
                 var fbText = t('practice.correct_feedback');
                 fb.textContent = fbText;
                 fb.style.color = '#27ae60';
+                // 听打模式下答对后自动显示答案，方便确认
+                if (window._dictationMode && !window._practiceRevealed && window._togglePracticeReveal) { window._togglePracticeReveal(); }
                 // 非考试模式→存入题库
                 if(!window._testExamMode){
                     saveToTestBank(isVocab?'vocab':'grammar',{
@@ -7390,34 +7413,16 @@ function renderPractice(exerciseData) {
                         }
                         _wd.roundsDone = (_wd.roundsDone||0) + 1;
                         saveLearnPlan();
-                        if(_wd.roundsDone >= 3){
+                        if(_wd.roundsDone >= roundsPerWord){
                             _wd.roundsDone = 0;
                             if(_isReview) markWordReviewed(_iw, _il);
                             saveLearnPlan();
-                            if(_isLearn){
-                                window._learnRound = 0; window._pendingLearnWord = null;
-                                var _lfb = document.getElementById('practiceFeedback');
-                                if(_lfb){ _lfb.textContent = '✅ 练习完成！'; _lfb.style.color = '#27ae60'; }
-                                setTimeout(function(){
-                                    practiceModal.style.display = 'none';
-                                    stopAllSpeech();
-                                    practiceGenerating = false;
-                                    document.body.style.overflow = '';
-                                    window._dictationMode = false;
-                                    practiceContent.classList.remove('dictation-active','revealed');
-                                    renderLearnTasks();
-                                    showToast('✅ 「' + _iw + '」练习完成！');
-                                }, 1200);
-                            } else {
-                                window._reviewCorrect = (window._reviewCorrect||0) + 1;
-                                window._currentReviewItem = null;
-                                setTimeout(function(){ reviewNext(); }, 800);
-                            }
+                            window._practiceFinished = true;
+                            var _lfb = document.getElementById('practiceFeedback');
+                            if(_lfb){ _lfb.textContent = '✅ 已完成！点「下一个」继续'; _lfb.style.color = '#27ae60'; }
                         } else {
-                            setTimeout(function(){
-                                var _still = _isLearn ? (window._pendingLearnWord===_iw) : (window._reviewMode && window._currentReviewItem && window._currentReviewItem.w===_iw);
-                                if(_still){ if(_it==='grammar') generateAndShowPractice(_iw, _il); else generateVocabPractice(_iw, _il); }
-                            }, 600);
+                            var _lfb3 = document.getElementById('practiceFeedback');
+                            if(_lfb3){ _lfb3.textContent = '✅ 正确！（' + _wd.roundsDone + '/' + roundsPerWord + '）点「下一个」继续'; _lfb3.style.color = '#27ae60'; }
                         }
                     }
                 } else {
@@ -7486,6 +7491,48 @@ function renderPractice(exerciseData) {
         };
         
         document.getElementById('practiceNextBtn').onclick = function () {
+            // 学习/复习模式：手动跳转（不再自动跳转）
+            if (window._practiceFinished) {
+                var wasReview = window._reviewMode && window._currentReviewItem && !window._testExamMode;
+                if (wasReview) {
+                    window._reviewCorrect = (window._reviewCorrect||0) + 1;
+                    window._currentReviewItem = null;
+                    window._practiceFinished = false;
+                    reviewNext();
+                } else if (window._learnMode) {
+                    window._pendingLearnWord = null;
+                    window._practiceFinished = false;
+                    learnNext();
+                } else if (window._pendingLearnWord) {
+                    var _doneWord = window._pendingLearnWord;
+                    window._pendingLearnWord = null;
+                    window._learnRound = 0;
+                    window._practiceFinished = false;
+                    practiceModal.style.display = 'none';
+                    stopAllSpeech();
+                    practiceGenerating = false;
+                    document.body.style.overflow = '';
+                    window._dictationMode = false;
+                    practiceContent.classList.remove('dictation-active','revealed');
+                    renderLearnTasks();
+                    showToast('✅ 「' + _doneWord + '」练习完成！');
+                } else {
+                    window._practiceFinished = false;
+                }
+                return;
+            }
+            if (window._pendingLearnWord && !window._testExamMode) {
+                var _iw = window._pendingLearnWord, _il = window._pendingLearnLevel || 1;
+                if (currentPracticeGrammar) generateAndShowPractice(_iw, _il);
+                else generateVocabPractice(_iw, _il);
+                return;
+            }
+            if (window._reviewMode && window._currentReviewItem && !window._testExamMode) {
+                var _ri = window._currentReviewItem;
+                if (_ri.type === 'grammar') generateAndShowPractice(_ri.w, _ri.lvl);
+                else generateVocabPractice(_ri.w, _ri.lvl);
+                return;
+            }
             if (window._reviewMode) { window._reviewRound = 0; window._currentReviewItem = null; reviewNext(); return; }
             if (testModeState && testModeState.queue && testModeState.queue.length > 0) { testModeNext(); return; }
             if (testModeState && testModeState.tested && testModeState.tested.length > 0) { testModeState.queue = shuffleArray([].concat(testModeState.tested)); testModeState.tested = []; testModeNext(); return; }
@@ -7525,7 +7572,7 @@ function renderPractice(exerciseData) {
         }
     }
 
-async function generateAndShowPractice(grammarPattern, grammarLevel, forceNew=false, retryCount=0){ stopAllSpeech(); primeSpeechSynthesis(); const apiKey=apiKeyInput.value.trim(); if(!apiKey){ alert(t('api_key_required')); return; } const targetLang=targetLangSelect.value; const aiLevel=grammarLevel; const pt=document.getElementById('practiceModalTitle'); if(pt) pt.textContent=t('practice.title'); practiceContent.innerHTML='<div class="loading">'+t('practice.generating')+'</div>'; practiceModal.style.display='block';document.body.style.overflow='hidden'; if(!lastGeneratedSentences.has(grammarPattern)) lastGeneratedSentences.set(grammarPattern,new Set()); if(!lastGeneratedCollocations.has(grammarPattern)) lastGeneratedCollocations.set(grammarPattern,new Set()); const historySet=lastGeneratedSentences.get(grammarPattern); let historyStr=""; const allHistory2=[...new Set([...historySet, ...Array.from(allGeneratedVocabSet).slice(0,100)])]; if(allHistory2.length>0) historyStr="不要与以下任何句子相同："+allHistory2.join("；")+"。"; const prompt=`你是一位 HSK 汉语教师。请根据以下语法点生成一个"${targetLang}译中文"练习题。\n语法点模式：${grammarPattern} (HSK${grammarLevel})\n\n【难度控制 - 重要】请严格根据 HSK${aiLevel} 级水平控制句子的句长、词汇复杂度和句法复杂度：\n  - 句子中除指定语法结构外的其他用词，应严格控制在 HSK${aiLevel} 级以内\n  - HSK1级：极短句（4-7字），只用最常见基础词汇，简单主谓/主谓宾\n  - HSK2级：短句（5-9字），用基础日常词汇，可含简单状动/动补\n  - HSK3级：中等句（7-14字），用日常词汇，可含趋向补语、结果补语、把字句\n  - HSK4级：中等偏长（10-18字），用较丰富词汇，可含复杂补语结构、关联词\n  - HSK5级：正常中文（12-22字），用丰富词汇，可有一定句法复杂度\n  - 【结构变化】每次生成的句子结构和句型要有变化，不要总用"S+V+O"顺序。可变换：主题评论句、把字句、被字句、存现句、比较句、设问句等，但必须符合当前等级\n  - 如果语法结构本身超出当前难度等级，翻译句也要尽量简单，让学生容易理解\n\n【生成步骤 - 请严格按此顺序执行】\n第1步：先构思一句自然地道的中文句子，这句中文必须使用此语法结构"${grammarPattern}"。\n  - 这句话必须是汉语母语者会自然说出的句子，语序、用词都要地道。\n  - 不要先想${targetLang}再翻译成中文——那样容易出语序错误。\n  - 根据难度控制要求选择用词。\n第2步：将构思好的中文句子翻译成${targetLang}。\n  - ${targetLang}翻译必须准确对应中文原意。\n  - 只能使用${targetLang}，禁止夹杂中文或其他语言。\n第3步：自检验证 - 请确认：\n  (a) chineseRaw 确实使用了"${grammarPattern}"这个语法结构？\n  (b) 中文语序是否地道？（主语-状语-动词-宾语 的顺序正确吗？）\n  (c) ${targetLang}翻译是否准确？\n  (d) 句子难度符合 HSK${aiLevel} 级水平吗？\n\n【写出该语法结构的具体形式作为提示】\n【中文翻译带拼音，每个汉字都必须单独用括号标注拼音，拼音之间用空格分开，绝不能将多个字的拼音连在一起。正确示例：我(wǒ) 是(shì) 学(xué) 生(shēng)。错误示例（严禁）：我们(wǒmen)——这是错误的！必须写成：我(wǒ) 们(men)。再强调：每个汉字只对应一个拼音音节！】\n【同时返回不带拼音的中文纯文本 chineseRaw】\n【用${targetLang}给一句简短用法解释 briefExplanation，不超过30字，禁止用中文】\n${historyStr}\n输出 JSON：{"english":"${targetLang}句子","hint":"语法结构","chinese":"带拼音的中文","chineseRaw":"不带拼音的中文","briefExplanation":"简短用法解释"}\n只输出 JSON。`; try{ const resp=await fetch(API_BASE,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${apiKey}`}, body:JSON.stringify({model:'deepseek-v4-flash',thinking:{type:'disabled'}, max_tokens:4096, messages:[{role:'user',content:prompt}], temperature:0.9, response_format:{type:'json_object'}})}); const data=await resp.json(); if(data.error) throw new Error(data.error.message||"API error"); if(!data.choices||!data.choices[0]||!data.choices[0].message) throw new Error("API error"); let content=data.choices[0].message.content; content=content.replace(/```json/g,'').replace(/```/g,'').trim(); let aiResult=safeJsonParse(content); const {chars,pinyins}=parsePinyinString(aiResult.chinese); const chineseRaw=aiResult.chineseRaw||aiResult.chinese.replace(/\([^)]+\)/g,''); const diffCheckG=validateDifficulty(chineseRaw, aiLevel, patternFixedCharsFlat(grammarPattern)); if(!diffCheckG.valid&&retryCount<3){ generateAndShowPractice(grammarPattern,grammarLevel,forceNew,retryCount+1); return; } if(allGeneratedVocabSet.has(chineseRaw)&&retryCount<3){ generateAndShowPractice(grammarPattern,grammarLevel,forceNew,retryCount+1); return; } const validation=validatePracticeSentence(grammarPattern,chineseRaw); if(!validation.valid&&retryCount<3){ generateAndShowPractice(grammarPattern,grammarLevel,forceNew,retryCount+1); return; } const collRawG2=aiResult.collocationRaw||(aiResult.collocation||'').replace(/\([^)]+\)/g,''); if(collRawG2&&!chineseRaw.includes(collRawG2)&&retryCount<3){ generateAndShowPractice(grammarPattern,grammarLevel,forceNew,retryCount+1); return; } historySet.add(chineseRaw); const collSaveG=aiResult.collocationRaw||(aiResult.collocation||'').replace(/\([^)]+\)/g,''); if(collSaveG) lastGeneratedCollocations.get(grammarPattern).add(collSaveG); if(historySet.size>100){ const arr=Array.from(historySet); arr.shift(); lastGeneratedSentences.set(grammarPattern,new Set(arr)); } allGeneratedVocabSet.add(chineseRaw); saveGenHistory(); if(!forceNew||!lastGrammarMeta.has(grammarPattern)) lastGrammarMeta.set(grammarPattern,{brief:aiResult.briefExplanation||'',hint:aiResult.hint}); const meta=lastGrammarMeta.get(grammarPattern); const exerciseData={grammarPattern, grammarLevel, english:aiResult.english, hint:forceNew?meta.hint:aiResult.hint, chineseRaw, chars, pinyins, briefExplanation:forceNew?meta.brief:aiResult.briefExplanation||''}; const gEntry=usedMap.get(grammarPattern); if(!gEntry){ usedMap.set(grammarPattern,{count:0, correctCount:0, practiceCount:0, level:grammarLevel, examples:[]}); } saveFullState(); updateGrammarDisplayByLevel(grammarLevel); renderTrackList(); renderPractice(exerciseData); }catch(err){ practiceContent.innerHTML=`<div class="loading" style="color:red;">`+t('practice.loading_fail')+err.message+`</div>`; } }
+async function generateAndShowPractice(grammarPattern, grammarLevel, forceNew=false, retryCount=0){ stopAllSpeech(); primeSpeechSynthesis(); const apiKey=apiKeyInput.value.trim(); if(!apiKey){ alert(t('api_key_required')); return; } const targetLang=targetLangSelect.value; const aiLevel=grammarLevel; const pt=document.getElementById('practiceModalTitle'); if(pt) pt.textContent=t('practice.title'); practiceContent.innerHTML='<div class="loading">'+t('practice.generating')+'</div>'; practiceModal.style.display='block';document.body.style.overflow='hidden'; if(!lastGeneratedSentences.has(grammarPattern)) lastGeneratedSentences.set(grammarPattern,new Set()); if(!lastGeneratedCollocations.has(grammarPattern)) lastGeneratedCollocations.set(grammarPattern,new Set()); const historySet=lastGeneratedSentences.get(grammarPattern); let historyStr=""; const allHistory2=[...new Set([...historySet, ...Array.from(allGeneratedVocabSet).slice(0,100)])]; if(allHistory2.length>0) historyStr="不要与以下任何句子相同："+allHistory2.join("；")+"。"; const prompt=`你是一位 HSK 汉语教师。请根据以下语法点生成一个"${targetLang}译中文"练习题。\n语法点模式：${grammarPattern} (HSK${grammarLevel})\n\n【难度控制 - 重要】请严格根据 HSK${aiLevel} 级水平控制句子的句长、词汇复杂度和句法复杂度：\n  - 句子中除指定语法结构外的其他用词，应严格控制在 HSK${aiLevel} 级以内\n  - HSK1级：极短句（4-7字），只用最常见基础词汇，简单主谓/主谓宾\n  - HSK2级：短句（5-9字），用基础日常词汇，可含简单状动/动补\n  - HSK3级：中等句（7-14字），用日常词汇，可含趋向补语、结果补语、把字句\n  - HSK4级：中等偏长（10-18字），用较丰富词汇，可含复杂补语结构、关联词\n  - HSK5级：正常中文（12-22字），用丰富词汇，可有一定句法复杂度\n  - 【结构变化】每次生成的句子结构和句型要有变化，不要总用"S+V+O"顺序。可变换：主题评论句、把字句、被字句、存现句、比较句、设问句等，但必须符合当前等级\n  - 如果语法结构本身超出当前难度等级，翻译句也要尽量简单，让学生容易理解\n\n【生成步骤 - 请严格按此顺序执行】\n第1步：先构思一句自然地道的中文句子，这句中文必须使用此语法结构"${grammarPattern}"。\n  - 这句话必须是汉语母语者会自然说出的句子，语序、用词都要地道。\n  - 不要先想${targetLang}再翻译成中文——那样容易出语序错误。\n  - 根据难度控制要求选择用词。\n第2步：将构思好的中文句子翻译成${targetLang}。\n  - ${targetLang}翻译必须准确对应中文原意。\n  - 只能使用${targetLang}，禁止夹杂中文或其他语言。\n第3步：自检验证 - 请确认：\n  (a) chineseRaw 确实使用了"${grammarPattern}"这个语法结构？\n  (b) 中文语序是否地道？（主语-状语-动词-宾语 的顺序正确吗？）\n  (c) ${targetLang}翻译是否准确？\n  (d) 句子难度符合 HSK${aiLevel} 级水平吗？\n\n【写出该语法结构的具体形式作为提示】\n【中文翻译带拼音，每个汉字都必须单独用括号标注拼音，拼音之间用空格分开，绝不能将多个字的拼音连在一起。正确示例：我(wǒ) 是(shì) 学(xué) 生(shēng)。错误示例（严禁）：我们(wǒmen)——这是错误的！必须写成：我(wǒ) 们(men)。再强调：每个汉字只对应一个拼音音节！】\n【同时返回不带拼音的中文纯文本 chineseRaw】\n【用${targetLang}给一句简短用法解释 briefExplanation，不超过30字，禁止用中文】\n${historyStr}\n输出 JSON：{"english":"${targetLang}句子","hint":"语法结构","chinese":"带拼音的中文","chineseRaw":"不带拼音的中文","briefExplanation":"简短用法解释"}\n只输出 JSON。`; try{ const resp=await fetch(API_BASE,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${apiKey}`}, body:JSON.stringify({model:'deepseek-v4-flash',thinking:{type:'disabled'}, max_tokens:4096, messages:[{role:'user',content:prompt}], temperature:0.9, response_format:{type:'json_object'}})}); const data=await resp.json(); if(data.error) throw new Error(data.error.message||"API error"); if(!data.choices||!data.choices[0]||!data.choices[0].message) throw new Error("API error"); let content=data.choices[0].message.content; content=content.replace(/```json/g,'').replace(/```/g,'').trim(); let aiResult=safeJsonParse(content); const {chars,pinyins}=parsePinyinString(aiResult.chinese); const chineseRaw=aiResult.chineseRaw||aiResult.chinese.replace(/\([^)]+\)/g,''); const diffCheckG=validateDifficulty(chineseRaw, aiLevel, patternFixedCharsFlat(grammarPattern)); if(!diffCheckG.valid&&retryCount<3){ generateAndShowPractice(grammarPattern,grammarLevel,forceNew,retryCount+1); return; } if(allGeneratedVocabSet.has(chineseRaw)){ if(retryCount<3){ historySet.add(chineseRaw); saveGenHistory(); generateAndShowPractice(grammarPattern,grammarLevel,forceNew,retryCount+1); return; } } const validation=validatePracticeSentence(grammarPattern,chineseRaw); if(!validation.valid&&retryCount<3){ generateAndShowPractice(grammarPattern,grammarLevel,forceNew,retryCount+1); return; } const collRawG2=aiResult.collocationRaw||(aiResult.collocation||'').replace(/\([^)]+\)/g,''); if(collRawG2&&!chineseRaw.includes(collRawG2)&&retryCount<3){ generateAndShowPractice(grammarPattern,grammarLevel,forceNew,retryCount+1); return; } historySet.add(chineseRaw); const collSaveG=aiResult.collocationRaw||(aiResult.collocation||'').replace(/\([^)]+\)/g,''); if(collSaveG) lastGeneratedCollocations.get(grammarPattern).add(collSaveG); if(historySet.size>100){ const arr=Array.from(historySet); arr.shift(); lastGeneratedSentences.set(grammarPattern,new Set(arr)); } allGeneratedVocabSet.add(chineseRaw); saveGenHistory(); if(!forceNew||!lastGrammarMeta.has(grammarPattern)) lastGrammarMeta.set(grammarPattern,{brief:aiResult.briefExplanation||'',hint:aiResult.hint}); const meta=lastGrammarMeta.get(grammarPattern); const exerciseData={grammarPattern, grammarLevel, english:aiResult.english, hint:forceNew?meta.hint:aiResult.hint, chineseRaw, chars, pinyins, briefExplanation:forceNew?meta.brief:aiResult.briefExplanation||''}; const gEntry=usedMap.get(grammarPattern); if(!gEntry){ usedMap.set(grammarPattern,{count:0, correctCount:0, practiceCount:0, level:grammarLevel, examples:[]}); } saveFullState(); updateGrammarDisplayByLevel(grammarLevel); renderTrackList(); renderPractice(exerciseData); }catch(err){ practiceContent.innerHTML=`<div class="loading" style="color:red;">`+t('practice.loading_fail')+err.message+`</div>`; } }
     // 快捷键监听（使用自定义键位）
     document.addEventListener('keydown', (e) => {
         if (practiceModal.style.display !== 'block') return;
@@ -7668,10 +7715,14 @@ async function generateAndShowPractice(grammarPattern, grammarLevel, forceNew=fa
             for(let w of customVocab){
                 const v2=VOCAB_LEVEL_MAP[level]?.find(x=>x.w===w);
                 const wd=plan.words&&plan.words[w];
-                const stageBadge = wd&&!wd.skipped&&wd.stage>=0&&wd.stage<EBBINGHAUS_INTERVALS.length ? (wd.stage===0 ? ' <span class="review-badge">'+t('learn.badge_new')+'</span>' : ' <span class="review-badge">'+t('learn.badge_reviewed').replace('{n}',wd.stage)+'</span>') : '';
-                const masteredBadge = wd&&!wd.skipped&&wd.stage>=EBBINGHAUS_INTERVALS.length ? ' <span class="review-badge" style="background:#c8e6c9;color:#2e7d32;">✅ '+t('learn.badge_mastered')+'</span>' : '';
+                var stageBadge = '';
+                if (wd && wd.skipped) { stageBadge = ' <span class="review-badge" style="background:#e9ecef;color:#64748b;">已跳过</span>'; }
+                else if (!wd) { stageBadge = ' <span class="review-badge" style="background:#e9ecef;color:#64748b;">未学习</span>'; }
+                else if (wd.stage >= EBBINGHAUS_INTERVALS.length) { stageBadge = ' <span class="review-badge" style="background:#c8e6c9;color:#2e7d32;">✅ 已掌握</span>'; }
+                else if (wd.stage === 0) { stageBadge = ' <span class="review-badge" style="background:#fff3e0;color:#e65100;">待复习</span>'; }
+                else { stageBadge = ' <span class="review-badge">已复习 ' + wd.stage + ' 次</span>'; }
                 html += '<div class="learn-task-item" data-word="'+escapeHtml(w)+'" data-level="'+level+'" data-lv="'+level+'" data-type="custom-vocab" style="border-left:3px solid #27ae60;">';
-                html += '<span class="word-text">📖 '+escapeHtml(w)+stageBadge+masteredBadge+'</span>';
+                html += '<span class="word-text">📖 '+escapeHtml(w)+stageBadge+'</span>';
                 html += '<span class="word-meaning">'+(v2?escapeHtml(v2.m):'')+'</span>';
                 html += '<button class="del-item-btn" title="删除" style="background:none;border:1px solid #f5c6cb;border-radius:10px;padding:2px 8px;font-size:0.7rem;cursor:pointer;color:#c0392b;white-space:nowrap;">🗑️</button>';
                 html += '</div>';
@@ -7710,41 +7761,7 @@ async function generateAndShowPractice(grammarPattern, grammarLevel, forceNew=fa
         }
         html += '</div>';
         area.innerHTML = html;
-        // 绑定点击事件
-        area.querySelectorAll('.learn-task-item').forEach(el => {
-            el.addEventListener('click', function(e){
-                if(e.target.classList.contains('skip-btn')) return;
-                const word = this.dataset.word;
-                const grammar = this.dataset.grammar;
-                const lvl = parseInt(this.dataset.level);
-                const type = this.dataset.type;
-                window._dictationMode = (window._practiceMode==='listen');
-                if(type==='review' && word){
-                    window._reviewQueue = [{w:word, lvl:lvl, type:'vocab'}];
-                    window._reviewCorrect = 0; window._reviewTotal = 1;
-                    window._reviewMode = true;
-                    window._currentReviewItem = null;
-                    window._pendingLearnWord = null;
-                    reviewNext();
-                    return;
-                }
-                if(grammar && type==='custom-grammar'){
-                    currentPracticeGrammar = {pattern:grammar, level:lvl};
-                    currentPracticeVocab = null;
-                    window._pendingLearnWord = grammar;
-                    window._pendingLearnLevel = lvl;
-                    window._learnRound = 0;
-                    generateAndShowPractice(grammar, lvl);
-                    return;
-                }
-                currentPracticeVocab = { word, level:lvl, learnType: type };
-                currentPracticeGrammar = null;
-                window._pendingLearnWord = word;
-                window._pendingLearnLevel = lvl;
-                window._learnRound = 0;
-                generateVocabPractice(word, lvl);
-            });
-        });
+        // 词语不再点击即练，练习统一通过「开始今日学习」/「开始今日复习」按钮发起
         area.querySelectorAll('.skip-btn').forEach(btn => {
             btn.addEventListener('click', function(e){
                 e.stopPropagation();
@@ -7969,6 +7986,57 @@ async function generateAndShowPractice(grammarPattern, grammarLevel, forceNew=fa
     // ========== 开始今日复习 ==========
     const _srb = document.getElementById('startReviewBtn');
     if(_srb) _srb.onclick = function(){ startReviewMode(); };
+    // ========== 开始今日学习 ==========
+    const _slb = document.getElementById('startLearnBtn');
+    if(_slb) _slb.onclick = function(){ startLearningMode(); };
+    function startLearningMode(){
+        var customData = window._learnCustomData || {};
+        var items = [];
+        for(var lv of Object.keys(customData)){
+            var d = customData[lv];
+            var lvN = parseInt(lv);
+            if(d.vocab) for(var wi=0; wi<d.vocab.length; wi++) items.push({w:d.vocab[wi], lvl:lvN, type:'vocab'});
+            if(d.grammar) for(var gi=0; gi<d.grammar.length; gi++) items.push({w:d.grammar[gi], lvl:lvN, type:'grammar'});
+        }
+        items = items.filter(function(it){
+            var plan = learnPlan[it.lvl];
+            var wd = plan && plan.words ? plan.words[it.w] : null;
+            if(wd && wd.skipped) return false;
+            if(wd && wd.stage >= EBBINGHAUS_INTERVALS.length) return false;
+            return !wd;  // 仅收录「未学习」的词（尚无学习记录）
+        });
+        if(items.length===0){ showToast('✅ 暂无需要学习的词语，请先「选词汇」或「选语法」'); return; }
+        window._reviewMode = false; window._currentReviewItem = null; window._reviewQueue = null;
+        window._learnQueue = shuffleArray(items);
+        window._learnTotal = items.length;
+        window._learnMode = true;
+        window._dictationMode = (window._practiceMode==='listen');
+        learnNext();
+    }
+    function learnNext(){
+        if(!window._learnQueue || window._learnQueue.length===0){
+            window._learnMode = false;
+            window._dictationMode = false;
+            practiceModal.style.display='none'; stopAllSpeech(); practiceGenerating=false;
+            document.body.style.overflow='';
+            showToast('✅ 今日学习结束！共学习 '+window._learnTotal+' 个词语');
+            renderLearnTasks();
+            return;
+        }
+        var item = window._learnQueue.pop();
+        window._currentLearnItem = item;
+        window._pendingLearnWord = item.w;
+        window._pendingLearnLevel = item.lvl;
+        if(item.type==='grammar'){
+            currentPracticeGrammar = {pattern:item.w, level:item.lvl};
+            currentPracticeVocab = null;
+            generateAndShowPractice(item.w, item.lvl);
+        } else {
+            currentPracticeVocab = {word:item.w, level:item.lvl};
+            currentPracticeGrammar = null;
+            generateVocabPractice(item.w, item.lvl);
+        }
+    }
     function showTestNextBtn(){
     var fb=document.getElementById('practiceFeedback');
     if(fb){ fb.innerHTML+=' <button id="testNextManualBtn" onclick="window._testNextManual()" style="background:#1e2b5e;color:#fff;border:none;padding:6px 16px;border-radius:14px;cursor:pointer;font-size:0.85rem;margin-left:8px;">▶ 下一题</button>'; }
@@ -8015,6 +8083,7 @@ function startReviewMode(){
     if(due.length===0){ showToast('✅ 今日复习结束！暂无到期词条'); return; }
     window._reviewQueue=shuffleArray([...due]);
     window._reviewCorrect=0; window._reviewTotal=due.length;
+    window._learnMode=false; window._learnQueue=null; window._pendingLearnWord=null;
     window._reviewMode=true;
     window._dictationMode=(window._practiceMode==='listen');
     reviewNext();
@@ -8124,6 +8193,14 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
         }
         if(document.getElementById('vocabViewLevel')){ document.getElementById('vocabViewLevel').addEventListener('change',()=>renderVocabLibrary(parseInt(document.getElementById('vocabViewLevel').value))); renderVocabLibrary(parseInt(document.getElementById('vocabViewLevel').value)); }
         renderVocabLevelProgress();
+        // 每词练习轮数（可配置，持久化）
+        const rps = document.getElementById('roundsPerWordSelect');
+        if(rps){
+            const savedRounds = localStorage.getItem('ROUNDS_PER_WORD');
+            if(savedRounds){ rps.value = savedRounds; }
+            roundsPerWord = parseInt(rps.value) || 3;
+            rps.addEventListener('change',()=>{ roundsPerWord = parseInt(rps.value) || 3; localStorage.setItem('ROUNDS_PER_WORD', String(roundsPerWord)); });
+        }
         // 学习模式级别切换时联动更新词汇库和语法库视图
         if(document.getElementById('learnLevelSelect')){ document.getElementById('learnLevelSelect').addEventListener('change',()=>{ const lv=parseInt(document.getElementById('learnLevelSelect').value); if(document.getElementById('vocabViewLevel')){ document.getElementById('vocabViewLevel').value=lv; renderVocabLibrary(lv); } }); }
         // 学习模式按钮绑定（重置按钮已在上面绑定 resetLearnCustom）
@@ -8138,7 +8215,7 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
     resetGlobalBtn.onclick=resetGlobal; 
         if(document.getElementById('resetVocabBtn')) document.getElementById('resetVocabBtn').onclick=resetVocabOnly;
         if(document.getElementById('downloadUnifiedBtn')) document.getElementById('downloadUnifiedBtn').onclick=downloadUnifiedReport;
-        userInput.addEventListener('keypress',e=>{ if(e.key==='Enter') handleUserMessage(); }); grammarViewLevel.addEventListener('change',()=>updateGrammarDisplayByLevel(parseInt(grammarViewLevel.value))); closeModalSpan.onclick=()=>{modal.style.display='none';document.body.style.overflow='';}; closePracticeSpan.onclick=()=>{practiceModal.style.display='none';stopAllSpeech();practiceGenerating=false;document.body.style.overflow=''; window._dictationMode = false; window._reviewMode = false; window._reviewQueue = null; window._currentReviewItem = null; window._reviewRound = 0; window._practiceRevealed = false; practiceContent.classList.remove('dictation-active','revealed'); const drb=document.getElementById('dictationRevealBtn'); if(drb) drb.classList.remove('show'); }; window.onclick=e=>{ if(e.target===modal){modal.style.display='none';document.body.style.overflow='';} if(e.target===practiceModal){practiceModal.style.display='none';stopAllSpeech();practiceGenerating=false;document.body.style.overflow='';} }; setInterval(()=>{ let delta=(Date.now()-sessionStart)/60000; if(delta>0){ totalMinutes+=delta; sessionStart=Date.now(); saveFullState(); updateStatsUI(); } },60000); /* Chrome speech synthesis keep-alive: resume every 15s to prevent the synthesizer from sleeping (known Chrome bug) */ setInterval(()=>{ try { if('speechSynthesis' in window && window.speechSynthesis && !window.speechSynthesis.speaking) { window.speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(''); u.volume=0; speechSynthesis.speak(u); } } catch(_) {} },15000); }
+        userInput.addEventListener('keypress',e=>{ if(e.key==='Enter') handleUserMessage(); }); grammarViewLevel.addEventListener('change',()=>updateGrammarDisplayByLevel(parseInt(grammarViewLevel.value))); closeModalSpan.onclick=()=>{modal.style.display='none';document.body.style.overflow='';}; closePracticeSpan.onclick=()=>{practiceModal.style.display='none';stopAllSpeech();practiceGenerating=false;document.body.style.overflow=''; window._dictationMode = false; window._reviewMode = false; window._reviewQueue = null; window._learnMode = false; window._learnQueue = null; window._currentReviewItem = null; window._reviewRound = 0; window._practiceRevealed = false; window._practiceFinished = false; window._pendingLearnWord = null; window._learnRound = 0; practiceContent.classList.remove('dictation-active','revealed'); const drb=document.getElementById('dictationRevealBtn'); if(drb) drb.classList.remove('show'); }; window.onclick=e=>{ if(e.target===modal){modal.style.display='none';document.body.style.overflow='';} if(e.target===practiceModal){practiceModal.style.display='none';stopAllSpeech();practiceGenerating=false;document.body.style.overflow='';} }; setInterval(()=>{ let delta=(Date.now()-sessionStart)/60000; if(delta>0){ totalMinutes+=delta; sessionStart=Date.now(); saveFullState(); updateStatsUI(); } },60000); /* Chrome speech synthesis keep-alive: resume every 15s to prevent the synthesizer from sleeping (known Chrome bug) */ setInterval(()=>{ try { if('speechSynthesis' in window && window.speechSynthesis && !window.speechSynthesis.speaking) { window.speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(''); u.volume=0; speechSynthesis.speak(u); } } catch(_) {} },15000); }
     window._dictationMode = false;
     window.revealDictation = function(){ const pc=document.getElementById('practiceContent'); if(pc){ pc.classList.toggle('revealed'); const btn=document.getElementById('dictationRevealBtn'); if(btn) btn.classList.toggle('show', !pc.classList.contains('revealed')); } };
     function init(){
