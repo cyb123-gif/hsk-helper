@@ -167,8 +167,8 @@
         .learn-btn:disabled { opacity: 0.6; cursor: not-allowed; }
         .learn-btn.secondary { background: white; color: #27ae60; border: 1.5px solid #27ae60; }
         .learn-btn.secondary:hover { background: #e8f5e9; }
-        .custom-checkbox-list { display: flex; flex-wrap: wrap; gap: 4px; touch-action: pan-y; user-select: none; -webkit-user-select: none; }
-        .custom-checkbox-item { display: flex; align-items: center; gap: 4px; padding: 4px 10px; border: 1px solid #dde4ef; border-radius: 14px; cursor: pointer; font-size: 0.82rem; background: white; transition: 0.1s; user-select: none; white-space: nowrap; }
+        .custom-checkbox-list { display: flex; flex-wrap: wrap; gap: 4px; user-select: none; -webkit-user-select: none; }
+        .custom-checkbox-item { display: flex; align-items: center; gap: 4px; padding: 4px 10px; border: 1px solid #dde4ef; border-radius: 14px; cursor: pointer; font-size: 0.82rem; background: white; transition: 0.1s; user-select: none; -webkit-user-select: none; white-space: nowrap; touch-action: none; }
         .custom-checkbox-item:hover { background: #eef2ff; border-color: #1e2b5e; }
         .custom-checkbox-item.checked { background: #dbeafe; border-color: #3b82f6; color: #1e40af; font-weight: 600; }
         .custom-checkbox-item.grammar { border-left: 3px solid #7b1fa2; }
@@ -8742,42 +8742,78 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
         div.innerHTML=h; div.style.display='block';
     }
     window._togC=function(el){ el.classList.toggle('checked'); };
-    // 拖拽/滑动批量选择：按住一个标签后左右滑动，可连续选中/取消一排标签；垂直滑动仍可滚动页面
+    // 批量选择手势：手机上长按一个标签后上下/左右滑动即可连选；未长按时上下滑动仍可滚动列表。电脑上按住直接拖选。
     (function(){
-        let drag = null;
+        let g = null;
+        function scrollParent(el){
+            let p = el;
+            while(p){
+                const st = getComputedStyle(p);
+                if(/(auto|scroll)/.test(st.overflowY) && p.scrollHeight > p.clientHeight) return p;
+                p = p.parentElement;
+            }
+            return null;
+        }
+        function finish(suppress){
+            if(!g) return;
+            if(suppress) g.suppressClick = true;
+            g.active = false;
+            if(g.timer) clearTimeout(g.timer);
+            setTimeout(function(){ g = null; }, 0);
+        }
         document.addEventListener('pointerdown', function(e){
             const chip = e.target && e.target.closest ? e.target.closest('.custom-checkbox-item') : null;
             if(!chip) return;
             const list = chip.closest('.custom-checkbox-list');
             if(!list) return;
-            drag = { list:list, chip:chip, state:!chip.classList.contains('checked'), x:e.clientX, y:e.clientY, active:true, moved:false, pointerId:e.pointerId, suppressClick:false };
+            g = { list:list, chip:chip, sp:scrollParent(list), state:!chip.classList.contains('checked'), x:e.clientX, y:e.clientY, active:true, activated:false, moved:false, scrolling:false, suppressClick:false, pointerId:e.pointerId, pointerType:e.pointerType, timer:null };
+            if(e.pointerType === 'touch'){
+                g.timer = setTimeout(function(){
+                    if(!g || !g.active) return;
+                    g.activated = true;
+                    g.chip.classList.toggle('checked', g.state);
+                    if(navigator.vibrate) try{ navigator.vibrate(20); }catch(_){}
+                }, 300);
+            }
         }, true);
         document.addEventListener('pointermove', function(e){
-            if(!drag || !drag.active || e.pointerId !== drag.pointerId) return;
-            const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
-            if(!drag.moved && dx*dx + dy*dy < 64) return;
-            drag.moved = true;
-            drag.chip.classList.toggle('checked', drag.state);
-            const el = document.elementFromPoint(e.clientX, e.clientY);
-            const chip = el && el.closest ? el.closest('.custom-checkbox-item') : null;
-            if(chip && chip.closest('.custom-checkbox-list') === drag.list){
-                chip.classList.toggle('checked', drag.state);
+            if(!g || !g.active || e.pointerId !== g.pointerId) return;
+            const dx = e.clientX - g.x, dy = e.clientY - g.y;
+            if(!g.moved && dx*dx + dy*dy < 16) return;
+            g.moved = true;
+            if(g.pointerType === 'mouse' && !g.activated){
+                g.activated = true;
+                g.chip.classList.toggle('checked', g.state);
+            }
+            if(g.activated){
+                const el = document.elementFromPoint(e.clientX, e.clientY);
+                const chip = el && el.closest ? el.closest('.custom-checkbox-item') : null;
+                if(chip && chip.closest('.custom-checkbox-list') === g.list){
+                    chip.classList.toggle('checked', g.state);
+                }
+                if(g.sp){
+                    const r = g.sp.getBoundingClientRect();
+                    if(e.clientY < r.top + 36) g.sp.scrollTop -= 12;
+                    else if(e.clientY > r.bottom - 36) g.sp.scrollTop += 12;
+                }
+            } else if(g.pointerType === 'touch'){
+                g.scrolling = true;
+                if(g.sp) g.sp.scrollTop -= dy;
+                g.y = e.clientY; g.x = e.clientX;
             }
         }, true);
         document.addEventListener('pointerup', function(e){
-            if(!drag || e.pointerId !== drag.pointerId) return;
-            if(drag.moved) drag.suppressClick = true;
-            drag.active = false;
-            setTimeout(function(){ drag = null; }, 0);
+            if(!g || e.pointerId !== g.pointerId) return;
+            finish(g.activated || g.scrolling);
         }, true);
         document.addEventListener('pointercancel', function(e){
-            if(drag && e.pointerId === drag.pointerId) drag = null;
+            if(g && e.pointerId === g.pointerId) finish(g.activated || g.scrolling);
         }, true);
         document.addEventListener('click', function(e){
-            if(drag && drag.suppressClick){
+            if(g && g.suppressClick){
                 e.stopPropagation();
                 e.preventDefault();
-                drag = null;
+                g = null;
             }
         }, true);
     })();
