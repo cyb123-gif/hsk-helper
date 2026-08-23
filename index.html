@@ -167,7 +167,7 @@
         .learn-btn:disabled { opacity: 0.6; cursor: not-allowed; }
         .learn-btn.secondary { background: white; color: #27ae60; border: 1.5px solid #27ae60; }
         .learn-btn.secondary:hover { background: #e8f5e9; }
-        .custom-checkbox-list { display: flex; flex-wrap: wrap; gap: 4px; }
+        .custom-checkbox-list { display: flex; flex-wrap: wrap; gap: 4px; touch-action: pan-y; user-select: none; -webkit-user-select: none; }
         .custom-checkbox-item { display: flex; align-items: center; gap: 4px; padding: 4px 10px; border: 1px solid #dde4ef; border-radius: 14px; cursor: pointer; font-size: 0.82rem; background: white; transition: 0.1s; user-select: none; white-space: nowrap; }
         .custom-checkbox-item:hover { background: #eef2ff; border-color: #1e2b5e; }
         .custom-checkbox-item.checked { background: #dbeafe; border-color: #3b82f6; color: #1e40af; font-weight: 600; }
@@ -8742,6 +8742,45 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
         div.innerHTML=h; div.style.display='block';
     }
     window._togC=function(el){ el.classList.toggle('checked'); };
+    // 拖拽/滑动批量选择：按住一个标签后左右滑动，可连续选中/取消一排标签；垂直滑动仍可滚动页面
+    (function(){
+        let drag = null;
+        document.addEventListener('pointerdown', function(e){
+            const chip = e.target && e.target.closest ? e.target.closest('.custom-checkbox-item') : null;
+            if(!chip) return;
+            const list = chip.closest('.custom-checkbox-list');
+            if(!list) return;
+            drag = { list:list, chip:chip, state:!chip.classList.contains('checked'), x:e.clientX, y:e.clientY, active:true, moved:false, pointerId:e.pointerId, suppressClick:false };
+        }, true);
+        document.addEventListener('pointermove', function(e){
+            if(!drag || !drag.active || e.pointerId !== drag.pointerId) return;
+            const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+            if(!drag.moved && dx*dx + dy*dy < 64) return;
+            drag.moved = true;
+            drag.chip.classList.toggle('checked', drag.state);
+            const el = document.elementFromPoint(e.clientX, e.clientY);
+            const chip = el && el.closest ? el.closest('.custom-checkbox-item') : null;
+            if(chip && chip.closest('.custom-checkbox-list') === drag.list){
+                chip.classList.toggle('checked', drag.state);
+            }
+        }, true);
+        document.addEventListener('pointerup', function(e){
+            if(!drag || e.pointerId !== drag.pointerId) return;
+            if(drag.moved) drag.suppressClick = true;
+            drag.active = false;
+            setTimeout(function(){ drag = null; }, 0);
+        }, true);
+        document.addEventListener('pointercancel', function(e){
+            if(drag && e.pointerId === drag.pointerId) drag = null;
+        }, true);
+        document.addEventListener('click', function(e){
+            if(drag && drag.suppressClick){
+                e.stopPropagation();
+                e.preventDefault();
+                drag = null;
+            }
+        }, true);
+    })();
     window._selAllC=function(type){ const box=document.getElementById('lcs_'+type); if(box) box.querySelectorAll('.custom-checkbox-item').forEach(el=>el.classList.add('checked')); };
     window._selNoneC=function(type){ const box=document.getElementById('lcs_'+type); if(box) box.querySelectorAll('.custom-checkbox-item').forEach(el=>el.classList.remove('checked')); };
     window._closeC=function(){ const d=document.getElementById('learnCustomList'); if(d) d.style.display='none'; };
