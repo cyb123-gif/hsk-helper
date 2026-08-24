@@ -31,6 +31,7 @@
         .voice-btn:hover { background: #eef2ff; border-color: #1e2b5e; }
         .voice-btn.recording { background: #fee2e2; border-color: #ef4444; color: #ef4444; animation: voicePulse 1.5s ease-in-out infinite; }
         .voice-btn.unsupported { display: none; }
+        .voice-input-hint { margin: -2px 4px 0; font-size: 0.72rem; color: #94a3b8; line-height: 1.4; }
         @keyframes voicePulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.35); } 50% { box-shadow: 0 0 0 10px rgba(220, 38, 38, 0); } }
         .button-group { display: flex; gap: 10px; }
         .button-group button { background: #1e2b5e; color: white; border: none; border-radius: 40px; padding: 10px 0; font-weight: 600; font-size: 1rem; cursor: pointer; transition: 0.15s; flex: 1; }
@@ -379,6 +380,7 @@
                 <input type="text" id="userInput" placeholder="聊点什么吧..." autocomplete="off">
                 <button id="voiceBtn" class="voice-btn unsupported" title="语音输入（点击开始/停止）">🎤</button>
             </div>
+            <div id="voiceInputHint" class="voice-input-hint"></div>
             <div class="button-group">
                 <button id="sendBtn">发送</button>
                 <button id="endConversationBtn">结束对话</button>
@@ -6607,13 +6609,88 @@ const HSK2_VOCAB = [
         }
     };
 
+    // 语音输入指引文案（按设备区分）
+    const I18N_VOICE = {
+        'Chinese': {
+            'chat.voice_android':'⚠️ 安卓浏览器不支持网页语音识别，请点键盘上的 🎤 麦克风进行语音输入',
+            'chat.voice_desktop_unsupported':'⚠️ 当前浏览器不支持语音输入，请使用 Chrome 或 Edge 浏览器，或使用键盘上的 🎤 麦克风',
+            'chat.voice_hint_keyboard':'💡 语音输入：请使用键盘上的 🎤 麦克风（空格键旁）',
+            'chat.voice_hint_desktop_ok':'💡 语音输入：点 🎤 开始说话（建议 Chrome/Edge）',
+            'chat.voice_hint_desktop_bad':'💡 语音输入：当前浏览器不支持，请用 Chrome/Edge 或键盘上的 🎤'
+        },
+        'English': {
+            'chat.voice_android':'⚠️ Android browsers do not support web speech recognition. Please use the 🎤 mic on your keyboard.',
+            'chat.voice_desktop_unsupported':'⚠️ This browser does not support voice input. Please use Chrome or Edge, or the 🎤 mic on your keyboard.',
+            'chat.voice_hint_keyboard':'💡 Voice input: use the 🎤 mic on your keyboard (next to the space bar).',
+            'chat.voice_hint_desktop_ok':'💡 Voice input: tap 🎤 to start speaking (Chrome/Edge recommended).',
+            'chat.voice_hint_desktop_bad':'💡 Voice input: not supported in this browser. Use Chrome/Edge or the 🎤 mic on your keyboard.'
+        },
+        'Japanese': {
+            'chat.voice_android':'⚠️ Androidブラウザは音声認識に対応していません。キーボードの🎤マイクをご利用ください。',
+            'chat.voice_desktop_unsupported':'⚠️ このブラウザは音声入力に対応していません。ChromeまたはEdgeをご利用いただくか、キーボードの🎤をご利用ください。',
+            'chat.voice_hint_keyboard':'💡 音声入力：キーボードの🎤マイク（スペースキー横）をご利用ください。',
+            'chat.voice_hint_desktop_ok':'💡 音声入力：🎤をタップして話し始めます（Chrome/Edge推奨）。',
+            'chat.voice_hint_desktop_bad':'💡 音声入力：このブラウザでは利用できません。Chrome/Edgeまたはキーボードの🎤をご利用ください。'
+        },
+        'Korean': {
+            'chat.voice_android':'⚠️ Android 브라우저는 음성 인식을 지원하지 않습니다. 키보드의 🎤 마이크를 이용하세요.',
+            'chat.voice_desktop_unsupported':'⚠️ 이 브라우저는 음성 입력을 지원하지 않습니다. Chrome 또는 Edge를 사용하거나 키보드의 🎤 마이크를 이용하세요.',
+            'chat.voice_hint_keyboard':'💡 음성 입력: 키보드의 🎤 마이크(스페이스바 옆)를 이용하세요.',
+            'chat.voice_hint_desktop_ok':'💡 음성 입력: 🎤를 눌러 말하기 시작 (Chrome/Edge 권장).',
+            'chat.voice_hint_desktop_bad':'💡 음성 입력: 이 브라우저에서는 지원되지 않습니다. Chrome/Edge 또는 키보드 🎤를 이용하세요.'
+        },
+        'French': {
+            'chat.voice_android':'⚠️ Les navigateurs Android ne prennent pas en charge la reconnaissance vocale. Utilisez le micro 🎤 du clavier.',
+            'chat.voice_desktop_unsupported':'⚠️ Ce navigateur ne prend pas en charge la saisie vocale. Utilisez Chrome ou Edge, ou le micro 🎤 du clavier.',
+            'chat.voice_hint_keyboard':'💡 Saisie vocale : utilisez le micro 🎤 du clavier (à côté de la barre espace).',
+            'chat.voice_hint_desktop_ok':'💡 Saisie vocale : appuyez sur 🎤 pour parler (Chrome/Edge recommandé).',
+            'chat.voice_hint_desktop_bad':'💡 Saisie vocale : non prise en charge dans ce navigateur. Utilisez Chrome/Edge ou le micro 🎤 du clavier.'
+        },
+        'German': {
+            'chat.voice_android':'⚠️ Android-Browser unterstützen keine Spracherkennung. Bitte das 🎤-Mikrofon der Tastatur verwenden.',
+            'chat.voice_desktop_unsupported':'⚠️ Dieser Browser unterstützt keine Spracheingabe. Bitte Chrome oder Edge verwenden oder das 🎤 der Tastatur.',
+            'chat.voice_hint_keyboard':'💡 Spracheingabe: Bitte das 🎤-Mikrofon der Tastatur verwenden (neben der Leertaste).',
+            'chat.voice_hint_desktop_ok':'💡 Spracheingabe: 🎤 antippen und sprechen (Chrome/Edge empfohlen).',
+            'chat.voice_hint_desktop_bad':'💡 Spracheingabe: In diesem Browser nicht verfügbar. Chrome/Edge oder Tastatur-🎤 verwenden.'
+        },
+        'Spanish': {
+            'chat.voice_android':'⚠️ Los navegadores Android no admiten reconocimiento de voz. Usa el micrófono 🎤 del teclado.',
+            'chat.voice_desktop_unsupported':'⚠️ Este navegador no admite entrada de voz. Usa Chrome o Edge, o el micrófono 🎤 del teclado.',
+            'chat.voice_hint_keyboard':'💡 Entrada de voz: usa el micrófono 🎤 del teclado (junto a la barra espaciadora).',
+            'chat.voice_hint_desktop_ok':'💡 Entrada de voz: toca 🎤 para empezar a hablar (recomendado Chrome/Edge).',
+            'chat.voice_hint_desktop_bad':'💡 Entrada de voz: no compatible con este navegador. Usa Chrome/Edge o el 🎤 del teclado.'
+        },
+        'Russian': {
+            'chat.voice_android':'⚠️ Браузеры Android не поддерживают распознавание речи. Используйте микрофон 🎤 на клавиатуре.',
+            'chat.voice_desktop_unsupported':'⚠️ Этот браузер не поддерживает голосовой ввод. Используйте Chrome или Edge либо микрофон 🎤 на клавиатуре.',
+            'chat.voice_hint_keyboard':'💡 Голосовой ввод: используйте микрофон 🎤 на клавиатуре (рядом с пробелом).',
+            'chat.voice_hint_desktop_ok':'💡 Голосовой ввод: нажмите 🎤 и говорите (рекомендуются Chrome/Edge).',
+            'chat.voice_hint_desktop_bad':'💡 Голосовой ввод: не поддерживается в этом браузере. Используйте Chrome/Edge или 🎤 на клавиатуре.'
+        },
+        'Thai': {
+            'chat.voice_android':'⚠️ เบราว์เซอร์ Android ไม่รองรับการป้อนเสียง โปรดใช้ไมโครโฟน 🎤 บนแป้นพิมพ์',
+            'chat.voice_desktop_unsupported':'⚠️ เบราว์เซอร์นี้ไม่รองรับการป้อนเสียง โปรดใช้ Chrome หรือ Edge หรือไมโครโฟน 🎤 บนแป้นพิมพ์',
+            'chat.voice_hint_keyboard':'💡 การป้อนเสียง: ใช้ไมโครโฟน 🎤 บนแป้นพิมพ์ (ข้างแป้นเว้นวรรค)',
+            'chat.voice_hint_desktop_ok':'💡 การป้อนเสียง: แตะ 🎤 เพื่อเริ่มพูด (แนะนำ Chrome/Edge)',
+            'chat.voice_hint_desktop_bad':'💡 การป้อนเสียง: เบราว์เซอร์นี้ไม่รองรับ ใช้ Chrome/Edge หรือ 🎤 บนแป้นพิมพ์'
+        },
+        'Italian': {
+            'chat.voice_android':'⚠️ I browser Android non supportano il riconoscimento vocale. Usa il microfono 🎤 della tastiera.',
+            'chat.voice_desktop_unsupported':"⚠️ Questo browser non supporta l'input vocale. Usa Chrome o Edge, oppure il microfono 🎤 della tastiera.",
+            'chat.voice_hint_keyboard':'💡 Input vocale: usa il microfono 🎤 della tastiera (accanto alla barra spaziatrice).',
+            'chat.voice_hint_desktop_ok':'💡 Input vocale: tocca 🎤 per iniziare a parlare (consigliati Chrome/Edge).',
+            'chat.voice_hint_desktop_bad':'💡 Input vocale: non supportato in questo browser. Usa Chrome/Edge o il 🎤 della tastiera.'
+        }
+    };
+
     // 翻译函数：非中文只显示母语，中文显示中文原文
     function t(key) {
         const lang = targetLangSelect ? targetLangSelect.value : 'English';
         const dict = I18N[lang];
         const extra = I18N_EXTRA[lang] || I18N_EXTRA['Chinese'] || {};
-        const translated = (dict && dict[key]) ? dict[key] : (extra[key] || '');
-        const chinese = (ZH && ZH[key]) ? ZH[key] : ((I18N_EXTRA['Chinese'] && I18N_EXTRA['Chinese'][key]) || '');
+        const voice = I18N_VOICE[lang] || I18N_VOICE['Chinese'] || {};
+        const translated = (dict && dict[key]) ? dict[key] : (extra[key] || voice[key] || '');
+        const chinese = (ZH && ZH[key]) ? ZH[key] : ((I18N_EXTRA['Chinese'] && I18N_EXTRA['Chinese'][key]) || (I18N_VOICE['Chinese'] && I18N_VOICE['Chinese'][key]) || '');
         if (!translated) return chinese || key;
         return translated;
     }
@@ -6741,6 +6818,8 @@ const HSK2_VOCAB = [
         const zi = document.getElementById('zenmeshuoInput'); if(zi) zi.placeholder = t('zms.placeholder');
         const wi = document.getElementById('wZenmeshuoInput'); if(wi) wi.placeholder = t('zms.placeholder');
         const wb = document.getElementById('wZenmeshuoBtn'); if(wb) wb.textContent = t('zms.button');
+        // 刷新语音输入引导提示
+        if (typeof updateVoiceHint === 'function') updateVoiceHint();
         // 刷新写作状态栏与流程提示
         const wfh = document.getElementById('writingFlowHint'); if(wfh) wfh.textContent = t('writing.flow_hint');
         if (typeof updateWritingStatus === 'function') updateWritingStatus(writingState || 'idle');
@@ -7605,28 +7684,45 @@ const HSK2_VOCAB = [
     const closePracticeSpan = document.querySelector('.close-practice-modal');
     const voiceBtn = document.getElementById('voiceBtn');
 
-    // ========== 语音输入（桌面端实时识别 + iOS降级提示） ==========
+    // ========== 语音输入（桌面端实时识别 + 移动端键盘麦克风引导） ==========
     let voiceRecognition = null, voiceIsSupported = false, voiceIsRecording = false;
+
+    function updateVoiceHint() {
+        const hintEl = document.getElementById('voiceInputHint');
+        if (!hintEl) return;
+        const isIOS2 = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+        const isAndroid = /Android/i.test(navigator.userAgent);
+        if (!voiceIsSupported) {
+            hintEl.textContent = (isIOS2 || isAndroid) ? t('chat.voice_hint_keyboard') : t('chat.voice_hint_desktop_bad');
+        } else {
+            hintEl.textContent = t('chat.voice_hint_desktop_ok');
+        }
+    }
 
     function initVoiceRecognition() {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (!SpeechRecognition) {
-            // iOS / 不支持 SpeechRecognition 的浏览器：按钮可见但提示替代方案
+            // iOS / 安卓 / 不支持的浏览器：按钮可见，但点击时给出对应设备的替代方案
             voiceIsSupported = false;
             voiceBtn.classList.remove('unsupported');
             voiceBtn.onclick = function() {
                 const isIOS2 = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+                const isAndroid = /Android/i.test(navigator.userAgent);
                 if (isIOS2) {
-                    showToast('⚠️ iOS 请使用键盘自带的麦克风按钮（空格键旁边）进行语音输入');
+                    showToast(t('chat.voice_hint_keyboard'));
+                } else if (isAndroid) {
+                    showToast(t('chat.voice_android'));
                 } else {
-                    showToast('⚠️ 当前浏览器不支持语音输入，请使用 Chrome 或 Edge 浏览器');
+                    showToast(t('chat.voice_desktop_unsupported'));
                 }
             };
+            updateVoiceHint();
             return;
         }
         voiceIsSupported = true;
         voiceBtn.classList.remove('unsupported');
         voiceBtn.onclick = toggleVoiceRecording;
+        updateVoiceHint();
     }
 
     function toggleVoiceRecording() {
