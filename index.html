@@ -7923,31 +7923,48 @@ function saveFullState(){ if(!currentUser) return; const entries=Array.from(used
     function extractFixedChars(pattern){ let noParen=pattern.replace(/[（(][^）)]*[）)]/g,''); const parts=noParen.split('+'); const fixed=[]; for(let part of parts){ if(/[\/A-Za-z]/.test(part)&&!/[\u4e00-\u9fa5]/.test(part)) continue; const chinese=part.match(/[\u4e00-\u9fa5]+/g); if(chinese) fixed.push(...chinese); else if(part.trim().length>0 && /[\u4e00-\u9fa5]/.test(part)) fixed.push(part); } return fixed; }
     function highlightFixedWords(sentence, fixedWords){ if(!fixedWords.length) return escapeHtml(sentence); let result=escapeHtml(sentence); for(let w of fixedWords) result=result.replace(new RegExp(escapeHtml(w),'g'),`<span class="example-highlight">${escapeHtml(w)}</span>`); return result; }
     function updateStatsUI(){ const el=document.getElementById('usageTimer'); if(el){ const h=Math.floor(totalMinutes/60); const m=Math.floor(totalMinutes%60); el.textContent='⏱ '+(h>0?h+'h ':'')+m+'m'; } }
-    const CHAT_LEN_LIMITS = {1:{maxChars:8, maxSentences:2}, 2:{maxChars:8, maxSentences:2}, 3:{maxChars:12, maxSentences:3}, 4:{maxChars:16, maxSentences:4}, 5:{maxChars:20, maxSentences:5}};
+    const CHAT_LEN_LIMITS = {1:{maxChars:8, maxSentences:2, maxClausesPerSentence:1, maxTotalChars:16}, 2:{maxChars:8, maxSentences:2, maxClausesPerSentence:1, maxTotalChars:16}, 3:{maxChars:12, maxSentences:3, maxClausesPerSentence:2, maxTotalChars:36}, 4:{maxChars:16, maxSentences:4, maxClausesPerSentence:2, maxTotalChars:64}, 5:{maxChars:20, maxSentences:5, maxClausesPerSentence:3, maxTotalChars:100}};
+    function chatLengthLimitsFor(level, isCorrection){
+        const base = CHAT_LEN_LIMITS[level] || CHAT_LEN_LIMITS[3];
+        return {
+            maxChars: base.maxChars,
+            maxClausesPerSentence: base.maxClausesPerSentence,
+            maxSentences: isCorrection ? base.maxSentences + 2 : base.maxSentences,
+            maxTotalChars: isCorrection ? Math.round(base.maxTotalChars * 1.5) : base.maxTotalChars
+        };
+    }
     function validateChatReplyLength(raw, level){
-        const limit = CHAT_LEN_LIMITS[level] || CHAT_LEN_LIMITS[3];
-        if (/❌|✅/.test(raw)) return {ok:true, isCorrection:true};
-        const sentences = raw.split(/[。！？!?；;\n]+/).map(s=>s.trim()).filter(Boolean);
-        if (sentences.length > limit.maxSentences) return {ok:false, reason:'sentences', count:sentences.length};
+        const isCorrection = /❌|✅/.test(raw);
+        const limit = chatLengthLimitsFor(level, isCorrection);
+        // 纠错模板中「❌ 学生原句」行是引用学生的话，不计入 AI 自写总字数
+        const ownLines = raw.split('\n').map(s=>s.trim()).filter(s=>s && !(isCorrection && s.startsWith('❌')));
+        const ownText = ownLines.join('\n');
+        const totalHanzi = (ownText.match(/[\u4e00-\u9fff]/g) || []).length;
+        if (totalHanzi > limit.maxTotalChars) return {ok:false, reason:'total', count:totalHanzi, isCorrection};
+        const sentences = ownText.split(/[。！？!?；;\n]+/).map(s=>s.trim()).filter(Boolean);
+        if (sentences.length > limit.maxSentences) return {ok:false, reason:'sentences', count:sentences.length, isCorrection};
         for (const s of sentences){
             const clauses = s.split(/[，,、]/).map(c=>c.trim()).filter(Boolean);
+            if (clauses.length > limit.maxClausesPerSentence) return {ok:false, reason:'clausesPerSentence', count:clauses.length, isCorrection};
             for (const c of clauses){
                 const hanzi = (c.match(/[\u4e00-\u9fff]/g) || []).length;
-                if (hanzi > limit.maxChars) return {ok:false, reason:'clause', count:hanzi};
+                if (hanzi > limit.maxChars) return {ok:false, reason:'clause', count:hanzi, isCorrection};
             }
         }
-        return {ok:true};
+        return {ok:true, isCorrection};
     }
-    async function chatWithContext(userMsg, signal, retryCount=0){
+    async function chatWithContext(userMsg, signal, retryCount=0, lastCheck=null){
         const apiKey = apiKeyInput.value.trim();
         if (!apiKey) return null;
         const level = parseInt(aiLevelSelect.value) || 3;
         const targetLang = targetLangSelect.value;
-        const limit = CHAT_LEN_LIMITS[level] || CHAT_LEN_LIMITS[3];
+        const limPlain = chatLengthLimitsFor(level, false);
+        const limCorr = chatLengthLimitsFor(level, true);
         const diffGuide = level<=2 ? "句子极短（每句3-8字），只用最常见的基础词汇，简单主谓/主谓宾结构，回复1-2句" : level===3 ? "句子短（每句6-12字），用日常词汇，可含趋向补语、结果补语、把字句，回复2-3句" : level===4 ? "句子中等（每句8-16字），用较丰富词汇，可含较复杂补语和关联词，回复3-4句" : "句子正常（每句10-20字），用丰富词汇，可有一定句法复杂度，回复3-5句";
-        const enforce = retryCount>0 ? `\n【长度强制修正 - 现在必须执行】你刚才的回复超过HSK${level}级长度限制了。现在重新回复用户刚才那条消息，内容可以精简，但必须满足：每个小句（逗号前的一段）不超过${limit.maxChars}个汉字，全段最多${limit.maxSentences}句。宁可少说，不可超长。` : '';
+        const enforce = retryCount>0 ? `\n【长度强制修正 - 现在必须执行】你刚才的回复超过HSK${level}级长度限制了。现在重新回复用户刚才那条消息，内容可以精简，但必须满足：每个小句（逗号前的一段）不超过${limPlain.maxChars}个汉字，每句最多${limPlain.maxClausesPerSentence}个小句，全段最多${(lastCheck&&lastCheck.isCorrection?limCorr.maxSentences:limPlain.maxSentences)}句，全文总字数不超过${(lastCheck&&lastCheck.isCorrection?limCorr.maxTotalChars:limPlain.maxTotalChars)}个汉字（❌行是学生原句，不计入总字数）。宁可少说，不可超长。` : '';
         const system = `你是HSK${level}级中文对话伙伴。像一个真实的朋友一样自然交流，用符合HSK${level}级的中文。
-【难度控制 - 最高优先级，必须严格遵守】严格匹配HSK${level}级水平，词语难度与句子长度如下：${diffGuide}。不要超过。每个小句（逗号前的一段）不超过${limit.maxChars}个汉字，全段最多${limit.maxSentences}句。宁可短，不可长。
+【难度控制 - 最高优先级，必须严格遵守】严格匹配HSK${level}级水平，词语难度与句子长度如下：${diffGuide}。不要超过。每个小句（逗号前的一段）不超过${limPlain.maxChars}个汉字，每句最多${limPlain.maxClausesPerSentence}个小句，全段最多${limPlain.maxSentences}句，全文总字数不超过${limPlain.maxTotalChars}个汉字。宁可短，不可长。
+【纠错回复的长度】如果按纠错格式回复（含❌/✅/💡），全段最多${limCorr.maxSentences}句，全文总字数不超过${limCorr.maxTotalChars}个汉字（❌行是学生原句，不计入总字数），每个小句仍不超过${limCorr.maxChars}个汉字。
 【回应优先级】
 1. 先直接回应用户刚说的内容或问题，绝不能答非所问。
 2. 始终围绕用户当前的话题自然展开，不要突然跳到无关的新话题。
@@ -7970,20 +7987,21 @@ function saveFullState(){ if(!currentUser) return; const entries=Array.from(used
 然后自然继续对话。
 4. 句子正确时直接自然回应，禁止回述原句。口语省略不算错误。
 【输出前自检 - 每次回复前必须执行】
-(a) 每个小句（逗号前的一段）不超过${limit.maxChars}个汉字？
-(b) 全段不超过${limit.maxSentences}句？
-(c) 用词是否在HSK${level}级范围内？
+(a) 每个小句（逗号前的一段）不超过${limPlain.maxChars}个汉字？
+(b) 全段不超过${limPlain.maxSentences}句（纠错格式不超过${limCorr.maxSentences}句）？
+(c) 全文总字数不超过${limPlain.maxTotalChars}个汉字（纠错格式不超过${limCorr.maxTotalChars}，❌行不计）？
+(d) 用词是否在HSK${level}级范围内？
 只要有一项不符合，就删掉多余内容，缩短后再回复。` + enforce;
         const messages = [{role:'system', content:system}, ...chatHistory, {role:'user', content:userMsg}];
         try{
-            const resp = await fetch(API_BASE, {method:'POST', headers:{'Content-Type':'application/json', 'Authorization':'Bearer '+apiKey}, body: JSON.stringify({model:'deepseek-v4-flash', max_tokens:4096, messages, temperature:0.4}), signal});
+            const resp = await fetch(API_BASE, {method:'POST', headers:{'Content-Type':'application/json', 'Authorization':'Bearer '+apiKey}, body: JSON.stringify({model:'deepseek-v4-flash', thinking:{type:'disabled'}, max_tokens:512, messages, temperature:0.4}), signal});
             const data = await resp.json();
             if (data.error) throw new Error(data.error.message || "API error");
             if (!data.choices || !data.choices[0] || !data.choices[0].message) throw new Error("API error");
             const raw = data.choices[0].message.content;
             const check = validateChatReplyLength(raw, level);
-            if (!check.ok && retryCount < 2){
-                return chatWithContext(userMsg, signal, retryCount + 1);
+            if (!check.ok && retryCount < 3){
+                return chatWithContext(userMsg, signal, retryCount + 1, check);
             }
             const html = raw.replace(/\n/g, '<br>');
             const now = new Date().toISOString();
