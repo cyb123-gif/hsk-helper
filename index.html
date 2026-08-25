@@ -7844,7 +7844,6 @@ function loadWrongSentences(){ if(!currentUser) return; wrongSentences=[]; var r
 function addWrongSentence(word,type,chineseRaw,english,userAnswer,note){ if(wrongSentences.some(function(s){ return s.sentence===chineseRaw&&s.userAnswer===userAnswer; })) return; wrongSentences.unshift({word:word,type:type,sentence:chineseRaw,english:english,userAnswer:userAnswer,note:note||'',date:getLocalDate()}); if(wrongSentences.length>500) wrongSentences.pop(); saveWrongSentences(); renderWrongSentences(); }
 window._removeWrongSentence=function(idx){ wrongSentences.splice(idx,1); saveWrongSentences(); renderWrongSentences(); };
 function renderWrongSentences(){ const el=document.getElementById('wrongSentenceList'); if(!el) return; if(wrongSentences.length===0){ el.innerHTML='<div class="empty-detail">'+t('wrong_sentences.empty')+'</div>'; return; } let html=''; for(let i=0;i<wrongSentences.length;i++){ const ws=wrongSentences[i]; const delBtn=' <button onclick="window._removeWrongSentence('+i+')" style="background:none;border:1px solid #f5c6cb;border-radius:8px;padding:1px 6px;font-size:0.68rem;cursor:pointer;color:#c0392b;margin-left:6px;">🗑️</button>'; if(ws.type==='对话纠错'){ html+='<div class="mistake-item"><div class="mistake-original" style="color:#c0392b;">❌ '+escapeHtml(ws.userAnswer)+'</div><div style="color:#27ae60;">✅ '+escapeHtml(ws.sentence)+'</div>'+(ws.note?'<div style="font-size:0.78rem;color:#e67e22;">💡 '+escapeHtml(ws.note)+'</div>':'')+'<div style="font-size:0.7rem;color:#94a3b8;">📅 '+formatDate(ws.date)+delBtn+'</div></div>'; } else { html+='<div class="mistake-item"><div class="mistake-original">📝 '+escapeHtml(ws.word||ws.userAnswer)+'</div><div style="color:#27ae60;">✅ '+escapeHtml(ws.sentence)+'</div><div>✏️ '+escapeHtml(ws.userAnswer)+delBtn+'</div></div>'; } } el.innerHTML=html; }
-function recordChatCorrections(raw){ if(!raw||raw.indexOf('你是说')<0) return; var lines=raw.split('\n'); var wrongs=[],corrects=[],notes=[]; for(var i=0;i<lines.length;i++){ var t=lines[i].trim(); if(t.indexOf('❌')===0) wrongs.push(t.replace(/^❌\s*/,'').trim()); else if(t.indexOf('✅')===0) corrects.push(t.replace(/^✅\s*/,'').trim()); else if(t.indexOf('💡')===0) notes.push(t.replace(/^💡\s*/,'').trim()); } for(var j=0;j<wrongs.length;j++){ if(wrongs[j]&&corrects[j]) addWrongSentence('','对话纠错',corrects[j],'',wrongs[j],notes[j]||''); } }
 function saveFullState(){ if(!currentUser) return; const entries=Array.from(usedMap.entries()).map(([k,v])=>({key:k, value:{count:v.count, correctCount:v.correctCount||0, practiceCount:v.practiceCount||0, level:v.level, examples:v.examples, practiceTimestamps:v.practiceTimestamps||[], practiceExamples:v.practiceExamples||[]}})); localStorage.setItem(grammarKey(), JSON.stringify({entries})); localStorage.setItem(favoriteKey(), JSON.stringify(favoriteSentences)); localStorage.setItem(queriedKey(), JSON.stringify(queriedItems)); localStorage.setItem(minutesKey(), totalMinutes); saveVocabState(); }
     function vocabKey(){ return 'HSK_VOCAB_' + currentUser; }
     function vocabCorrectKey(){ return 'HSK_VOCAB_CORRECT_' + currentUser; }
@@ -7953,18 +7952,16 @@ function saveFullState(){ if(!currentUser) return; const entries=Array.from(used
         }
         return {ok:true, isCorrection};
     }
-    async function chatWithContext(userMsg, signal, retryCount=0, lastCheck=null){
+    async function chatWithContext(userMsg, signal, retryCount=0){
         const apiKey = apiKeyInput.value.trim();
         if (!apiKey) return null;
         const level = parseInt(aiLevelSelect.value) || 3;
         const targetLang = targetLangSelect.value;
         const limPlain = chatLengthLimitsFor(level, false);
-        const limCorr = chatLengthLimitsFor(level, true);
         const diffGuide = level<=2 ? "句子极短（每句3-8字），只用最常见的基础词汇，简单主谓/主谓宾结构，回复1-2句" : level===3 ? "句子短（每句6-12字），用日常词汇，可含趋向补语、结果补语、把字句，回复2-3句" : level===4 ? "句子中等（每句8-16字），用较丰富词汇，可含较复杂补语和关联词，回复3-4句" : "句子正常（每句10-20字），用丰富词汇，可有一定句法复杂度，回复3-5句";
-        const enforce = retryCount>0 ? `\n【长度强制修正 - 现在必须执行】你刚才的回复超过HSK${level}级长度限制了。现在重新回复用户刚才那条消息，内容可以精简，但必须满足：每个小句（逗号前的一段）不超过${limPlain.maxChars}个汉字，每句最多${limPlain.maxClausesPerSentence}个小句，全段最多${(lastCheck&&lastCheck.isCorrection?limCorr.maxSentences:limPlain.maxSentences)}句，全文总字数不超过${(lastCheck&&lastCheck.isCorrection?limCorr.maxTotalChars:limPlain.maxTotalChars)}个汉字（❌行是学生原句，不计入总字数）。宁可少说，不可超长。` : '';
+        const enforce = retryCount>0 ? `\n【长度强制修正 - 现在必须执行】你刚才的回复超过HSK${level}级长度限制了。现在重新回复用户刚才那条消息，内容可以精简，但必须满足：每个小句（逗号前的一段）不超过${limPlain.maxChars}个汉字，每句最多${limPlain.maxClausesPerSentence}个小句，全段最多${limPlain.maxSentences}句，全文总字数不超过${limPlain.maxTotalChars}个汉字。宁可少说，不可超长。` : '';
         const system = `你是HSK${level}级中文对话伙伴。像一个真实的朋友一样自然交流，用符合HSK${level}级的中文。
 【难度控制 - 最高优先级，必须严格遵守】严格匹配HSK${level}级水平，词语难度与句子长度如下：${diffGuide}。不要超过。每个小句（逗号前的一段）不超过${limPlain.maxChars}个汉字，每句最多${limPlain.maxClausesPerSentence}个小句，全段最多${limPlain.maxSentences}句，全文总字数不超过${limPlain.maxTotalChars}个汉字。宁可短，不可长。
-【纠错回复的长度】如果按纠错格式回复（含❌/✅/💡），全段最多${limCorr.maxSentences}句，全文总字数不超过${limCorr.maxTotalChars}个汉字（❌行是学生原句，不计入总字数），每个小句仍不超过${limCorr.maxChars}个汉字。
 【回应优先级】
 1. 先直接回应用户刚说的内容或问题，绝不能答非所问。
 2. 始终围绕用户当前的话题自然展开，不要突然跳到无关的新话题。
@@ -7977,19 +7974,12 @@ function saveFullState(){ if(!currentUser) return; const entries=Array.from(used
 - 不要每次都以问题结尾——有时分享完自然结束就好
 - 绝不要假装自己是人类去编造生活经历（如散步、吃饭、去了某地等）
 【纠错规则】
-1. 标点符号的缺失或用错不是错误，绝不纠正标点。
-2. 大多数句子都是正确的——只有明显语法错误（语序颠倒、虚词严重用错）或词语完全用错时才纠正。意思能懂就不要纠。
-3. 纠正时用以下格式：
-哦，你是说：[正确句子]
-❌ [学生原句]
-✅ [正确句子]
-💡 [解释]
-然后自然继续对话。
-4. 句子正确时直接自然回应，禁止回述原句。口语省略不算错误。
+系统会自动分析学生句子的偏误，并把准确纠正结果附在你的回复后面显示。你不需要在回复中使用 ❌/✅/💡 格式纠错，也不要写这些符号。
+如果学生的句子有明显错误，你可以自然地在回复中使用正确说法（例如学生说"我今天再家"，你可以回"哦，你在家啊"），但不要指出错误、不要写"你是说"、不要复述原句。
 【输出前自检 - 每次回复前必须执行】
 (a) 每个小句（逗号前的一段）不超过${limPlain.maxChars}个汉字？
-(b) 全段不超过${limPlain.maxSentences}句（纠错格式不超过${limCorr.maxSentences}句）？
-(c) 全文总字数不超过${limPlain.maxTotalChars}个汉字（纠错格式不超过${limCorr.maxTotalChars}，❌行不计）？
+(b) 全段不超过${limPlain.maxSentences}句？
+(c) 全文总字数不超过${limPlain.maxTotalChars}个汉字？
 (d) 用词是否在HSK${level}级范围内？
 只要有一项不符合，就删掉多余内容，缩短后再回复。` + enforce;
         const messages = [{role:'system', content:system}, ...chatHistory, {role:'user', content:userMsg}];
@@ -8001,7 +7991,7 @@ function saveFullState(){ if(!currentUser) return; const entries=Array.from(used
             const raw = data.choices[0].message.content;
             const check = validateChatReplyLength(raw, level);
             if (!check.ok && retryCount < 3){
-                return chatWithContext(userMsg, signal, retryCount + 1, check);
+                return chatWithContext(userMsg, signal, retryCount + 1);
             }
             const html = raw.replace(/\n/g, '<br>');
             const now = new Date().toISOString();
@@ -8164,7 +8154,7 @@ if(wrongSentences.length===0){ rpt+='(暂无错句记录)\n'; } else { for(var w
 rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n⭐ 第五部分：收藏句子\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(favoriteSentences.length===0){ rpt+='(暂无收藏)\n'; } else { for(let item of favoriteSentences){ rpt+='🇨🇳 '+item.chinese+'\n🌐 '+(item.translation||'')+'\n📅 '+(item.date||'')+'\n\n'; } } const ok = downloadTextFile(rpt, 'HSK_Learning_Report_' + getLocalDate() + '.txt'); showToast(ok ? t('toast.download_started') : t('toast.download_failed')); }
 
 async function handleEndConversation(){ if(chatAbortController){ chatAbortController.abort(); chatAbortController=null; } if(currentSessionClauses.length===0&&sessionUserMessages.length===0){ addAssistantMessage(t('analysis.no_sentences')); return; } const filteredClauses=currentSessionClauses.filter(c=>!isQueriedSentence(c)); const savedClauses=[...filteredClauses]; if(filteredClauses.length===0){ addAssistantMessage(t('analysis.no_sentences')); currentSessionClauses=[]; sessionUserMessages=[]; return; } addAssistantMessage(t('analysis.analyzing_prefix')+filteredClauses.length+'...'); try{ const analysis=await analyzeGrammarBatch(filteredClauses); if(analysis) mergeAnalysisResults(analysis); addAssistantMessage(t('analysis.grammar_done')); }catch(e){ addAssistantMessage(t('analysis.grammar_timeout')); } addAssistantMessage(t('analysis.vocab_analyzing')); try{ const vocabAnalysis=await analyzeVocabBatch(savedClauses); if(vocabAnalysis){ mergeVocabResultsFiltered(vocabAnalysis); } const matchCount=vocabAnalysis?vocabAnalysis.reduce((sum,item)=>sum+Object.keys(item.wordCounts||{}).length,0):0; addAssistantMessage(t('analysis.vocab_done')+' 匹配到 '+matchCount+' 个词'); }catch(e){ console.log('Vocab error:',e); addAssistantMessage(t('analysis.vocab_timeout')); } renderVocabLevelProgress(); renderVocabTrackList(); currentSessionClauses=[]; sessionUserMessages=[]; }
-    async function handleUserMessage(){ let text=userInput.value.trim(); if(!text) return; userInput.value=''; addMessage('user',text); currentSessionClauses.push(...splitClauses(text)); sessionUserMessages.push(text); if(chatAbortController){ chatAbortController.abort(); } chatAbortController=new AbortController(); const signal=chatAbortController.signal; try{ const reply=await chatWithContext(text,signal); if(reply){ addAssistantMessage(reply.html, true, reply.raw); recordChatCorrections(reply.raw); } }catch(e){ if(e.name!=='AbortError') addAssistantMessage(t('analysis.reply_fail')); }finally{ chatAbortController=null; } try{ const mistakes=await analyzeMistakesBatch([text]); if(mistakes&&mistakes.length>0){ const filtered=mistakes.filter(m=>m.original!==m.corrected&&!isPunctuationOnlyDiff(m.original,m.corrected)); if(filtered.length>0){ const corrections=filtered.map(m=>'<b>'+escapeHtml(m.original)+'</b> → <b style="color:#27ae60">'+escapeHtml(m.corrected)+'</b> ('+escapeHtml(m.note)+')').join('<br>'); addAssistantMessage('💡 纠错：<br>'+corrections,true); } } }catch(e){} }
+    async function handleUserMessage(){ let text=userInput.value.trim(); if(!text) return; userInput.value=''; addMessage('user',text); currentSessionClauses.push(...splitClauses(text)); sessionUserMessages.push(text); if(chatAbortController){ chatAbortController.abort(); } chatAbortController=new AbortController(); const signal=chatAbortController.signal; try{ const [reply,mistakes]=await Promise.all([chatWithContext(text,signal), analyzeMistakesBatch([text])]); if(reply){ let html=reply.html, raw=reply.raw; if(mistakes&&mistakes.length>0){ const filtered=mistakes.filter(m=>m.original!==m.corrected&&!isPunctuationOnlyDiff(m.original,m.corrected)); if(filtered.length>0){ const htmlParts=[], rawLines=[]; for(const m of filtered){ rawLines.push('❌ '+m.original); rawLines.push('✅ '+m.corrected); if(m.note) rawLines.push('💡 '+m.note); htmlParts.push('<b>'+escapeHtml(m.original)+'</b> → <b style="color:#27ae60">'+escapeHtml(m.corrected)+'</b>'+(m.note?' ('+escapeHtml(m.note)+')':'')); addWrongSentence('','对话纠错',m.corrected,'',m.original,m.note||''); } raw=raw+'\n'+rawLines.join('\n'); html=html+'<br><br>💡 纠错：<br>'+htmlParts.join('<br>'); const last=chatHistory[chatHistory.length-1]; if(last&&last.role==='assistant'){ last.content=raw; saveChatHistory(); } } } addAssistantMessage(html, true, raw); } }catch(e){ if(e.name!=='AbortError') addAssistantMessage(t('analysis.reply_fail')); }finally{ chatAbortController=null; } }
     let practiceIsSpeaking=false;
     // ========== 语音朗读 ==========
     // 解锁移动端音频播放（微信等WebView首次需用户手势激活AudioContext）
