@@ -257,6 +257,12 @@
         .writing-status-bar[data-state="graded"] { background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; }
         .writing-status-bar[data-state="ended"] { background: #f3e8ff; color: #6d28d9; border: 1px solid #ddd6fe; }
         .writing-flow-hint { margin: 4px 12px 0; font-size: 0.72rem; color: #94a3b8; }
+        .writing-audio-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 6px 12px 0; }
+        .writing-audio-row .writing-submit-btn { padding: 7px 14px; font-size: 0.8rem; }
+        .writing-audio-status { font-size: 0.75rem; color: #64748b; }
+        .writing-audio-status.busy { color: #b45309; }
+        .writing-audio-status.ok { color: #2e7d32; }
+        .writing-audio-status.err { color: #c0392b; }
         .writing-textarea:disabled { background: #f1f5f9; color: #64748b; }
         .chat-messages-wrapper { display: flex; flex: 1; flex-direction: column; overflow: hidden; }
         .chat-messages-wrapper.hidden { display: none; }
@@ -312,6 +318,8 @@
         .reading-level-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
         .reading-level-row label { font-size: 0.82rem; font-weight: 700; color: #8a7a5a; white-space: nowrap; }
         .reading-level-row select { padding: 6px 12px; border-radius: 16px; border: 1.5px solid #f0c78e; background: white; color: #1e2b5e; font-weight: 600; font-size: 0.85rem; cursor: pointer; }
+        .reading-level-row input[type="text"] { flex: 1; min-width: 150px; padding: 6px 12px; border-radius: 16px; border: 1.5px solid #f0c78e; background: white; color: #1e2b5e; font-size: 0.85rem; outline: none; }
+        .reading-level-row input[type="text"]:focus { border-color: #e67e22; }
         .reading-level-hint { font-size: 0.75rem; color: #b07a2a; }
         .reading-background { font-size: 0.85rem; color: #6b7280; background: #f3f6fb; border-left: 3px solid #94a3b8; border-radius: 8px; padding: 8px 12px; margin: 0 0 14px; line-height: 1.7; }
         .reading-background a { color: #1e2b5e; font-weight: 600; word-break: break-all; }
@@ -418,6 +426,12 @@
             <div id="wZenmeshuoResult" class="zenmeshuo-result" style="margin:0 12px;"></div>
             <div id="writingStatusBar" class="writing-status-bar" data-state="idle">✍️ 写作进行中：请在上方输入作文，然后点「提交批改」</div>
             <div id="writingFlowHint" class="writing-flow-hint">流程：① 输入作文 → ② 提交批改 → ③ 修改后再提交（可选） → ④ 结束写作</div>
+            <div class="writing-audio-row">
+                <button class="writing-submit-btn" id="writingRecordBtn" style="background:#7c3aed;" title="录音后用 Groq Whisper 转成文字填入作文框">🎤 录音转文字</button>
+                <button class="writing-submit-btn" id="writingAudioFileBtn" style="background:#b45309;" title="上传 mp3 等音频文件，转成文字填入作文框">📁 上传音频转文字</button>
+                <input type="file" id="writingAudioFile" accept="audio/*" style="display:none;">
+                <span id="writingAudioStatus" class="writing-audio-status"></span>
+            </div>
             <div id="writingCandidates" class="candidate-bar"></div>
             <textarea class="writing-textarea" id="writingTextarea" placeholder="请在此输入你的中文作文..."></textarea>
             <div id="writingLengthHint" style="margin:0 12px 6px;font-size:0.78rem;color:#64748b;"></div>
@@ -435,15 +449,23 @@
                     <select id="readingLevelSelect"></select>
                     <span id="readingLevelHint" class="reading-level-hint">已学词 = 所选等级词汇 · 新词 = 高一级词汇</span>
                 </div>
+                <div class="reading-level-row">
+                    <label id="readingTopicLabel">📌 阅读话题：</label>
+                    <select id="readingTopicSelect"></select>
+                </div>
+                <div class="reading-level-row">
+                    <label id="readingCustomTopicLabel">✍️ 自定义话题：</label>
+                    <input type="text" id="readingTopicInput" placeholder="自己输入话题，如：足球、摄影、太空探索…（违法内容禁止）" autocomplete="off">
+                </div>
             </div>
             <div class="reading-history">
                 <div class="reading-history-title" id="readingHistoryTitle">📜 阅读历史</div>
                 <div id="readingHistoryList" class="history-list"></div>
             </div>
+            <div id="readingSelectionBar" class="reading-selection-bar" style="display:none;"></div>
             <div class="reading-content" id="readingContent">
                 <div class="empty-detail" id="readingEmpty">还没有生成短文。选择等级后点击「生成短文」，AI 会为你写一篇有趣的短文。</div>
             </div>
-            <div id="readingSelectionBar" class="reading-selection-bar" style="display:none;"></div>
         </div>
     </div>
 
@@ -482,6 +504,7 @@
             </div>
             <div class="stat-title"><span>📚 API 设置</span><span class="level-badge">🔑</span></div>
             <input type="password" class="api-key-input" id="apiKeyInput" placeholder="DeepSeek API Key" autocomplete="off" value="sk-10806fc904a04e618daa622fdb8d0878">
+            <input type="password" class="api-key-input" id="groqKeyInput" placeholder="Groq API Key（语音转文字，免费额度）" autocomplete="off">
             <div class="stat-title"><span>📊 语法点明细 (点击查看明细)</span></div>
             <div class="progress-grid" id="levelProgress"></div>
         </div>
@@ -6642,6 +6665,250 @@ const HSK2_VOCAB = [
         }
     };
 
+    // 新增界面文案（阅读自定义话题 + 写作语音转文字），集中多语种化
+    const I18N_EXTRA2 = {
+        'Chinese': {
+            'reading.topic_select':'📌 阅读话题：', 'reading.topic_custom':'✍️ 自定义话题：',
+            'reading.topic_custom_ph':'自己输入话题，如：足球、摄影、太空探索…（违法内容禁止）',
+            'reading.topic_news':'📰 今日新闻（当天/前一天）', 'reading.topic_hot':'🔥 随机热点',
+            'reading.topic_football':'⚽ 足球', 'reading.topic_photography':'📷 摄影', 'reading.topic_food':'🍜 美食',
+            'reading.topic_travel':'✈️ 旅行', 'reading.topic_tech':'💻 科技', 'reading.topic_animals':'🐼 动物',
+            'reading.topic_music':'🎵 音乐', 'reading.topic_movies':'🎬 电影', 'reading.topic_history':'🏛️ 历史',
+            'reading.topic_health':'🏃 健康', 'reading.topic_fashion':'👗 时尚', 'reading.topic_games':'🎮 游戏',
+            'reading.topic_education':'📚 教育', 'reading.topic_environment':'🌱 环保',
+            'reading.topic_illegal':'⚠️ 该话题不符合要求，请换一个合法、健康的话题',
+            'writing.audio_record':'🎤 录音转文字', 'writing.audio_upload':'📁 上传音频转文字',
+            'writing.audio_record_tt':'录音后用 Groq Whisper 转成文字填入作文框',
+            'writing.audio_upload_tt':'上传 mp3 等音频文件，转成文字填入作文框',
+            'writing.audio_recording':'🔴 录音中...说完点击「停止并转写」', 'writing.audio_stop':'🔴 停止并转写',
+            'writing.audio_transcribing':'⏳ 正在转写...', 'writing.audio_inserted':'✅ 已填入作文框：',
+            'writing.audio_fail':'❌ 转写失败：', 'writing.audio_empty':'录音为空，请重试',
+            'writing.audio_mic_fail':'❌ 无法访问麦克风：',
+            'writing.audio_no_record_support':'此浏览器不支持录音，请改用「上传音频转文字」',
+            'writing.audio_too_large':'音频文件不能超过 25MB',
+            'writing.audio_no_key':'请先在「API 设置」中填写 Groq API Key（语音转文字，免费额度）',
+            'writing.audio_cors_hint':'网络/CORS错误：直接打开HTML可能无法访问 Groq，请运行 node server.js 后通过 http://localhost:3001 使用',
+            'writing.audio_no_text':'未识别到文字',
+            'api.groq_key_ph':'Groq API Key（语音转文字，免费额度）'
+        },
+        'English': {
+            'reading.topic_select':'📌 Topic: ', 'reading.topic_custom':'✍️ Custom topic: ',
+            'reading.topic_custom_ph':'Type your own topic, e.g. football, photography, space... (illegal content prohibited)',
+            'reading.topic_news':"📰 Today's News (today/yesterday)", 'reading.topic_hot':'🔥 Random Hot Topics',
+            'reading.topic_football':'⚽ Football', 'reading.topic_photography':'📷 Photography', 'reading.topic_food':'🍜 Food',
+            'reading.topic_travel':'✈️ Travel', 'reading.topic_tech':'💻 Technology', 'reading.topic_animals':'🐼 Animals',
+            'reading.topic_music':'🎵 Music', 'reading.topic_movies':'🎬 Movies', 'reading.topic_history':'🏛️ History',
+            'reading.topic_health':'🏃 Health', 'reading.topic_fashion':'👗 Fashion', 'reading.topic_games':'🎮 Games',
+            'reading.topic_education':'📚 Education', 'reading.topic_environment':'🌱 Environment',
+            'reading.topic_illegal':'⚠️ This topic is not allowed. Please choose a legal, healthy topic.',
+            'writing.audio_record':'🎤 Record to Text', 'writing.audio_upload':'📁 Upload Audio to Text',
+            'writing.audio_record_tt':'Record and transcribe with Groq Whisper into the essay box',
+            'writing.audio_upload_tt':'Upload an mp3 or other audio file to transcribe into the essay box',
+            'writing.audio_recording':'🔴 Recording... tap "Stop & Transcribe" when done', 'writing.audio_stop':'🔴 Stop & Transcribe',
+            'writing.audio_transcribing':'⏳ Transcribing...', 'writing.audio_inserted':'✅ Inserted into essay: ',
+            'writing.audio_fail':'❌ Transcription failed: ', 'writing.audio_empty':'Recording is empty, please try again',
+            'writing.audio_mic_fail':'❌ Cannot access microphone: ',
+            'writing.audio_no_record_support':'This browser does not support recording. Please use "Upload Audio to Text".',
+            'writing.audio_too_large':'Audio file must be under 25MB',
+            'writing.audio_no_key':'Please fill in your Groq API Key (speech-to-text) in API Settings first.',
+            'writing.audio_cors_hint':'Network/CORS error: opening the HTML directly may not reach Groq. Please run node server.js and use http://localhost:3001',
+            'writing.audio_no_text':'No speech recognized',
+            'api.groq_key_ph':'Groq API Key (speech-to-text, free tier)'
+        },
+        'Japanese': {
+            'reading.topic_select':'📌 トピック：', 'reading.topic_custom':'✍️ カスタムトピック：',
+            'reading.topic_custom_ph':'トピックを入力（例：サッカー、写真、宇宙…違法な内容は禁止）',
+            'reading.topic_news':'📰 今日のニュース（当日/前日）', 'reading.topic_hot':'🔥 ランダム話題',
+            'reading.topic_football':'⚽ サッカー', 'reading.topic_photography':'📷 写真', 'reading.topic_food':'🍜 グルメ',
+            'reading.topic_travel':'✈️ 旅行', 'reading.topic_tech':'💻 テクノロジー', 'reading.topic_animals':'🐼 動物',
+            'reading.topic_music':'🎵 音楽', 'reading.topic_movies':'🎬 映画', 'reading.topic_history':'🏛️ 歴史',
+            'reading.topic_health':'🏃 健康', 'reading.topic_fashion':'👗 ファッション', 'reading.topic_games':'🎮 ゲーム',
+            'reading.topic_education':'📚 教育', 'reading.topic_environment':'🌱 環境',
+            'reading.topic_illegal':'⚠️ このトピックは不適切です。合法的で健全なトピックに変更してください',
+            'writing.audio_record':'🎤 音声を文字に', 'writing.audio_upload':'📁 音声ファイルを文字に',
+            'writing.audio_record_tt':'録音して Groq Whisper で文字にし、作文欄に入力',
+            'writing.audio_upload_tt':'mp3などの音声ファイルを文字にし、作文欄に入力',
+            'writing.audio_recording':'🔴 録音中...終わったら「停止して文字起こし」をタップ', 'writing.audio_stop':'🔴 停止して文字起こし',
+            'writing.audio_transcribing':'⏳ 文字起こし中...', 'writing.audio_inserted':'✅ 作文欄に入力しました：',
+            'writing.audio_fail':'❌ 文字起こし失敗：', 'writing.audio_empty':'録音が空です。もう一度お試しください',
+            'writing.audio_mic_fail':'❌ マイクにアクセスできません：',
+            'writing.audio_no_record_support':'このブラウザは録音に対応していません。「音声ファイルを文字に」をご利用ください',
+            'writing.audio_too_large':'音声ファイルは25MB以下にしてください',
+            'writing.audio_no_key':'先に「API設定」で Groq API Key（音声認識）を入力してください',
+            'writing.audio_cors_hint':'ネットワーク/CORSエラー：HTMLを直接開くと Groq に接続できない場合があります。node server.js を実行して http://localhost:3001 を使用してください',
+            'writing.audio_no_text':'音声を認識できませんでした',
+            'api.groq_key_ph':'Groq API Key（音声認識、無料枠）'
+        },
+        'Korean': {
+            'reading.topic_select':'📌 주제: ', 'reading.topic_custom':'✍️ 직접 입력 주제: ',
+            'reading.topic_custom_ph':'주제 직접 입력(예: 축구, 사진, 우주… 불법 내용 금지)',
+            'reading.topic_news':'📰 오늘의 뉴스(당일/전날)', 'reading.topic_hot':'🔥 무작위 핫토픽',
+            'reading.topic_football':'⚽ 축구', 'reading.topic_photography':'📷 사진', 'reading.topic_food':'🍜 음식',
+            'reading.topic_travel':'✈️ 여행', 'reading.topic_tech':'💻 과학기술', 'reading.topic_animals':'🐼 동물',
+            'reading.topic_music':'🎵 음악', 'reading.topic_movies':'🎬 영화', 'reading.topic_history':'🏛️ 역사',
+            'reading.topic_health':'🏃 건강', 'reading.topic_fashion':'👗 패션', 'reading.topic_games':'🎮 게임',
+            'reading.topic_education':'📚 교육', 'reading.topic_environment':'🌱 환경',
+            'reading.topic_illegal':'⚠️ 이 주제는 허용되지 않습니다. 합법적이고 건전한 주제로 바꿔 주세요',
+            'writing.audio_record':'🎤 음성을 텍스트로', 'writing.audio_upload':'📁 오디오 업로드 변환',
+            'writing.audio_record_tt':'Groq Whisper로 녹음을 텍스트로 변환해 작문 칸에 입력',
+            'writing.audio_upload_tt':'mp3 등 오디오 파일을 텍스트로 변환해 작문 칸에 입력',
+            'writing.audio_recording':'🔴 녹음 중... 끝나면 「중지하고 변환」을 누르세요', 'writing.audio_stop':'🔴 중지하고 변환',
+            'writing.audio_transcribing':'⏳ 변환 중...', 'writing.audio_inserted':'✅ 작문 칸에 입력됨: ',
+            'writing.audio_fail':'❌ 변환 실패: ', 'writing.audio_empty':'녹음 내용이 비어 있습니다. 다시 시도하세요',
+            'writing.audio_mic_fail':'❌ 마이크에 접근할 수 없습니다: ',
+            'writing.audio_no_record_support':'이 브라우저는 녹음을 지원하지 않습니다. 「오디오 업로드 변환」을 이용하세요',
+            'writing.audio_too_large':'오디오 파일은 25MB 이하여야 합니다',
+            'writing.audio_no_key':'먼저 「API 설정」에서 Groq API Key(음성 인식)를 입력하세요',
+            'writing.audio_cors_hint':'네트워크/CORS 오류: HTML을 직접 열면 Groq에 접속하지 못할 수 있습니다. node server.js를 실행하고 http://localhost:3001을 사용하세요',
+            'writing.audio_no_text':'음성을 인식하지 못했습니다',
+            'api.groq_key_ph':'Groq API Key(음성 인식, 무료 제공)'
+        },
+        'French': {
+            'reading.topic_select':'📌 Sujet : ', 'reading.topic_custom':'✍️ Sujet personnalisé : ',
+            'reading.topic_custom_ph':'Saisissez votre sujet (ex. football, photo, espace…) — contenu illégal interdit',
+            'reading.topic_news':"📰 Actualités du jour (aujourd'hui/hier)", 'reading.topic_hot':'🔥 Tendances aléatoires',
+            'reading.topic_football':'⚽ Football', 'reading.topic_photography':'📷 Photographie', 'reading.topic_food':'🍜 Gastronomie',
+            'reading.topic_travel':'✈️ Voyage', 'reading.topic_tech':'💻 Technologie', 'reading.topic_animals':'🐼 Animaux',
+            'reading.topic_music':'🎵 Musique', 'reading.topic_movies':'🎬 Cinéma', 'reading.topic_history':'🏛️ Histoire',
+            'reading.topic_health':'🏃 Santé', 'reading.topic_fashion':'👗 Mode', 'reading.topic_games':'🎮 Jeux vidéo',
+            'reading.topic_education':'📚 Éducation', 'reading.topic_environment':'🌱 Environnement',
+            'reading.topic_illegal':"⚠️ Ce sujet n'est pas autorisé. Choisissez un sujet légal et sain.",
+            'writing.audio_record':'🎤 Dicter en texte', 'writing.audio_upload':'📁 Transcrire un audio',
+            'writing.audio_record_tt':'Enregistrer puis transcrire avec Groq Whisper dans la zone de rédaction',
+            'writing.audio_upload_tt':'Transcrire un fichier audio (mp3, etc.) dans la zone de rédaction',
+            'writing.audio_recording':'🔴 Enregistrement... touchez « Arrêter et transcrire » quand vous avez fini', 'writing.audio_stop':'🔴 Arrêter et transcrire',
+            'writing.audio_transcribing':'⏳ Transcription...', 'writing.audio_inserted':'✅ Inséré dans la rédaction : ',
+            'writing.audio_fail':'❌ Échec de la transcription : ', 'writing.audio_empty':"L'enregistrement est vide, réessayez",
+            'writing.audio_mic_fail':"❌ Impossible d'accéder au micro : ",
+            'writing.audio_no_record_support':"Ce navigateur ne prend pas en charge l'enregistrement. Utilisez « Transcrire un audio ».",
+            'writing.audio_too_large':'Le fichier audio doit faire moins de 25 Mo',
+            'writing.audio_no_key':"Veuillez d'abord renseigner la clé API Groq (reconnaissance vocale) dans les réglages API.",
+            'writing.audio_cors_hint':'Erreur réseau/CORS : en ouvrant le HTML directement, Groq peut être inaccessible. Lancez node server.js puis ouvrez http://localhost:3001',
+            'writing.audio_no_text':'Aucune parole reconnue',
+            'api.groq_key_ph':'Clé API Groq (reconnaissance vocale, quota gratuit)'
+        },
+        'German': {
+            'reading.topic_select':'📌 Thema: ', 'reading.topic_custom':'✍️ Eigenes Thema: ',
+            'reading.topic_custom_ph':'Eigenes Thema eingeben, z. B. Fußball, Fotografie, Weltraum… (illegale Inhalte verboten)',
+            'reading.topic_news':'📰 Nachrichten von heute (heute/gestern)', 'reading.topic_hot':'🔥 Zufällige Trends',
+            'reading.topic_football':'⚽ Fußball', 'reading.topic_photography':'📷 Fotografie', 'reading.topic_food':'🍜 Essen',
+            'reading.topic_travel':'✈️ Reisen', 'reading.topic_tech':'💻 Technik', 'reading.topic_animals':'🐼 Tiere',
+            'reading.topic_music':'🎵 Musik', 'reading.topic_movies':'🎬 Filme', 'reading.topic_history':'🏛️ Geschichte',
+            'reading.topic_health':'🏃 Gesundheit', 'reading.topic_fashion':'👗 Mode', 'reading.topic_games':'🎮 Spiele',
+            'reading.topic_education':'📚 Bildung', 'reading.topic_environment':'🌱 Umwelt',
+            'reading.topic_illegal':'⚠️ Dieses Thema ist nicht erlaubt. Bitte wähle ein legales, gesundes Thema.',
+            'writing.audio_record':'🎤 Sprache zu Text', 'writing.audio_upload':'📁 Audio zu Text hochladen',
+            'writing.audio_record_tt':'Mit Groq Whisper aufnehmen und in das Aufsatzfeld übertragen',
+            'writing.audio_upload_tt':'Eine mp3- oder andere Audiodatei in das Aufsatzfeld transkribieren',
+            'writing.audio_recording':'🔴 Aufnahme läuft... tippe „Stoppen & transkribieren", wenn du fertig bist', 'writing.audio_stop':'🔴 Stoppen & transkribieren',
+            'writing.audio_transcribing':'⏳ Transkribiere...', 'writing.audio_inserted':'✅ In den Aufsatz eingefügt: ',
+            'writing.audio_fail':'❌ Transkription fehlgeschlagen: ', 'writing.audio_empty':'Aufnahme ist leer, bitte erneut versuchen',
+            'writing.audio_mic_fail':'❌ Kein Zugriff auf das Mikrofon: ',
+            'writing.audio_no_record_support':'Dieser Browser unterstützt keine Aufnahme. Bitte „Audio zu Text hochladen" verwenden.',
+            'writing.audio_too_large':'Die Audiodatei muss kleiner als 25 MB sein',
+            'writing.audio_no_key':'Bitte zuerst den Groq API Key (Spracherkennung) in den API-Einstellungen eintragen.',
+            'writing.audio_cors_hint':'Netzwerk/CORS-Fehler: Beim direkten Öffnen der HTML-Datei ist Groq evtl. nicht erreichbar. Bitte node server.js starten und http://localhost:3001 verwenden',
+            'writing.audio_no_text':'Keine Sprache erkannt',
+            'api.groq_key_ph':'Groq API Key (Spracherkennung, kostenloses Kontingent)'
+        },
+        'Spanish': {
+            'reading.topic_select':'📌 Tema: ', 'reading.topic_custom':'✍️ Tema personalizado: ',
+            'reading.topic_custom_ph':'Escribe tu propio tema, p. ej. fútbol, fotografía, espacio… (contenido ilegal prohibido)',
+            'reading.topic_news':'📰 Noticias de hoy (hoy/ayer)', 'reading.topic_hot':'🔥 Tendencias aleatorias',
+            'reading.topic_football':'⚽ Fútbol', 'reading.topic_photography':'📷 Fotografía', 'reading.topic_food':'🍜 Comida',
+            'reading.topic_travel':'✈️ Viajes', 'reading.topic_tech':'💻 Tecnología', 'reading.topic_animals':'🐼 Animales',
+            'reading.topic_music':'🎵 Música', 'reading.topic_movies':'🎬 Cine', 'reading.topic_history':'🏛️ Historia',
+            'reading.topic_health':'🏃 Salud', 'reading.topic_fashion':'👗 Moda', 'reading.topic_games':'🎮 Juegos',
+            'reading.topic_education':'📚 Educación', 'reading.topic_environment':'🌱 Medio ambiente',
+            'reading.topic_illegal':'⚠️ Este tema no está permitido. Elige un tema legal y saludable.',
+            'writing.audio_record':'🎤 Grabar a texto', 'writing.audio_upload':'📁 Subir audio a texto',
+            'writing.audio_record_tt':'Graba y transcribe con Groq Whisper en el cuadro de redacción',
+            'writing.audio_upload_tt':'Sube un mp3 u otro archivo de audio para transcribirlo en el cuadro de redacción',
+            'writing.audio_recording':'🔴 Grabando... toca «Detener y transcribir» al terminar', 'writing.audio_stop':'🔴 Detener y transcribir',
+            'writing.audio_transcribing':'⏳ Transcribiendo...', 'writing.audio_inserted':'✅ Insertado en la redacción: ',
+            'writing.audio_fail':'❌ Falló la transcripción: ', 'writing.audio_empty':'La grabación está vacía, inténtalo de nuevo',
+            'writing.audio_mic_fail':'❌ No se pudo acceder al micrófono: ',
+            'writing.audio_no_record_support':'Este navegador no admite grabación. Usa «Subir audio a texto».',
+            'writing.audio_too_large':'El archivo de audio debe ser menor de 25 MB',
+            'writing.audio_no_key':'Primero ingresa tu Groq API Key (voz a texto) en Ajustes de API.',
+            'writing.audio_cors_hint':'Error de red/CORS: al abrir el HTML directamente puede no haber acceso a Groq. Ejecuta node server.js y usa http://localhost:3001',
+            'writing.audio_no_text':'No se reconoció voz',
+            'api.groq_key_ph':'Groq API Key (voz a texto, cupo gratuito)'
+        },
+        'Russian': {
+            'reading.topic_select':'📌 Тема: ', 'reading.topic_custom':'✍️ Своя тема: ',
+            'reading.topic_custom_ph':'Введите свою тему, напр. футбол, фотография, космос… (незаконный контент запрещён)',
+            'reading.topic_news':'📰 Новости сегодня (сегодня/вчера)', 'reading.topic_hot':'🔥 Случайные темы',
+            'reading.topic_football':'⚽ Футбол', 'reading.topic_photography':'📷 Фотография', 'reading.topic_food':'🍜 Еда',
+            'reading.topic_travel':'✈️ Путешествия', 'reading.topic_tech':'💻 Технологии', 'reading.topic_animals':'🐼 Животные',
+            'reading.topic_music':'🎵 Музыка', 'reading.topic_movies':'🎬 Кино', 'reading.topic_history':'🏛️ История',
+            'reading.topic_health':'🏃 Здоровье', 'reading.topic_fashion':'👗 Мода', 'reading.topic_games':'🎮 Игры',
+            'reading.topic_education':'📚 Образование', 'reading.topic_environment':'🌱 Экология',
+            'reading.topic_illegal':'⚠️ Эта тема не разрешена. Выберите законную, здоровую тему.',
+            'writing.audio_record':'🎤 Голос в текст', 'writing.audio_upload':'📁 Загрузить аудио в текст',
+            'writing.audio_record_tt':'Записать и расшифровать Groq Whisper в поле сочинения',
+            'writing.audio_upload_tt':'Загрузить mp3 или другой аудиофайл и расшифровать в поле сочинения',
+            'writing.audio_recording':'🔴 Идёт запись... нажмите «Стоп и расшифровать», когда закончите', 'writing.audio_stop':'🔴 Стоп и расшифровать',
+            'writing.audio_transcribing':'⏳ Расшифровка...', 'writing.audio_inserted':'✅ Вставлено в сочинение: ',
+            'writing.audio_fail':'❌ Ошибка расшифровки: ', 'writing.audio_empty':'Запись пуста, попробуйте ещё раз',
+            'writing.audio_mic_fail':'❌ Нет доступа к микрофону: ',
+            'writing.audio_no_record_support':'Этот браузер не поддерживает запись. Используйте «Загрузить аудио в текст».',
+            'writing.audio_too_large':'Аудиофайл должен быть меньше 25 МБ',
+            'writing.audio_no_key':'Сначала введите Groq API Key (распознавание речи) в настройках API.',
+            'writing.audio_cors_hint':'Ошибка сети/CORS: при прямом открытии HTML Groq может быть недоступен. Запустите node server.js и откройте http://localhost:3001',
+            'writing.audio_no_text':'Речь не распознана',
+            'api.groq_key_ph':'Groq API Key (распознавание речи, бесплатный лимит)'
+        },
+        'Thai': {
+            'reading.topic_select':'📌 หัวข้อ: ', 'reading.topic_custom':'✍️ หัวข้อกำหนดเอง: ',
+            'reading.topic_custom_ph':'พิมพ์หัวข้อเอง เช่น ฟุตบอล ถ่ายภาพ อวกาศ… (ห้ามเนื้อหาผิดกฎหมาย)',
+            'reading.topic_news':'📰 ข่าววันนี้ (วันนี้/เมื่อวาน)', 'reading.topic_hot':'🔥 หัวข้อฮิตสุ่ม',
+            'reading.topic_football':'⚽ ฟุตบอล', 'reading.topic_photography':'📷 ถ่ายภาพ', 'reading.topic_food':'🍜 อาหาร',
+            'reading.topic_travel':'✈️ ท่องเที่ยว', 'reading.topic_tech':'💻 เทคโนโลยี', 'reading.topic_animals':'🐼 สัตว์',
+            'reading.topic_music':'🎵 ดนตรี', 'reading.topic_movies':'🎬 ภาพยนตร์', 'reading.topic_history':'🏛️ ประวัติศาสตร์',
+            'reading.topic_health':'🏃 สุขภาพ', 'reading.topic_fashion':'👗 แฟชั่น', 'reading.topic_games':'🎮 เกม',
+            'reading.topic_education':'📚 การศึกษา', 'reading.topic_environment':'🌱 สิ่งแวดล้อม',
+            'reading.topic_illegal':'⚠️ หัวข้อนี้ไม่อนุญาต กรุณาเลือกหัวข้อที่ถูกกฎหมายและเหมาะสม',
+            'writing.audio_record':'🎤 อัดเสียงเป็นข้อความ', 'writing.audio_upload':'📁 อัปโหลดเสียงเป็นข้อความ',
+            'writing.audio_record_tt':'อัดเสียงแล้วแปลงเป็นข้อความด้วย Groq Whisper ใส่ในช่องเรียงความ',
+            'writing.audio_upload_tt':'อัปโหลดไฟล์เสียง mp3 ฯลฯ เพื่อแปลงเป็นข้อความใส่ในช่องเรียงความ',
+            'writing.audio_recording':'🔴 กำลังอัด... กด "หยุดและแปลง" เมื่อพูดจบ', 'writing.audio_stop':'🔴 หยุดและแปลง',
+            'writing.audio_transcribing':'⏳ กำลังแปลง...', 'writing.audio_inserted':'✅ ใส่ในช่องเรียงความแล้ว: ',
+            'writing.audio_fail':'❌ แปลงไม่สำเร็จ: ', 'writing.audio_empty':'เสียงว่างเปล่า โปรดลองใหม่',
+            'writing.audio_mic_fail':'❌ เข้าถึงไมโครโฟนไม่ได้: ',
+            'writing.audio_no_record_support':'เบราว์เซอร์นี้ไม่รองรับการอัดเสียง โปรดใช้ "อัปโหลดเสียงเป็นข้อความ"',
+            'writing.audio_too_large':'ไฟล์เสียงต้องเล็กกว่า 25MB',
+            'writing.audio_no_key':'โปรดกรอก Groq API Key (เสียงเป็นข้อความ) ในตั้งค่า API ก่อน',
+            'writing.audio_cors_hint':'ข้อผิดพลาดเครือข่าย/CORS: การเปิด HTML โดยตรงอาจเข้า Groq ไม่ได้ โปรดรัน node server.js แล้วใช้ http://localhost:3001',
+            'writing.audio_no_text':'ไม่พบข้อความจากเสียง',
+            'api.groq_key_ph':'Groq API Key (เสียงเป็นข้อความ, โควตาฟรี)'
+        },
+        'Italian': {
+            'reading.topic_select':'📌 Argomento: ', 'reading.topic_custom':'✍️ Argomento personalizzato: ',
+            'reading.topic_custom_ph':'Scrivi il tuo argomento, es. calcio, fotografia, spazio… (contenuti illegali vietati)',
+            'reading.topic_news':'📰 Notizie di oggi (oggi/ieri)', 'reading.topic_hot':'🔥 Tendenze casuali',
+            'reading.topic_football':'⚽ Calcio', 'reading.topic_photography':'📷 Fotografia', 'reading.topic_food':'🍜 Cibo',
+            'reading.topic_travel':'✈️ Viaggi', 'reading.topic_tech':'💻 Tecnologia', 'reading.topic_animals':'🐼 Animali',
+            'reading.topic_music':'🎵 Musica', 'reading.topic_movies':'🎬 Cinema', 'reading.topic_history':'🏛️ Storia',
+            'reading.topic_health':'🏃 Salute', 'reading.topic_fashion':'👗 Moda', 'reading.topic_games':'🎮 Giochi',
+            'reading.topic_education':'📚 Istruzione', 'reading.topic_environment':'🌱 Ambiente',
+            'reading.topic_illegal':'⚠️ Questo argomento non è consentito. Scegli un argomento legale e sano.',
+            'writing.audio_record':'🎤 Voce in testo', 'writing.audio_upload':'📁 Carica audio in testo',
+            'writing.audio_record_tt':'Registra e trascrivi con Groq Whisper nel riquadro del tema',
+            'writing.audio_upload_tt':'Carica un file audio mp3 o altro per trascriverlo nel riquadro del tema',
+            'writing.audio_recording':'🔴 Registrazione... tocca «Ferma e trascrivi» quando hai finito', 'writing.audio_stop':'🔴 Ferma e trascrivi',
+            'writing.audio_transcribing':'⏳ Trascrizione...', 'writing.audio_inserted':'✅ Inserito nel tema: ',
+            'writing.audio_fail':'❌ Trascrizione non riuscita: ', 'writing.audio_empty':'La registrazione è vuota, riprova',
+            'writing.audio_mic_fail':'❌ Impossibile accedere al microfono: ',
+            'writing.audio_no_record_support':'Questo browser non supporta la registrazione. Usa «Carica audio in testo».',
+            'writing.audio_too_large':'Il file audio deve essere inferiore a 25 MB',
+            'writing.audio_no_key':'Inserisci prima la Groq API Key (voce in testo) nelle impostazioni API.',
+            'writing.audio_cors_hint':"Errore di rete/CORS: aprendo l'HTML direttamente Groq potrebbe non essere raggiungibile. Avvia node server.js e usa http://localhost:3001",
+            'writing.audio_no_text':'Nessuna voce riconosciuta',
+            'api.groq_key_ph':'Groq API Key (voce in testo, quota gratuita)'
+        }
+    };
+
     // 语音输入指引文案（按设备区分）
     const I18N_VOICE = {
         'Chinese': {
@@ -6720,10 +6987,10 @@ const HSK2_VOCAB = [
     function t(key) {
         const lang = targetLangSelect ? targetLangSelect.value : 'English';
         const dict = I18N[lang];
-        const extra = I18N_EXTRA[lang] || I18N_EXTRA['Chinese'] || {};
+        const extra = Object.assign({}, I18N_EXTRA['Chinese'] || {}, I18N_EXTRA2['Chinese'] || {}, I18N_EXTRA[lang] || {}, I18N_EXTRA2[lang] || {});
         const voice = I18N_VOICE[lang] || I18N_VOICE['Chinese'] || {};
         const translated = (dict && dict[key]) ? dict[key] : (extra[key] || voice[key] || '');
-        const chinese = (ZH && ZH[key]) ? ZH[key] : ((I18N_EXTRA['Chinese'] && I18N_EXTRA['Chinese'][key]) || (I18N_VOICE['Chinese'] && I18N_VOICE['Chinese'][key]) || '');
+        const chinese = (ZH && ZH[key]) ? ZH[key] : ((I18N_EXTRA['Chinese'] && I18N_EXTRA['Chinese'][key]) || (I18N_EXTRA2['Chinese'] && I18N_EXTRA2['Chinese'][key]) || (I18N_VOICE['Chinese'] && I18N_VOICE['Chinese'][key]) || '');
         if (!translated) return chinese || key;
         return translated;
     }
@@ -6840,6 +7107,13 @@ const HSK2_VOCAB = [
         const rhist = document.getElementById('readingHistoryTitle'); if(rhist) rhist.textContent = t('reading.history');
         const rempty = document.getElementById('readingEmpty'); if(rempty && !currentReading) rempty.textContent = t('reading.empty');
         const rlbl = document.getElementById('readingLevelLabel'); if(rlbl) rlbl.textContent = t('reading.level_select');
+        const rtopl = document.getElementById('readingTopicLabel'); if(rtopl) rtopl.textContent = t('reading.topic_select');
+        const rtopc = document.getElementById('readingCustomTopicLabel'); if(rtopc) rtopc.textContent = t('reading.topic_custom');
+        const rtopi = document.getElementById('readingTopicInput'); if(rtopi) rtopi.placeholder = t('reading.topic_custom_ph');
+        if (document.getElementById('readingTopicSelect')) renderReadingTopicSelect();
+        const gki = document.getElementById('groqKeyInput'); if(gki) gki.placeholder = t('api.groq_key_ph');
+        const wrb = document.getElementById('writingRecordBtn'); if(wrb){ wrb.textContent = writingRecording ? t('writing.audio_stop') : t('writing.audio_record'); wrb.title = t('writing.audio_record_tt'); }
+        const wfb = document.getElementById('writingAudioFileBtn'); if(wfb){ wfb.textContent = t('writing.audio_upload'); wfb.title = t('writing.audio_upload_tt'); }
         const rlhint = document.getElementById('readingLevelHint'); if(rlhint) updateReadingLevelHint();
         if (document.getElementById('readingLevelSelect')) renderReadingLevelSelect();
         if (currentReading) renderReadingArticle(currentReading);
@@ -6897,6 +7171,7 @@ const HSK2_VOCAB = [
             if (readingTab) readingTab.classList.add('active');
             if (readingPanel) readingPanel.classList.add('active');
             renderReadingLevelSelect();
+            renderReadingTopicSelect();
             renderReadingHistory();
         }
     }
@@ -6992,6 +7267,54 @@ const HSK2_VOCAB = [
     }
     function getReadingLevel(){ const sel = document.getElementById('readingLevelSelect'); return sel ? (parseInt(sel.value) || 3) : 3; }
     function updateReadingLevelHint(level){ const el=document.getElementById('readingLevelHint'); if(!el) return; const lv=level||getReadingLevel(); const next=Math.min(lv+1,6); el.textContent = t('reading.level_hint') + '（🔴 ' + vocabLevelLabel(lv) + ' · 🔵 ' + vocabLevelLabel(next) + '）'; }
+    // 阅读话题（学生可选自己喜欢的话题，默认当天/前一天新闻）
+    const READING_TOPICS = [
+        { v:'news', labelKey:'reading.topic_news', prompt:'文章必须基于今天（或前一天）真实发生的新闻热点来写，先交代新闻日期，再讲述事件。像真实的新闻简讯，有信息量、有画面感。' },
+        { v:'hot', labelKey:'reading.topic_hot', prompt:'主题必须是最近中国社交媒体上流行的真实热点话题（抖音、微博、小红书、B站等），像学生刷手机时看到的真实内容。' },
+        { v:'football', labelKey:'reading.topic_football', prompt:'主题必须围绕足球：比赛、球员、球队、世界杯、球迷故事等，像真实的体育报道。' },
+        { v:'photography', labelKey:'reading.topic_photography', prompt:'主题必须围绕摄影：拍照技巧、相机/手机摄影、著名照片背后的故事、摄影师故事等。' },
+        { v:'food', labelKey:'reading.topic_food', prompt:'主题必须围绕美食：中国或世界各地的特色菜、小吃、烹饪故事、美食探店等。' },
+        { v:'travel', labelKey:'reading.topic_travel', prompt:'主题必须围绕旅行：旅行目的地、旅途见闻、旅行攻略、人文风景等。' },
+        { v:'tech', labelKey:'reading.topic_tech', prompt:'主题必须围绕科技：人工智能、手机、机器人、航天、互联网新产品等。' },
+        { v:'animals', labelKey:'reading.topic_animals', prompt:'主题必须围绕动物：大熊猫等野生动物、宠物故事、动物保护等。' },
+        { v:'music', labelKey:'reading.topic_music', prompt:'主题必须围绕音乐：歌手、乐器、音乐节、歌曲背后的故事等。' },
+        { v:'movies', labelKey:'reading.topic_movies', prompt:'主题必须围绕电影：热门电影、导演、演员、电影节、经典影片故事等。' },
+        { v:'history', labelKey:'reading.topic_history', prompt:'主题必须围绕历史：中国历史故事、世界历史趣闻、文物考古等。' },
+        { v:'health', labelKey:'reading.topic_health', prompt:'主题必须围绕健康：运动健身、健康饮食、作息习惯、心理健康等。' },
+        { v:'fashion', labelKey:'reading.topic_fashion', prompt:'主题必须围绕时尚：穿搭、设计、潮流趋势、传统服饰等。' },
+        { v:'games', labelKey:'reading.topic_games', prompt:'主题必须围绕游戏：电子竞技、热门游戏、游戏文化、游戏设计等。' },
+        { v:'education', labelKey:'reading.topic_education', prompt:'主题必须围绕教育：学校生活、学习方法、考试、留学等。' },
+        { v:'environment', labelKey:'reading.topic_environment', prompt:'主题必须围绕环保：环境保护、低碳生活、新能源、垃圾分类等。' }
+    ];
+    function readingTopicKey(){ return 'HSK_READING_TOPIC_' + currentUser; }
+    function saveReadingTopic(){ if(!currentUser) return; const sel = document.getElementById('readingTopicSelect'); if(sel) localStorage.setItem(readingTopicKey(), sel.value); }
+    function renderReadingTopicSelect(){
+        const sel = document.getElementById('readingTopicSelect');
+        if(!sel) return;
+        const saved = (currentUser && localStorage.getItem(readingTopicKey())) || 'news';
+        let html = '';
+        for(const tp of READING_TOPICS){
+            html += '<option value="' + tp.v + '"' + (tp.v === saved ? ' selected' : '') + '>' + t(tp.labelKey) + '</option>';
+        }
+        sel.innerHTML = html;
+    }
+    function getReadingTopic(){
+        const sel = document.getElementById('readingTopicSelect');
+        const v = sel ? sel.value : 'news';
+        return READING_TOPICS.find(x => x.v === v) || READING_TOPICS[0];
+    }
+    function getTodayCnDate(offsetDays){
+        const d = new Date();
+        d.setDate(d.getDate() + (offsetDays || 0));
+        return d.getFullYear() + '年' + (d.getMonth() + 1) + '月' + d.getDate() + '日';
+    }
+    // 违法/不良话题简单拦截（更全面的判断交给 AI 拒绝）
+    function isIllegalReadingTopic(topic){
+        const bad = ['毒品','赌博','诈骗','色情','嫖','赌','枪支','武器','爆炸','杀人','自杀','自残','恐怖','邪教','洗钱','走私','黑客','盗版','假币','作弊','违禁','血腥','暴力犯罪'];
+        const s = String(topic || '');
+        for (const w of bad) { if (s.indexOf(w) !== -1) return true; }
+        return false;
+    }
     // 已学词 = 练习模式中该等级「已选词汇」+「已学习/复习过的词」，不再使用聊天中的高频简单词
     function collectPracticeKnownWords(level) {
         const known = new Map(); // word -> weight
@@ -7033,7 +7356,7 @@ const HSK2_VOCAB = [
         const rest = vocab.map(v => v.w).filter(w => !seen.has(w));
         shuffleArray(rest);
         for (const w of rest) { if (knownWords.length >= 30) break; if (!seen.has(w)) { seen.add(w); knownWords.push(w); } }
-        const suggestedNew = pickNewWordsFromLevel(nextLevel, 8);
+        const suggestedNew = pickNewWordsFromLevel(nextLevel, 12);
         return { level, nextLevel, knownWords, learnedWords, suggestedNew };
     }
     async function generateReading(retryCount = 0) {
@@ -7043,6 +7366,23 @@ const HSK2_VOCAB = [
         const targetLang = targetLangSelect.value;
         const mix = computeReadingMix();
         saveReadingLevel();
+        saveReadingTopic();
+        const customTopic = (document.getElementById('readingTopicInput') ? document.getElementById('readingTopicInput').value : '').trim();
+        let topicInstr;
+        if (customTopic) {
+            if (isIllegalReadingTopic(customTopic)) {
+                alert(t('reading.topic_illegal'));
+                return;
+            }
+            topicInstr = '文章主题必须是：' + customTopic + '。话题必须合法合规、积极健康；如果话题涉及违法、暴力、色情、政治敏感等内容，请拒绝该话题并改写为一个安全、积极、适合语言学习的话题。';
+        } else {
+            const topic = getReadingTopic();
+            const todayCn = getTodayCnDate(0);
+            const yesterdayCn = getTodayCnDate(-1);
+            topicInstr = topic.v === 'news'
+                ? '今天日期是' + todayCn + '。短文必须基于今天（' + todayCn + '）或前一天（' + yesterdayCn + '）真实发生的新闻热点来写，先交代新闻发生的日期，再讲述事件，像一篇真实的新闻简讯。'
+                : topic.prompt;
+        }
         btn.disabled = true; btn.textContent = t('reading.generating');
         const LEN = {1:'全文100-150字，每句4-9字，分2-3段', 2:'全文150-200字，每句5-10字，分2-3段', 3:'全文200-300字，每句6-14字，分3-4段', 4:'全文300-400字，每句8-18字，分3-5段', 5:'全文350-450字，每句10-20字，分3-5段', 6:'全文400-500字，每句10-22字，分4-5段'};
         const levelGuide = LEN[mix.level] || LEN[3];
@@ -7053,7 +7393,7 @@ const HSK2_VOCAB = [
         const newList = mix.suggestedNew.join('、');
         const recentTopics = readingHistory.slice(0, 8).map(r => ((r.topic || '') + '｜' + (r.title || '')).trim()).filter(s => s && s !== '｜');
         const topicRule = recentTopics.length ? '【话题避重】最近已经用过这些主题/标题，这次必须换一个完全不同的新话题，严禁重复或相似：' + recentTopics.join('；') : '';
-        const prompt = `你是一位专业的对外汉语阅读材料编写老师。请编写一篇有趣的短文，主题必须是最近中国社交媒体上流行的真实热点话题——例如抖音、微博、小红书、B站上大家正在讨论的内容，或者最近的新闻热点（科技、文化、生活、体育、娱乐、动物保护、美食、旅行等）。像学生刷手机时看到的真实内容一样，用简单自然的中文讲述。
+        const prompt = `你是一位专业的对外汉语阅读材料编写老师。请编写一篇有趣的短文。${topicInstr}用简单自然的中文讲述，像学生刷手机时看到的真实内容一样。
 
 【趣味性要求 - 非常重要】
 1. 文章要有趣、有画面感、有信息量，读起来像真实的热点报道或有趣的小故事，不要像课本范文。
@@ -7066,10 +7406,11 @@ const HSK2_VOCAB = [
 
 【词汇要求 - 必须严格遵守】
 1. 可用词汇（学生已学/已选的${levelName}词汇 + 该等级词库参考词，请尽量自然用进短文，用不到的不要硬塞）：${knownList}
-2. 建议新词（学生没学过，从${nextLevelName}中选3-6个自然用进短文，并在newWords中列出）：${newList}
+2. 建议新词（学生没学过，从${nextLevelName}中选5-8个自然用进短文，并在newWords中列出）：${newList}
 3. 其他词语必须符合${levelName}水平；如果有很难的词，必须改成${levelName}的简单说法。
-4. 一定要保证短文中有3-6个新词（从建议新词中选），让学生有东西可学。
-5. usedWords 字段只能从第1条的可用词汇列表中选，短文里真正用到的才写进去，不要编造。
+4. 一定要保证短文中有5-8个新词（从建议新词中选，真正写进正文），让学生有东西可学。
+5. 短文中必须真正使用至少12个第1条的可用词汇（从上面列表里选，自然写进正文），并把它们写进 usedWords 字段，不要编造。
+6. 篇幅允许的情况下，尽量多地使用第1条列表里的词，越多越好。
 
 【篇幅要求 - 最重要】${levelGuide}。content 的汉字总数必须达到这个字数范围，不能太短。内容要连贯、有头有尾，像一篇完整的小文章，不要写成问答或列表。${shortWarn}
 
@@ -7105,12 +7446,20 @@ const HSK2_VOCAB = [
             }
             const learnedSet = new Set(mix.learnedWords || []);
             const suggestedSet = new Set(mix.suggestedNew || []);
-            // 只保留真正学过的词，避免把词库随机补充词/AI 编造的词显示成"已学词"
-            const usedWords = (Array.isArray(result.usedWords) ? result.usedWords : [])
-                .filter(w => typeof w === 'string' && w && learnedSet.has(w));
+            const levelVocabSet = new Set((VOCAB_LEVEL_MAP[mix.level] || []).map(v => v.w));
+            const aiUsed = (Array.isArray(result.usedWords) ? result.usedWords : [])
+                .filter(w => typeof w === 'string' && w);
             // 新词只保留高一级词库中真正给出的建议新词
             const newWords = (Array.isArray(result.newWords) ? result.newWords : [])
                 .filter(nw => nw && nw.word && suggestedSet.has(nw.word));
+            // 本等级词 = AI 报告的已学词 + 正文中实际出现的本等级词（让「本等级词」展示更充分）
+            const contentCounts = matchVocabInText(result.content || '');
+            const levelUsedInText = Object.keys(contentCounts).filter(w => levelVocabSet.has(w));
+            const usedWords = Array.from(new Set([...aiUsed.filter(w => learnedSet.has(w) || levelVocabSet.has(w)), ...levelUsedInText])).slice(0, 30);
+            // 词汇数量不足时自动重试（最多2次）
+            if (retryCount < 2 && (newWords.length < 3 || usedWords.length < 6)) {
+                return generateReading(retryCount + 1);
+            }
             const rawSourceUrl = String(result.sourceUrl || '').trim();
             const sourceUrl = /^https?:\/\//i.test(rawSourceUrl) ? rawSourceUrl : '';
             const reading = {
@@ -7345,6 +7694,9 @@ const HSK2_VOCAB = [
         renderReadingLevelSelect();
         const lvlSel = document.getElementById('readingLevelSelect');
         if (lvlSel) lvlSel.onchange = saveReadingLevel;
+        renderReadingTopicSelect();
+        const topicSel = document.getElementById('readingTopicSelect');
+        if (topicSel) topicSel.onchange = saveReadingTopic;
     }
 
     // ==================== 候选词（对话/写作下方：还没用过/练过的词） ====================
@@ -7985,7 +8337,128 @@ const HSK2_VOCAB = [
 
     function stopVoiceRecording() {
         stopVoiceRecognitionInstance();
-    }    function escapeHtml(s){ return String(s).replace(/[&<>]/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])); }
+    }
+    // ========== 写作模式：录音/上传音频 → Groq Whisper 转文字 ==========
+    const GROQ_ASR_KEY_STORAGE = 'GROQ_API_KEY';
+    const GROQ_ASR_URL = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
+        ? '/groq/openai/v1/audio/transcriptions'
+        : 'https://api.groq.com/openai/v1/audio/transcriptions';
+    const GROQ_ASR_DIRECT = GROQ_ASR_URL.indexOf('/groq/') !== 0;
+    let writingMediaRecorder = null, writingAudioChunks = [], writingRecording = false;
+    function getGroqKey(){ const el=document.getElementById('groqKeyInput'); return el ? el.value.trim() : ''; }
+    function loadGroqKey(){ const el=document.getElementById('groqKeyInput'); if(el){ el.value = localStorage.getItem(GROQ_ASR_KEY_STORAGE) || ''; } }
+    function saveGroqKey(){ const el=document.getElementById('groqKeyInput'); if(el) localStorage.setItem(GROQ_ASR_KEY_STORAGE, el.value.trim()); }
+    function setWritingAudioStatus(text, cls){
+        const el = document.getElementById('writingAudioStatus');
+        if(!el) return;
+        el.textContent = text;
+        el.className = 'writing-audio-status' + (cls ? ' ' + cls : '');
+    }
+    function insertIntoWritingTextarea(text){
+        const ta = document.getElementById('writingTextarea');
+        if(!ta) return;
+        const start = ta.selectionStart != null ? ta.selectionStart : ta.value.length;
+        const end = ta.selectionEnd != null ? ta.selectionEnd : ta.value.length;
+        const before = ta.value.slice(0, start);
+        const after = ta.value.slice(end);
+        const sep = (before && !/[，。！？、；：\n]\s*$/.test(before)) ? '' : '';
+        ta.value = before + sep + text + after;
+        ta.focus();
+        const pos = (before + sep + text).length;
+        ta.setSelectionRange(pos, pos);
+    }
+    async function transcribeWithGroq(file, fileName){
+        const key = getGroqKey();
+        if(!key){ throw new Error(t('writing.audio_no_key')); }
+        const fd = new FormData();
+        fd.append('file', file, fileName || 'recording.webm');
+        fd.append('model', 'whisper-large-v3');
+        fd.append('language', 'zh');
+        fd.append('response_format', 'json');
+        let resp;
+        try{
+            resp = await fetch(GROQ_ASR_URL, { method:'POST', headers:{ 'Authorization':'Bearer ' + key }, body: fd });
+        }catch(e){
+            if(GROQ_ASR_DIRECT) throw new Error(t('writing.audio_cors_hint'));
+            throw e;
+        }
+        if(!resp.ok){
+            let msg = 'HTTP ' + resp.status;
+            try{ const j = await resp.json(); if(j && j.error && j.error.message) msg = j.error.message; }catch(_){}
+            throw new Error(msg);
+        }
+        const data = await resp.json();
+        const text = (data && (data.text || data.transcript || '')).trim();
+        if(!text) throw new Error(t('writing.audio_no_text'));
+        return text;
+    }
+    async function handleWritingRecordClick(){
+        const btn = document.getElementById('writingRecordBtn');
+        if(!writingRecording){
+            if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+                alert(t('writing.audio_no_record_support')); return;
+            }
+            try{
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                writingAudioChunks = [];
+                const mimeType = (window.MediaRecorder && ['audio/webm','audio/mp4','audio/ogg'].find(t => MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(t))) || '';
+                writingMediaRecorder = mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream);
+                writingMediaRecorder.ondataavailable = e => { if(e.data && e.data.size) writingAudioChunks.push(e.data); };
+                writingMediaRecorder.onstop = async () => {
+                    stream.getTracks().forEach(t => t.stop());
+                    const blob = new Blob(writingAudioChunks, { type: writingMediaRecorder.mimeType || 'audio/webm' });
+                    if(!blob.size){ setWritingAudioStatus(t('writing.audio_empty'), 'err'); return; }
+                    setWritingAudioStatus(t('writing.audio_transcribing'), 'busy');
+                    if(btn){ btn.textContent = t('writing.audio_record'); btn.disabled = false; }
+                    try{
+                        const ext = (writingMediaRecorder.mimeType || '').includes('mp4') ? 'm4a' : ((writingMediaRecorder.mimeType || '').includes('ogg') ? 'ogg' : 'webm');
+                        const text = await transcribeWithGroq(blob, 'recording.' + ext);
+                        insertIntoWritingTextarea(text);
+                        setWritingAudioStatus(t('writing.audio_inserted') + text.slice(0, 30) + (text.length > 30 ? '…' : ''), 'ok');
+                    }catch(e){
+                        setWritingAudioStatus(t('writing.audio_fail') + e.message, 'err');
+                    }
+                    writingRecording = false;
+                };
+                writingMediaRecorder.start();
+                writingRecording = true;
+                btn.textContent = t('writing.audio_stop');
+                setWritingAudioStatus(t('writing.audio_recording'), 'busy');
+            }catch(e){
+                setWritingAudioStatus(t('writing.audio_mic_fail') + e.message, 'err');
+            }
+        } else {
+            if(writingMediaRecorder && writingMediaRecorder.state !== 'inactive'){
+                writingMediaRecorder.stop();
+            }
+        }
+    }
+    async function handleWritingAudioFile(file){
+        if(!file) return;
+        if(file.size > 25 * 1024 * 1024){ alert(t('writing.audio_too_large')); return; }
+        setWritingAudioStatus(t('writing.audio_transcribing') + ' ' + file.name, 'busy');
+        try{
+            const text = await transcribeWithGroq(file, file.name);
+            insertIntoWritingTextarea(text);
+            setWritingAudioStatus(t('writing.audio_inserted') + text.slice(0, 30) + (text.length > 30 ? '…' : ''), 'ok');
+        }catch(e){
+            setWritingAudioStatus(t('writing.audio_fail') + e.message, 'err');
+        }
+    }
+    function bindWritingAudioEvents(){
+        loadGroqKey();
+        const groqEl = document.getElementById('groqKeyInput');
+        if(groqEl) groqEl.onchange = saveGroqKey;
+        const recBtn = document.getElementById('writingRecordBtn');
+        if(recBtn) recBtn.onclick = handleWritingRecordClick;
+        const fileBtn = document.getElementById('writingAudioFileBtn');
+        const fileInput = document.getElementById('writingAudioFile');
+        if(fileBtn && fileInput){
+            fileBtn.onclick = () => fileInput.click();
+            fileInput.onchange = () => { if(fileInput.files && fileInput.files[0]) handleWritingAudioFile(fileInput.files[0]); fileInput.value = ''; };
+        }
+    }
+    function escapeHtml(s){ return String(s).replace(/[&<>]/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])); }
     function safeJsonParse(raw){ let c=String(raw).replace(/```json\s*/gi,'').replace(/```/g,'').trim(); c=c.replace(/[\x00-\x08\x0b\x0c\x0e-\x1f]/g,''); try{ return JSON.parse(c); }catch(e1){ const m=c.match(/\{[\s\S]*\}/); if(m){ let fixed=m[0]; fixed=fixed.replace(/,\s*([}\]])/g,'$1'); fixed=fixed.replace(/[\x00-\x08\x0b\x0c\x0e-\x1f]/g,''); try{ return JSON.parse(fixed); }catch(e2){ return {}; } } return {}; } }
     function stripHtml(s){ return s.replace(/<[^>]*>/g,''); }
     function addMessage(role, content, isHtml, rawText){ const div=document.createElement('div'); div.className='message ' + role + '-message'; const displayContent=isHtml?content:escapeHtml(content); const raw=rawText||(isHtml?stripHtml(content):content); if(role==='assistant'){ const msgId='msg_'+Date.now()+'_'+Math.random().toString(36).slice(2,6); const safeRaw=escapeHtml(raw).replace(/'/g,"\\'").replace(/"/g,'&quot;').replace(/\r?\n/g,'\\n'); div.innerHTML='<div class="bubble assistant-bubble">'+displayContent+'<div class="how-say-btns"><button onclick="window._translateToggle(\''+safeRaw+'\',\''+msgId+'\')" id="'+msgId+'_btn">'+t('chat.translate')+'</button><button class="speak-btn" onclick="window._readMsg(\''+safeRaw+'\')" style="font-size:0.72rem;padding:4px 10px;border-radius:14px;border:1px solid #d0d8e4;background:#f8fafc;cursor:pointer;">'+t('chat.speak')+'</button><button onclick="window._favMsg(\''+safeRaw+'\',\'\')" style="font-size:0.72rem;padding:4px 10px;border-radius:14px;border:1px solid #f0c040;background:#fffde7;cursor:pointer;color:#e67e22;">⭐</button><span class="translation-line" id="'+msgId+'_tr" style="display:none"></span></div></div><div class="timestamp">'+new Date().toLocaleTimeString()+'</div>'; chatMessages.appendChild(div); chatMessages.scrollTop=chatMessages.scrollHeight; if(!isIOS&&document.getElementById('autoReadCheckbox')&&document.getElementById('autoReadCheckbox').checked){ setTimeout(()=>speakChinese(raw),300); } } else { div.innerHTML='<div class="bubble '+role+'-bubble">'+displayContent+'</div><div class="timestamp">'+new Date().toLocaleTimeString()+'</div>'; chatMessages.appendChild(div); chatMessages.scrollTop=chatMessages.scrollHeight; } }
@@ -8048,7 +8521,7 @@ function saveFullState(){ if(!currentUser) return; const entries=Array.from(used
     function buildFullGrammarList(){ let arr=[]; for(let lv=1;lv<=5;lv++) for(let p of LEVEL_MAP[lv]) arr.push({pattern:p, level:lv}); return arr; }
     function refreshAll(){ grammarList=buildFullGrammarList(); renderLevelProgress(); updateGrammarDisplayByLevel(parseInt(grammarViewLevel.value)); renderTrackList(); renderVocabLevelProgress(); renderVocabLibrary(parseInt(document.getElementById('vocabViewLevel')?.value)||1); renderVocabTrackList(); renderFavoriteBook(); renderQueriedBook(); saveFullState(); }
     function renderLevelProgress(){ const totalByLevel=new Map(), usedByLevel=new Map(); for(let i=1;i<=5;i++){ totalByLevel.set(i,0); usedByLevel.set(i,0); } grammarList.forEach(g=>{ totalByLevel.set(g.level, totalByLevel.get(g.level)+1); }); for(let [pattern,entry] of usedMap.entries()){ const lv=grammarList.find(g=>g.pattern===pattern)?.level||entry.level; usedByLevel.set(lv, usedByLevel.get(lv)+1); } let html=''; for(let lv=1;lv<=5;lv++){ const total=totalByLevel.get(lv)||0, used=usedByLevel.get(lv)||0; const percent=total===0?0:(used/total*100).toFixed(1); html+=`<div class="level-row" data-level="${lv}"><span>HSK ${lv}</span><div class="progress-bar-bg"><div class="progress-bar-fill" style="width:${percent}%;"></div></div><span>${used}/${total}</span></div>`; } levelProgressDiv.innerHTML=html; levelProgressDiv.querySelectorAll('.level-row').forEach(row=>row.addEventListener('click',()=>openGrammarDetailModal(parseInt(row.dataset.level)))); }
-    function updateGrammarDisplayByLevel(level){ const patterns=LEVEL_MAP[level]; if(!patterns){ grammarLibraryList.innerHTML='<div>'+t('status.no_grammar')+'</div>'; return; } const oldScroll=grammarLibraryList.querySelector('.grammar-list-scroll'); const savedScrollTop=oldScroll?oldScroll.scrollTop:0; let html=`<div class="grammar-list-scroll">`; for(let pattern of patterns){ const entry=usedMap.get(pattern); const count=entry?entry.count:0; const pCount=entry?(entry.practiceCount||0):0; const acc=accuracyFor(entry); let status=''; if(count>0) status=`<span class="mastered-tag" style="background:#e3f2fd;">`+t('status.using')+`</span>`; else status=`<span class="not-mastered-tag">`+t('status.unused')+`</span>`; let example=EXAMPLE_MAP.get(pattern)||''; let titleAttr=example?` title="${escapeHtml(example)}"`:''; html+=`<div class="grammar-list-item" data-pattern="${escapeHtml(pattern)}" data-level="${level}"${titleAttr}><span class="grammar-pattern">${escapeHtml(pattern.length>55?pattern.slice(0,52)+'…':pattern)}</span>${status}</div>`; } html+=`</div>`; grammarLibraryList.innerHTML=html; const newScroll=grammarLibraryList.querySelector('.grammar-list-scroll'); if(newScroll) newScroll.scrollTop=savedScrollTop; document.querySelectorAll('#grammarLibraryList .grammar-list-item').forEach(el=>el.addEventListener('click',()=>{ const p=el.dataset.pattern; const lv=parseInt(el.dataset.level)||1; if(!p) return; window._learnMode=false; window._reviewMode=false; window._currentReviewItem=null; window._pendingLearnWord=null; window._practiceFinished=false; currentPracticeGrammar={pattern:p, level:lv}; currentPracticeVocab=null; generateAndShowPractice(p, lv, true); })); }
+    function updateGrammarDisplayByLevel(level){ const patterns=LEVEL_MAP[level]; if(!patterns){ grammarLibraryList.innerHTML='<div>'+t('status.no_grammar')+'</div>'; return; } const oldScroll=grammarLibraryList.querySelector('.grammar-list-scroll'); const savedScrollTop=oldScroll?oldScroll.scrollTop:0; let html=`<div class="grammar-list-scroll">`; for(let pattern of patterns){ const entry=usedMap.get(pattern); const count=entry?entry.count:0; const pCount=entry?(entry.practiceCount||0):0; const acc=accuracyFor(entry); let status=''; if(count>0) status=`<span class="mastered-tag" style="background:#e3f2fd;">`+t('status.using')+`</span>`; else status=`<span class="not-mastered-tag">`+t('status.unused')+`</span>`; let example=EXAMPLE_MAP.get(pattern)||''; let titleAttr=example?` title="${escapeHtml(example)}"`:''; html+=`<div class="grammar-list-item" data-pattern="${escapeHtml(pattern)}" data-level="${level}"${titleAttr}><span class="grammar-pattern">${escapeHtml(pattern.length>55?pattern.slice(0,52)+'…':pattern)}</span>${status}</div>`; } html+=`</div>`; grammarLibraryList.innerHTML=html; const newScroll=grammarLibraryList.querySelector('.grammar-list-scroll'); if(newScroll) newScroll.scrollTop=savedScrollTop; document.querySelectorAll('#grammarLibraryList .grammar-list-item').forEach(el=>el.addEventListener('click',()=>{ const p=el.dataset.pattern; const lv=parseInt(el.dataset.level)||1; if(!p) return; window._learnMode=false; window._reviewMode=false; window._currentReviewItem=null; window._pendingLearnWord=null; window._practiceFinished=false; window._dictationMode=false; currentPracticeGrammar={pattern:p, level:lv}; currentPracticeVocab=null; generateAndShowPractice(p, lv, true); })); }
     function renderTrackList(){ const usedOnly=[], practiceOnly=[], both=[]; for(let [pat,entry] of usedMap.entries()){ const cnt=entry.count||0, pCnt=entry.practiceCount||0; if(cnt>0&&pCnt===0) usedOnly.push({pattern:pat, level:entry.level, count:cnt, practiceCount:pCnt, examples:entry.examples, practiceTimestamps:entry.practiceTimestamps||[]}); else if(pCnt>0&&cnt===0) practiceOnly.push({pattern:pat, level:entry.level, count:cnt, practiceCount:pCnt, practiceTimestamps:entry.practiceTimestamps||[], practiceExamples:entry.practiceExamples||[]}); else if(cnt>0&&pCnt>0) both.push({pattern:pat, level:entry.level, count:cnt, practiceCount:pCnt, examples:entry.examples, practiceTimestamps:entry.practiceTimestamps||[], practiceExamples:entry.practiceExamples||[]}); } const sorter=(a,b)=>a.level-b.level; usedOnly.sort(sorter); practiceOnly.sort(sorter); both.sort(sorter); const renderCat=(elId, items, isGrammar)=>{const el=document.getElementById(elId);if(!el)return;if(items.length===0){el.innerHTML='';return;}let h='';for(let it of items){const lvLabel=isGrammar?('HSK'+it.level):vocabLevelLabel(it.level);const name=isGrammar?it.pattern:it.word;const useTimes=it.count||0, pracTimes=it.practiceCount||0;let acquiredBadge='';if(isGrammar){const ge=usedMap.get(name);if(isAcquired(ge))acquiredBadge=' <span class="acquired-badge" style="font-size:0.68rem;padding:1px 6px;border-radius:10px;">'+t('status.acquired')+'</span>';}else{const ve=vocabUsedMap.get(name);if(isVocabAcquired(ve))acquiredBadge=' <span class="acquired-badge" style="font-size:0.68rem;padding:1px 6px;border-radius:10px;">'+t('status.acquired')+'</span>';}let timesHtml=''; if(useTimes>0&&pracTimes===0) timesHtml=acquiredBadge+' <span style="font-size:0.72rem;color:#2e7d32;">'+t('track.usage_count')+': '+useTimes+'</span>'; else if(pracTimes>0&&useTimes===0) timesHtml=acquiredBadge+' <span style="font-size:0.72rem;color:#1565c0;">'+t('track.practice_count')+': '+pracTimes+'</span>'; else if(useTimes>0&&pracTimes>0) timesHtml=acquiredBadge+' <span style="font-size:0.72rem;color:#2e7d32;">'+t('track.usage_count')+': '+useTimes+'</span> <span style="font-size:0.72rem;color:#1565c0;">'+t('track.practice_count')+': '+pracTimes+'</span>';h+='<div class="track-item" data-key="'+escapeHtml(name)+'" data-level="'+it.level+'"><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="'+escapeHtml(name)+'">'+lvLabel+' '+escapeHtml(String(name).length>40?String(name).slice(0,37)+'…':name)+'</span><span style="flex-shrink:0;min-width:55px;text-align:right;">'+timesHtml+'</span></div>';}el.innerHTML=h;el.querySelectorAll('.track-item').forEach(e=>e.addEventListener('click',()=>{const k=e.dataset.key;const entry=isGrammar?usedMap.get(k):vocabUsedMap.get(k);if(entry){if(isGrammar){const e2=usedMap.get(k); const items2=[{pattern:k, level:e2.level, count:e2.count, correctCount:e2.correctCount||0, practiceCount:e2.practiceCount||0, examples:e2.examples, practiceExamples:e2.practiceExamples||[]}]; document.getElementById('modalTitle').textContent='📖 语法点明细'; renderGrammarDetailModal(items2); modal.style.display='block';document.body.style.overflow='hidden';}else{const its=[{word:k,level:entry.level,count:entry.count,practiceCount:entry.practiceCount||0,examples:entry.examples,practiceExamples:entry.practiceExamples||[]}];document.getElementById('modalTitle').textContent=t('modal.vocab_detail');renderVocabDetailModal(its);modal.style.display='block';document.body.style.overflow='hidden';}}}));}; renderCat('grammarUsedOnlyList',usedOnly,true); renderCat('grammarPracticeOnlyList',practiceOnly,true); renderCat('grammarBothList',both,true); }
     function openGrammarDetailModalWithEntry(pattern, entry){ currentDetailLevel=null; const items=[{pattern, level:entry.level, count:entry.count, correctCount:entry.correctCount||0, practiceCount:entry.practiceCount||0, examples:entry.examples}]; const title=document.getElementById('modalTitle'); if(title) title.textContent=t('modal.grammar_detail'); renderGrammarDetailModal(items); modal.style.display='block'; document.body.style.overflow='hidden'; }
     function openGrammarDetailModal(level=null){ currentDetailLevel=level; const items=[]; for(let [pattern,entry] of usedMap.entries()) if((level===null||entry.level===level)&&!isAcquired(entry)) items.push({pattern, level:entry.level, count:entry.count, correctCount:entry.correctCount||0, practiceCount:entry.practiceCount||0, examples:entry.examples}); items.sort((a,b)=>a.level-b.level); const title=document.getElementById('modalTitle'); if(title) title.textContent=t('modal.grammar_detail'); renderGrammarDetailModal(items); modal.style.display='block'; document.body.style.overflow='hidden'; }
@@ -8129,8 +8602,8 @@ function saveFullState(){ if(!currentUser) return; const entries=Array.from(used
 - 不要每次都以问题结尾——有时分享完自然结束就好
 - 绝不要假装自己是人类去编造生活经历（如散步、吃饭、去了某地等）
 【纠错规则】
-系统会自动分析学生句子的偏误，并把准确纠正结果附在你的回复后面显示。你不需要在回复中使用 ❌/✅/💡 格式纠错，也不要写这些符号。
-如果学生的句子有明显错误，你可以自然地在回复中使用正确说法（例如学生说"我今天再家"，你可以回"哦，你在家啊"），但不要指出错误、不要写"你是说"、不要复述原句。
+系统会自动分析学生句子的偏误并记录到错句本，你不需要在回复中使用 ❌/✅/💡 格式纠错，也不要写这些符号。
+如果学生的句子有明显错误，你必须自然地在回复中使用正确说法，优先使用「哦，你是说[正确说法]」或「哦，你想说的是[正确说法]」的句式，让学生看到正确的表达。例如学生说"我今天再家"，你可以回"哦，你是说你在家啊"；学生说"我中国一次去过"，你可以回"哦，你是说你去过一次中国啊"。但不要使用 ❌/✅/💡 符号，也不要长篇解释语法。
 【输出前自检 - 每次回复前必须执行】
 (a) 每个小句（逗号前的一段）不超过${limPlain.maxChars}个汉字？
 (b) 全段不超过${limPlain.maxSentences}句？
@@ -8247,11 +8720,12 @@ try{ const resp=await fetch(API_BASE,{method:'POST',headers:{'Content-Type':'app
 ${assistantReply}
 
 【从自然回复中提取纠错 - 必须遵守】
-如果AI助手的回复中自然纠正了学生的表达（例如：学生说"我昨天去商店买一个包"，助手回复"哦，你昨天去商店买了一个包啊"；或学生说"用了"，助手回复"哦，你是说[正确说法]"；或助手用与学生会话不同的正确说法回应），这表示学生原句存在偏误。此时必须提取出纠错对：
+如果AI助手的回复中自然纠正了学生的表达（例如：学生说"我昨天去商店买一个包"，助手回复"哦，你昨天去商店买了一个包啊"；学生说"我中国一次去过"，助手回复"哦，你是说你去过一次中国啊"；或学生说"用了"，助手回复"哦，你是说[正确说法]"；或助手用与学生会话不同的正确说法回应），这表示学生原句存在偏误。此时必须提取出纠错对：
 - original = 学生原表达（片段）
 - corrected = 助手回复中对应的正确说法
 - type = "对话纠错"
 - note = "AI回复中自然纠正"
+特别强调：只要助手回复中出现"哦，你是说X"、"你是说X"、"你想说的是X"等，并且X与学生的原表达不同且是更正确的说法，就必须输出纠错对（original=学生原表达，corrected=X）。宁可多提取，不可漏掉。
 注意：如果助手只是在提问澄清（如"你是说……吗？"）而没有给出正确说法，不要提取。
 `:''; const prompt=`你是HSK中文教师。请严格分析学生句子的偏误（error analysis）。只报告真正的偏误，宁缺毋滥。
 
@@ -8273,6 +8747,29 @@ ${assistantReply}
 输出JSON数组：[{"original":"学生原文(片段)","corrected":"改正后(必须与original不同)","type":"类型","note":"简短说明"}]。无错误返回[]。`; try{ const resp=await fetch(API_BASE,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${apiKey}`}, body:JSON.stringify({model:'deepseek-v4-flash',thinking:{type:'disabled'}, max_tokens:4096, messages:[{role:'system',content:prompt},{role:'user',content:'学生句子: '+JSON.stringify(userMessages)+(assistantReply?('\nAI助手回复: '+assistantReply):'')}], temperature:0.1, response_format:{type:'json_object'}})}); const data=await resp.json(); if(data.error) throw new Error(data.error.message||"API error"); if(!data.choices||!data.choices[0]||!data.choices[0].message) throw new Error("API error"); let content=data.choices[0].message.content; content=content.replace(/```json/g,'').replace(/```/g,'').trim(); const parsed=JSON.parse(content); return Array.isArray(parsed)?parsed:(parsed.mistakes||parsed.results||[]); }catch(e){ return []; } }
     function isPunctuationOnlyDiff(a,b){var p='，。、！？；：…—·《》〈〉（）【】,.!?;:()[]{}<> ';var s=function(x){return (x||'').split('').filter(function(c){return p.indexOf(c)<0;}).join('');};return s(a)===s(b);}
     function filterMistakes(mistakes){ if(!mistakes||!mistakes.length) return []; const out=[]; for(const m of mistakes){ if(!m||!m.original||!m.corrected) continue; if(m.original===m.corrected) continue; if(isPunctuationOnlyDiff(m.original,m.corrected)) continue; if(out.some(x=>x.original===m.original&&x.corrected===m.corrected)) continue; out.push(m); } return out; }
+    // 本地兜底：AI自然回复中出现「哦，你是说X」等纠正表达时，直接提取纠错对，保证写入错句本/学习报告
+    function extractNaturalCorrections(userMsg, replyRaw){
+        if(!replyRaw) return [];
+        const reply = String(replyRaw);
+        const user = String(userMsg || '').trim();
+        if(!user) return [];
+        const re = /(?:哦[，,]?\s*)?(?:你是说|你是想说|你想说的是|你是要说)\s*([^，。！？!?；;、\n]+)/;
+        const m = reply.match(re);
+        if(!m) return [];
+        let corrected = m[1].trim();
+        corrected = corrected.replace(/[吗呢吧啊呀嘛]+$/, '');
+        corrected = corrected.replace(/^是[的]?/, '').trim();
+        if(!corrected || corrected === user) return [];
+        // 提取片段要与学生的句子有一定重合，避免把单纯的澄清问题误判为纠错
+        const userChars = user.replace(/[^\u4e00-\u9fff]/g, '');
+        const corrChars = corrected.replace(/[^\u4e00-\u9fff]/g, '');
+        if(!corrChars || !userChars) return [];
+        let same = 0;
+        for(const ch of corrChars){ if(userChars.includes(ch)) same++; }
+        const ratio = same / Math.max(corrChars.length, 1);
+        if(ratio < 0.35) return [];
+        return [{ original: user, corrected: corrected, type: '对话纠错', note: 'AI自然回复纠正' }];
+    }
     function findMatchingPattern(returnedPattern){ if(!returnedPattern) return null; const p=returnedPattern.trim(); const exact=grammarList.find(g=>g.pattern===p); if(exact) return exact; const pClean=p.replace(/[（(][^)）]*[)）]/g,'').trim(); const exactClean=grammarList.find(g=>g.pattern.replace(/[（(][^)）]*[)）]/g,'').trim()===pClean); if(exactClean) return exactClean; const pFixed=extractPatternFixedChars(p).join(''); if(pFixed.length>0){ const byFixed=grammarList.find(g=>extractPatternFixedChars(g.pattern).join('')===pFixed); if(byFixed) return byFixed; } const byShort=grammarList.find(g=>{ const gClean=g.pattern.replace(/[（(][^)）]*[)）]/g,'').trim(); return gClean.includes(pClean)||pClean.includes(gClean); }); if(byShort) return byShort; console.warn('findMatchingPattern failed for:', p); return null; }
     function isAcquired(entry){ return entry && (entry.count||0) >= ACQUIRED_THRESHOLD; }
     function accuracyFor(entry){ if(!entry||entry.count===0) return 0; return ((entry.correctCount||0)/entry.count*100).toFixed(1); }
@@ -8285,7 +8782,7 @@ ${assistantReply}
     function vocabLevelLabel(lv){ return lv===5?t('vocab.lexue3'):lv===6?t('vocab.lexue5'):(t('vocab.hsk_prefix')+lv); }
     function renderVocabLevelProgress(){ const el=document.getElementById('vocabLevelProgress'); if(!el) return; let html=''; const levels=[1,2,3,4,5,6]; const levelLabels={1:t('vocab.hsk_prefix')+'1'+t('vocab.vocab_suffix'),2:t('vocab.hsk_prefix')+'2'+t('vocab.vocab_suffix'),3:t('vocab.hsk_prefix')+'3'+t('vocab.vocab_suffix'),4:t('vocab.hsk_prefix')+'4'+t('vocab.vocab_suffix'),5:t('vocab.lexue3')+t('vocab.vocab_suffix'),6:t('vocab.lexue5')+t('vocab.vocab_suffix')}; for(let lv of levels){ const vocab=VOCAB_LEVEL_MAP[lv]; if(!vocab) continue; const total=vocab.length; let used=0; for(let v of vocab){ const entry=vocabUsedMap.get(v.w); if(entry&&entry.count>0) used++; } const percent=total===0?0:(used/total*100).toFixed(1); html+='<div class="level-row" style="cursor:pointer;" data-vlevel="'+lv+'"><span>'+(levelLabels[lv]||(t('vocab.hsk_prefix')+lv+t('vocab.vocab_suffix')))+'</span><div class="progress-bar-bg"><div class="progress-bar-fill" style="width:'+percent+'%;background:#1565c0;"></div></div><span>'+used+'/'+total+'</span></div>'; } el.innerHTML=html; el.querySelectorAll('.level-row').forEach(row=>row.addEventListener('click',()=>openVocabDetailModal(parseInt(row.dataset.vlevel)))); }
     function openVocabDetailModal(level=null){ const items=[]; const levelWords=level?new Set((VOCAB_LEVEL_MAP[level]||[]).map(v=>v.w)):null; for(let [word,entry] of vocabUsedMap.entries()){ if(entry.count>0&&(level===null||(levelWords&&levelWords.has(word)))) items.push({word, level:level||entry.level, count:entry.count, correctCount:entry.correctCount||0, practiceCount:entry.practiceCount||0, examples:entry.examples, practiceExamples:entry.practiceExamples||[]}); } items.sort((a,b)=>a.level-b.level); const title=document.getElementById('modalTitle'); const levelLabel=vocabLevelLabel(level); if(title) title.textContent=t('modal.vocab_detail')+(level?' ('+levelLabel+')':''); renderVocabDetailModal(items); modal.style.display='block'; document.body.style.overflow='hidden'; }
-    function renderVocabLibrary(level){ const words=VOCAB_LEVEL_MAP[level]; const vocabLibEl=document.getElementById('vocabLibraryList'); if(!words){ vocabLibEl.innerHTML='<div class="empty-detail">'+t('status.no_vocab')+'</div>'; return; } const oldScroll=vocabLibEl.querySelector('.grammar-list-scroll'); const savedScrollTop=oldScroll?oldScroll.scrollTop:0; let html='<div class="grammar-list-scroll">'; for(let v of words){ const entry=vocabUsedMap.get(v.w); const cnt=entry?entry.count:0; const pCnt=entry?(entry.practiceCount||0):0; let status=''; if(cnt>0) status='<span class="mastered-tag" style="background:#e3f2fd;">'+t('status.using')+'</span>'; else status='<span class="not-mastered-tag">'+t('status.unused')+'</span>'; html+='<div class="grammar-list-item" data-vocab="'+escapeHtml(v.w)+'" data-level="'+v.l+'" title="'+escapeHtml(v.m)+' | '+escapeHtml(v.e)+'"><span class="grammar-pattern">'+escapeHtml(v.w)+' <small style="color:#94a3b8;">'+escapeHtml(v.p)+'</small></span>'+status+'</div>'; } html+='</div>'; vocabLibEl.innerHTML=html; const newScroll=vocabLibEl.querySelector('.grammar-list-scroll'); if(newScroll) newScroll.scrollTop=savedScrollTop; document.querySelectorAll('#vocabLibraryList .grammar-list-item').forEach(el=>{ el.addEventListener('click',()=>{ const w=el.dataset.vocab; const lv=parseInt(el.dataset.level)||1; if(!w) return; window._learnMode=false; window._reviewMode=false; window._currentReviewItem=null; window._pendingLearnWord=null; window._practiceFinished=false; currentPracticeVocab={word:w, level:lv}; currentPracticeGrammar=null; generateVocabPractice(w, lv); }); }); }
+    function renderVocabLibrary(level){ const words=VOCAB_LEVEL_MAP[level]; const vocabLibEl=document.getElementById('vocabLibraryList'); if(!words){ vocabLibEl.innerHTML='<div class="empty-detail">'+t('status.no_vocab')+'</div>'; return; } const oldScroll=vocabLibEl.querySelector('.grammar-list-scroll'); const savedScrollTop=oldScroll?oldScroll.scrollTop:0; let html='<div class="grammar-list-scroll">'; for(let v of words){ const entry=vocabUsedMap.get(v.w); const cnt=entry?entry.count:0; const pCnt=entry?(entry.practiceCount||0):0; let status=''; if(cnt>0) status='<span class="mastered-tag" style="background:#e3f2fd;">'+t('status.using')+'</span>'; else status='<span class="not-mastered-tag">'+t('status.unused')+'</span>'; html+='<div class="grammar-list-item" data-vocab="'+escapeHtml(v.w)+'" data-level="'+v.l+'" title="'+escapeHtml(v.m)+' | '+escapeHtml(v.e)+'"><span class="grammar-pattern">'+escapeHtml(v.w)+' <small style="color:#94a3b8;">'+escapeHtml(v.p)+'</small></span>'+status+'</div>'; } html+='</div>'; vocabLibEl.innerHTML=html; const newScroll=vocabLibEl.querySelector('.grammar-list-scroll'); if(newScroll) newScroll.scrollTop=savedScrollTop; document.querySelectorAll('#vocabLibraryList .grammar-list-item').forEach(el=>{ el.addEventListener('click',()=>{ const w=el.dataset.vocab; const lv=parseInt(el.dataset.level)||1; if(!w) return; window._learnMode=false; window._reviewMode=false; window._currentReviewItem=null; window._pendingLearnWord=null; window._practiceFinished=false; window._dictationMode=false; currentPracticeVocab={word:w, level:lv}; currentPracticeGrammar=null; generateVocabPractice(w, lv); }); }); }
     function renderVocabTrackList(){ const usedOnly=[], practiceOnly=[], both=[]; for(let [word,entry] of vocabUsedMap.entries()){ const cnt=entry.count||0, pCnt=entry.practiceCount||0; if(cnt>0&&pCnt===0) usedOnly.push({word, level:entry.level, count:cnt, practiceCount:pCnt, examples:entry.examples, practiceTimestamps:entry.practiceTimestamps||[]}); else if(pCnt>0&&cnt===0) practiceOnly.push({word, level:entry.level, count:cnt, practiceCount:pCnt, practiceTimestamps:entry.practiceTimestamps||[], practiceExamples:entry.practiceExamples||[]}); else if(cnt>0&&pCnt>0) both.push({word, level:entry.level, count:cnt, practiceCount:pCnt, examples:entry.examples, practiceTimestamps:entry.practiceTimestamps||[], practiceExamples:entry.practiceExamples||[]}); } const sorter=(a,b)=>a.level-b.level; usedOnly.sort(sorter); practiceOnly.sort(sorter); both.sort(sorter); const renderCat=(elId, items)=>{const el=document.getElementById(elId);if(!el)return;if(items.length===0){el.innerHTML='';return;}let h='';for(let it of items){const lvLabel=vocabLevelLabel(it.level);const useTimes=it.count||0, pracTimes=it.practiceCount||0;const vEntry2=vocabUsedMap.get(it.word);const acquiredBadge=isVocabAcquired(vEntry2)?' <span class="acquired-badge" style="font-size:0.68rem;padding:1px 6px;border-radius:10px;">'+t('status.acquired')+'</span>':'';let timesHtml=''; if(useTimes>0&&pracTimes===0) timesHtml=acquiredBadge+' <span style="font-size:0.72rem;color:#2e7d32;">'+t('track.usage_count')+': '+useTimes+'</span>'; else if(pracTimes>0&&useTimes===0) timesHtml=acquiredBadge+' <span style="font-size:0.72rem;color:#1565c0;">'+t('track.practice_count')+': '+pracTimes+'</span>'; else if(useTimes>0&&pracTimes>0) timesHtml=acquiredBadge+' <span style="font-size:0.72rem;color:#2e7d32;">'+t('track.usage_count')+': '+useTimes+'</span> <span style="font-size:0.72rem;color:#1565c0;">'+t('track.practice_count')+': '+pracTimes+'</span>';h+='<div class="track-item" data-key="'+escapeHtml(it.word)+'" data-level="'+it.level+'"><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+lvLabel+' '+escapeHtml(it.word)+'</span><span style="flex-shrink:0;min-width:55px;text-align:right;">'+timesHtml+'</span></div>';}el.innerHTML=h;el.querySelectorAll('.track-item').forEach(e=>e.addEventListener('click',()=>{const k=e.dataset.key;const entry=vocabUsedMap.get(k);if(entry){const its=[{word:k,level:entry.level,count:entry.count,practiceCount:entry.practiceCount||0,examples:entry.examples,practiceExamples:entry.practiceExamples||[]}];document.getElementById('modalTitle').textContent=t('modal.vocab_detail');renderVocabDetailModal(its);modal.style.display='block';document.body.style.overflow='hidden';}}));}; renderCat('vocabUsedOnlyList',usedOnly); renderCat('vocabPracticeOnlyList',practiceOnly); renderCat('vocabBothList',both); }
     function renderVocabDetailModal(items){ if(items.length===0){ modalContentDiv.innerHTML='<div class="empty-detail">'+t('modal.empty_vocab')+'</div>'; return; } let html='<table class="grammar-detail-table"><thead><tr><th style="width:18%">'+t('table.word')+'</th><th style="width:10%">'+t('table.count')+'</th><th style="width:72%">'+t('table.usage_examples')+'</th></tr></thead><tbody>'; for(let it of items){ let exHtml=''; const practiceOnly=it.practiceCount>0&&(it.count||0)===0; const useExamples=it.examples||[]; const pExamples=it.practiceExamples||[]; if(practiceOnly&&pExamples.length>0){ for(let ex of pExamples){ const highlighted=escapeHtml(ex.sentence).replace(new RegExp(escapeHtml(it.word),'g'),'<span style="color:#1565c0;font-weight:bold;">'+escapeHtml(it.word)+'</span>'); exHtml+='<div class="example-row">📝 '+highlighted+' <small style="color:#94a3b8;font-size:0.7rem;">'+(ex.date||'')+'</small></div>'; } } else { for(let ex of useExamples){ const highlighted=escapeHtml(ex.sentence).replace(new RegExp(escapeHtml(it.word),'g'),'<span style="color:#c62828;font-weight:bold;">'+escapeHtml(it.word)+'</span>'); exHtml+='<div class="example-row">📌 '+highlighted+' <small style="color:#94a3b8;font-size:0.7rem;">'+(ex.date||'')+'</small></div>'; } if(pExamples.length>0&&!practiceOnly){ exHtml+='<div style="margin-top:8px;font-weight:600;color:#1565c0;">📝 '+t('table.practice_examples')+'</div>'; for(let ex of pExamples){ const highlighted=escapeHtml(ex.sentence).replace(new RegExp(escapeHtml(it.word),'g'),'<span style="color:#1565c0;font-weight:bold;">'+escapeHtml(it.word)+'</span>'); exHtml+='<div class="example-row">📝 '+highlighted+' <small style="color:#94a3b8;font-size:0.7rem;">'+(ex.date||'')+'</small></div>'; } } } const lvTag=vocabLevelLabel(it.level); html+='<tr><td><span class="level-tag">'+lvTag+'</span> '+escapeHtml(it.word)+'<button class="del-detail-btn" data-pattern="'+escapeHtml(it.word)+'" data-type="vocab" style="margin-left:4px;background:none;border:1px solid #e0e0e0;border-radius:8px;padding:1px 5px;font-size:0.6rem;cursor:pointer;color:#c0392b;" title="删除此词汇记录">🗑️</button></td><td style="text-align:center">'+((it.count>0?it.count:(it.practiceCount||0))+t('modal.count_unit'))+'</td><td>'+(exHtml||'<span class="empty-detail">—</span>')+'</td></tr>'; } html+='</tbody></table>'; modalContentDiv.innerHTML=html; }
     async function analyzeVocabBatch(clauses){ if(!clauses||clauses.length===0) return []; var allWords=[]; for(var lv=1;lv<=6;lv++){ var vocab=VOCAB_LEVEL_MAP[lv]; if(vocab) allWords=allWords.concat(vocab); } allWords.sort((a,b)=>b.w.length-a.w.length); var results=[]; for(var ci=0;ci<clauses.length;ci++){ var sentence=clauses[ci]; if(!sentence) continue; var wordCounts={}; var covered=sentence.split("").map(()=>false); for(var wi=0;wi<allWords.length;wi++){ var w=allWords[wi].w; var idx=sentence.indexOf(w); while(idx!==-1){ var overlap=false; for(var k=idx;k<idx+w.length;k++){ if(covered[k]){ overlap=true; break; } } if(!overlap){ wordCounts[w]=(wordCounts[w]||0)+1; for(var k=idx;k<idx+w.length;k++) covered[k]=true; } idx=sentence.indexOf(w,idx+1); } } if(Object.keys(wordCounts).length>0){ var wcKeys=Object.keys(wordCounts).sort((a,b)=>b.length-a.length); for(var i=0;i<wcKeys.length;i++){ for(var j=i+1;j<wcKeys.length;j++){ if(wcKeys[i].includes(wcKeys[j])&&wcKeys[j].length<wcKeys[i].length){ delete wordCounts[wcKeys[j]]; } } } if(Object.keys(wordCounts).length>0){ results.push({sentence:sentence, wordCounts:wordCounts}); } } } return results; }function mergeVocabResults(results){ if(!results) return; const today=getLocalDate(); for(let item of results){ var wc=item.wordCounts||{}; for(let w of Object.keys(wc)){ var occ=wc[w]||1; const entry=vocabUsedMap.get(w); if(!entry){ let v=null; for(let lv of[1,2,3,4,5,6]){ const vocab=VOCAB_LEVEL_MAP[lv]; if(vocab){ v=vocab.find(x=>x.w===w); if(v) break; } } if(!v) continue; vocabUsedMap.set(w,{count:occ, correctCount:0, practiceCount:0, level:v.l, examples:[{sentence:item.sentence, date:today}]}); } else { var hasEx=entry.examples.some(ex=>ex.sentence===item.sentence); if(!hasEx){ entry.count+=occ; entry.examples.push({sentence:item.sentence, date:today}); } vocabUsedMap.set(w,entry); } } } saveVocabState(); renderVocabLevelProgress(); renderVocabTrackList(); }function mergeVocabResultsFiltered(results){ if(!results) return; const today=getLocalDate(); for(let item of results){ var wc=item.wordCounts||{}; for(let w of Object.keys(wc)){ if(isQueriedWord(w)) continue; var occ=wc[w]||1; const entry=vocabUsedMap.get(w); if(!entry){ let v=null; for(let lv of[1,2,3,4,5,6]){ const vocab=VOCAB_LEVEL_MAP[lv]; if(vocab){ v=vocab.find(x=>x.w===w); if(v) break; } } if(!v) continue; vocabUsedMap.set(w,{count:occ, correctCount:0, practiceCount:0, level:v.l, examples:[{sentence:item.sentence, date:today}]}); } else { var hasEx=entry.examples.some(ex=>ex.sentence===item.sentence); if(!hasEx){ entry.count+=occ; entry.examples.push({sentence:item.sentence, date:today}); } vocabUsedMap.set(w,entry); } } } saveVocabState(); renderVocabLevelProgress(); renderVocabTrackList(); }
@@ -8322,7 +8819,7 @@ if(wrongSentences.length===0){ rpt+='(暂无错句记录)\n'; } else { for(var w
 rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n⭐ 第五部分：收藏句子\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(favoriteSentences.length===0){ rpt+='(暂无收藏)\n'; } else { for(let item of favoriteSentences){ rpt+='🇨🇳 '+item.chinese+'\n🌐 '+(item.translation||'')+'\n📅 '+(item.date||'')+'\n\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n📰 阅读历史\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(readingHistory.length===0){ rpt+='(暂无阅读记录)\n'; } else { readingHistory.forEach((r,i)=>{ rpt+='📌 '+(r.title||('HSK'+r.level))+' [HSK'+r.level+']\n'; rpt+='📅 '+(r.date||'')+' · 主题：'+(r.topic||'')+'\n'; if(r.background) rpt+='背景：'+r.background+'\n'; if(r.sourceUrl) rpt+='🔗 '+r.sourceUrl+'\n'; rpt+='--- 正文 ---\n'+(r.content||'')+'\n\n'; }); } const ok = downloadTextFile(rpt, 'HSK_Learning_Report_' + getLocalDate() + '.txt'); showToast(ok ? t('toast.download_started') : t('toast.download_failed')); }
 
 async function handleEndConversation(){ if(chatAbortController){ chatAbortController.abort(); chatAbortController=null; } if(currentSessionClauses.length===0&&sessionUserMessages.length===0){ addAssistantMessage(t('analysis.no_sentences')); return; } const filteredClauses=currentSessionClauses.filter(c=>!isQueriedSentence(c)); const savedClauses=[...filteredClauses]; if(filteredClauses.length===0){ addAssistantMessage(t('analysis.no_sentences')); currentSessionClauses=[]; sessionUserMessages=[]; return; } addAssistantMessage(t('analysis.analyzing_prefix')+filteredClauses.length+'...'); try{ const analysis=await analyzeGrammarBatch(filteredClauses); if(analysis) mergeAnalysisResults(analysis); addAssistantMessage(t('analysis.grammar_done')); }catch(e){ addAssistantMessage(t('analysis.grammar_timeout')); } addAssistantMessage(t('analysis.vocab_analyzing')); try{ const vocabAnalysis=await analyzeVocabBatch(savedClauses); if(vocabAnalysis){ mergeVocabResultsFiltered(vocabAnalysis); } const matchCount=vocabAnalysis?vocabAnalysis.reduce((sum,item)=>sum+Object.keys(item.wordCounts||{}).length,0):0; addAssistantMessage(t('analysis.vocab_done')+' 匹配到 '+matchCount+' 个词'); }catch(e){ console.log('Vocab error:',e); addAssistantMessage(t('analysis.vocab_timeout')); } renderVocabLevelProgress(); renderVocabTrackList(); currentSessionClauses=[]; sessionUserMessages=[]; }
-    async function handleUserMessage(){ let text=userInput.value.trim(); if(!text) return; userInput.value=''; addMessage('user',text); currentSessionClauses.push(...splitClauses(text)); sessionUserMessages.push(text); if(chatAbortController){ chatAbortController.abort(); } chatAbortController=new AbortController(); const signal=chatAbortController.signal; try{ const reply=await chatWithContext(text,signal); const mistakes=await analyzeMistakesBatch([text], reply?reply.raw:null); const filtered=filterMistakes(mistakes); if(reply){ let html=reply.html, raw=reply.raw; if(filtered.length>0){ const htmlParts=[], rawLines=[]; for(const m of filtered){ rawLines.push('❌ '+m.original); rawLines.push('✅ '+m.corrected); if(m.note) rawLines.push('💡 '+m.note); htmlParts.push('<b>'+escapeHtml(m.original)+'</b> → <b style="color:#27ae60">'+escapeHtml(m.corrected)+'</b>'+(m.note?' ('+escapeHtml(m.note)+')':'')); addWrongSentence('','对话纠错',m.corrected,'',m.original,m.note||''); } raw=raw+'\n'+rawLines.join('\n'); html=html+'<br><br>💡 纠错：<br>'+htmlParts.join('<br>'); const last=chatHistory[chatHistory.length-1]; if(last&&last.role==='assistant'){ last.content=raw; saveChatHistory(); } } addAssistantMessage(html, true, raw); } else { for(const m of filtered){ addWrongSentence('','对话纠错',m.corrected,'',m.original,m.note||''); } addAssistantMessage(t('analysis.reply_fail')); } }catch(e){ if(e.name!=='AbortError') addAssistantMessage(t('analysis.reply_fail')); }finally{ chatAbortController=null; } }
+    async function handleUserMessage(){ let text=userInput.value.trim(); if(!text) return; userInput.value=''; addMessage('user',text); currentSessionClauses.push(...splitClauses(text)); sessionUserMessages.push(text); if(chatAbortController){ chatAbortController.abort(); } chatAbortController=new AbortController(); const signal=chatAbortController.signal; try{ const reply=await chatWithContext(text,signal); let mistakes=await analyzeMistakesBatch([text], reply?reply.raw:null); const natural=extractNaturalCorrections(text, reply?reply.raw:null); if(natural.length){ mistakes=(mistakes||[]).concat(natural); } const filtered=filterMistakes(mistakes); if(reply){ for(const m of filtered){ addWrongSentence('','对话纠错',m.corrected,'',m.original,m.note||''); } addAssistantMessage(reply.html, true, reply.raw); } else { for(const m of filtered){ addWrongSentence('','对话纠错',m.corrected,'',m.original,m.note||''); } addAssistantMessage(t('analysis.reply_fail')); } }catch(e){ if(e.name!=='AbortError') addAssistantMessage(t('analysis.reply_fail')); }finally{ chatAbortController=null; } }
     let practiceIsSpeaking=false;
     // ========== 语音朗读 ==========
     // 解锁移动端音频播放（微信等WebView首次需用户手势激活AudioContext）
@@ -8629,7 +9126,6 @@ function renderPractice(exerciseData) {
                         saveVocabState();
                         renderVocabLibrary(vEntry.level);
                         renderVocabTrackList();
-                        if(!_isLearn && !_isReview) window._origHandleVocabPracticeResult(word, true);
                     }
                 } else {
                     var gEntry = usedMap.get(grammarPattern);
@@ -9423,6 +9919,7 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
     function finishInit(){ detectSpeechSupport(); primeSpeechSynthesis(); loadFullState(); loadCandidateLevel(); pickCandidateWords(); updateStatsUI(); applyLanguage(); refreshAll(); sendBtn.onclick=handleUserMessage; endBtn.onclick=handleEndConversation;
             initVoiceRecognition();
         bindReadingEvents();
+        bindWritingAudioEvents();
         document.getElementById('chatHistoryBtn').onclick = showChatHistory;
         const histBtn=document.getElementById('chatHistoryBtn'); if(histBtn){ const histMap={'Chinese':'📜 历史','English':'📜 History','Japanese':'📜 履歴','Korean':'📜 기록','French':'📜 Historique','German':'📜 Verlauf','Spanish':'📜 Historial','Russian':'📜 История','Thai':'📜 ประวัติ','Italian':'📜 Cronologia'}; histBtn.textContent=histMap[targetLangSelect.value]||'📜 History'; }
         targetLangSelect.addEventListener('change',()=>{ applyLanguage(); });
