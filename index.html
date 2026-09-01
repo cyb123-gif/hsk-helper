@@ -9304,7 +9304,19 @@ async function generateAndShowPractice(grammarPattern, grammarLevel, forceNew=fa
         if(!currentUser) return;
         learnPlan = {};
         const raw = localStorage.getItem(learnPlanKey());
-        if(raw){ try{ learnPlan = JSON.parse(raw); if(!learnPlan || typeof learnPlan !== 'object') learnPlan = {}; renderLearnTasks(); }catch(e){ learnPlan = {}; } }
+        if(raw){ try{ learnPlan = JSON.parse(raw); if(!learnPlan || typeof learnPlan !== 'object') learnPlan = {}; }catch(e){ learnPlan = {}; } }
+        // 修复历史脏数据：stage>0 说明词条已进入复习阶段，roundsDone 只用于“学习阶段”的轮数统计，
+        // 残留值会导致「开始今日学习」把已学/已复习的词再学一遍
+        for(const lv of Object.keys(learnPlan||{})){
+            const plan = learnPlan[lv];
+            if(plan && plan.words){
+                for(const w of Object.keys(plan.words)){
+                    const wd = plan.words[w];
+                    if(wd && (wd.stage||0) > 0 && (wd.roundsDone||0) > 0) wd.roundsDone = 0;
+                }
+            }
+        }
+        renderLearnTasks();
     }
     function saveLearnPlan(){
         if(!currentUser) return;
@@ -9364,7 +9376,7 @@ async function generateAndShowPractice(grammarPattern, grammarLevel, forceNew=fa
         for(let w of Object.keys(plan.words||{})){
             const wd=plan.words[w];
             if(wd.skipped||wd.stage>=EBBINGHAUS_INTERVALS.length) continue;
-            if((wd.roundsDone||0)>0) continue;
+            if((wd.stage||0)===0 && (wd.roundsDone||0)>0) continue;
             const rd=wd.reviewDates;
             if(rd&&rd.length>wd.stage&&rd[wd.stage]<=today) reviewWords.push(w);
         }
@@ -9667,7 +9679,9 @@ async function generateAndShowPractice(grammarPattern, grammarLevel, forceNew=fa
             var wd = plan && plan.words ? plan.words[it.w] : null;
             if(wd && wd.skipped) return false;
             if(wd && wd.stage >= EBBINGHAUS_INTERVALS.length) return false;
-            return !wd || ((wd.roundsDone||0) > 0);  // 未学习 或 学了一半（roundsDone 未达 roundsPerWord）
+            // 只有“未学习”或“学习阶段学了一半（stage 仍为 0）”的词才进入今日学习；
+            // 已进入复习阶段（stage>0）的词即使残留 roundsDone，也绝不能再当新词学
+            return !wd || ((wd.stage||0) === 0 && (wd.roundsDone||0) > 0);
         });
         if(items.length===0){ showToast(t('learn.nothing_to_learn')); return; }
         window._reviewMode = false; window._currentReviewItem = null; window._reviewQueue = null;
@@ -9729,7 +9743,7 @@ function getDueReviews(){
             var w=d.vocab[wi];
             var wd=plan.words[w];
             if(!wd||wd.skipped||wd.stage>=EBBINGHAUS_INTERVALS.length) continue;
-            if((wd.roundsDone||0)>0) continue;
+            if((wd.stage||0)===0 && (wd.roundsDone||0)>0) continue;
             var rd=wd.reviewDates;
             if(rd&&rd.length>wd.stage&&rd[wd.stage]<=today){ if(rd[wd.stage]<today){ resetReviewSchedule(wd); saveLearnPlan(); } due.push({w:w,lvl:lvN,type:'vocab',stage:wd.stage}); }
         }
@@ -9737,7 +9751,7 @@ function getDueReviews(){
             var g=d.grammar[gi];
             var wd2=plan.words[g];
             if(!wd2||wd2.skipped||wd2.stage>=EBBINGHAUS_INTERVALS.length) continue;
-            if((wd2.roundsDone||0)>0) continue;
+            if((wd2.stage||0)===0 && (wd2.roundsDone||0)>0) continue;
             var rd2=wd2.reviewDates;
             if(rd2&&rd2.length>wd2.stage&&rd2[wd2.stage]<=today){ if(rd2[wd2.stage]<today){ resetReviewSchedule(wd2); saveLearnPlan(); } due.push({w:g,lvl:lvN,type:'grammar',stage:wd2.stage}); }
         }
