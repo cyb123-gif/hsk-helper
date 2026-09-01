@@ -8748,7 +8748,7 @@ ${assistantReply}
     function isPunctuationOnlyDiff(a,b){var p='，。、！？；：…—·《》〈〉（）【】,.!?;:()[]{}<> ';var s=function(x){return (x||'').split('').filter(function(c){return p.indexOf(c)<0;}).join('');};return s(a)===s(b);}
     function filterMistakes(mistakes){ if(!mistakes||!mistakes.length) return []; const out=[]; for(const m of mistakes){ if(!m||!m.original||!m.corrected) continue; if(m.original===m.corrected) continue; if(isPunctuationOnlyDiff(m.original,m.corrected)) continue; if(out.some(x=>x.original===m.original&&x.corrected===m.corrected)) continue; out.push(m); } return out; }
     // 💡 纠错块展示去重：同一个学生原句只展示一次，避免自然纠错与批量分析重复提取
-    function dedupeMistakesByOriginal(mistakes){ if(!mistakes||!mistakes.length) return []; const seen=new Set(); const out=[]; for(const m of mistakes){ const key=String(m.original||'').trim(); if(!key||seen.has(key)) continue; seen.add(key); out.push(m); } return out; }
+    function dedupeMistakesByOriginal(mistakes){ if(!mistakes||!mistakes.length) return []; const out=[]; for(const m of mistakes){ const o=String(m.original||'').trim(); const c=String(m.corrected||'').trim(); if(!o||!c) continue; const dupIdx=out.findIndex(x=>{ const xo=String(x.original||'').trim(); const xc=String(x.corrected||'').trim(); if(xo===o) return true; if(xc===c) return true; const oOverlap=xo.includes(o)||o.includes(xo); const cOverlap=xc.includes(c)||c.includes(xc); return oOverlap&&cOverlap; }); if(dupIdx!==-1){ const xo=String(out[dupIdx].original||'').trim(); if(o.length<xo.length) out[dupIdx]=m; continue; } out.push(m); } return out; }
     // 本地兜底：AI自然回复中出现「哦，你是说X」等纠正表达时，直接提取纠错对，保证写入错句本/学习报告
     function extractNaturalCorrections(userMsg, replyRaw){
         if(!replyRaw) return [];
