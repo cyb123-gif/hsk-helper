@@ -7689,7 +7689,11 @@ const HSK2_VOCAB = [
             opts += '<option value="' + lv + '"' + (lv === candidateLevel ? ' selected' : '') + '>' + vocabLevelLabel(lv) + '</option>';
         }
         const chipsHtml = currentCandidates.length
-            ? currentCandidates.map(w => '<span class="cand-chip">' + escapeHtml(w) + '</span>').join('')
+            ? currentCandidates.map(w => {
+                const v = VOCAB_LEVEL_MAP[candidateLevel]?.find(x => x.w === w);
+                const tip = v ? ' title="' + escapeHtml(v.m) + ' | ' + escapeHtml(v.e) + '"' : '';
+                return '<span class="cand-chip"' + tip + '>' + escapeHtml(w) + '</span>';
+            }).join('')
             : '<span class="cand-empty">' + t('cand.empty') + '</span>';
         const build = function(target){
             return '<div class="cand-head"><span class="cand-title">' + t('cand.title') + '</span><span style="color:#64748b;">' + t('cand.level') + '</span><select class="cand-level-select" onchange="window._candLevelChange(this.value)">' + opts + '</select><button class="cand-refresh-btn" onclick="window._candRefresh()">' + t('cand.refresh') + '</button></div>' +
