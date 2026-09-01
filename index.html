@@ -8547,14 +8547,46 @@ function saveFullState(){ if(!currentUser) return; const entries=Array.from(used
         }
         return {ok:true, isCorrection};
     }
-    async function chatWithContext(userMsg, signal, retryCount=0){
+    function truncateChatReplyToLimit(raw, level){
+        const isCorrection = /❌|✅/.test(raw);
+        const limit = chatLengthLimitsFor(level, isCorrection);
+        const parts = String(raw).split(/([。！？!?；;\n]+)/);
+        let out = '';
+        let total = 0;
+        let sentences = 0;
+        for (let i = 0; i < parts.length; i += 2){
+            const text = parts[i] || '';
+            const sep = parts[i + 1] || '';
+            if (!text.trim()) continue;
+            if (sep && sentences >= limit.maxSentences) break;
+            const segHanzi = (text.match(/[\u4e00-\u9fff]/g) || []).length;
+            if (total + segHanzi > limit.maxTotalChars) break;
+            out += text + sep;
+            total += segHanzi;
+            if (sep) sentences++;
+        }
+        const trimmed = out.trim();
+        if (trimmed) return trimmed;
+        let result = '';
+        let cnt = 0;
+        for (const ch of String(raw)){
+            if (/[\u4e00-\u9fff]/.test(ch)){
+                if (cnt >= limit.maxTotalChars) break;
+                cnt++;
+            }
+            result += ch;
+        }
+        return result.trim() || String(raw);
+    }
+    async function chatWithContext(userMsg, signal, retryCount=0, prevCheck=null){
         const apiKey = apiKeyInput.value.trim();
         if (!apiKey) return null;
         const level = parseInt(aiLevelSelect.value) || 3;
         const targetLang = targetLangSelect.value;
         const limPlain = chatLengthLimitsFor(level, false);
         const diffGuide = level<=2 ? "句子极短（每句3-8字），只用最常见的基础词汇，简单主谓/主谓宾结构，回复1-2句" : level===3 ? "句子短（每句6-12字），用日常词汇，可含趋向补语、结果补语、把字句，回复2-3句" : level===4 ? "句子中等（每句8-16字），用较丰富词汇，可含较复杂补语和关联词，回复3-4句" : "句子正常（每句10-20字），用丰富词汇，可有一定句法复杂度，回复3-5句";
-        const enforce = retryCount>0 ? `\n【长度强制修正 - 现在必须执行】你刚才的回复超过HSK${level}级长度限制了。现在重新回复用户刚才那条消息，内容可以精简，但必须满足：每个小句（逗号前的一段）不超过${limPlain.maxChars}个汉字，每句最多${limPlain.maxClausesPerSentence}个小句，全段最多${limPlain.maxSentences}句，全文总字数不超过${limPlain.maxTotalChars}个汉字。宁可少说，不可超长。` : '';
+        const reasonNames = {total:'总字数', sentences:'句数', clausesPerSentence:'每句小句数', clause:'单个小句长度'};
+        const enforce = prevCheck ? `\n【长度强制修正 - 现在必须执行】你刚才的回复超过HSK${level}级长度限制（超限项：${reasonNames[prevCheck.reason]||prevCheck.reason}，当前值：${prevCheck.count}）。现在重新回复用户刚才那条消息，内容可以精简，但必须满足：每个小句（逗号前的一段）不超过${limPlain.maxChars}个汉字，每句最多${limPlain.maxClausesPerSentence}个小句，全段最多${limPlain.maxSentences}句，全文总字数不超过${limPlain.maxTotalChars}个汉字。宁可少说，不可超长。` : '';
         const system = `你是HSK${level}级中文对话伙伴。像一个真实的朋友一样自然交流，用符合HSK${level}级的中文。
 【难度控制 - 最高优先级，必须严格遵守】严格匹配HSK${level}级水平，词语难度与句子长度如下：${diffGuide}。不要超过。每个小句（逗号前的一段）不超过${limPlain.maxChars}个汉字，每句最多${limPlain.maxClausesPerSentence}个小句，全段最多${limPlain.maxSentences}句，全文总字数不超过${limPlain.maxTotalChars}个汉字。宁可短，不可长。
 【回应优先级】
@@ -8586,13 +8618,14 @@ function saveFullState(){ if(!currentUser) return; const entries=Array.from(used
             const raw = data.choices[0].message.content;
             const check = validateChatReplyLength(raw, level);
             if (!check.ok && retryCount < 3){
-                return chatWithContext(userMsg, signal, retryCount + 1);
+                return chatWithContext(userMsg, signal, retryCount + 1, check);
             }
-            const html = raw.replace(/\n/g, '<br>');
+            const finalRaw = check.ok ? raw : truncateChatReplyToLimit(raw, level);
+            const html = finalRaw.replace(/\n/g, '<br>');
             const now = new Date().toISOString();
-            chatHistory.push({role:'user', content:userMsg, time:now}, {role:'assistant', content:raw, time:now});
+            chatHistory.push({role:'user', content:userMsg, time:now}, {role:'assistant', content:finalRaw, time:now});
             saveChatHistory();
-            return {html, raw};
+            return {html, raw:finalRaw};
         }catch(e){ return null; }
     }
     function extractPatternFixedChars(pattern){ const cleaned=pattern.replace(/[（(][^)）]*[)）]/g,''); const parts=cleaned.split('+'); const fixed=[]; for(const part of parts){ const t=part.trim(); if(!t) continue; const hasLatin=/[a-zA-Z]/.test(t); const hasChinese=/[\u4e00-\u9fff]/.test(t); if(!hasLatin&&hasChinese) fixed.push(t); } return fixed; }
