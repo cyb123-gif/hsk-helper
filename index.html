@@ -426,12 +426,6 @@
             <div id="wZenmeshuoResult" class="zenmeshuo-result" style="margin:0 12px;"></div>
             <div id="writingStatusBar" class="writing-status-bar" data-state="idle">✍️ 写作进行中：请在上方输入作文，然后点「提交批改」</div>
             <div id="writingFlowHint" class="writing-flow-hint">流程：① 输入作文 → ② 提交批改 → ③ 修改后再提交（可选） → ④ 结束写作</div>
-            <div class="writing-audio-row">
-                <button class="writing-submit-btn" id="writingRecordBtn" style="background:#7c3aed;" title="录音后用 Groq Whisper 转成文字填入作文框">🎤 录音转文字</button>
-                <button class="writing-submit-btn" id="writingAudioFileBtn" style="background:#b45309;" title="上传 mp3 等音频文件，转成文字填入作文框">📁 上传音频转文字</button>
-                <input type="file" id="writingAudioFile" accept="audio/*" style="display:none;">
-                <span id="writingAudioStatus" class="writing-audio-status"></span>
-            </div>
             <div id="writingCandidates" class="candidate-bar"></div>
             <textarea class="writing-textarea" id="writingTextarea" placeholder="请在此输入你的中文作文..."></textarea>
             <div id="writingLengthHint" style="margin:0 12px 6px;font-size:0.78rem;color:#64748b;"></div>
@@ -504,7 +498,6 @@
             </div>
             <div class="stat-title"><span>📚 API 设置</span><span class="level-badge">🔑</span></div>
             <input type="password" class="api-key-input" id="apiKeyInput" placeholder="DeepSeek API Key" autocomplete="off" value="sk-10806fc904a04e618daa622fdb8d0878">
-            <input type="password" class="api-key-input" id="groqKeyInput" placeholder="Groq API Key（语音转文字，免费额度）" autocomplete="off">
             <div class="stat-title"><span>📊 语法点明细 (点击查看明细)</span></div>
             <div class="progress-grid" id="levelProgress"></div>
         </div>
@@ -7111,9 +7104,6 @@ const HSK2_VOCAB = [
         const rtopc = document.getElementById('readingCustomTopicLabel'); if(rtopc) rtopc.textContent = t('reading.topic_custom');
         const rtopi = document.getElementById('readingTopicInput'); if(rtopi) rtopi.placeholder = t('reading.topic_custom_ph');
         if (document.getElementById('readingTopicSelect')) renderReadingTopicSelect();
-        const gki = document.getElementById('groqKeyInput'); if(gki) gki.placeholder = t('api.groq_key_ph');
-        const wrb = document.getElementById('writingRecordBtn'); if(wrb){ wrb.textContent = writingRecording ? t('writing.audio_stop') : t('writing.audio_record'); wrb.title = t('writing.audio_record_tt'); }
-        const wfb = document.getElementById('writingAudioFileBtn'); if(wfb){ wfb.textContent = t('writing.audio_upload'); wfb.title = t('writing.audio_upload_tt'); }
         const rlhint = document.getElementById('readingLevelHint'); if(rlhint) updateReadingLevelHint();
         if (document.getElementById('readingLevelSelect')) renderReadingLevelSelect();
         if (currentReading) renderReadingArticle(currentReading);
@@ -8304,126 +8294,6 @@ const HSK2_VOCAB = [
 
     function stopVoiceRecording() {
         stopVoiceRecognitionInstance();
-    }
-    // ========== 写作模式：录音/上传音频 → Groq Whisper 转文字 ==========
-    const GROQ_ASR_KEY_STORAGE = 'GROQ_API_KEY';
-    const GROQ_ASR_URL = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
-        ? '/groq/openai/v1/audio/transcriptions'
-        : 'https://api.groq.com/openai/v1/audio/transcriptions';
-    const GROQ_ASR_DIRECT = GROQ_ASR_URL.indexOf('/groq/') !== 0;
-    let writingMediaRecorder = null, writingAudioChunks = [], writingRecording = false;
-    function getGroqKey(){ const el=document.getElementById('groqKeyInput'); return el ? el.value.trim() : ''; }
-    function loadGroqKey(){ const el=document.getElementById('groqKeyInput'); if(el){ el.value = localStorage.getItem(GROQ_ASR_KEY_STORAGE) || ''; } }
-    function saveGroqKey(){ const el=document.getElementById('groqKeyInput'); if(el) localStorage.setItem(GROQ_ASR_KEY_STORAGE, el.value.trim()); }
-    function setWritingAudioStatus(text, cls){
-        const el = document.getElementById('writingAudioStatus');
-        if(!el) return;
-        el.textContent = text;
-        el.className = 'writing-audio-status' + (cls ? ' ' + cls : '');
-    }
-    function insertIntoWritingTextarea(text){
-        const ta = document.getElementById('writingTextarea');
-        if(!ta) return;
-        const start = ta.selectionStart != null ? ta.selectionStart : ta.value.length;
-        const end = ta.selectionEnd != null ? ta.selectionEnd : ta.value.length;
-        const before = ta.value.slice(0, start);
-        const after = ta.value.slice(end);
-        const sep = (before && !/[，。！？、；：\n]\s*$/.test(before)) ? '' : '';
-        ta.value = before + sep + text + after;
-        ta.focus();
-        const pos = (before + sep + text).length;
-        ta.setSelectionRange(pos, pos);
-    }
-    async function transcribeWithGroq(file, fileName){
-        const key = getGroqKey();
-        if(!key){ throw new Error(t('writing.audio_no_key')); }
-        const fd = new FormData();
-        fd.append('file', file, fileName || 'recording.webm');
-        fd.append('model', 'whisper-large-v3');
-        fd.append('language', 'zh');
-        fd.append('response_format', 'json');
-        let resp;
-        try{
-            resp = await fetch(GROQ_ASR_URL, { method:'POST', headers:{ 'Authorization':'Bearer ' + key }, body: fd });
-        }catch(e){
-            if(GROQ_ASR_DIRECT) throw new Error(t('writing.audio_cors_hint'));
-            throw e;
-        }
-        if(!resp.ok){
-            let msg = 'HTTP ' + resp.status;
-            try{ const j = await resp.json(); if(j && j.error && j.error.message) msg = j.error.message; }catch(_){}
-            throw new Error(msg);
-        }
-        const data = await resp.json();
-        const text = (data && (data.text || data.transcript || '')).trim();
-        if(!text) throw new Error(t('writing.audio_no_text'));
-        return text;
-    }
-    async function handleWritingRecordClick(){
-        const btn = document.getElementById('writingRecordBtn');
-        if(!writingRecording){
-            if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
-                alert(t('writing.audio_no_record_support')); return;
-            }
-            try{
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                writingAudioChunks = [];
-                const mimeType = (window.MediaRecorder && ['audio/webm','audio/mp4','audio/ogg'].find(t => MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(t))) || '';
-                writingMediaRecorder = mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream);
-                writingMediaRecorder.ondataavailable = e => { if(e.data && e.data.size) writingAudioChunks.push(e.data); };
-                writingMediaRecorder.onstop = async () => {
-                    stream.getTracks().forEach(t => t.stop());
-                    const blob = new Blob(writingAudioChunks, { type: writingMediaRecorder.mimeType || 'audio/webm' });
-                    if(!blob.size){ setWritingAudioStatus(t('writing.audio_empty'), 'err'); return; }
-                    setWritingAudioStatus(t('writing.audio_transcribing'), 'busy');
-                    if(btn){ btn.textContent = t('writing.audio_record'); btn.disabled = false; }
-                    try{
-                        const ext = (writingMediaRecorder.mimeType || '').includes('mp4') ? 'm4a' : ((writingMediaRecorder.mimeType || '').includes('ogg') ? 'ogg' : 'webm');
-                        const text = await transcribeWithGroq(blob, 'recording.' + ext);
-                        insertIntoWritingTextarea(text);
-                        setWritingAudioStatus(t('writing.audio_inserted') + text.slice(0, 30) + (text.length > 30 ? '…' : ''), 'ok');
-                    }catch(e){
-                        setWritingAudioStatus(t('writing.audio_fail') + e.message, 'err');
-                    }
-                    writingRecording = false;
-                };
-                writingMediaRecorder.start();
-                writingRecording = true;
-                btn.textContent = t('writing.audio_stop');
-                setWritingAudioStatus(t('writing.audio_recording'), 'busy');
-            }catch(e){
-                setWritingAudioStatus(t('writing.audio_mic_fail') + e.message, 'err');
-            }
-        } else {
-            if(writingMediaRecorder && writingMediaRecorder.state !== 'inactive'){
-                writingMediaRecorder.stop();
-            }
-        }
-    }
-    async function handleWritingAudioFile(file){
-        if(!file) return;
-        if(file.size > 25 * 1024 * 1024){ alert(t('writing.audio_too_large')); return; }
-        setWritingAudioStatus(t('writing.audio_transcribing') + ' ' + file.name, 'busy');
-        try{
-            const text = await transcribeWithGroq(file, file.name);
-            insertIntoWritingTextarea(text);
-            setWritingAudioStatus(t('writing.audio_inserted') + text.slice(0, 30) + (text.length > 30 ? '…' : ''), 'ok');
-        }catch(e){
-            setWritingAudioStatus(t('writing.audio_fail') + e.message, 'err');
-        }
-    }
-    function bindWritingAudioEvents(){
-        loadGroqKey();
-        const groqEl = document.getElementById('groqKeyInput');
-        if(groqEl) groqEl.onchange = saveGroqKey;
-        const recBtn = document.getElementById('writingRecordBtn');
-        if(recBtn) recBtn.onclick = handleWritingRecordClick;
-        const fileBtn = document.getElementById('writingAudioFileBtn');
-        const fileInput = document.getElementById('writingAudioFile');
-        if(fileBtn && fileInput){
-            fileBtn.onclick = () => fileInput.click();
-            fileInput.onchange = () => { if(fileInput.files && fileInput.files[0]) handleWritingAudioFile(fileInput.files[0]); fileInput.value = ''; };
-        }
     }
     function escapeHtml(s){ return String(s).replace(/[&<>]/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])); }
     function safeJsonParse(raw){ let c=String(raw).replace(/```json\s*/gi,'').replace(/```/g,'').trim(); c=c.replace(/[\x00-\x08\x0b\x0c\x0e-\x1f]/g,''); try{ return JSON.parse(c); }catch(e1){ const m=c.match(/\{[\s\S]*\}/); if(m){ let fixed=m[0]; fixed=fixed.replace(/,\s*([}\]])/g,'$1'); fixed=fixed.replace(/[\x00-\x08\x0b\x0c\x0e-\x1f]/g,''); try{ return JSON.parse(fixed); }catch(e2){ return {}; } } return {}; } }
@@ -9935,7 +9805,6 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
     function finishInit(){ detectSpeechSupport(); primeSpeechSynthesis(); loadFullState(); loadCandidateLevel(); pickCandidateWords(); updateStatsUI(); applyLanguage(); refreshAll(); sendBtn.onclick=handleUserMessage; endBtn.onclick=handleEndConversation;
             initVoiceRecognition();
         bindReadingEvents();
-        bindWritingAudioEvents();
         document.getElementById('chatHistoryBtn').onclick = showChatHistory;
         const histBtn=document.getElementById('chatHistoryBtn'); if(histBtn){ const histMap={'Chinese':'📜 历史','English':'📜 History','Japanese':'📜 履歴','Korean':'📜 기록','French':'📜 Historique','German':'📜 Verlauf','Spanish':'📜 Historial','Russian':'📜 История','Thai':'📜 ประวัติ','Italian':'📜 Cronologia'}; histBtn.textContent=histMap[targetLangSelect.value]||'📜 History'; }
         targetLangSelect.addEventListener('change',()=>{ applyLanguage(); });
