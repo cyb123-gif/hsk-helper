@@ -8966,8 +8966,8 @@ function saveFullState(){ if(!currentUser) return; const entries=Array.from(used
 - 不要每次都以问题结尾——有时分享完自然结束就好
 - 绝不要假装自己是人类去编造生活经历（如散步、吃饭、去了某地等）
 【纠错规则】
-系统会自动分析学生句子的偏误并记录到错句本，你不需要在回复中使用 ❌/✅/💡 格式纠错，也不要写这些符号。
-如果学生的句子有明显错误（包括错别字、语序错误、比较句错误、缺词等），你必须自然地在回复中使用正确说法，优先使用「哦，你是说[正确说法]」或「哦，你想说的是[正确说法]」的句式，让学生看到正确的表达。例如学生说"我今天再家"，你可以回"哦，你是说你在家啊"；学生说"我配朋友去"，你可以回"哦，你是说陪朋友去啊"；学生说"尤其年轻人重视新的事比旧的"，你可以回"哦，你是说比起旧事物，年轻人更重视新事物吧"。但不要使用 ❌/✅/💡 符号，也不要长篇解释语法。
+系统会独立分析学生句子的偏误并记录到错句本，你不需要在回复中使用 ❌/✅/💡 格式纠错，也不要写这些符号。
+你需要做的：先根据学生这句话本身识别出错误（错别字、语序、比较句、缺词等），然后用正确说法自然回应，优先使用「哦，你是说[正确说法]」或「哦，你想说的是[正确说法]」的句式，让学生看到正确的表达。例如学生说"我今天再家"，你可以回"哦，你是说你在家啊"；学生说"我配朋友去"，你可以回"哦，你是说陪朋友去啊"；学生说"尤其年轻人重视新的事比旧的"，你可以回"哦，你是说比起旧事物，年轻人更重视新事物吧"。注意：先有错误判断，再说「你是说…」；不要为了用这个句式而改写本来正确的句子，也不要长篇解释语法。
 【输出前自检 - 每次回复前必须执行】
 (a) 每个小句（逗号前的一段）不超过${limPlain.maxChars}个汉字？
 (b) 全段不超过${limPlain.maxSentences}句？
@@ -9080,19 +9080,7 @@ N=名词, V=动词, Adj=形容词, Adv=副词, Prep=介词, Pron=代词(同Prono
 输出JSON：{"results":[{"sentence":"句子","matches":[{"pattern":"语法格式","level":等级}]}]}
 没有匹配的句子也要包含，matches为空数组。只输出纯JSON，不要任何解释文字。`;
 
-try{ const resp=await fetch(API_BASE,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${apiKey}`}, body:JSON.stringify({model:'deepseek-v4-flash',thinking:{type:'disabled'}, max_tokens:4096, messages:[{role:'system',content:prompt},{role:'user',content:blocksText}], temperature:0.1, response_format:{type:'json_object'}})}); const data=await resp.json(); if(data.error) throw new Error(data.error.message||"API error"); if(!data.choices||!data.choices[0]||!data.choices[0].message) throw new Error("API error"); let content=data.choices[0].message.content; content=content.replace(/```json/g,'').replace(/```/g,'').trim(); const parsed=JSON.parse(content); return parsed.results||parsed.matches||parsed||[]; }catch(e){ return null; } }async function analyzeMistakesBatch(userMessages, assistantReply){ const apiKey=apiKeyInput.value.trim(); if(!apiKey||userMessages.length===0) return []; const replyCtx=assistantReply?`
-【AI助手刚才的回复 - 自然纠错提取】
-${assistantReply}
-
-【从自然回复中提取纠错 - 必须遵守】
-如果AI助手的回复中自然纠正了学生的表达（例如：学生说"我昨天去商店买一个包"，助手回复"哦，你昨天去商店买了一个包啊"；学生说"我中国一次去过"，助手回复"哦，你是说你去过一次中国啊"；或学生说"用了"，助手回复"哦，你是说[正确说法]"；或助手用与学生会话不同的正确说法回应），这表示学生原句存在偏误。此时必须提取出纠错对：
-- original = 学生原表达（片段）
-- corrected = 助手回复中对应的正确说法
-- type = "对话纠错"
-- note = 用中文简短说明错误原因（例如：别字「陪」误写为「配」；缺少「了」；语序不当等）。禁止写"AI回复中自然纠正"这种空话。
-特别强调：只要助手回复中出现"哦，你是说X"、"你是说X"、"你想说的是X"等，并且X与学生的原表达不同且是更正确的说法，就必须输出纠错对（original=学生原表达，corrected=X）。宁可多提取，不可漏掉。
-注意：如果助手只是在提问澄清（如"你是说……吗？"）而没有给出正确说法，不要提取。
-`:''; const prompt=`你是HSK中文教师。请严格分析学生句子的偏误（error analysis）。只报告真正的偏误，宁缺毋滥。
+try{ const resp=await fetch(API_BASE,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${apiKey}`}, body:JSON.stringify({model:'deepseek-v4-flash',thinking:{type:'disabled'}, max_tokens:4096, messages:[{role:'system',content:prompt},{role:'user',content:blocksText}], temperature:0.1, response_format:{type:'json_object'}})}); const data=await resp.json(); if(data.error) throw new Error(data.error.message||"API error"); if(!data.choices||!data.choices[0]||!data.choices[0].message) throw new Error("API error"); let content=data.choices[0].message.content; content=content.replace(/```json/g,'').replace(/```/g,'').trim(); const parsed=JSON.parse(content); return parsed.results||parsed.matches||parsed||[]; }catch(e){ return null; } }async function analyzeMistakesBatch(userMessages){ const apiKey=apiKeyInput.value.trim(); if(!apiKey||userMessages.length===0) return []; const prompt=`你是HSK中文教师。请严格分析学生句子本身的偏误（error analysis）：先识别错误，再给出改正和原因。只报告真正的偏误，宁缺毋滥。
 
 【重要原则 - 必须遵守】
 1. 【禁止无效纠错】original和corrected必须不同。如果不需要改动，说明没有偏误，不要输出。
@@ -9100,7 +9088,7 @@ ${assistantReply}
 3. 【只分析当前句子】不要对比或引用学生以前的句子。即使学生以前犯过某个错误，只要当前句子是对的，就不要提。
 4. 如果原始句子已经正确，直接返回空数组[]，不要为了输出而"微调"。
 5. 【标点符号不是错误】绝不纠标点符号：缺少句号/问号/感叹号/逗号、多写标点、标点用错，都不是偏误。例如学生写"你知道这个旅行方式吗"（结尾没有问号）是完全正确的，不要改成"……吗?"。
-6. 【note必须是错误原因】note 用中文简短写出具体错误原因，例如：别字「陪」误写为「配」；缺少「了」；语序不当（比较句应为「比起旧事物，年轻人更重视新事物」）。禁止写"AI自然回复纠正"之类的空话。${replyCtx}
+6. 【note必须是错误原因】note 用中文简短写出具体错误原因，例如：别字「陪」误写为「配」；缺少「了」；语序不当（比较句应为「比起旧事物，年轻人更重视新事物」）。禁止写"AI自然回复纠正"之类的空话。
 
 【偏误类型 - 只报告真实有问题的】
 - grammar：语法结构错误（语序不对、虚词用错/缺失、句式混乱）
@@ -9108,14 +9096,13 @@ ${assistantReply}
 - character：汉字别字（同音/近音混淆，如「配」写成「陪」、「在」写成「再」、「的/得/地」混用）
 - redundant：多余字词（副词冗余如"比较很"、重复表达）
 - collocation：搭配不当
-- 对话纠错：AI自然回复中隐含的纠正
 
 【必须能识别的高频错误 - 举例】
 - 别字：「我配朋友去」→「我陪朋友去」
 - 比较句语序：「尤其年轻人重视新的事比旧的」→「比起旧事物，年轻人更重视新事物」或「年轻人重视新事物，胜过旧事物」
 - 缺少虚词：「我昨天去商店买一个包」→「我昨天去商店买了一个包」
 
-输出JSON数组：[{"original":"学生原文(片段)","corrected":"改正后(必须与original不同)","type":"类型","note":"错误原因（中文，具体说明，禁止空话）"}]。无错误返回[]。`; try{ const resp=await fetch(API_BASE,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${apiKey}`}, body:JSON.stringify({model:'deepseek-v4-flash',thinking:{type:'disabled'}, max_tokens:4096, messages:[{role:'system',content:prompt},{role:'user',content:'学生句子: '+JSON.stringify(userMessages)+(assistantReply?('\nAI助手回复: '+assistantReply):'')}], temperature:0.1, response_format:{type:'json_object'}})}); const data=await resp.json(); if(data.error) throw new Error(data.error.message||"API error"); if(!data.choices||!data.choices[0]||!data.choices[0].message) throw new Error("API error"); let content=data.choices[0].message.content; content=content.replace(/```json/g,'').replace(/```/g,'').trim(); const parsed=JSON.parse(content); return Array.isArray(parsed)?parsed:(parsed.mistakes||parsed.results||[]); }catch(e){ return []; } }
+输出JSON数组：[{"original":"学生原文(片段)","corrected":"改正后(必须与original不同)","type":"类型","note":"错误原因（中文，具体说明，禁止空话）"}]。无错误返回[]。`; try{ const resp=await fetch(API_BASE,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${apiKey}`}, body:JSON.stringify({model:'deepseek-v4-flash',thinking:{type:'disabled'}, max_tokens:4096, messages:[{role:'system',content:prompt},{role:'user',content:'学生句子: '+JSON.stringify(userMessages)}], temperature:0.1, response_format:{type:'json_object'}})}); const data=await resp.json(); if(data.error) throw new Error(data.error.message||"API error"); if(!data.choices||!data.choices[0]||!data.choices[0].message) throw new Error("API error"); let content=data.choices[0].message.content; content=content.replace(/```json/g,'').replace(/```/g,'').trim(); const parsed=JSON.parse(content); return Array.isArray(parsed)?parsed:(parsed.mistakes||parsed.results||[]); }catch(e){ return []; } }
     function isPunctuationOnlyDiff(a,b){var p='，。、！？；：…—·《》〈〉（）【】,.!?;:()[]{}<> ';var s=function(x){return (x||'').split('').filter(function(c){return p.indexOf(c)<0;}).join('');};return s(a)===s(b);}
     function filterMistakes(mistakes){ if(!mistakes||!mistakes.length) return []; const out=[]; for(const m of mistakes){ if(!m||!m.original||!m.corrected) continue; if(m.original===m.corrected) continue; if(isPunctuationOnlyDiff(m.original,m.corrected)) continue; if(out.some(x=>x.original===m.original&&x.corrected===m.corrected)) continue; out.push(m); } return out; }
     // 💡 纠错块展示去重：同一个学生原句只展示一次，避免自然纠错与批量分析重复提取
@@ -9152,28 +9139,6 @@ ${assistantReply}
         if(dels.length) parts.push('多余：' + dels.join('、'));
         if(!parts.length) parts.push('语序或表达不当，已按AI回复修正');
         return parts.join('；');
-    }
-    function extractNaturalCorrections(userMsg, replyRaw){
-        if(!replyRaw) return [];
-        const reply = String(replyRaw);
-        const user = String(userMsg || '').trim();
-        if(!user) return [];
-        const re = /(?:哦[，,]?\s*)?(?:你是说|你是想说|你想说的是|你是要说)\s*([^，。！？!?；;、\n]+)/;
-        const m = reply.match(re);
-        if(!m) return [];
-        let corrected = m[1].trim();
-        corrected = corrected.replace(/[吗呢吧啊呀嘛]+$/, '');
-        corrected = corrected.replace(/^是[的]?/, '').trim();
-        if(!corrected || corrected === user) return [];
-        // 提取片段要与学生的句子有一定重合，避免把单纯的澄清问题误判为纠错
-        const userChars = user.replace(/[^\u4e00-\u9fff]/g, '');
-        const corrChars = corrected.replace(/[^\u4e00-\u9fff]/g, '');
-        if(!corrChars || !userChars) return [];
-        let same = 0;
-        for(const ch of corrChars){ if(userChars.includes(ch)) same++; }
-        const ratio = same / Math.max(corrChars.length, 1);
-        if(ratio < 0.35) return [];
-        return [{ original: user, corrected: corrected, type: '对话纠错', note: describeMistakeReason(user, corrected) }];
     }
     function findMatchingPattern(returnedPattern){ if(!returnedPattern) return null; const p=returnedPattern.trim(); const exact=grammarList.find(g=>g.pattern===p); if(exact) return exact; const pClean=p.replace(/[（(][^)）]*[)）]/g,'').trim(); const exactClean=grammarList.find(g=>g.pattern.replace(/[（(][^)）]*[)）]/g,'').trim()===pClean); if(exactClean) return exactClean; const pFixed=extractPatternFixedChars(p).join(''); if(pFixed.length>0){ const byFixed=grammarList.find(g=>extractPatternFixedChars(g.pattern).join('')===pFixed); if(byFixed) return byFixed; } const byShort=grammarList.find(g=>{ const gClean=g.pattern.replace(/[（(][^)）]*[)）]/g,'').trim(); return gClean.includes(pClean)||pClean.includes(gClean); }); if(byShort) return byShort; console.warn('findMatchingPattern failed for:', p); return null; }
     function isAcquired(entry){ return entry && (entry.count||0) >= ACQUIRED_THRESHOLD; }
@@ -9247,7 +9212,7 @@ if(wrongSentences.length===0){ rpt+='(暂无错句记录)\n'; } else { for(var w
 rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n⭐ 第五部分：收藏句子\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(favoriteSentences.length===0){ rpt+='(暂无收藏)\n'; } else { for(let item of favoriteSentences){ rpt+='🇨🇳 '+item.chinese+'\n🌐 '+(item.translation||'')+'\n📅 '+(item.date||'')+'\n\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n💬 「怎么说」尝试记录\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(zmsRecords.length===0){ rpt+='(暂无尝试记录)\n'; } else { for(var zi=0; zi<zmsRecords.length; zi++){ var zr=zmsRecords[zi]; rpt+='🌐 母语：'+zr.original+'\n  ✏️ 你的尝试：'+zr.attempt+'\n  ✅ 参考答案：'+zr.reference+'\n  📅 '+(zr.date||'')+'\n\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n📰 阅读历史\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(readingHistory.length===0){ rpt+='(暂无阅读记录)\n'; } else { readingHistory.forEach((r,i)=>{ rpt+='📌 '+(r.title||('HSK'+r.level))+' [HSK'+r.level+']\n'; rpt+='📅 '+(r.date||'')+' · 主题：'+(r.topic||'')+'\n'; if(r.background) rpt+='背景：'+r.background+'\n'; if(r.sourceUrl) rpt+='🔗 '+r.sourceUrl+'\n'; rpt+='--- 正文 ---\n'+(r.content||'')+'\n\n'; }); } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n📖 阅读词汇追踪（完成阅读后按等级累加）\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; const rtk2=readingTrack||{unknownIn:{},knownIn:{},unknownOut:{}}; const rIn1=Object.entries(rtk2.unknownIn||{}).map(([w,o])=>({word:w,level:o.level||vocabLevelOfWord(w)||0,count:o.count||0})).sort((a,b)=>a.level-b.level); const rIn2=Object.entries(rtk2.knownIn||{}).map(([w,o])=>({word:w,level:o.level||vocabLevelOfWord(w)||0,count:o.count||0})).sort((a,b)=>a.level-b.level); const rOut=Object.entries(rtk2.unknownOut||{}).map(([t,o])=>({text:t,type:o.type||'phrase',count:o.count||0})).sort((a,b)=>b.count-a.count); const rCat=(title,arr,isOut)=>{ rpt+='=== '+title+' ===\n'; if(arr.length===0){ rpt+='(无)\n'; return; } for(const it of arr){ if(isOut){ const ico=it.type==='sentence'?'📝 句子':(it.type==='phrase'?'🔗 短语':'🔤 词语'); rpt+=ico+' '+it.text+'：出现 '+it.count+' 次\n'; } else { rpt+=vocabLevelLabel(it.level)+' '+it.word+'：出现 '+it.count+' 次\n'; } } rpt+='\n'; }; rCat('① 不懂的纲内词', rIn1, false); rCat('② 知道的纲内词', rIn2, false); rCat('③ 不懂的超纲词/短语/句子', rOut, true); const ok = downloadTextFile(rpt, 'HSK_Learning_Report_' + getLocalDate() + '.txt'); showToast(ok ? t('toast.download_started') : t('toast.download_failed')); }
 
 async function handleEndConversation(){ if(chatAbortController){ chatAbortController.abort(); chatAbortController=null; } if(currentSessionClauses.length===0&&sessionUserMessages.length===0){ addAssistantMessage(t('analysis.no_sentences')); return; } const filteredClauses=currentSessionClauses.filter(c=>!isQueriedSentence(c)); const savedClauses=[...filteredClauses]; if(filteredClauses.length===0){ addAssistantMessage(t('analysis.no_sentences')); currentSessionClauses=[]; sessionUserMessages=[]; return; } addAssistantMessage(t('analysis.analyzing_prefix')+filteredClauses.length+'...'); try{ const analysis=await analyzeGrammarBatch(filteredClauses); if(analysis) mergeAnalysisResults(analysis); addAssistantMessage(t('analysis.grammar_done')); }catch(e){ addAssistantMessage(t('analysis.grammar_timeout')); } addAssistantMessage(t('analysis.vocab_analyzing')); try{ const vocabAnalysis=await analyzeVocabBatch(savedClauses); if(vocabAnalysis){ mergeVocabResultsFiltered(vocabAnalysis); } const matchCount=vocabAnalysis?vocabAnalysis.reduce((sum,item)=>sum+Object.keys(item.wordCounts||{}).length,0):0; addAssistantMessage(t('analysis.vocab_done')+' 匹配到 '+matchCount+' 个词'); }catch(e){ console.log('Vocab error:',e); addAssistantMessage(t('analysis.vocab_timeout')); } renderVocabLevelProgress(); renderVocabTrackList(); currentSessionClauses=[]; sessionUserMessages=[]; }
-    async function handleUserMessage(){ let text=userInput.value.trim(); if(!text) return; userInput.value=''; addMessage('user',text); currentSessionClauses.push(...splitClauses(text)); sessionUserMessages.push(text); if(chatAbortController){ chatAbortController.abort(); } chatAbortController=new AbortController(); const signal=chatAbortController.signal; try{ const reply=await chatWithContext(text,signal); let mistakes=await analyzeMistakesBatch([text], reply?reply.raw:null); const natural=extractNaturalCorrections(text, reply?reply.raw:null); if(natural.length){ mistakes=(mistakes||[]).concat(natural); } const filtered=dedupeMistakesByOriginal(filterMistakes(mistakes)); if(reply){ for(const m of filtered){ addWrongSentence('','对话纠错',m.corrected,'',m.original,m.note||''); } let html=reply.html, raw=reply.raw; if(filtered.length>0){ const htmlParts=[], rawLines=[]; for(const m of filtered){ rawLines.push('✅ '+m.corrected); if(m.note) rawLines.push('💡 '+m.note); htmlParts.push('✅ <b style="color:#27ae60">'+escapeHtml(m.corrected)+'</b>'+(m.note?' <span style="color:#e67e22">💡 '+escapeHtml(m.note)+'</span>':'')); } html += '<br><br>✏️ 纠错：<br>' + htmlParts.join('<br>'); raw += '\n✏️ 纠错：\n' + rawLines.join('\n'); const last=chatHistory[chatHistory.length-1]; if(last&&last.role==='assistant'){ last.content=raw; saveChatHistory(); } } addAssistantMessage(html, true, raw); } else { for(const m of filtered){ addWrongSentence('','对话纠错',m.corrected,'',m.original,m.note||''); } addAssistantMessage(t('analysis.reply_fail')); } }catch(e){ if(e.name!=='AbortError') addAssistantMessage(t('analysis.reply_fail')); }finally{ chatAbortController=null; } }
+    async function handleUserMessage(){ let text=userInput.value.trim(); if(!text) return; userInput.value=''; addMessage('user',text); currentSessionClauses.push(...splitClauses(text)); sessionUserMessages.push(text); if(chatAbortController){ chatAbortController.abort(); } chatAbortController=new AbortController(); const signal=chatAbortController.signal; try{ const reply=await chatWithContext(text,signal); const mistakes=await analyzeMistakesBatch([text]); for(const m of mistakes){ if(!m.note) m.note=describeMistakeReason(m.original, m.corrected); } const filtered=dedupeMistakesByOriginal(filterMistakes(mistakes)); if(reply){ for(const m of filtered){ addWrongSentence('','对话纠错',m.corrected,'',m.original,m.note||''); } let html=reply.html, raw=reply.raw; if(filtered.length>0){ const htmlParts=[], rawLines=[]; for(const m of filtered){ rawLines.push('❌ '+m.original); rawLines.push('✅ '+m.corrected); if(m.note) rawLines.push('💡 '+m.note); htmlParts.push('<b>'+escapeHtml(m.original)+'</b> → <b style="color:#27ae60">'+escapeHtml(m.corrected)+'</b>'+(m.note?' <span style="color:#e67e22">💡 '+escapeHtml(m.note)+'</span>':'')); } html += '<br><br>✏️ 纠错：<br>' + htmlParts.join('<br>'); raw += '\n✏️ 纠错：\n' + rawLines.join('\n'); const last=chatHistory[chatHistory.length-1]; if(last&&last.role==='assistant'){ last.content=raw; saveChatHistory(); } } addAssistantMessage(html, true, raw); } else { for(const m of filtered){ addWrongSentence('','对话纠错',m.corrected,'',m.original,m.note||''); } addAssistantMessage(t('analysis.reply_fail')); } }catch(e){ if(e.name!=='AbortError') addAssistantMessage(t('analysis.reply_fail')); }finally{ chatAbortController=null; } }
     let practiceIsSpeaking=false;
     // ========== 语音朗读 ==========
     // 解锁移动端音频播放（微信等WebView首次需用户手势激活AudioContext）
