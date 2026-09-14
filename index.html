@@ -7633,7 +7633,7 @@ const HSK2_VOCAB = [
                 seen.add(w);
                 const c = w[0];
                 if (!map.has(c)) map.set(c, []);
-                map.get(c).push({ w, lv });
+                map.get(c).push({ w, lv, p: v.p || '' });
             }
         }
         for (const arr of map.values()) arr.sort((a, b) => b.w.length - a.w.length);
@@ -7665,16 +7665,53 @@ const HSK2_VOCAB = [
     function buildReadingTokens(text, level) {
         const lexicon = getReadingLexiconByFirst();
         const isHan = ch => /[\u4e00-\u9fff]/.test(ch);
+        // 方位词后缀：常与前文名词组成方位短语，不应与后文组成新词（如「在微博上火了」不能切成「上火」）
+        const LOCATIVE_CHARS = new Set(['上','下','里','中','内','外','前','后','旁','边','面','间','左','右','东','南','西','北']);
+        const lookupReadingWord = w => {
+            const arr = lexicon.get(w[0]);
+            if (!arr) return null;
+            return arr.find(x => x.w === w) || null;
+        };
+        const tokens = [];
+        // 取当前位置前紧邻的“词”：最后一个已切出的词，若其是未入词库的普通字则向前合并连续普通字
+        const prevRunFromTokens = pos => {
+            if (!tokens.length) return '';
+            const parts = [];
+            let idx = tokens.length - 1;
+            let end = pos;
+            while (idx >= 0) {
+                const tk = tokens[idx];
+                if (tk.cls === 'punct' || !isHan(tk.word || '') || tk.end !== end) break;
+                const isLast = idx === tokens.length - 1;
+                if (!isLast && tk.level !== 0) break;
+                parts.unshift(tk.word);
+                end = tk.start;
+                idx--;
+            }
+            return parts.join('');
+        };
         const matchedAt = pos => {
             const cands = lexicon.get(text[pos]);
             if (!cands) return null;
             for (const c of cands) {
                 if (c.w.length > text.length - pos) continue;
-                if (text.startsWith(c.w, pos)) return c;
+                if (!text.startsWith(c.w, pos)) continue;
+                // 「微博上火了」：候选「上火」以方位字「上」开头时，若前文是名词性短语（如「微博」），
+                // 「上」应单独成词（方位词），跳过这个长词让单字「上」来匹配。
+                if (c.w.length >= 2 && LOCATIVE_CHARS.has(c.w[0]) && pos > 0 && isHan(text[pos - 1])) {
+                    const prevRun = prevRunFromTokens(pos);
+                    if (prevRun.length >= 2) {
+                        const prevEntry = lookupReadingWord(prevRun);
+                        // 前文不在词库（如「微博」）或前文是名词性词语 → 拆分
+                        if (!prevEntry || String(prevEntry.p || '').includes('名') || String(prevEntry.p || '').includes('专')) {
+                            continue;
+                        }
+                    }
+                }
+                return c;
             }
             return null;
         };
-        const tokens = [];
         let i = 0;
         const len = text.length;
         while (i < len) {
