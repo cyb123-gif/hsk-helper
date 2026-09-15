@@ -372,6 +372,41 @@
         .candidate-bar .cand-refresh-btn { background: #1e2b5e; color: #fff; border: none; padding: 4px 12px; border-radius: 12px; cursor: pointer; font-size: 0.78rem; }
         .candidate-bar .cand-refresh-btn:hover { background: #2f4685; }
         .candidate-bar .cand-empty { color: #94a3b8; }
+        /* ===== 听写模式（上传MP3 + 逐句文本） ===== */
+        .dictation-panel { display: none; flex: 1; flex-direction: column; overflow: hidden; }
+        .dictation-panel.active { display: flex; }
+        .dictation-toolbar { padding: 14px 16px; background: #f0f4ff; border-bottom: 1px solid #d8e0f5; }
+        .dictation-title-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .dictation-title-row > span { font-weight: 700; color: #1e2b5e; font-size: 1.05rem; }
+        .dictation-subtitle { margin: 6px 0 0; font-size: 0.8rem; color: #5b6b8c; line-height: 1.5; }
+        .dictation-upload-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
+        .dictation-upload-row input[type="file"] { font-size: 0.82rem; color: #334155; }
+        .dictation-file-status { font-size: 0.78rem; color: #64748b; }
+        .dictation-file-status.ok { color: #2e7d32; }
+        .dictation-file-status.err { color: #c0392b; }
+        .dictation-textarea { width: 100%; min-height: 130px; margin-top: 10px; padding: 12px; border: 1.5px solid #c7d2fe; border-radius: 12px; font-size: 0.95rem; line-height: 1.7; resize: vertical; outline: none; font-family: inherit; }
+        .dictation-textarea:focus { border-color: #1e2b5e; }
+        .dictation-body { flex: 1; overflow-y: auto; padding: 16px; background: #fafbff; }
+        .dictation-progress { font-size: 0.85rem; color: #1e2b5e; font-weight: 600; margin-bottom: 10px; }
+        .dictation-audio-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+        .dictation-btn { background: #1e2b5e; color: white; border: none; border-radius: 20px; padding: 8px 18px; font-weight: 600; font-size: 0.85rem; cursor: pointer; transition: 0.15s; }
+        .dictation-btn:hover { background: #2f4685; }
+        .dictation-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .dictation-btn.orange { background: #e67e22; }
+        .dictation-btn.orange:hover { background: #d35400; }
+        .dictation-btn.green { background: #27ae60; }
+        .dictation-btn.green:hover { background: #219a52; }
+        .dictation-input { width: 100%; padding: 14px 18px; border: 2px solid #3498db; border-radius: 12px; font-size: 1.15rem; outline: none; margin-bottom: 12px; }
+        .dictation-input:focus { border-color: #1e2b5e; }
+        .dictation-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+        .dictation-diff { background: white; border: 1px solid #e9eef4; border-radius: 14px; padding: 14px 16px; margin-bottom: 12px; display: none; }
+        .dictation-diff.show { display: block; }
+        .dictation-diff-line { margin: 6px 0; line-height: 2; font-size: 1.05rem; word-break: break-all; }
+        .dictation-diff-label { font-size: 0.75rem; color: #94a3b8; font-weight: 700; margin-right: 6px; }
+        .dictation-diff .ok { color: #27ae60; font-weight: 700; }
+        .dictation-diff .bad { color: #c0392b; background: #ffebee; border-radius: 4px; padding: 1px 3px; font-weight: 700; }
+        .dictation-diff .extra { color: #c0392b; background: #ffe0e0; border-radius: 4px; padding: 1px 3px; text-decoration: line-through; }
+        .dictation-score { font-size: 0.9rem; font-weight: 700; color: #1e2b5e; }
     
         .dictation-active .practice-grammar-info > strong,
         .dictation-active .practice-grammar-info > div,
@@ -425,6 +460,7 @@
             <button class="mode-tab active" data-mode="chat" id="modeTabChat">💬 对话模式</button>
             <button class="mode-tab" data-mode="writing" id="modeTabWriting">✏️ 写作模式</button>
             <button class="mode-tab" data-mode="reading" id="modeReadTab">📰 短文阅读</button>
+            <button class="mode-tab" data-mode="dictation" id="modeTabDictation">🎧 听写模式</button>
         </div>
         <div class="chat-messages-wrapper" id="chatMessagesWrapper">
         <div class="chat-messages" id="chatMessages">
@@ -504,6 +540,38 @@
             <div id="readingSelectionBar" class="reading-selection-bar" style="display:none;"></div>
             <div class="reading-content" id="readingContent">
                 <div class="empty-detail" id="readingEmpty">还没有生成短文。选择等级后点击「生成短文」，AI 会为你写一篇有趣的短文。</div>
+            </div>
+        </div>
+        <div class="dictation-panel" id="dictationPanel">
+            <div class="dictation-toolbar">
+                <div class="dictation-title-row">
+                    <span id="dictationPanelTitle">🎧 听写模式</span>
+                    <button id="dictationStartBtn" class="dictation-btn orange" disabled>▶ 开始听写</button>
+                    <button id="dictationResetBtn" class="dictation-btn" disabled>🆕 重新开始</button>
+                </div>
+                <p class="dictation-subtitle" id="dictationSubtitle">上传 MP3 录音和按句换行的录音文本，系统会按句切分音频，一句一句播放，你逐句写出来，提交后自动批改并统计正确率。</p>
+                <div class="dictation-upload-row">
+                    <input type="file" id="dictationFileInput" accept="audio/*,.mp3">
+                    <span class="dictation-file-status" id="dictationFileStatus"></span>
+                </div>
+                <textarea class="dictation-textarea" id="dictationTextInput" placeholder="录音文本（每句一行，标点不影响批改）..."></textarea>
+            </div>
+            <div class="dictation-body">
+                <div id="dictationProgress" class="dictation-progress" style="display:none;"></div>
+                <div id="dictationStage" style="display:none;">
+                    <div class="dictation-audio-row">
+                        <button id="dictationPlayBtn" class="dictation-btn">🔊 播放本句</button>
+                        <button id="dictationReplayBtn" class="dictation-btn orange">🔄 重复播放</button>
+                        <span id="dictationAudioStatus" style="font-size:0.78rem;color:#64748b;"></span>
+                    </div>
+                    <input type="text" id="dictationUserInput" class="dictation-input" placeholder="在这里写出你听到的句子..." autocomplete="off">
+                    <div class="dictation-actions">
+                        <button id="dictationSubmitBtn" class="dictation-btn green">✓ 提交本句</button>
+                        <button id="dictationNextBtn" class="dictation-btn" style="display:none;">⏩ 下一句</button>
+                    </div>
+                    <div id="dictationDiffArea" class="dictation-diff"></div>
+                    <div id="dictationScoreArea" class="dictation-score"></div>
+                </div>
             </div>
         </div>
     </div>
@@ -7031,14 +7099,436 @@ const HSK2_VOCAB = [
         }
     };
 
-    // 翻译函数：非中文只显示母语，中文显示中文原文
+    // ===== 新功能标签集中多语种（听写模式 / 复习说明 / 测试 / 学习选择器 / 练习按钮） =====
+    const I18N_EXTRA3 = {
+        'Chinese': {
+            'learn.review_ordinal_days':'待复习#{n} · {d}天后',
+            'learn.delete':'删除',
+            'learn.skipped_toast':'「{word}」已标记为掌握',
+            'learn.picker_vocab_title':'{level} 词汇（{n}个）',
+            'learn.picker_grammar_title':'{level} 语法（{n}个）',
+            'learn.picker_added':'{level}：已选 {v} 词 + {g} 语法',
+            'review.none_due':'✅ 今日复习结束！暂无到期词条',
+            'test.next_btn':'▶ 下一题',
+            'test.exam_done':'🧪 测试完成！答对 {correct}/{total} 题，得分 {pct}%',
+            'test.done':'✅ 测试完成！',
+            'practice.reveal':'💡 答案(5)',
+            'practice.collocation':'🔗 搭配：',
+            'chat.correction':'✏️ 纠错：',
+            'dictation.tab':'🎧 听写模式',
+            'dictation.title':'🎧 听写模式',
+            'dictation.subtitle':'上传 MP3 录音和按句换行的录音文本，系统会按句切分音频，一句一句播放，你逐句写出来，提交后自动批改并统计正确率。',
+            'dictation.text_placeholder':'录音文本（每句一行，标点不影响批改）...',
+            'dictation.start':'▶ 开始听写',
+            'dictation.restart':'🆕 重新开始',
+            'dictation.file_status_empty':'请选择 MP3 文件',
+            'dictation.file_status_ready':'✅ 已加载音频',
+            'dictation.file_status_err':'⚠️ 音频读取失败',
+            'dictation.need_file':'请先上传 MP3 音频文件',
+            'dictation.need_text':'请先粘贴按句换行的录音文本',
+            'dictation.decoding':'⏳ 正在解析音频并切分句子...',
+            'dictation.split_done':'✅ 音频已切分为 {n} 句',
+            'dictation.progress':'第 {n} / {total} 句',
+            'dictation.play':'🔊 播放本句',
+            'dictation.replay':'🔄 重复播放',
+            'dictation.submit':'✓ 提交本句',
+            'dictation.next':'⏩ 下一句',
+            'dictation.input_placeholder':'在这里写出你听到的句子...',
+            'dictation.playing':'▶ 播放中...',
+            'dictation.stopped':'已停止',
+            'dictation.ref_answer':'参考答案',
+            'dictation.your_answer':'你的输入',
+            'dictation.sentence_score':'本句正确率：{pct}%',
+            'dictation.total_score':'总正确率：{pct}%',
+            'dictation.done':'🎉 听写完成！总正确率 {pct}%',
+            'dictation.empty_input':'请先写出你听到的内容，再提交批改。'
+        },
+        'English': {
+            'learn.review_ordinal_days':'Review #{n} due · day {d}',
+            'learn.delete':'Delete',
+            'learn.skipped_toast':'"{word}" marked as mastered',
+            'learn.picker_vocab_title':'{level} Vocabulary ({n})',
+            'learn.picker_grammar_title':'{level} Grammar ({n})',
+            'learn.picker_added':'{level}: {v} words + {g} grammar selected',
+            'review.none_due':'✅ No reviews due today!',
+            'test.next_btn':'▶ Next question',
+            'test.exam_done':'🧪 Test complete! {correct}/{total} correct, score {pct}%',
+            'test.done':'✅ Test complete!',
+            'practice.reveal':'💡 Answer (5)',
+            'practice.collocation':'🔗 Collocation: ',
+            'chat.correction':'✏️ Corrections:',
+            'dictation.tab':'🎧 Dictation',
+            'dictation.title':'🎧 Dictation Mode',
+            'dictation.subtitle':'Upload an MP3 recording and paste the transcript (one sentence per line). The audio is split by sentence and played one at a time. Write what you hear, submit each sentence for correction with highlights, and get an accuracy score.',
+            'dictation.text_placeholder':'Transcript (one sentence per line; punctuation is ignored)...',
+            'dictation.start':'▶ Start Dictation',
+            'dictation.restart':'🆕 Restart',
+            'dictation.file_status_empty':'Choose an MP3 file',
+            'dictation.file_status_ready':'✅ Audio loaded',
+            'dictation.file_status_err':'⚠️ Failed to read audio',
+            'dictation.need_file':'Please upload an MP3 audio file first',
+            'dictation.need_text':'Please paste the transcript with one sentence per line first',
+            'dictation.decoding':'⏳ Decoding audio and splitting sentences...',
+            'dictation.split_done':'✅ Audio split into {n} sentences',
+            'dictation.progress':'Sentence {n} / {total}',
+            'dictation.play':'🔊 Play Sentence',
+            'dictation.replay':'🔄 Repeat',
+            'dictation.submit':'✓ Submit Sentence',
+            'dictation.next':'⏩ Next Sentence',
+            'dictation.input_placeholder':'Write the sentence you hear here...',
+            'dictation.playing':'▶ Playing...',
+            'dictation.stopped':'Stopped',
+            'dictation.ref_answer':'Reference answer',
+            'dictation.your_answer':'Your answer',
+            'dictation.sentence_score':'Sentence accuracy: {pct}%',
+            'dictation.total_score':'Overall accuracy: {pct}%',
+            'dictation.done':'🎉 Dictation complete! Overall accuracy {pct}%',
+            'dictation.empty_input':'Please write what you heard before submitting.'
+        },
+        'Japanese': {
+            'learn.review_ordinal_days':'復習#{n}（未実施）・{d}日後',
+            'learn.delete':'削除',
+            'learn.skipped_toast':'「{word}」をマスター済みにしました',
+            'learn.picker_vocab_title':'{level} 単語（{n}個）',
+            'learn.picker_grammar_title':'{level} 文法（{n}個）',
+            'learn.picker_added':'{level}：{v} 語 + {g} 文法を選択済み',
+            'review.none_due':'✅ 今日の復習はありません！',
+            'test.next_btn':'▶ 次の問題',
+            'test.exam_done':'🧪 テスト完了！{correct}/{total} 問正解、スコア {pct}%',
+            'test.done':'✅ テスト完了！',
+            'practice.reveal':'💡 答え(5)',
+            'practice.collocation':'🔗 コロケーション：',
+            'chat.correction':'✏️ 訂正：',
+            'dictation.tab':'🎧 ディクテーション',
+            'dictation.title':'🎧 ディクテーション',
+            'dictation.subtitle':'MP3音声と1行1文の書き起こしをアップロード。音声を文ごとに分割して1文ずつ再生します。聞いた文を書き、提出すると自動採点され、違いがハイライト表示され、正解率が出ます。',
+            'dictation.text_placeholder':'書き起こし（1行1文。句読点は採点対象外）...',
+            'dictation.start':'▶ 開始',
+            'dictation.restart':'🆕 やり直す',
+            'dictation.file_status_empty':'MP3ファイルを選択してください',
+            'dictation.file_status_ready':'✅ 音声を読み込みました',
+            'dictation.file_status_err':'⚠️ 音声の読み込みに失敗しました',
+            'dictation.need_file':'先にMP3音声ファイルをアップロードしてください',
+            'dictation.need_text':'先に1行1文の書き起こしを貼り付けてください',
+            'dictation.decoding':'⏳ 音声を解析して文を分割中...',
+            'dictation.split_done':'✅ 音声を {n} 文に分割しました',
+            'dictation.progress':'第 {n} / {total} 文',
+            'dictation.play':'🔊 この文を再生',
+            'dictation.replay':'🔄 もう一度再生',
+            'dictation.submit':'✓ この文を提出',
+            'dictation.next':'⏩ 次の文',
+            'dictation.input_placeholder':'聞いた文をここに書いてください...',
+            'dictation.playing':'▶ 再生中...',
+            'dictation.stopped':'停止しました',
+            'dictation.ref_answer':'模範解答',
+            'dictation.your_answer':'あなたの入力',
+            'dictation.sentence_score':'この文の正解率：{pct}%',
+            'dictation.total_score':'全体の正解率：{pct}%',
+            'dictation.done':'🎉 ディクテーション完了！全体の正解率 {pct}%',
+            'dictation.empty_input':'先に聞いた内容を書いてから提出してください。'
+        },
+        'Korean': {
+            'learn.review_ordinal_days':'복습 #{n} 예정 · {d}일 후',
+            'learn.delete':'삭제',
+            'learn.skipped_toast':'"{word}" 마스터 처리됨',
+            'learn.picker_vocab_title':'{level} 어휘 ({n}개)',
+            'learn.picker_grammar_title':'{level} 문법 ({n}개)',
+            'learn.picker_added':'{level}: 어휘 {v}개 + 문법 {g}개 선택됨',
+            'review.none_due':'✅ 오늘 복습할 항목이 없습니다!',
+            'test.next_btn':'▶ 다음 문제',
+            'test.exam_done':'🧪 테스트 완료! {correct}/{total} 정답, 점수 {pct}%',
+            'test.done':'✅ 테스트 완료!',
+            'practice.reveal':'💡 정답(5)',
+            'practice.collocation':'🔗 연어: ',
+            'chat.correction':'✏️ 정정:',
+            'dictation.tab':'🎧 받아쓰기',
+            'dictation.title':'🎧 받아쓰기 모드',
+            'dictation.subtitle':'MP3 녹음과 문장별로 줄바꿈된 스크립트를 업로드하세요. 오디오를 문장 단위로 나누어 한 문장씩 재생합니다. 들은 내용을 쓰고 제출하면 자동 채점과 함께 차이점이 강조 표시되고 정확도가 집계됩니다.',
+            'dictation.text_placeholder':'스크립트 (문장마다 한 줄; 문장부호는 무시)...',
+            'dictation.start':'▶ 시작',
+            'dictation.restart':'🆕 다시 시작',
+            'dictation.file_status_empty':'MP3 파일을 선택하세요',
+            'dictation.file_status_ready':'✅ 오디오 로드됨',
+            'dictation.file_status_err':'⚠️ 오디오 읽기 실패',
+            'dictation.need_file':'먼저 MP3 오디오 파일을 업로드하세요',
+            'dictation.need_text':'먼저 문장별로 줄바꿈된 스크립트를 붙여넣으세요',
+            'dictation.decoding':'⏳ 오디오를 분석하고 문장을 나누는 중...',
+            'dictation.split_done':'✅ 오디오를 {n}개 문장으로 나눴습니다',
+            'dictation.progress':'{n} / {total} 문장',
+            'dictation.play':'🔊 이 문장 재생',
+            'dictation.replay':'🔄 다시 재생',
+            'dictation.submit':'✓ 이 문장 제출',
+            'dictation.next':'⏩ 다음 문장',
+            'dictation.input_placeholder':'들은 문장을 여기에 쓰세요...',
+            'dictation.playing':'▶ 재생 중...',
+            'dictation.stopped':'정지됨',
+            'dictation.ref_answer':'정답',
+            'dictation.your_answer':'내 입력',
+            'dictation.sentence_score':'이 문장 정확도: {pct}%',
+            'dictation.total_score':'전체 정확도: {pct}%',
+            'dictation.done':'🎉 받아쓰기 완료! 전체 정확도 {pct}%',
+            'dictation.empty_input':'먼저 들은 내용을 쓴 후 제출하세요.'
+        },
+        'French': {
+            'learn.review_ordinal_days':'Révision n°{n} à faire · jour {d}',
+            'learn.delete':'Supprimer',
+            'learn.skipped_toast':'« {word} » marqué comme maîtrisé',
+            'learn.picker_vocab_title':'{level} Vocabulaire ({n})',
+            'learn.picker_grammar_title':'{level} Grammaire ({n})',
+            'learn.picker_added':'{level} : {v} mots + {g} grammaire sélectionnés',
+            'review.none_due':'✅ Aucune révision à faire aujourd’hui !',
+            'test.next_btn':'▶ Question suivante',
+            'test.exam_done':'🧪 Test terminé ! {correct}/{total} bonnes réponses, score {pct}%',
+            'test.done':'✅ Test terminé !',
+            'practice.reveal':'💡 Réponse (5)',
+            'practice.collocation':'🔗 Collocation : ',
+            'chat.correction':'✏️ Corrections :',
+            'dictation.tab':'🎧 Dictée',
+            'dictation.title':'🎧 Dictée',
+            'dictation.subtitle':'Téléchargez un enregistrement MP3 et collez la transcription (une phrase par ligne). L’audio est découpé en phrases et lu une à une. Écrivez ce que vous entendez, soumettez chaque phrase pour correction avec surlignage, et obtenez un score.',
+            'dictation.text_placeholder':'Transcription (une phrase par ligne ; la ponctuation est ignorée)...',
+            'dictation.start':'▶ Commencer',
+            'dictation.restart':'🆕 Recommencer',
+            'dictation.file_status_empty':'Choisissez un fichier MP3',
+            'dictation.file_status_ready':'✅ Audio chargé',
+            'dictation.file_status_err':'⚠️ Échec de lecture de l’audio',
+            'dictation.need_file':'Veuillez d’abord télécharger un fichier MP3',
+            'dictation.need_text':'Veuillez d’abord coller la transcription (une phrase par ligne)',
+            'dictation.decoding':'⏳ Décodage de l’audio et découpage des phrases...',
+            'dictation.split_done':'✅ Audio découpé en {n} phrases',
+            'dictation.progress':'Phrase {n} / {total}',
+            'dictation.play':'🔊 Lire la phrase',
+            'dictation.replay':'🔄 Réécouter',
+            'dictation.submit':'✓ Soumettre la phrase',
+            'dictation.next':'⏩ Phrase suivante',
+            'dictation.input_placeholder':'Écrivez ici la phrase entendue...',
+            'dictation.playing':'▶ Lecture...',
+            'dictation.stopped':'Arrêté',
+            'dictation.ref_answer':'Réponse de référence',
+            'dictation.your_answer':'Votre réponse',
+            'dictation.sentence_score':'Précision de la phrase : {pct}%',
+            'dictation.total_score':'Précision globale : {pct}%',
+            'dictation.done':'🎉 Dictée terminée ! Précision globale {pct}%',
+            'dictation.empty_input':'Veuillez écrire ce que vous avez entendu avant de soumettre.'
+        },
+        'German': {
+            'learn.review_ordinal_days':'Wiederholung Nr. {n} fällig · Tag {d}',
+            'learn.delete':'Löschen',
+            'learn.skipped_toast':'„{word}“ als gemeistert markiert',
+            'learn.picker_vocab_title':'{level} Wortschatz ({n})',
+            'learn.picker_grammar_title':'{level} Grammatik ({n})',
+            'learn.picker_added':'{level}: {v} Wörter + {g} Grammatik ausgewählt',
+            'review.none_due':'✅ Heute keine Wiederholungen fällig!',
+            'test.next_btn':'▶ Nächste Frage',
+            'test.exam_done':'🧪 Test fertig! {correct}/{total} richtig, Punktzahl {pct}%',
+            'test.done':'✅ Test fertig!',
+            'practice.reveal':'💡 Antwort (5)',
+            'practice.collocation':'🔗 Kollokation: ',
+            'chat.correction':'✏️ Korrekturen:',
+            'dictation.tab':'🎧 Diktat',
+            'dictation.title':'🎧 Diktat',
+            'dictation.subtitle':'Laden Sie eine MP3-Aufnahme hoch und fügen Sie das Transkript ein (ein Satz pro Zeile). Das Audio wird in Sätze geteilt und einzeln abgespielt. Schreiben Sie, was Sie hören, und reichen Sie jeden Satz zur Korrektur mit Hervorhebung ein.',
+            'dictation.text_placeholder':'Transkript (ein Satz pro Zeile; Satzzeichen werden ignoriert)...',
+            'dictation.start':'▶ Start',
+            'dictation.restart':'🆕 Neu starten',
+            'dictation.file_status_empty':'Bitte MP3-Datei wählen',
+            'dictation.file_status_ready':'✅ Audio geladen',
+            'dictation.file_status_err':'⚠️ Audio konnte nicht gelesen werden',
+            'dictation.need_file':'Bitte zuerst eine MP3-Datei hochladen',
+            'dictation.need_text':'Bitte zuerst das Transkript (ein Satz pro Zeile) einfügen',
+            'dictation.decoding':'⏳ Audio wird analysiert und in Sätze geteilt...',
+            'dictation.split_done':'✅ Audio in {n} Sätze geteilt',
+            'dictation.progress':'Satz {n} / {total}',
+            'dictation.play':'🔊 Satz abspielen',
+            'dictation.replay':'🔄 Wiederholen',
+            'dictation.submit':'✓ Satz einreichen',
+            'dictation.next':'⏩ Nächster Satz',
+            'dictation.input_placeholder':'Schreiben Sie den gehörten Satz hier...',
+            'dictation.playing':'▶ Wiedergabe...',
+            'dictation.stopped':'Gestoppt',
+            'dictation.ref_answer':'Musterlösung',
+            'dictation.your_answer':'Ihre Eingabe',
+            'dictation.sentence_score':'Satzgenauigkeit: {pct}%',
+            'dictation.total_score':'Gesamtgenauigkeit: {pct}%',
+            'dictation.done':'🎉 Diktat fertig! Gesamtgenauigkeit {pct}%',
+            'dictation.empty_input':'Bitte schreiben Sie zuerst, was Sie gehört haben.'
+        },
+        'Spanish': {
+            'learn.review_ordinal_days':'Repaso n.º {n} pendiente · día {d}',
+            'learn.delete':'Eliminar',
+            'learn.skipped_toast':'«{word}» marcado como dominado',
+            'learn.picker_vocab_title':'{level} Vocabulario ({n})',
+            'learn.picker_grammar_title':'{level} Gramática ({n})',
+            'learn.picker_added':'{level}: {v} palabras + {g} gramática seleccionadas',
+            'review.none_due':'✅ ¡No hay repasos pendientes hoy!',
+            'test.next_btn':'▶ Siguiente pregunta',
+            'test.exam_done':'🧪 ¡Prueba terminada! {correct}/{total} correctas, puntuación {pct}%',
+            'test.done':'✅ ¡Prueba terminada!',
+            'practice.reveal':'💡 Respuesta (5)',
+            'practice.collocation':'🔗 Colocación: ',
+            'chat.correction':'✏️ Correcciones:',
+            'dictation.tab':'🎧 Dictado',
+            'dictation.title':'🎧 Dictado',
+            'dictation.subtitle':'Sube un MP3 y pega la transcripción (una frase por línea). El audio se divide en frases y se reproduce una a una. Escribe lo que oigas, envía cada frase para corrección con resaltado y obtén tu porcentaje de acierto.',
+            'dictation.text_placeholder':'Transcripción (una frase por línea; la puntuación se ignora)...',
+            'dictation.start':'▶ Empezar',
+            'dictation.restart':'🆕 Reiniciar',
+            'dictation.file_status_empty':'Elige un archivo MP3',
+            'dictation.file_status_ready':'✅ Audio cargado',
+            'dictation.file_status_err':'⚠️ Error al leer el audio',
+            'dictation.need_file':'Primero sube un archivo MP3',
+            'dictation.need_text':'Primero pega la transcripción con una frase por línea',
+            'dictation.decoding':'⏳ Analizando audio y dividiendo frases...',
+            'dictation.split_done':'✅ Audio dividido en {n} frases',
+            'dictation.progress':'Frase {n} / {total}',
+            'dictation.play':'🔊 Reproducir frase',
+            'dictation.replay':'🔄 Repetir',
+            'dictation.submit':'✓ Enviar frase',
+            'dictation.next':'⏩ Siguiente frase',
+            'dictation.input_placeholder':'Escribe aquí la frase que oigas...',
+            'dictation.playing':'▶ Reproduciendo...',
+            'dictation.stopped':'Detenido',
+            'dictation.ref_answer':'Respuesta de referencia',
+            'dictation.your_answer':'Tu respuesta',
+            'dictation.sentence_score':'Acierto de la frase: {pct}%',
+            'dictation.total_score':'Acierto total: {pct}%',
+            'dictation.done':'🎉 ¡Dictado terminado! Acierto total {pct}%',
+            'dictation.empty_input':'Escribe primero lo que has oído antes de enviar.'
+        },
+        'Russian': {
+            'learn.review_ordinal_days':'Повторение №{n} предстоит · день {d}',
+            'learn.delete':'Удалить',
+            'learn.skipped_toast':'«{word}» отмечено как усвоенное',
+            'learn.picker_vocab_title':'{level} Лексика ({n})',
+            'learn.picker_grammar_title':'{level} Грамматика ({n})',
+            'learn.picker_added':'{level}: выбрано {v} слов + {g} грамматики',
+            'review.none_due':'✅ Сегодня нет слов для повторения!',
+            'test.next_btn':'▶ Следующий вопрос',
+            'test.exam_done':'🧪 Тест завершён! Верно {correct}/{total}, результат {pct}%',
+            'test.done':'✅ Тест завершён!',
+            'practice.reveal':'💡 Ответ (5)',
+            'practice.collocation':'🔗 Сочетание: ',
+            'chat.correction':'✏️ Исправления:',
+            'dictation.tab':'🎧 Диктант',
+            'dictation.title':'🎧 Диктант',
+            'dictation.subtitle':'Загрузите MP3 и вставьте текст (одно предложение в строке). Аудио делится на предложения и проигрывается по одному. Пишите услышанное, отправляйте каждое предложение на проверку с подсветкой ошибок и получайте процент правильности.',
+            'dictation.text_placeholder':'Текст (одно предложение в строке; знаки препинания игнорируются)...',
+            'dictation.start':'▶ Начать',
+            'dictation.restart':'🆕 Заново',
+            'dictation.file_status_empty':'Выберите MP3-файл',
+            'dictation.file_status_ready':'✅ Аудио загружено',
+            'dictation.file_status_err':'⚠️ Не удалось прочитать аудио',
+            'dictation.need_file':'Сначала загрузите MP3-файл',
+            'dictation.need_text':'Сначала вставьте текст (одно предложение в строке)',
+            'dictation.decoding':'⏳ Анализ аудио и разделение на предложения...',
+            'dictation.split_done':'✅ Аудио разделено на {n} предложений',
+            'dictation.progress':'Предложение {n} / {total}',
+            'dictation.play':'🔊 Играть предложение',
+            'dictation.replay':'🔄 Повторить',
+            'dictation.submit':'✓ Отправить предложение',
+            'dictation.next':'⏩ Следующее предложение',
+            'dictation.input_placeholder':'Напишите здесь услышанное предложение...',
+            'dictation.playing':'▶ Воспроизведение...',
+            'dictation.stopped':'Остановлено',
+            'dictation.ref_answer':'Эталонный ответ',
+            'dictation.your_answer':'Ваш ответ',
+            'dictation.sentence_score':'Правильность предложения: {pct}%',
+            'dictation.total_score':'Общая правильность: {pct}%',
+            'dictation.done':'🎉 Диктант завершён! Общая правильность {pct}%',
+            'dictation.empty_input':'Сначала напишите, что вы услышали.'
+        },
+        'Thai': {
+            'learn.review_ordinal_days':'ทบทวนครั้งที่ {n} (รอทำ) · วันที่ {d}',
+            'learn.delete':'ลบ',
+            'learn.skipped_toast':'"{word}" ทำเครื่องหมายว่าเชี่ยวชาญแล้ว',
+            'learn.picker_vocab_title':'{level} คำศัพท์ ({n})',
+            'learn.picker_grammar_title':'{level} ไวยากรณ์ ({n})',
+            'learn.picker_added':'{level}: เลือกคำศัพท์ {v} คำ + ไวยากรณ์ {g} รายการ',
+            'review.none_due':'✅ วันนี้ไม่มีคำที่ต้องทบทวน!',
+            'test.next_btn':'▶ ข้อถัดไป',
+            'test.exam_done':'🧪 ทดสอบเสร็จแล้ว! ถูก {correct}/{total} คะแนน {pct}%',
+            'test.done':'✅ ทดสอบเสร็จแล้ว!',
+            'practice.reveal':'💡 เฉลย (5)',
+            'practice.collocation':'🔗 คำคู่: ',
+            'chat.correction':'✏️ คำแก้ไข:',
+            'dictation.tab':'🎧 เขียนตามคำบอก',
+            'dictation.title':'🎧 โหมดเขียนตามคำบอก',
+            'dictation.subtitle':'อัปโหลดไฟล์ MP3 และวางบทพูด (หนึ่งประโยคต่อบรรทัด) ระบบจะตัดเสียงเป็นประโยค ๆ แล้วเล่นทีละประโยค เขียนสิ่งที่ได้ยิน ส่งแต่ละประโยคเพื่อตรวจพร้อมไฮไลต์จุดต่าง และคิดเปอร์เซ็นต์ความถูกต้อง',
+            'dictation.text_placeholder':'บทพูด (หนึ่งประโยคต่อบรรทัด; ไม่นับเครื่องหมายวรรคตอน)...',
+            'dictation.start':'▶ เริ่ม',
+            'dictation.restart':'🆕 เริ่มใหม่',
+            'dictation.file_status_empty':'เลือกไฟล์ MP3',
+            'dictation.file_status_ready':'✅ โหลดเสียงแล้ว',
+            'dictation.file_status_err':'⚠️ อ่านเสียงไม่สำเร็จ',
+            'dictation.need_file':'กรุณาอัปโหลดไฟล์ MP3 ก่อน',
+            'dictation.need_text':'กรุณาวางบทพูด (หนึ่งประโยคต่อบรรทัด) ก่อน',
+            'dictation.decoding':'⏳ กำลังวิเคราะห์เสียงและตัดประโยค...',
+            'dictation.split_done':'✅ ตัดเสียงเป็น {n} ประโยคแล้ว',
+            'dictation.progress':'ประโยคที่ {n} / {total}',
+            'dictation.play':'🔊 เล่นประโยคนี้',
+            'dictation.replay':'🔄 เล่นซ้ำ',
+            'dictation.submit':'✓ ส่งประโยคนี้',
+            'dictation.next':'⏩ ประโยคถัดไป',
+            'dictation.input_placeholder':'เขียนประโยคที่ได้ยินที่นี่...',
+            'dictation.playing':'▶ กำลังเล่น...',
+            'dictation.stopped':'หยุดแล้ว',
+            'dictation.ref_answer':'เฉลย',
+            'dictation.your_answer':'คำตอบของคุณ',
+            'dictation.sentence_score':'ความถูกต้องของประโยค: {pct}%',
+            'dictation.total_score':'ความถูกต้องรวม: {pct}%',
+            'dictation.done':'🎉 เขียนตามคำบอกเสร็จแล้ว! ความถูกต้องรวม {pct}%',
+            'dictation.empty_input':'กรุณาเขียนสิ่งที่ได้ยินก่อนส่ง'
+        },
+        'Italian': {
+            'learn.review_ordinal_days':'Ripasso n. {n} da fare · giorno {d}',
+            'learn.delete':'Elimina',
+            'learn.skipped_toast':'«{word}» segnato come padroneggiato',
+            'learn.picker_vocab_title':'{level} Vocabolario ({n})',
+            'learn.picker_grammar_title':'{level} Grammatica ({n})',
+            'learn.picker_added':'{level}: {v} parole + {g} grammatica selezionate',
+            'review.none_due':'✅ Nessun ripasso in scadenza oggi!',
+            'test.next_btn':'▶ Prossima domanda',
+            'test.exam_done':'🧪 Test completato! {correct}/{total} corrette, punteggio {pct}%',
+            'test.done':'✅ Test completato!',
+            'practice.reveal':'💡 Risposta (5)',
+            'practice.collocation':'🔗 Collocazione: ',
+            'chat.correction':'✏️ Correzioni:',
+            'dictation.tab':'🎧 Dettato',
+            'dictation.title':'🎧 Dettato',
+            'dictation.subtitle':'Carica un MP3 e incolla la trascrizione (una frase per riga). L’audio viene diviso in frasi e riprodotto una alla volta. Scrivi ciò che senti, invia ogni frase per la correzione con evidenziazione e ottieni la percentuale di correttezza.',
+            'dictation.text_placeholder':'Trascrizione (una frase per riga; la punteggiatura è ignorata)...',
+            'dictation.start':'▶ Inizia',
+            'dictation.restart':'🆕 Ricomincia',
+            'dictation.file_status_empty':'Scegli un file MP3',
+            'dictation.file_status_ready':'✅ Audio caricato',
+            'dictation.file_status_err':'⚠️ Lettura audio non riuscita',
+            'dictation.need_file':'Carica prima un file MP3',
+            'dictation.need_text':'Incolla prima la trascrizione (una frase per riga)',
+            'dictation.decoding':'⏳ Analisi audio e divisione in frasi...',
+            'dictation.split_done':'✅ Audio diviso in {n} frasi',
+            'dictation.progress':'Frase {n} / {total}',
+            'dictation.play':'🔊 Riproduci frase',
+            'dictation.replay':'🔄 Ripeti',
+            'dictation.submit':'✓ Invia frase',
+            'dictation.next':'⏩ Frase successiva',
+            'dictation.input_placeholder':'Scrivi qui la frase che senti...',
+            'dictation.playing':'▶ Riproduzione...',
+            'dictation.stopped':'Fermato',
+            'dictation.ref_answer':'Risposta di riferimento',
+            'dictation.your_answer':'La tua risposta',
+            'dictation.sentence_score':'Correttezza frase: {pct}%',
+            'dictation.total_score':'Correttezza totale: {pct}%',
+            'dictation.done':'🎉 Dettato completato! Correttezza totale {pct}%',
+            'dictation.empty_input':'Scrivi prima ciò che hai sentito.'
+        }
+    };
     function t(key) {
         const lang = targetLangSelect ? targetLangSelect.value : 'English';
         const dict = I18N[lang];
-        const extra = Object.assign({}, I18N_EXTRA['Chinese'] || {}, I18N_EXTRA2['Chinese'] || {}, I18N_EXTRA[lang] || {}, I18N_EXTRA2[lang] || {});
+        const extra = Object.assign({}, I18N_EXTRA['Chinese'] || {}, I18N_EXTRA2['Chinese'] || {}, I18N_EXTRA3['Chinese'] || {}, I18N_EXTRA[lang] || {}, I18N_EXTRA2[lang] || {}, I18N_EXTRA3[lang] || {});
         const voice = I18N_VOICE[lang] || I18N_VOICE['Chinese'] || {};
         const translated = (dict && dict[key]) ? dict[key] : (extra[key] || voice[key] || '');
-        const chinese = (ZH && ZH[key]) ? ZH[key] : ((I18N_EXTRA['Chinese'] && I18N_EXTRA['Chinese'][key]) || (I18N_EXTRA2['Chinese'] && I18N_EXTRA2['Chinese'][key]) || (I18N_VOICE['Chinese'] && I18N_VOICE['Chinese'][key]) || '');
+        const chinese = (ZH && ZH[key]) ? ZH[key] : ((I18N_EXTRA['Chinese'] && I18N_EXTRA['Chinese'][key]) || (I18N_EXTRA2['Chinese'] && I18N_EXTRA2['Chinese'][key]) || (I18N_EXTRA3['Chinese'] && I18N_EXTRA3['Chinese'][key]) || (I18N_VOICE['Chinese'] && I18N_VOICE['Chinese'][key]) || '');
         if (!translated) return chinese || key;
         return translated;
     }
@@ -7185,6 +7675,20 @@ const HSK2_VOCAB = [
             showToast(t('toast.writing_relang'));
             handleWritingSubmit(true);
         }
+        // 听写模式标签
+        const mtd = document.getElementById('modeTabDictation'); if(mtd) mtd.textContent = t('dictation.tab');
+        const dtp = document.getElementById('dictationPanelTitle'); if(dtp) dtp.textContent = t('dictation.title');
+        const dsub = document.getElementById('dictationSubtitle'); if(dsub) dsub.textContent = t('dictation.subtitle');
+        const dti = document.getElementById('dictationTextInput'); if(dti) dti.placeholder = t('dictation.text_placeholder');
+        const dsb = document.getElementById('dictationStartBtn'); if(dsb) dsb.textContent = t('dictation.start');
+        const drb = document.getElementById('dictationResetBtn'); if(drb) drb.textContent = t('dictation.restart');
+        const dpb = document.getElementById('dictationPlayBtn'); if(dpb) dpb.textContent = t('dictation.play');
+        const drpb = document.getElementById('dictationReplayBtn'); if(drpb) drpb.textContent = t('dictation.replay');
+        const dsubb = document.getElementById('dictationSubmitBtn'); if(dsubb) dsubb.textContent = t('dictation.submit');
+        const dnxb = document.getElementById('dictationNextBtn'); if(dnxb) dnxb.textContent = t('dictation.next');
+        const dinp = document.getElementById('dictationUserInput'); if(dinp) dinp.placeholder = t('dictation.input_placeholder');
+        const dfs = document.getElementById('dictationFileStatus'); if(dfs && !dictationState.file) dfs.textContent = t('dictation.file_status_empty');
+        if (dictationState.active) renderDictationProgress();
     }
 
     // 模式切换
@@ -7194,16 +7698,20 @@ const HSK2_VOCAB = [
         const chatTab = document.getElementById('modeTabChat');
         const writingTab = document.getElementById('modeTabWriting');
         const readingTab = document.getElementById('modeReadTab');
+        const dictationTab = document.getElementById('modeTabDictation');
         const wrapper = document.getElementById('chatMessagesWrapper');
         const inputArea = document.querySelector('.chat-input-area');
         const writingPanel = document.getElementById('writingPanel');
         const readingPanel = document.getElementById('readingPanel');
+        const dictationPanel = document.getElementById('dictationPanel');
         chatTab.classList.remove('active'); writingTab.classList.remove('active');
         if (readingTab) readingTab.classList.remove('active');
+        if (dictationTab) dictationTab.classList.remove('active');
         wrapper.classList.add('hidden');
         if (inputArea) inputArea.classList.add('hidden');
         writingPanel.classList.remove('active');
         if (readingPanel) readingPanel.classList.remove('active');
+        if (dictationPanel) dictationPanel.classList.remove('active');
         if (mode === 'chat') {
             chatTab.classList.add('active');
             wrapper.classList.remove('hidden');
@@ -7219,12 +7727,277 @@ const HSK2_VOCAB = [
             renderReadingLevelSelect();
             renderReadingTopicSelect();
             renderReadingHistory();
+        } else if (mode === 'dictation') {
+            if (dictationTab) dictationTab.classList.add('active');
+            if (dictationPanel) dictationPanel.classList.add('active');
+            updateDictationButtons();
         }
     }
     document.getElementById('modeTabChat').onclick = () => switchMode('chat');
     document.getElementById('modeTabWriting').onclick = () => switchMode('writing');
     const modeReadTabEl = document.getElementById('modeReadTab');
     if (modeReadTabEl) modeReadTabEl.onclick = () => switchMode('reading');
+    const modeDictationTabEl = document.getElementById('modeTabDictation');
+    if (modeDictationTabEl) modeDictationTabEl.onclick = () => switchMode('dictation');
+
+    // ==================== 听写模式（上传MP3 + 逐句文本） ====================
+    let dictationState = { file: null, audioBuffer: null, audioCtx: null, lines: [], segments: [], currentIdx: 0, results: [], totalChars: 0, correctChars: 0, active: false };
+    function dictationEl(id){ return document.getElementById(id); }
+    function updateDictationButtons(){
+        const hasFile = !!dictationState.file;
+        const hasText = (dictationEl('dictationTextInput').value || '').trim().length > 0;
+        const startBtn = dictationEl('dictationStartBtn');
+        const resetBtn = dictationEl('dictationResetBtn');
+        if(startBtn) startBtn.disabled = !(hasFile && hasText);
+        if(resetBtn) resetBtn.disabled = !(hasFile || hasText);
+    }
+    function dictationStrip(s){ return String(s || '').replace(/[^\u4e00-\u9fffA-Za-z0-9]/g, ''); }
+    function diffDictationSentence(ref, user){
+        const r = dictationStrip(ref), u = dictationStrip(user);
+        const n = r.length, m = u.length;
+        const dp = Array.from({ length: n + 1 }, () => new Array(m + 1).fill(0));
+        for(let i = n - 1; i >= 0; i--) for(let j = m - 1; j >= 0; j--) dp[i][j] = r[i] === u[j] ? dp[i + 1][j + 1] + 1 : Math.max(dp[i + 1][j], dp[i][j + 1]);
+        const matchedR = new Array(n).fill(false), matchedU = new Array(m).fill(false);
+        let i = 0, j = 0;
+        while(i < n && j < m){
+            if(r[i] === u[j]){ matchedR[i] = true; matchedU[j] = true; i++; j++; }
+            else if(dp[i + 1][j] >= dp[i][j + 1]){ i++; }
+            else { j++; }
+        }
+        let refHtml = '', userHtml = '';
+        for(let k = 0; k < n; k++) refHtml += matchedR[k] ? '<span class="ok">' + escapeHtml(r[k]) + '</span>' : '<span class="bad">' + escapeHtml(r[k]) + '</span>';
+        for(let k = 0; k < m; k++) userHtml += matchedU[k] ? '<span class="ok">' + escapeHtml(u[k]) + '</span>' : '<span class="extra">' + escapeHtml(u[k]) + '</span>';
+        return { refHtml: refHtml || '<span style="color:#94a3b8;">—</span>', userHtml: userHtml || '<span style="color:#94a3b8;">—</span>', correct: dp[0][0], total: n };
+    }
+    function dictationEvenSegments(buffer, count){
+        const total = buffer.duration;
+        const segs = [];
+        for(let k = 0; k < count; k++){
+            const start = total * k / count, end = total * (k + 1) / count;
+            if(end - start > 0.05) segs.push({ start, end });
+        }
+        return segs;
+    }
+    function detectDictationSegments(buffer, count){
+        const data = buffer.getChannelData(0);
+        const sr = buffer.sampleRate;
+        const win = Math.max(1, Math.floor(sr * 0.02));
+        const hop = Math.max(1, Math.floor(sr * 0.01));
+        const energies = [];
+        for(let pos = 0; pos + win <= data.length; pos += hop){
+            let sum = 0;
+            for(let k = 0; k < win; k++){ const v = data[pos + k]; sum += v * v; }
+            energies.push({ pos, rms: Math.sqrt(sum / win) });
+        }
+        if(energies.length === 0 || count <= 1) return dictationEvenSegments(buffer, count);
+        const vals = energies.map(e => e.rms).sort((a, b) => a - b);
+        const median = vals[Math.floor(vals.length / 2)] || 0.001;
+        const threshold = Math.max(median * 0.25, 0.005);
+        const total = buffer.duration;
+        const cuts = [];
+        const searchRange = total / count * 0.6;
+        for(let k = 1; k < count; k++){
+            const ideal = total * k / count;
+            let best = -1, bestDist = Infinity;
+            for(let ei = 0; ei < energies.length; ei++){
+                const t = energies[ei].pos / sr;
+                const dist = Math.abs(t - ideal);
+                if(dist > searchRange) continue;
+                if(energies[ei].rms <= threshold && dist < bestDist){ bestDist = dist; best = t; }
+            }
+            cuts.push(best >= 0 ? best : ideal);
+        }
+        cuts.sort((a, b) => a - b);
+        const segs = [];
+        let start = 0;
+        for(const c of cuts){
+            if(c > start + 0.15){ segs.push({ start, end: c }); start = c; }
+        }
+        segs.push({ start, end: total });
+        return segs.length >= count ? segs : dictationEvenSegments(buffer, count);
+    }
+    let dictationSource = null;
+    function stopDictationAudio(){
+        if(dictationSource){ try{ dictationSource.onended = null; dictationSource.stop(); }catch(e){} dictationSource = null; }
+        const st = dictationEl('dictationAudioStatus'); if(st) st.textContent = '';
+    }
+    function playDictationSegment(idx){
+        const st = dictationState;
+        if(!st.audioBuffer || !st.audioCtx) return;
+        stopDictationAudio();
+        const seg = st.segments[idx];
+        if(!seg) return;
+        if(st.audioCtx.state === 'suspended'){ try{ st.audioCtx.resume(); }catch(e){} }
+        const src = st.audioCtx.createBufferSource();
+        src.buffer = st.audioBuffer;
+        const gain = st.audioCtx.createGain();
+        gain.gain.value = 1;
+        src.connect(gain); gain.connect(st.audioCtx.destination);
+        src.start(0, seg.start, Math.max(0.05, seg.end - seg.start));
+        dictationSource = src;
+        const status = dictationEl('dictationAudioStatus');
+        if(status) status.textContent = t('dictation.playing');
+        src.onended = () => {
+            dictationSource = null;
+            if(status) status.textContent = t('dictation.stopped');
+        };
+    }
+    function renderDictationProgress(){
+        const progress = dictationEl('dictationProgress');
+        if(progress) progress.textContent = t('dictation.progress').replace('{n}', dictationState.currentIdx + 1).replace('{total}', dictationState.lines.length);
+    }
+    async function startDictation(){
+        const st = dictationState;
+        const fileInput = dictationEl('dictationFileInput');
+        const textEl = dictationEl('dictationTextInput');
+        const file = fileInput && fileInput.files && fileInput.files[0];
+        if(!file){ showToast(t('dictation.need_file')); return; }
+        const lines = String(textEl.value || '').split(/\r?\n/).map(s => s.trim()).filter(s => s.length > 0);
+        if(lines.length === 0){ showToast(t('dictation.need_text')); return; }
+        const startBtn = dictationEl('dictationStartBtn');
+        if(startBtn) startBtn.disabled = true;
+        const progress = dictationEl('dictationProgress');
+        if(progress){ progress.style.display = 'block'; progress.textContent = t('dictation.decoding'); }
+        try{
+            if(!st.audioCtx){
+                const AC = window.AudioContext || window.webkitAudioContext;
+                st.audioCtx = new AC();
+            }
+            if(st.audioCtx.state === 'suspended'){ try{ await st.audioCtx.resume(); }catch(e){} }
+            if(!st.audioBuffer){
+                const arrayBuf = await file.arrayBuffer();
+                st.audioBuffer = await new Promise((resolve, reject) => {
+                    try{ st.audioCtx.decodeAudioData(arrayBuf, buf => buf ? resolve(buf) : reject(new Error('decode failed')), reject); }
+                    catch(e){ reject(e); }
+                });
+            }
+            st.file = file;
+            st.lines = lines;
+            st.segments = detectDictationSegments(st.audioBuffer, lines.length);
+            st.currentIdx = 0;
+            st.results = [];
+            st.totalChars = 0; st.correctChars = 0;
+            st.active = true;
+            if(progress) progress.textContent = t('dictation.split_done').replace('{n}', st.segments.length);
+            dictationEl('dictationStage').style.display = 'block';
+            const input = dictationEl('dictationUserInput');
+            input.value = ''; input.disabled = false;
+            dictationEl('dictationDiffArea').classList.remove('show');
+            dictationEl('dictationDiffArea').innerHTML = '';
+            dictationEl('dictationScoreArea').textContent = '';
+            dictationEl('dictationSubmitBtn').style.display = 'inline-block';
+            dictationEl('dictationNextBtn').style.display = 'none';
+            renderDictationProgress();
+            updateDictationButtons();
+            playDictationSegment(0);
+        }catch(e){
+            const fs = dictationEl('dictationFileStatus');
+            if(fs){ fs.textContent = t('dictation.file_status_err'); fs.className = 'dictation-file-status err'; }
+            showToast(t('dictation.file_status_err'));
+        }finally{
+            if(startBtn) startBtn.disabled = false;
+        }
+    }
+    function submitDictationSentence(){
+        const st = dictationState;
+        if(!st.active) return;
+        const input = dictationEl('dictationUserInput');
+        const user = input.value.trim();
+        if(!user){ showToast(t('dictation.empty_input')); return; }
+        const ref = st.lines[st.currentIdx] || '';
+        const diff = diffDictationSentence(ref, user);
+        st.correctChars += diff.correct;
+        st.totalChars += diff.total;
+        const pct = diff.total > 0 ? Math.round(diff.correct / diff.total * 100) : 0;
+        st.results.push(pct);
+        const area = dictationEl('dictationDiffArea');
+        area.innerHTML = '<div class="dictation-diff-line"><span class="dictation-diff-label">' + t('dictation.ref_answer') + '：</span>' + diff.refHtml + '</div>' +
+                         '<div class="dictation-diff-line"><span class="dictation-diff-label">' + t('dictation.your_answer') + '：</span>' + diff.userHtml + '</div>';
+        area.classList.add('show');
+        dictationEl('dictationScoreArea').textContent = t('dictation.sentence_score').replace('{pct}', pct);
+        dictationEl('dictationSubmitBtn').style.display = 'none';
+        dictationEl('dictationNextBtn').style.display = 'inline-block';
+        input.value = user;
+        input.disabled = true;
+    }
+    function nextDictationSentence(){
+        const st = dictationState;
+        if(!st.active) return;
+        st.currentIdx++;
+        if(st.currentIdx >= st.lines.length){ showDictationFinal(); return; }
+        const input = dictationEl('dictationUserInput');
+        input.value = ''; input.disabled = false;
+        dictationEl('dictationDiffArea').classList.remove('show');
+        dictationEl('dictationDiffArea').innerHTML = '';
+        dictationEl('dictationScoreArea').textContent = '';
+        dictationEl('dictationSubmitBtn').style.display = 'inline-block';
+        dictationEl('dictationNextBtn').style.display = 'none';
+        renderDictationProgress();
+        playDictationSegment(st.currentIdx);
+    }
+    function showDictationFinal(){
+        const st = dictationState;
+        const totalPct = st.totalChars > 0 ? Math.round(st.correctChars / st.totalChars * 100) : 0;
+        st.active = false;
+        stopDictationAudio();
+        dictationEl('dictationProgress').textContent = t('dictation.done').replace('{pct}', totalPct);
+        dictationEl('dictationScoreArea').textContent = t('dictation.total_score').replace('{pct}', totalPct);
+        dictationEl('dictationSubmitBtn').style.display = 'none';
+        dictationEl('dictationNextBtn').style.display = 'none';
+        const input = dictationEl('dictationUserInput');
+        input.disabled = true; input.value = '';
+        showToast(t('dictation.done').replace('{pct}', totalPct));
+        updateDictationButtons();
+    }
+    function resetDictation(){
+        stopDictationAudio();
+        dictationState = { file: null, audioBuffer: null, audioCtx: dictationState.audioCtx, lines: [], segments: [], currentIdx: 0, results: [], totalChars: 0, correctChars: 0, active: false };
+        dictationEl('dictationFileInput').value = '';
+        dictationEl('dictationTextInput').value = '';
+        dictationEl('dictationFileStatus').textContent = '';
+        dictationEl('dictationFileStatus').className = 'dictation-file-status';
+        dictationEl('dictationProgress').style.display = 'none';
+        dictationEl('dictationStage').style.display = 'none';
+        dictationEl('dictationUserInput').value = ''; dictationEl('dictationUserInput').disabled = false;
+        dictationEl('dictationDiffArea').innerHTML = ''; dictationEl('dictationDiffArea').classList.remove('show');
+        dictationEl('dictationScoreArea').textContent = '';
+        dictationEl('dictationSubmitBtn').style.display = 'inline-block';
+        dictationEl('dictationNextBtn').style.display = 'none';
+        updateDictationButtons();
+    }
+    (function bindDictationEvents(){
+        const fi = dictationEl('dictationFileInput');
+        if(fi) fi.addEventListener('change', () => {
+            const file = fi.files && fi.files[0];
+            const sts = dictationEl('dictationFileStatus');
+            if(file){
+                dictationState.file = file;
+                sts.textContent = file.name; sts.className = 'dictation-file-status ok';
+            } else {
+                dictationState.file = null;
+                sts.textContent = t('dictation.file_status_empty'); sts.className = 'dictation-file-status';
+            }
+            updateDictationButtons();
+        });
+        const ti = dictationEl('dictationTextInput');
+        if(ti) ti.addEventListener('input', updateDictationButtons);
+        const sb = dictationEl('dictationStartBtn');
+        if(sb) sb.onclick = startDictation;
+        const rb = dictationEl('dictationResetBtn');
+        if(rb) rb.onclick = resetDictation;
+        const pb = dictationEl('dictationPlayBtn');
+        if(pb) pb.onclick = () => { if(dictationState.active) playDictationSegment(dictationState.currentIdx); };
+        const rpb = dictationEl('dictationReplayBtn');
+        if(rpb) rpb.onclick = () => { if(dictationState.active) playDictationSegment(dictationState.currentIdx); };
+        const sub = dictationEl('dictationSubmitBtn');
+        if(sub) sub.onclick = submitDictationSentence;
+        const nx = dictationEl('dictationNextBtn');
+        if(nx) nx.onclick = nextDictationSentence;
+        const inp = dictationEl('dictationUserInput');
+        if(inp) inp.addEventListener('keydown', e => {
+            if(e.key === 'Enter'){ e.preventDefault(); submitDictationSentence(); }
+        });
+    })();
 
     // ==================== 短文阅读（可理解输入 + 中国新闻主题） ====================
     let readingHistory = [];
@@ -7524,12 +8297,18 @@ const HSK2_VOCAB = [
         const newList = mix.suggestedNew.join('、');
         const recentTopics = readingHistory.slice(0, 10).map(r => ((r.topic || '') + '｜' + (r.title || '')).trim()).filter(s => s && s !== '｜');
         const topicRule = recentTopics.length ? '【话题/标题/内容避重】最近已经写过这些主题和标题：' + recentTopics.join('；') + '。这次必须换一个完全不同的新话题；新标题不能与这些标题相同或意思相近；新内容也不能与这些文章相似（不要只改个名字就重新讲同一件事）。' : '';
+        const STYLES = ['新闻简讯', '生活小故事', '人物介绍', '科普小知识', '地方或文化介绍', '日记或书信', '网络帖子'];
+        const styleRule = '【文体与开头变化 - 必须遵守】本次文体必须是：' + STYLES[readingHistory.length % STYLES.length] + '。开头方式必须与最近的文章不同（可选用：时间开头、地点开头、人物开头、问题开头、对话开头、场景描写开头），不要每次都用同一种开头。情节套路也要换：不要总是“某人遇到问题→想办法→解决”的套路，可以用对比、趣闻、见闻、说明、采访等多种方式组织内容。';
+        const recentArticles = readingHistory.slice(0, 8).map(r => String(r.content || '').replace(/\s+/g, ' ').slice(0, 120)).filter(s => s);
+        const recentContentRule = recentArticles.length ? '【用词/情节避重】以下是最近文章的内容片段：' + recentArticles.map(s => '“' + s + '”').join('；') + '。这次的文章不要与这些内容情节相似，不要重复使用其中反复出现的词和固定表达（如“有一天”“很多人”“越来越”“非常有意思”等，除非该词是必用的指定词汇）；同样的情节不要换个名字再讲一遍。' : '';
         const prompt = `你是一位专业的对外汉语阅读材料编写老师。请编写一篇有趣的短文。${topicInstr}用简单自然的中文讲述，像学生刷手机时看到的真实内容一样。
 
 【趣味性要求 - 非常重要】
 1. 文章要有趣、有画面感、有信息量，读起来像真实的热点报道或有趣的小故事，不要像课本范文。
 2. 每次生成必须换一个不同的话题，话题越多样越好。${topicRule}
-3. 可以加一两句背景介绍（background 字段），交代事件背景，让文章真实可信；背景也要用简单中文。
+3. ${styleRule}
+4. ${recentContentRule}
+5. 可以加一两句背景介绍（background 字段），交代事件背景，让文章真实可信；背景也要用简单中文。
 
 【学生信息】
 - 中文水平：${levelName}
@@ -7568,7 +8347,7 @@ const HSK2_VOCAB = [
             const resp = await fetch(API_BASE, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
-                body: JSON.stringify({ model: 'deepseek-v4-flash', thinking: { type: 'disabled' }, max_tokens: 4096, messages: [{ role: 'user', content: prompt }], temperature: 0.5, response_format: { type: 'json_object' } })
+                body: JSON.stringify({ model: 'deepseek-v4-flash', thinking: { type: 'disabled' }, max_tokens: 4096, messages: [{ role: 'user', content: prompt }], temperature: 0.85, response_format: { type: 'json_object' } })
             });
             const data = await resp.json();
             if (data.error) throw new Error(data.error.message || 'API error');
@@ -7612,7 +8391,7 @@ const HSK2_VOCAB = [
             currentReading = reading;
             renderReadingArticle(reading);
             renderReadingHistory();
-            showToast('✅ ' + t('reading.title'));
+            showToast('✅ ' + (reading.title || t('reading.title')));
         } catch (e) {
             alert(t('reading.fail'));
         } finally {
@@ -8840,7 +9619,51 @@ const HSK2_VOCAB = [
 function loadWrongSentences(){ if(!currentUser) return; wrongSentences=[]; var raw=localStorage.getItem('HSK_WRONG_SENTENCES_'+currentUser); if(raw) try{ wrongSentences=JSON.parse(raw); }catch(e){ wrongSentences=[]; } }
 function addWrongSentence(word,type,chineseRaw,english,userAnswer,note){ if(wrongSentences.some(function(s){ return s.sentence===chineseRaw&&s.userAnswer===userAnswer; })) return; wrongSentences.unshift({word:word,type:type,sentence:chineseRaw,english:english,userAnswer:userAnswer,note:note||'',date:getLocalDate()}); if(wrongSentences.length>500) wrongSentences.pop(); saveWrongSentences(); renderWrongSentences(); }
 window._removeWrongSentence=function(idx){ wrongSentences.splice(idx,1); saveWrongSentences(); renderWrongSentences(); };
-function renderWrongSentences(){ const el=document.getElementById('wrongSentenceList'); if(!el) return; if(wrongSentences.length===0){ el.innerHTML='<div class="empty-detail">'+t('wrong_sentences.empty')+'</div>'; return; } let html=''; for(let i=0;i<wrongSentences.length;i++){ const ws=wrongSentences[i]; const delBtn=' <button onclick="window._removeWrongSentence('+i+')" style="background:none;border:1px solid #f5c6cb;border-radius:8px;padding:1px 6px;font-size:0.68rem;cursor:pointer;color:#c0392b;margin-left:6px;">🗑️</button>'; if(ws.type==='对话纠错'){ html+='<div class="mistake-item"><div class="mistake-original" style="color:#c0392b;">❌ '+escapeHtml(ws.userAnswer)+'</div><div style="color:#27ae60;">✅ '+escapeHtml(ws.sentence)+'</div>'+(ws.note?'<div style="font-size:0.78rem;color:#e67e22;">💡 '+escapeHtml(ws.note)+'</div>':'')+'<div style="font-size:0.7rem;color:#94a3b8;">📅 '+formatDate(ws.date)+delBtn+'</div></div>'; } else { html+='<div class="mistake-item"><div class="mistake-original">📝 '+escapeHtml(ws.word||ws.userAnswer)+'</div><div style="color:#27ae60;">✅ '+escapeHtml(ws.sentence)+'</div><div>✏️ '+escapeHtml(ws.userAnswer)+delBtn+'</div></div>'; } } el.innerHTML=html; }
+function renderWrongSentences(){ const el=document.getElementById('wrongSentenceList'); if(!el) return; if(wrongSentences.length===0){ el.innerHTML='<div class="empty-detail">'+t('wrong_sentences.empty')+'</div>'; return; } let html=''; for(let i=0;i<wrongSentences.length;i++){ const ws=wrongSentences[i]; const delBtn=' <button onclick="window._removeWrongSentence('+i+')" style="background:none;border:1px solid #f5c6cb;border-radius:8px;padding:1px 6px;font-size:0.68rem;cursor:pointer;color:#c0392b;margin-left:6px;">🗑️</button>'; if(ws.type==='对话纠错'){ html+='<div class="mistake-item"><div class="mistake-original" style="color:#c0392b;">❌ '+escapeHtml(ws.userAnswer)+'</div><div style="color:#27ae60;">✅ '+escapeHtml(ws.sentence)+'</div>'+(ws.note?'<div style="font-size:0.78rem;color:#e67e22;">💡 '+escapeHtml(ws.note)+'</div>':'')+'<div style="font-size:0.7rem;color:#94a3b8;">📅 '+formatDate(ws.date)+delBtn+'</div></div>'; } else { html+='<div class="mistake-item"><div class="mistake-original">📝 '+escapeHtml(ws.word||ws.userAnswer)+'</div><div style="color:#27ae60;">✅ '+escapeHtml(ws.sentence)+'</div><div>✏️ '+escapeHtml(ws.userAnswer)+delBtn+'</div></div>'; } } el.innerHTML=html; translateLegacyWrongNotes(); }
+let wrongNoteTranslating = false;
+async function translateLegacyWrongNotes(){
+    if(wrongNoteTranslating) return;
+    const lang = targetLangSelect ? targetLangSelect.value : 'English';
+    if(lang === 'Chinese'){
+        // 切回中文时恢复原始中文解释
+        let changed = false;
+        for(const ws of wrongSentences){ if(ws.noteZh && ws.note !== ws.noteZh){ ws.note = ws.noteZh; ws.noteLang = 'Chinese'; changed = true; } }
+        if(changed) saveWrongSentences();
+        return;
+    }
+    const apiKey = apiKeyInput.value.trim();
+    if(!apiKey) return;
+    const toTranslate = [];
+    for(let i=0;i<wrongSentences.length;i++){
+        const ws = wrongSentences[i];
+        if(!ws.note || ws.noteLang === lang) continue;
+        // 只翻译含中文的解释（历史数据为中文 note）；AI 已按母语生成的新 note 无需翻译
+        if(!/[\u4e00-\u9fff]/.test(ws.note)) { ws.noteLang = lang; continue; }
+        toTranslate.push({ i: i, note: ws.note });
+    }
+    if(toTranslate.length === 0) return;
+    wrongNoteTranslating = true;
+    try{
+        const lines = toTranslate.map(x => x.note);
+        const resp = await fetch(API_BASE, { method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey}, body: JSON.stringify({ model:'deepseek-v4-flash', thinking:{ type:'disabled' }, max_tokens:4096, messages:[{ role:'user', content:'请将以下中文逐行翻译成'+lang+'，保持原来的分行格式，每行单独翻译，只输出翻译结果：\n'+lines.join('\n') }], temperature:0.3 }) });
+        const data = await resp.json();
+        if(data.error) throw new Error(data.error.message || 'API error');
+        const content = (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) || '';
+        const trLines = content.split('\n');
+        for(let k=0;k<toTranslate.length;k++){
+            const tr = (trLines[k] || '').trim();
+            if(!tr) continue;
+            const ws = wrongSentences[toTranslate[k].i];
+            if(!ws) continue;
+            ws.noteZh = ws.noteZh || ws.note;
+            ws.note = tr;
+            ws.noteLang = lang;
+        }
+        saveWrongSentences();
+        renderWrongSentences();
+    }catch(e){ /* 翻译失败不打扰用户 */ }
+    wrongNoteTranslating = false;
+}
 function saveFullState(){ if(!currentUser) return; const entries=Array.from(usedMap.entries()).map(([k,v])=>({key:k, value:{count:v.count, correctCount:v.correctCount||0, practiceCount:v.practiceCount||0, level:v.level, examples:v.examples, practiceTimestamps:v.practiceTimestamps||[], practiceExamples:v.practiceExamples||[]}})); localStorage.setItem(grammarKey(), JSON.stringify({entries})); localStorage.setItem(favoriteKey(), JSON.stringify(favoriteSentences)); localStorage.setItem(queriedKey(), JSON.stringify(queriedItems)); localStorage.setItem(minutesKey(), totalMinutes); saveVocabState(); }
     function vocabKey(){ return 'HSK_VOCAB_' + currentUser; }
     function vocabCorrectKey(){ return 'HSK_VOCAB_CORRECT_' + currentUser; }
@@ -9117,15 +9940,16 @@ N=名词, V=动词, Adj=形容词, Adv=副词, Prep=介词, Pron=代词(同Prono
 输出JSON：{"results":[{"sentence":"句子","matches":[{"pattern":"语法格式","level":等级}]}]}
 没有匹配的句子也要包含，matches为空数组。只输出纯JSON，不要任何解释文字。`;
 
-try{ const resp=await fetch(API_BASE,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${apiKey}`}, body:JSON.stringify({model:'deepseek-v4-flash',thinking:{type:'disabled'}, max_tokens:4096, messages:[{role:'system',content:prompt},{role:'user',content:blocksText}], temperature:0.1, response_format:{type:'json_object'}})}); const data=await resp.json(); if(data.error) throw new Error(data.error.message||"API error"); if(!data.choices||!data.choices[0]||!data.choices[0].message) throw new Error("API error"); let content=data.choices[0].message.content; content=content.replace(/```json/g,'').replace(/```/g,'').trim(); const parsed=JSON.parse(content); return parsed.results||parsed.matches||parsed||[]; }catch(e){ return null; } }async function analyzeMistakesBatch(userMessages){ const apiKey=apiKeyInput.value.trim(); if(!apiKey||userMessages.length===0) return []; const prompt=`你是HSK中文教师。请严格分析学生句子本身的偏误（error analysis）：先识别错误，再给出改正和原因。只报告真正的偏误，宁缺毋滥。
+try{ const resp=await fetch(API_BASE,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${apiKey}`}, body:JSON.stringify({model:'deepseek-v4-flash',thinking:{type:'disabled'}, max_tokens:4096, messages:[{role:'system',content:prompt},{role:'user',content:blocksText}], temperature:0.1, response_format:{type:'json_object'}})}); const data=await resp.json(); if(data.error) throw new Error(data.error.message||"API error"); if(!data.choices||!data.choices[0]||!data.choices[0].message) throw new Error("API error"); let content=data.choices[0].message.content; content=content.replace(/```json/g,'').replace(/```/g,'').trim(); const parsed=JSON.parse(content); return parsed.results||parsed.matches||parsed||[]; }catch(e){ return null; } }async function analyzeMistakesBatch(userMessages, aiReplyRaw){ const apiKey=apiKeyInput.value.trim(); if(!apiKey||userMessages.length===0) return []; const targetLang = targetLangSelect ? targetLangSelect.value : 'English'; const prompt=`你是HSK中文教师。请严格分析学生句子本身的偏误（error analysis）：先识别错误，再给出改正和原因。只报告真正的偏误：既不要误报，也不要漏报——任何真实的偏误，无论大小（别字、错词、缺字、多字、量词、语气词、补语、语序等），都要报告。
 
 【重要原则 - 必须遵守】
 1. 【禁止无效纠错】original和corrected必须不同。如果不需要改动，说明没有偏误，不要输出。
 2. 【省略句不是错误】口语中省略主语/宾语/虚词等成分是正常的，只要语义清晰就不是错误。例如"知道了""好的""吃饭了"都是正确的。不要补充被省略的成分。
 3. 【只分析当前句子】不要对比或引用学生以前的句子。即使学生以前犯过某个错误，只要当前句子是对的，就不要提。
-4. 如果原始句子已经正确，直接返回空数组[]，不要为了输出而"微调"。
+4. 如果原始句子已经正确，直接返回空数组[]，不要为了输出而"微调"；但只要存在真实偏误，无论多小（错字、别字、错词、缺字、多字、量词误用、语气词误用、补语缺失、语序问题等），都必须报告，不要因为错误小就漏掉。
 5. 【标点符号不是错误】绝不纠标点符号：缺少句号/问号/感叹号/逗号、多写标点、标点用错，都不是偏误。例如学生写"你知道这个旅行方式吗"（结尾没有问号）是完全正确的，不要改成"……吗?"。
-6. 【note必须是错误原因】note 用中文简短写出具体错误原因，例如：别字「陪」误写为「配」；缺少「了」；语序不当（比较句应为「比起旧事物，年轻人更重视新事物」）。禁止写"AI自然回复纠正"之类的空话。
+6. 【note必须是错误原因】note 用${targetLang}简短写出具体错误原因，例如：别字「陪」误写为「配」；缺少「了」；语序不当（比较句应为「比起旧事物，年轻人更重视新事物」）。禁止写"AI自然回复纠正"之类的空话。
+7. 【以学生句子实际偏误为准】如果提供了AI对话伙伴的自然回复，它可能已经用正确说法回应了学生，可以对照参考，但绝不能因为"AI回复和学生句子不同"就认为学生错了。只有学生句子本身确实存在偏误时才报告：学生句子正确、只是AI换了一种说法的，不要报告；如果AI回复中重复学生句子并做了改动，而学生原句确实有问题，就把学生原句作为original、AI改后的说法作为corrected。
 
 【偏误类型 - 只报告真实有问题的】
 - grammar：语法结构错误（语序不对、虚词用错/缺失、句式混乱）
@@ -9133,28 +9957,45 @@ try{ const resp=await fetch(API_BASE,{method:'POST',headers:{'Content-Type':'app
 - character：汉字别字（同音/近音混淆，如「配」写成「陪」、「在」写成「再」、「的/得/地」混用）
 - redundant：多余字词（副词冗余如"比较很"、重复表达）
 - collocation：搭配不当
+- idiomatic：表达不地道（母语者会换一种更自然的说法）
 
 【必须能识别的高频错误 - 举例】
 - 别字：「我配朋友去」→「我陪朋友去」
 - 比较句语序：「尤其年轻人重视新的事比旧的」→「比起旧事物，年轻人更重视新事物」或「年轻人重视新事物，胜过旧事物」
 - 缺少虚词：「我昨天去商店买一个包」→「我昨天去商店买了一个包」
+- 缺少结果补语：「第一次看了鲜肉月饼的时候」→「第一次看到鲜肉月饼」（"看"后缺结果补语"到"，"了…的时候"冗余）
+- 表达不地道：「一吃这个就喜欢了」→「一吃就爱上了」（更自然的说法）
 
-输出JSON数组：[{"original":"学生原文(片段)","corrected":"改正后(必须与original不同)","type":"类型","note":"错误原因（中文，具体说明，禁止空话）"}]。无错误返回[]。`; try{ const resp=await fetch(API_BASE,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${apiKey}`}, body:JSON.stringify({model:'deepseek-v4-flash',thinking:{type:'disabled'}, max_tokens:4096, messages:[{role:'system',content:prompt},{role:'user',content:'学生句子: '+JSON.stringify(userMessages)}], temperature:0.1, response_format:{type:'json_object'}})}); const data=await resp.json(); if(data.error) throw new Error(data.error.message||"API error"); if(!data.choices||!data.choices[0]||!data.choices[0].message) throw new Error("API error"); let content=data.choices[0].message.content; content=content.replace(/```json/g,'').replace(/```/g,'').trim(); const parsed=JSON.parse(content); return Array.isArray(parsed)?parsed:(parsed.mistakes||parsed.results||[]); }catch(e){ return []; } }
+输出JSON数组：[{"original":"学生原文(片段)","corrected":"改正后(必须与original不同)","type":"类型","note":"错误原因（用${targetLang}，具体说明，禁止空话）"}]。无错误返回[]。`; try{ const resp=await fetch(API_BASE,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${apiKey}`}, body:JSON.stringify({model:'deepseek-v4-flash',thinking:{type:'disabled'}, max_tokens:4096, messages:[{role:'system',content:prompt},{role:'user',content:(aiReplyRaw ? ('学生句子: '+JSON.stringify(userMessages)+'\n\nAI对话伙伴的自然回复（仅供参考，可能已包含正确说法）:\n'+String(aiReplyRaw)) : ('学生句子: '+JSON.stringify(userMessages)))}], temperature:0.1, response_format:{type:'json_object'}})}); const data=await resp.json(); if(data.error) throw new Error(data.error.message||"API error"); if(!data.choices||!data.choices[0]||!data.choices[0].message) throw new Error("API error"); let content=data.choices[0].message.content; content=content.replace(/```json/g,'').replace(/```/g,'').trim(); const parsed=JSON.parse(content); return Array.isArray(parsed)?parsed:(parsed.mistakes||parsed.results||[]); }catch(e){ return []; } }
     function isPunctuationOnlyDiff(a,b){var p='，。、！？；：…—·《》〈〉（）【】,.!?;:()[]{}<> ';var s=function(x){return (x||'').split('').filter(function(c){return p.indexOf(c)<0;}).join('');};return s(a)===s(b);}
     function filterMistakes(mistakes){ if(!mistakes||!mistakes.length) return []; const out=[]; for(const m of mistakes){ if(!m||!m.original||!m.corrected) continue; if(m.original===m.corrected) continue; if(isPunctuationOnlyDiff(m.original,m.corrected)) continue; if(out.some(x=>x.original===m.original&&x.corrected===m.corrected)) continue; out.push(m); } return out; }
     // 💡 纠错块展示去重：同一个学生原句只展示一次，避免自然纠错与批量分析重复提取
     function dedupeMistakesByOriginal(mistakes){ if(!mistakes||!mistakes.length) return []; const out=[]; for(const m of mistakes){ const o=String(m.original||'').trim(); const c=String(m.corrected||'').trim(); if(!o||!c) continue; const dupIdx=out.findIndex(x=>{ const xo=String(x.original||'').trim(); const xc=String(x.corrected||'').trim(); if(xo===o) return true; if(xc===c) return true; const oOverlap=xo.includes(o)||o.includes(xo); const cOverlap=xc.includes(c)||c.includes(xc); return oOverlap&&cOverlap; }); if(dupIdx!==-1){ const xo=String(out[dupIdx].original||'').trim(); if(o.length<xo.length) out[dupIdx]=m; continue; } out.push(m); } return out; }
     // 本地兜底：AI自然回复中出现「哦，你是说X」等纠正表达时，直接提取纠错对，保证写入错句本/学习报告
     function describeMistakeReason(user, corrected){
+        const lang = targetLangSelect ? targetLangSelect.value : 'English';
+        const T = {
+            'Chinese': { generic:'表达有误，已按AI回复修正', order:'语序或表达不当，已按AI回复修正', subWord:'用词/别字：', subGrammar:'语法字错误（虚词/助词/量词等）：', miss:'缺少：', extra:'多余：' },
+            'English': { generic:'Expression error, corrected based on the AI reply', order:'Word order or expression issue, corrected based on the AI reply', subWord:'Wrong word/character: ', subGrammar:'Grammar word error (particle/measure word): ', miss:'Missing: ', extra:'Extra: ' },
+            'Japanese': { generic:'表現の誤り。AIの返答に基づき修正', order:'語順または表現の問題。AIの返答に基づき修正', subWord:'語彙・誤字：', subGrammar:'文法字（助詞・助動詞・量詞）の誤り：', miss:'不足：', extra:'余分：' },
+            'Korean': { generic:'표현 오류. AI 답변에 따라 수정함', order:'어순 또는 표현 문제. AI 답변에 따라 수정함', subWord:'단어/오자: ', subGrammar:'문법 글자(조사/양사) 오류: ', miss:'누락: ', extra:'불필요: ' },
+            'French': { generic:"Erreur d'expression, corrigée selon la réponse IA", order:"Problème d'ordre des mots ou d'expression, corrigé selon la réponse IA", subWord:'Mot/caractère erroné : ', subGrammar:'Erreur de mot grammatical (particule/classificateur) : ', miss:'Manque : ', extra:'En trop : ' },
+            'German': { generic:'Ausdrucksfehler, laut KI-Antwort korrigiert', order:'Wortstellung oder Ausdruck fehlerhaft, laut KI-Antwort korrigiert', subWord:'Falsches Wort/Zeichen: ', subGrammar:'Grammatikwort-Fehler (Partikel/Zählwort): ', miss:'Fehlt: ', extra:'Überflüssig: ' },
+            'Spanish': { generic:'Error de expresión, corregido según la respuesta de la IA', order:'Problema de orden o expresión, corregido según la respuesta de la IA', subWord:'Palabra/carácter incorrecto: ', subGrammar:'Error de palabra gramatical (partícula/clasificador): ', miss:'Falta: ', extra:'Sobra: ' },
+            'Russian': { generic:'Ошибка в выражении, исправлено по ответу ИИ', order:'Проблема порядка слов или выражения, исправлено по ответу ИИ', subWord:'Ошибка в слове/знаке: ', subGrammar:'Ошибка грамматического слова (частица/счётное слово): ', miss:'Пропущено: ', extra:'Лишнее: ' },
+            'Thai': { generic:'การแสดงออกผิด แก้ไขตามคำตอบของ AI', order:'ลำดับคำหรือการแสดงออกไม่ถูกต้อง แก้ไขตามคำตอบของ AI', subWord:'คำ/ตัวอักษรผิด: ', subGrammar:'คำไวยากรณ์ผิด (คำช่วย/ลักษณะนาม): ', miss:'ขาด: ', extra:'เกิน: ' },
+            'Italian': { generic:'Errore di espressione, corretto secondo la risposta IA', order:'Problema di ordine delle parole o espressione, corretto secondo la risposta IA', subWord:'Parola/carattere errata: ', subGrammar:'Errore di parola grammaticale (particella/classificatore): ', miss:'Manca: ', extra:'In più: ' }
+        };
+        const R = T[lang] || T['English'];
         const u = String(user || '').replace(/[^\u4e00-\u9fff]/g, '');
         const c = String(corrected || '').replace(/[^\u4e00-\u9fff]/g, '');
-        if(!u || !c || u === c) return '表达有误，已按AI回复修正';
+        if(!u || !c || u === c) return R.generic;
         // LCS 字符级对比，区分：别字替换 / 缺少 / 多余
         const n = u.length, m = c.length;
         const dp = Array.from({ length: n + 1 }, () => new Array(m + 1).fill(0));
         for(let i = n - 1; i >= 0; i--) for(let j = m - 1; j >= 0; j--) dp[i][j] = u[i] === c[j] ? dp[i + 1][j + 1] + 1 : Math.max(dp[i + 1][j], dp[i][j + 1]);
         // 差异太大时（如整句重写）不做字符级归因，避免给出乱七八糟的"错字"说明
-        if(dp[0][0] / Math.max(n, m) < 0.6) return '语序或表达不当，已按AI回复修正';
+        if(dp[0][0] / Math.max(n, m) < 0.6) return R.order;
         const ops = [];
         let i = 0, j = 0;
         while(i < n && j < m){
@@ -9171,11 +10012,77 @@ try{ const resp=await fetch(API_BASE,{method:'POST',headers:{'Content-Type':'app
             else ins.push(ops[k].ch);
         }
         const parts = [];
-        if(subs.length) parts.push('用词/别字：' + subs.map(s => '「' + s.to + '」误写为「' + s.from + '」').join('、'));
-        if(ins.length) parts.push('缺少：' + ins.join('、'));
-        if(dels.length) parts.push('多余：' + dels.join('、'));
-        if(!parts.length) parts.push('语序或表达不当，已按AI回复修正');
+        const GRAM_CHARS = '的了着过吗呢吧啊呀嘛哦被把和跟与对从向在到就给为让叫使比最更也很都才就又再还只没不有是上下里外中前后左右个本张只条件家口位双次遍回年月日点分钟时';
+        const subWord = [], subGrammar = [];
+        for(const s of subs){
+            if(GRAM_CHARS.includes(s.from) || GRAM_CHARS.includes(s.to)) subGrammar.push(s);
+            else subWord.push(s);
+        }
+        if(subWord.length) parts.push(R.subWord + subWord.map(s => '「' + s.from + '」 → 「' + s.to + '」').join(', '));
+        if(subGrammar.length) parts.push(R.subGrammar + subGrammar.map(s => '「' + s.from + '」 → 「' + s.to + '」').join(', '));
+        if(ins.length) parts.push(R.miss + ins.join('、'));
+        if(dels.length) parts.push(R.extra + dels.join('、'));
+        if(!parts.length) parts.push(R.order);
         return parts.join('；');
+    }
+    // 本地兜底：从 AI 自然回复中提取「重复学生句子并做了改动」的纠错对
+    // 例如学生说「第一次看了鲜肉月饼的时候」，AI 回「第一次看到鲜肉月饼」；
+    // 学生说「一吃这个就喜欢了」，AI 回「一吃就爱上了」——这类也算纠错。
+    function stripHanziOnly(s){ return String(s||'').replace(/[^\u4e00-\u9fff]/g,''); }
+    function stripCorrectionPrefix(s){
+        let t = String(s||'').trim();
+        t = t.replace(/^(哦+|嗯+|啊+|那个|对了|哦对|你是说|你想说的是|你是想说|你是在说|想说的是|你的意思是|你说的是)/, '');
+        t = t.replace(/(啊|吧|呢|呀|嘛|哦|哈|啦)+$/g, '');
+        return t.trim();
+    }
+    function lcsOps(u, c){
+        const n = u.length, m = c.length;
+        const dp = Array.from({ length: n + 1 }, () => new Array(m + 1).fill(0));
+        for(let i = n - 1; i >= 0; i--) for(let j = m - 1; j >= 0; j--) dp[i][j] = u[i] === c[j] ? dp[i + 1][j + 1] + 1 : Math.max(dp[i + 1][j], dp[i][j + 1]);
+        const ops = [];
+        let i = 0, j = 0;
+        while(i < n && j < m){
+            if(u[i] === c[j]){ i++; j++; }
+            else if(dp[i + 1][j] >= dp[i][j + 1]){ ops.push({ type:'del', ch:u[i] }); i++; }
+            else { ops.push({ type:'ins', ch:c[j] }); j++; }
+        }
+        while(i < n){ ops.push({ type:'del', ch:u[i++] }); }
+        while(j < m){ ops.push({ type:'ins', ch:c[j++] }); }
+        return { lcs:dp[0][0], ops };
+    }
+    function extractNaturalCorrections(userText, aiReplyRaw){
+        if(!userText || !aiReplyRaw) return [];
+        const userClauses = splitClauses(userText).map(s => stripHanziOnly(s)).filter(s => s.length >= 4);
+        if(userClauses.length === 0) return [];
+        const aiSegments = String(aiReplyRaw).split(/[\n。！？!?]+/)
+            .flatMap(seg => seg.split(/[，,；;]+/))
+            .map(s => stripCorrectionPrefix(s))
+            .map(s => stripHanziOnly(s))
+            .filter(s => s.length >= 3);
+        const out = [];
+        for(const u of userClauses){
+            let best = null, bestScore = 0;
+            for(const a of aiSegments){
+                if(u === a) continue;
+                const maxLen = Math.max(u.length, a.length);
+                if(a.length < u.length * 0.35 || a.length > u.length * 2.2) continue;
+                const { lcs, ops } = lcsOps(u, a);
+                const sim = lcs / maxLen;
+                if(sim < 0.5 || lcs < 4) continue;
+                // 只有插入（AI 在正确句子上做了扩展）不算纠错；有替换或实质性删除才算「改动纠错」
+                const PARTICLE = '了的呢啊吧吗哦呀嘛啦哈';
+                let hasSub = false, hasContentDel = false;
+                for(let k = 0; k < ops.length; k++){
+                    if(ops[k].type === 'del' && ops[k + 1] && ops[k + 1].type === 'ins'){ hasSub = true; k++; }
+                    else if(ops[k].type === 'del' && !PARTICLE.includes(ops[k].ch)) hasContentDel = true;
+                }
+                if(!hasSub && !hasContentDel) continue;
+                const score = sim * 10 + Math.min(u.length, a.length) * 0.1;
+                if(score > bestScore){ bestScore = score; best = a; }
+            }
+            if(best) out.push({ original:u, corrected:best, type:'表达', note:describeMistakeReason(u, best) });
+        }
+        return out;
     }
     function findMatchingPattern(returnedPattern){ if(!returnedPattern) return null; const p=returnedPattern.trim(); const exact=grammarList.find(g=>g.pattern===p); if(exact) return exact; const pClean=p.replace(/[（(][^)）]*[)）]/g,'').trim(); const exactClean=grammarList.find(g=>g.pattern.replace(/[（(][^)）]*[)）]/g,'').trim()===pClean); if(exactClean) return exactClean; const pFixed=extractPatternFixedChars(p).join(''); if(pFixed.length>0){ const byFixed=grammarList.find(g=>extractPatternFixedChars(g.pattern).join('')===pFixed); if(byFixed) return byFixed; } const byShort=grammarList.find(g=>{ const gClean=g.pattern.replace(/[（(][^)）]*[)）]/g,'').trim(); return gClean.includes(pClean)||pClean.includes(gClean); }); if(byShort) return byShort; console.warn('findMatchingPattern failed for:', p); return null; }
     function isAcquired(entry){ return entry && (entry.count||0) >= ACQUIRED_THRESHOLD; }
@@ -9249,7 +10156,7 @@ if(wrongSentences.length===0){ rpt+='(暂无错句记录)\n'; } else { for(var w
 rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n⭐ 第五部分：收藏句子\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(favoriteSentences.length===0){ rpt+='(暂无收藏)\n'; } else { for(let item of favoriteSentences){ rpt+='🇨🇳 '+item.chinese+'\n🌐 '+(item.translation||'')+'\n📅 '+(item.date||'')+'\n\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n💬 「怎么说」尝试记录\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(zmsRecords.length===0){ rpt+='(暂无尝试记录)\n'; } else { for(var zi=0; zi<zmsRecords.length; zi++){ var zr=zmsRecords[zi]; rpt+='🌐 母语：'+zr.original+'\n  ✏️ 你的尝试：'+zr.attempt+'\n  ✅ 参考答案：'+zr.reference+'\n  📅 '+(zr.date||'')+'\n\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n📰 阅读历史\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(readingHistory.length===0){ rpt+='(暂无阅读记录)\n'; } else { readingHistory.forEach((r,i)=>{ rpt+='📌 '+(r.title||('HSK'+r.level))+' [HSK'+r.level+']\n'; rpt+='📅 '+(r.date||'')+' · 主题：'+(r.topic||'')+'\n'; if(r.background) rpt+='背景：'+r.background+'\n'; if(r.sourceUrl) rpt+='🔗 '+r.sourceUrl+'\n'; rpt+='--- 正文 ---\n'+(r.content||'')+'\n\n'; }); } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n📖 阅读词汇追踪（完成阅读后按等级累加）\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; const rtk2=readingTrack||{unknownIn:{},knownIn:{},unknownOut:{}}; const rIn1=Object.entries(rtk2.unknownIn||{}).map(([w,o])=>({word:w,level:o.level||vocabLevelOfWord(w)||0,count:o.count||0})).sort((a,b)=>a.level-b.level); const rIn2=Object.entries(rtk2.knownIn||{}).map(([w,o])=>({word:w,level:o.level||vocabLevelOfWord(w)||0,count:o.count||0})).sort((a,b)=>a.level-b.level); const rOut=Object.entries(rtk2.unknownOut||{}).map(([t,o])=>({text:t,type:o.type||'phrase',count:o.count||0})).sort((a,b)=>b.count-a.count); const rCat=(title,arr,isOut)=>{ rpt+='=== '+title+' ===\n'; if(arr.length===0){ rpt+='(无)\n'; return; } for(const it of arr){ if(isOut){ const ico=it.type==='sentence'?'📝 句子':(it.type==='phrase'?'🔗 短语':'🔤 词语'); rpt+=ico+' '+it.text+'：出现 '+it.count+' 次\n'; } else { rpt+=vocabLevelLabel(it.level)+' '+it.word+'：出现 '+it.count+' 次\n'; } } rpt+='\n'; }; rCat('① 不懂的纲内词', rIn1, false); rCat('② 知道的纲内词', rIn2, false); rCat('③ 不懂的超纲词/短语/句子', rOut, true); const ok = downloadTextFile(rpt, 'HSK_Learning_Report_' + getLocalDate() + '.txt'); showToast(ok ? t('toast.download_started') : t('toast.download_failed')); }
 
 async function handleEndConversation(){ if(chatAbortController){ chatAbortController.abort(); chatAbortController=null; } if(currentSessionClauses.length===0&&sessionUserMessages.length===0){ addAssistantMessage(t('analysis.no_sentences')); return; } const filteredClauses=currentSessionClauses.filter(c=>!isQueriedSentence(c)); const savedClauses=[...filteredClauses]; if(filteredClauses.length===0){ addAssistantMessage(t('analysis.no_sentences')); currentSessionClauses=[]; sessionUserMessages=[]; return; } addAssistantMessage(t('analysis.analyzing_prefix')+filteredClauses.length+'...'); try{ const analysis=await analyzeGrammarBatch(filteredClauses); if(analysis) mergeAnalysisResults(analysis); addAssistantMessage(t('analysis.grammar_done')); }catch(e){ addAssistantMessage(t('analysis.grammar_timeout')); } addAssistantMessage(t('analysis.vocab_analyzing')); try{ const vocabAnalysis=await analyzeVocabBatch(savedClauses); if(vocabAnalysis){ mergeVocabResultsFiltered(vocabAnalysis); } const matchCount=vocabAnalysis?vocabAnalysis.reduce((sum,item)=>sum+Object.keys(item.wordCounts||{}).length,0):0; addAssistantMessage(t('analysis.vocab_done')+' 匹配到 '+matchCount+' 个词'); }catch(e){ console.log('Vocab error:',e); addAssistantMessage(t('analysis.vocab_timeout')); } renderVocabLevelProgress(); renderVocabTrackList(); currentSessionClauses=[]; sessionUserMessages=[]; }
-    async function handleUserMessage(){ let text=userInput.value.trim(); if(!text) return; userInput.value=''; addMessage('user',text); currentSessionClauses.push(...splitClauses(text)); sessionUserMessages.push(text); if(chatAbortController){ chatAbortController.abort(); } chatAbortController=new AbortController(); const signal=chatAbortController.signal; try{ const reply=await chatWithContext(text,signal); const mistakes=await analyzeMistakesBatch([text]); for(const m of mistakes){ if(!m.note) m.note=describeMistakeReason(m.original, m.corrected); } const filtered=dedupeMistakesByOriginal(filterMistakes(mistakes)); if(reply){ for(const m of filtered){ addWrongSentence('','对话纠错',m.corrected,'',m.original,m.note||''); } let html=reply.html, raw=reply.raw; if(filtered.length>0){ const htmlParts=[], rawLines=[]; for(const m of filtered){ rawLines.push('❌ '+m.original); rawLines.push('✅ '+m.corrected); if(m.note) rawLines.push('💡 '+m.note); htmlParts.push('<b>'+escapeHtml(m.original)+'</b> → <b style="color:#27ae60">'+escapeHtml(m.corrected)+'</b>'+(m.note?' <span style="color:#e67e22">💡 '+escapeHtml(m.note)+'</span>':'')); } html += '<br><br>✏️ 纠错：<br>' + htmlParts.join('<br>'); raw += '\n✏️ 纠错：\n' + rawLines.join('\n'); const last=chatHistory[chatHistory.length-1]; if(last&&last.role==='assistant'){ last.content=raw; saveChatHistory(); } } addAssistantMessage(html, true, raw); } else { for(const m of filtered){ addWrongSentence('','对话纠错',m.corrected,'',m.original,m.note||''); } addAssistantMessage(t('analysis.reply_fail')); } }catch(e){ if(e.name!=='AbortError') addAssistantMessage(t('analysis.reply_fail')); }finally{ chatAbortController=null; } }
+    async function handleUserMessage(){ let text=userInput.value.trim(); if(!text) return; userInput.value=''; addMessage('user',text); currentSessionClauses.push(...splitClauses(text)); sessionUserMessages.push(text); if(chatAbortController){ chatAbortController.abort(); } chatAbortController=new AbortController(); const signal=chatAbortController.signal; try{ const reply=await chatWithContext(text,signal); const mistakes=await analyzeMistakesBatch([text], reply ? reply.raw : ''); for(const m of mistakes){ const _lang = targetLangSelect ? targetLangSelect.value : 'Chinese'; if(!m.note || (_lang !== 'Chinese' && /[\u4e00-\u9fff]/.test(String(m.note)))) m.note = describeMistakeReason(m.original, m.corrected); } const natural = reply ? extractNaturalCorrections(text, reply.raw) : []; const filtered=dedupeMistakesByOriginal([...filterMistakes(mistakes), ...natural]); if(reply){ for(const m of filtered){ addWrongSentence('','对话纠错',m.corrected,'',m.original,m.note||''); } let html=reply.html, raw=reply.raw; if(filtered.length>0){ const htmlParts=[], rawLines=[]; for(const m of filtered){ rawLines.push('❌ '+m.original); rawLines.push('✅ '+m.corrected); if(m.note) rawLines.push('💡 '+m.note); htmlParts.push('<b>'+escapeHtml(m.original)+'</b> → <b style="color:#27ae60">'+escapeHtml(m.corrected)+'</b>'+(m.note?' <span style="color:#e67e22">💡 '+escapeHtml(m.note)+'</span>':'')); } html += '<br><br>' + t('chat.correction') + htmlParts.join('<br>'); raw += '\n' + t('chat.correction') + '\n' + rawLines.join('\n'); const last=chatHistory[chatHistory.length-1]; if(last&&last.role==='assistant'){ last.content=raw; saveChatHistory(); } } addAssistantMessage(html, true, raw); } else { for(const m of filtered){ addWrongSentence('','对话纠错',m.corrected,'',m.original,m.note||''); } addAssistantMessage(t('analysis.reply_fail')); } }catch(e){ if(e.name!=='AbortError') addAssistantMessage(t('analysis.reply_fail')); }finally{ chatAbortController=null; } }
     let practiceIsSpeaking=false;
     // ========== 语音朗读 ==========
     // 解锁移动端音频播放（微信等WebView首次需用户手势激活AudioContext）
@@ -9368,8 +10275,8 @@ function renderPractice(exerciseData) {
             revealHtml = '<div class="practice-answer-reveal" id="practiceAnswerReveal"><div class="ans-name">' + itemLabel + '</div><div style="font-size:0.9rem;color:#64748b;margin-bottom:4px;">' + escapeHtml(english) + '</div>' + (hasColl ? '<div class="ans-coll">🔗 ' + escapeHtml(collText) + '</div>' : '') + '<div class="ans-sent">' + ansSentDisplay + '</div></div>';
         }
         
-        var hintHtml = hasColl ? ('<div class="practice-hint">🔗 搭配：' + escapeHtml(collText) + '</div>') : ('<div class="practice-hint">' + t('practice.hint_prefix') + escapeHtml(hint) + '</div>');
-        var examBtns = window._testExamMode ? '' : ('<button class="practice-btn" id="practicePinyinBtn">' + t('practice.pinyin') + '</button>' + '<button class="practice-btn" id="practiceRevealBtn" title="显示答案(5)">💡 答案(5)</button>' + '<button class="practice-btn" id="practiceNewBtn">' + t('practice.new') + '</button>');
+        var hintHtml = hasColl ? ('<div class="practice-hint">' + t('practice.collocation') + escapeHtml(collText) + '</div>') : ('<div class="practice-hint">' + t('practice.hint_prefix') + escapeHtml(hint) + '</div>');
+        var examBtns = window._testExamMode ? '' : ('<button class="practice-btn" id="practicePinyinBtn">' + t('practice.pinyin') + '</button>' + '<button class="practice-btn" id="practiceRevealBtn" title="'+t('practice.reveal')+'">' + t('practice.reveal') + '</button>' + '<button class="practice-btn" id="practiceNewBtn">' + t('practice.new') + '</button>');
         var html = headerHtml + revealHtml + '<div class="practice-english-sentence">' + escapeHtml(english) + hintHtml + '</div><div class="practice-input-container" id="practiceInputContainer"></div><div class="practice-feedback" id="practiceFeedback"></div><div style="text-align:center;"><button class="practice-btn" id="practiceCheckBtn">' + t('practice.check') + '</button><button class="practice-btn" id="practiceResetBtn">' + t('practice.reset') + '</button><button class="practice-btn" id="practiceNextBtn">' + t('practice.next') + '</button><button class="practice-btn speak-btn" id="practiceSpeakBtn">' + t('practice.speak') + '</button>' + examBtns + '</div>';
         
         practiceContent.innerHTML = html;
@@ -9931,7 +10838,7 @@ async function generateAndShowPractice(grammarPattern, grammarLevel, forceNew=fa
                 html += '<div class="learn-task-item" data-word="'+escapeHtml(w)+'" data-level="'+level+'" data-lv="'+level+'" data-type="custom-vocab" style="border-left:3px solid #27ae60;">';
                 html += '<span class="word-text">📖 '+escapeHtml(w)+stageBadge+'</span>';
                 html += '<span class="word-meaning">'+(v2?escapeHtml(v2.m):'')+'</span>';
-                html += '<button class="del-item-btn" title="删除" style="background:none;border:1px solid #f5c6cb;border-radius:10px;padding:2px 8px;font-size:0.7rem;cursor:pointer;color:#c0392b;white-space:nowrap;">🗑️</button>';
+                html += '<button class="del-item-btn" title="'+t('learn.delete')+'" style="background:none;border:1px solid #f5c6cb;border-radius:10px;padding:2px 8px;font-size:0.7rem;cursor:pointer;color:#c0392b;white-space:nowrap;">🗑️</button>';
                 html += '</div>';
             }
             html += '</div>';
@@ -9944,7 +10851,7 @@ async function generateAndShowPractice(grammarPattern, grammarLevel, forceNew=fa
                 const gl=grammarLevelOf(g);
                 html += '<div class="learn-task-item" data-grammar="'+escapeHtml(g)+'" data-level="'+gl+'" data-lv="'+level+'" data-type="custom-grammar" style="border-left:3px solid #7b1fa2;">';
                 html += '<span class="word-text" style="color:#7b1fa2;">📐 '+escapeHtml(g)+'</span><span class="word-meaning"></span>';
-                html += '<button class="del-item-btn" title="删除" style="background:none;border:1px solid #f5c6cb;border-radius:10px;padding:2px 8px;font-size:0.7rem;cursor:pointer;color:#c0392b;white-space:nowrap;">🗑️</button>';
+                html += '<button class="del-item-btn" title="'+t('learn.delete')+'" style="background:none;border:1px solid #f5c6cb;border-radius:10px;padding:2px 8px;font-size:0.7rem;cursor:pointer;color:#c0392b;white-space:nowrap;">🗑️</button>';
                 html += '</div>';
             }
             html += '</div>';
@@ -9953,7 +10860,8 @@ async function generateAndShowPractice(grammarPattern, grammarLevel, forceNew=fa
         if(reviewWordObjs.length > 0){
             html += '<div class="learn-task-section"><h4 class="review-words">🔄 '+t('learn.section_review')+' ('+reviewWordObjs.length+')</h4>';
             for(let rw of reviewWordObjs){
-                const sl = t('learn.review_ordinal').replace('{n}', rw.stage+1);
+                const day = EBBINGHAUS_INTERVALS[rw.stage] || 0;
+                const sl = (t('learn.review_ordinal_days') || t('learn.review_ordinal')).replace('{n}', rw.stage+1).replace('{d}', day);
                 html += '<div class="learn-task-item" data-word="'+escapeHtml(rw.word)+'" data-level="'+level+'" data-type="review">';
                 html += '<span class="word-text">'+escapeHtml(rw.word)+'</span>';
                 html += '<span class="word-meaning">'+escapeHtml(rw.meaning)+'</span>';
@@ -9997,7 +10905,7 @@ async function generateAndShowPractice(grammarPattern, grammarLevel, forceNew=fa
         plan.words[word] = { stage: EBBINGHAUS_INTERVALS.length, learnedDate: today, reviewDates: [], skipped: true, correctCount: 0 };
         saveLearnPlan();
         renderLearnTasks();
-        showToast('「' + word + '」已标记为掌握');
+        showToast(t('learn.skipped_toast').replace('{word}', word));
     }
     function markWordReviewed(word, level){
         if(!learnPlan) return;
@@ -10127,7 +11035,7 @@ async function generateAndShowPractice(grammarPattern, grammarLevel, forceNew=fa
         if(!testModeState){ testModeState=null; return; }
         if(testModeState.queue.length===0&&testModeState.tested.length===0){
             if(window._testExamMode){ showTestExamResult(); return; }
-            showToast('✅ 测试完成！'); testModeState=null; window._dictationMode = false; return;
+            showToast(t('test.done')); testModeState=null; window._dictationMode = false; return;
         }
         if(testModeState.queue.length===0){
             if(!window._testExamMode){ showTestExamResult(); return; }
@@ -10242,7 +11150,7 @@ async function generateAndShowPractice(grammarPattern, grammarLevel, forceNew=fa
     }
     function showTestNextBtn(){
     var fb=document.getElementById('practiceFeedback');
-    if(fb){ fb.innerHTML+=' <button id="testNextManualBtn" onclick="window._testNextManual()" style="background:#1e2b5e;color:#fff;border:none;padding:6px 16px;border-radius:14px;cursor:pointer;font-size:0.85rem;margin-left:8px;">▶ 下一题</button>'; }
+    if(fb){ fb.innerHTML+=' <button id="testNextManualBtn" onclick="window._testNextManual()" style="background:#1e2b5e;color:#fff;border:none;padding:6px 16px;border-radius:14px;cursor:pointer;font-size:0.85rem;margin-left:8px;">'+t('test.next_btn')+'</button>'; }
 }
 window._testNextManual=function(){
     var btn=document.getElementById('testNextManualBtn');
@@ -10285,7 +11193,7 @@ function getDueReviews(){
 }
 function startReviewMode(){
     var due=getDueReviews();
-    if(due.length===0){ showToast('✅ 今日复习结束！暂无到期词条'); return; }
+    if(due.length===0){ showToast(t('review.none_due')); return; }
     window._reviewQueue=shuffleArray([...due]);
     window._reviewCorrect=0; window._reviewTotal=due.length;
     window._learnMode=false; window._learnQueue=null; window._pendingLearnWord=null;
@@ -10328,7 +11236,7 @@ function showTestExamResult(){
         stopAllSpeech();
         practiceGenerating = false;
         document.body.style.overflow = '';
-        showToast('🧪 测试完成！答对 '+correct+'/'+total+' 题，得分 '+percent+'%');
+        showToast(t('test.exam_done').replace('{correct}', correct).replace('{total}', total).replace('{pct}', percent));
     }
 
     // ========== 学习模式自定义选择（词汇+语法） ==========
@@ -10346,11 +11254,11 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
         if(type==='vocab'){
             const vocab = VOCAB_LEVEL_MAP[lv]||[];
             items = vocab.map((v,i)=>({idx:i, id:v.w, label:v.w, sel:curData.vocab.includes(v.w)}));
-            title = vocabLevelLabel(lv)+' 词汇 ('+items.length+'个)';
+            title = t('learn.picker_vocab_title').replace('{level}', vocabLevelLabel(lv)).replace('{n}', items.length);
         } else {
             const grammar = LEVEL_MAP[gl]||[];
             items = grammar.map((g,i)=>({idx:i, id:g, label:g, sel:curData.grammar.includes(g)}));
-            title = 'HSK'+gl+' 语法 ('+items.length+'个)';
+            title = t('learn.picker_grammar_title').replace('{level}', 'HSK'+gl).replace('{n}', items.length);
         }
         let h='<div style="margin-bottom:4px;font-weight:600;font-size:0.85rem;">'+title+'</div>';
         h+='<div style="display:flex;gap:6px;margin-bottom:6px;"><button onclick="window._selAllC(\''+type+'\')" style="background:#27ae60;color:#fff;border:none;padding:4px 10px;border-radius:8px;cursor:pointer;font-size:0.72rem;">'+t('learn.select_all')+'</button><button onclick="window._selNoneC(\''+type+'\')" style="background:#e74c3c;color:#fff;border:none;padding:4px 10px;border-radius:8px;cursor:pointer;font-size:0.72rem;">'+t('learn.select_none')+'</button><button onclick="window._confC('+lv+',\''+type+'\','+gl+')" style="background:#1e2b5e;color:#fff;border:none;padding:4px 10px;border-radius:8px;cursor:pointer;font-size:0.72rem;">'+t('learn.confirm_add')+'</button><button onclick="window._closeC()" style="background:#94a3b8;color:#fff;border:none;padding:4px 10px;border-radius:8px;cursor:pointer;font-size:0.72rem;">'+t('learn.close')+'</button></div>';
@@ -10452,7 +11360,7 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
         saveLearnCustomData();
         if(!learnPlan[lv2]){ learnPlan[lv2]={dailyCount:99,startDate:getLocalDate(),words:{},nextIndex:0}; saveLearnPlan(); }
         renderLearnTasks();
-        showToast(vocabLevelLabel(lv2)+'：已选 '+curData.vocab.length+' 词 + '+curData.grammar.length+' 语法');
+        showToast(t('learn.picker_added').replace('{level}', vocabLevelLabel(lv2)).replace('{v}', curData.vocab.length).replace('{g}', curData.grammar.length));
     };
     document.getElementById('learnSelectVocabBtn').onclick=function(){ _showCustomPicker('vocab'); };
     document.getElementById('learnSelectGrammarBtn').onclick=function(){ _showCustomPicker('grammar'); };
