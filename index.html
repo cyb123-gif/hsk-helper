@@ -7141,7 +7141,9 @@ const HSK2_VOCAB = [
             'dictation.sentence_score':'本句正确率：{pct}%',
             'dictation.total_score':'总正确率：{pct}%',
             'dictation.done':'🎉 听写完成！总正确率 {pct}%',
-            'dictation.empty_input':'请先写出你听到的内容，再提交批改。'
+            'dictation.empty_input':'请先写出你听到的内容，再提交批改。',
+            'dictation.text_auto_split':'✅ 文本已自动按句拆分为 {n} 句',
+            'dictation.even_split_hint':'⚠️ 未检测到明显停顿，音频按句均分（切分点可能不够准）'
         },
         'English': {
             'learn.review_ordinal_days':'Review #{n} due · day {d}',
@@ -7183,7 +7185,9 @@ const HSK2_VOCAB = [
             'dictation.sentence_score':'Sentence accuracy: {pct}%',
             'dictation.total_score':'Overall accuracy: {pct}%',
             'dictation.done':'🎉 Dictation complete! Overall accuracy {pct}%',
-            'dictation.empty_input':'Please write what you heard before submitting.'
+            'dictation.empty_input':'Please write what you heard before submitting.',
+            'dictation.text_auto_split':'✅ Transcript auto-split into {n} sentences',
+            'dictation.even_split_hint':'⚠️ No clear pauses detected; audio split evenly by sentence (boundaries may be approximate)'
         },
         'Japanese': {
             'learn.review_ordinal_days':'復習#{n}（未実施）・{d}日後',
@@ -7752,6 +7756,22 @@ const HSK2_VOCAB = [
         if(resetBtn) resetBtn.disabled = !(hasFile || hasText);
     }
     function dictationStrip(s){ return String(s || '').replace(/[^\u4e00-\u9fffA-Za-z0-9]/g, ''); }
+    function dictationSplitSentences(text){
+        const rawLines = String(text || '').split(/\r?\n/).map(s => s.trim()).filter(s => s.length > 0);
+        const out = [];
+        for(const line of rawLines){
+            const parts = line.match(/[^。！？!?；;…]*[。！？!?；;…]+|[^。！？!?；;…]+$/g);
+            if(parts && parts.length > 1){
+                for(const p of parts){
+                    const s = p.trim();
+                    if(s) out.push(s);
+                }
+            } else {
+                out.push(line);
+            }
+        }
+        return out;
+    }
     function diffDictationSentence(ref, user){
         const r = dictationStrip(ref), u = dictationStrip(user);
         const n = r.length, m = u.length;
@@ -7776,45 +7796,100 @@ const HSK2_VOCAB = [
             const start = total * k / count, end = total * (k + 1) / count;
             if(end - start > 0.05) segs.push({ start, end });
         }
+        segs.usedSilence = false;
         return segs;
     }
     function detectDictationSegments(buffer, count){
-        const data = buffer.getChannelData(0);
-        const sr = buffer.sampleRate;
-        const win = Math.max(1, Math.floor(sr * 0.02));
-        const hop = Math.max(1, Math.floor(sr * 0.01));
-        const energies = [];
-        for(let pos = 0; pos + win <= data.length; pos += hop){
+        if(!buffer || !count || count <= 1) return dictationEvenSegments(buffer, count);
+        try{
+            const data = buffer.getChannelData(0);
+            const sr = buffer.sampleRate;
+            const total = buffer.duration;
+            const win = Math.max(1, Math.floor(sr * 0.02));   // 20ms RMS window
+            const hop = Math.max(1, Math.floor(sr * 0.01));   // 10ms step
+            const frames = [];
+            // O(n) sliding-window RMS（避免大文件卡死）
             let sum = 0;
-            for(let k = 0; k < win; k++){ const v = data[pos + k]; sum += v * v; }
-            energies.push({ pos, rms: Math.sqrt(sum / win) });
-        }
-        if(energies.length === 0 || count <= 1) return dictationEvenSegments(buffer, count);
-        const vals = energies.map(e => e.rms).sort((a, b) => a - b);
-        const median = vals[Math.floor(vals.length / 2)] || 0.001;
-        const threshold = Math.max(median * 0.25, 0.005);
-        const total = buffer.duration;
-        const cuts = [];
-        const searchRange = total / count * 0.6;
-        for(let k = 1; k < count; k++){
-            const ideal = total * k / count;
-            let best = -1, bestDist = Infinity;
-            for(let ei = 0; ei < energies.length; ei++){
-                const t = energies[ei].pos / sr;
-                const dist = Math.abs(t - ideal);
-                if(dist > searchRange) continue;
-                if(energies[ei].rms <= threshold && dist < bestDist){ bestDist = dist; best = t; }
+            for(let i = 0; i < data.length; i++){
+                const v = data[i];
+                sum += v * v;
+                if(i >= win){ sum -= data[i - win] * data[i - win]; }
+                if(i >= win - 1 && ((i - (win - 1)) % hop === 0)){
+                    frames.push({ t: (i - win + 1) / sr, rms: Math.sqrt(sum / win) });
+                }
             }
-            cuts.push(best >= 0 ? best : ideal);
-        }
-        cuts.sort((a, b) => a - b);
-        const segs = [];
-        let start = 0;
-        for(const c of cuts){
-            if(c > start + 0.15){ segs.push({ start, end: c }); start = c; }
-        }
-        segs.push({ start, end: total });
-        return segs.length >= count ? segs : dictationEvenSegments(buffer, count);
+            if(frames.length === 0) return dictationEvenSegments(buffer, count);
+            // 平滑包络（5帧≈50ms移动平均）
+            const W = 5;
+            const smooth = new Array(frames.length);
+            let acc = 0;
+            for(let i = 0; i < frames.length; i++){
+                acc += frames[i].rms;
+                if(i >= W){ acc -= frames[i - W].rms; }
+                smooth[i] = acc / Math.min(i + 1, W);
+            }
+            // 自适应阈值：以低分位噪声底为基础
+            const sorted = smooth.slice().sort((a, b) => a - b);
+            const noiseFloor = sorted[Math.floor(sorted.length * 0.15)] || 0.001;
+            const median = sorted[Math.floor(sorted.length / 2)] || 0.001;
+            const threshold = Math.max(noiseFloor * 2.0, median * 0.15, 0.003);
+            // 静音区间：连续低于阈值且时长足够
+            const minSilence = Math.max(0.15, Math.min(0.45, total / count * 0.05));
+            const silences = [];
+            let startIdx = -1;
+            for(let i = 0; i < smooth.length; i++){
+                if(smooth[i] <= threshold){
+                    if(startIdx < 0) startIdx = i;
+                } else if(startIdx >= 0){
+                    const s = frames[startIdx].t, e = frames[i - 1].t;
+                    if(e - s >= minSilence) silences.push({ start: s, end: e, mid: (s + e) / 2 });
+                    startIdx = -1;
+                }
+            }
+            if(startIdx >= 0){
+                const s = frames[startIdx].t, e = frames[frames.length - 1].t;
+                if(e - s >= minSilence) silences.push({ start: s, end: e, mid: (s + e) / 2 });
+            }
+            // 每个理想边界附近找切点：优先静音中点，其次局部能量最低点，最后均分点
+            const searchRange = total / count * 0.6;
+            const minGap = Math.min(0.3, total / count * 0.5);
+            const cuts = [];
+            let usedSilence = false;
+            for(let k = 1; k < count; k++){
+                const ideal = total * k / count;
+                const prevCut = cuts.length ? cuts[cuts.length - 1] : 0;
+                let best = -1, bestDist = Infinity;
+                for(const si of silences){
+                    if(si.mid < prevCut + minGap) continue;
+                    const dist = Math.abs(si.mid - ideal);
+                    if(dist > searchRange) continue;
+                    if(dist < bestDist){ bestDist = dist; best = si.mid; }
+                }
+                if(best >= 0){
+                    usedSilence = true;
+                } else {
+                    const lo = Math.max(0, ideal - searchRange), hi = Math.min(total, ideal + searchRange);
+                    let minVal = Infinity, minT = -1;
+                    for(let i = 0; i < smooth.length; i++){
+                        const t = frames[i].t;
+                        if(t < lo || t > hi) continue;
+                        if(smooth[i] < minVal){ minVal = smooth[i]; minT = t; }
+                    }
+                    best = (minT >= 0 && minT > prevCut + minGap) ? minT : ideal;
+                }
+                if(best > prevCut + minGap && best < total - 0.1) cuts.push(best);
+                else cuts.push(ideal);
+            }
+            cuts.sort((a, b) => a - b);
+            const segs = [];
+            let start = 0;
+            for(const c of cuts){
+                if(c > start + 0.15){ segs.push({ start, end: c }); start = c; }
+            }
+            segs.push({ start, end: total });
+            if(segs.length >= count){ segs.usedSilence = usedSilence; return segs; }
+        }catch(e){}
+        return dictationEvenSegments(buffer, count);
     }
     let dictationSource = null;
     function stopDictationAudio(){
@@ -7852,8 +7927,11 @@ const HSK2_VOCAB = [
         const textEl = dictationEl('dictationTextInput');
         const file = fileInput && fileInput.files && fileInput.files[0];
         if(!file){ showToast(t('dictation.need_file')); return; }
-        const lines = String(textEl.value || '').split(/\r?\n/).map(s => s.trim()).filter(s => s.length > 0);
+        const rawText = String(textEl.value || '');
+        const lines = dictationSplitSentences(rawText);
         if(lines.length === 0){ showToast(t('dictation.need_text')); return; }
+        const rawLineCount = rawText.split(/\r?\n/).map(s => s.trim()).filter(s => s.length > 0).length;
+        if(lines.length > rawLineCount){ showToast(t('dictation.text_auto_split').replace('{n}', lines.length)); }
         const startBtn = dictationEl('dictationStartBtn');
         if(startBtn) startBtn.disabled = true;
         const progress = dictationEl('dictationProgress');
@@ -7878,7 +7956,9 @@ const HSK2_VOCAB = [
             st.results = [];
             st.totalChars = 0; st.correctChars = 0;
             st.active = true;
-            if(progress) progress.textContent = t('dictation.split_done').replace('{n}', st.segments.length);
+            let splitMsg = t('dictation.split_done').replace('{n}', st.segments.length);
+            if(lines.length > 1 && st.segments.usedSilence === false) splitMsg += ' — ' + t('dictation.even_split_hint');
+            if(progress) progress.textContent = splitMsg;
             dictationEl('dictationStage').style.display = 'block';
             const input = dictationEl('dictationUserInput');
             input.value = ''; input.disabled = false;
@@ -7890,6 +7970,7 @@ const HSK2_VOCAB = [
             renderDictationProgress();
             updateDictationButtons();
             playDictationSegment(0);
+            input.focus();
         }catch(e){
             const fs = dictationEl('dictationFileStatus');
             if(fs){ fs.textContent = t('dictation.file_status_err'); fs.className = 'dictation-file-status err'; }
@@ -7934,6 +8015,7 @@ const HSK2_VOCAB = [
         dictationEl('dictationNextBtn').style.display = 'none';
         renderDictationProgress();
         playDictationSegment(st.currentIdx);
+        input.focus();
     }
     function showDictationFinal(){
         const st = dictationState;
@@ -8215,6 +8297,19 @@ const HSK2_VOCAB = [
         for (const w of bad) { if (s.indexOf(w) !== -1) return true; }
         return false;
     }
+    // 判断生成的文章是否真正扣住了自定义话题（标题+正文包含话题中的连续片段）
+    function readingTopicHit(customTopic, text){
+        const topic = String(customTopic || '').replace(/[^0-9A-Za-z\u4e00-\u9fff]/g, '');
+        if(!topic) return true;
+        const body = String(text || '').replace(/[^0-9A-Za-z\u4e00-\u9fff]/g, '');
+        if(topic.length <= 1) return body.indexOf(topic) !== -1;
+        for(let len = topic.length; len >= 2; len--){
+            for(let i = 0; i + len <= topic.length; i++){
+                if(body.indexOf(topic.substring(i, i + len)) !== -1) return true;
+            }
+        }
+        return false;
+    }
     // 新词 = 比所选等级高一级的词（乐学5 封顶）；排除所有等级已选/已学的词
     function pickNewWordsFromLevel(newLevel, count) {
         const knownSet = new Set();
@@ -8292,19 +8387,39 @@ const HSK2_VOCAB = [
         const levelGuide = LEN[mix.level] || LEN[3];
         const levelName = vocabLevelLabel(mix.level);
         const nextLevelName = vocabLevelLabel(mix.nextLevel);
-        const shortWarn = retryCount > 0 ? '【上次问题】上次生成的短文未达到要求（字数不够或可用词太少）。这次优先保证每句话意思正确、自然；宁可少用指定词汇，也严禁为了用词写意思不对的句子。' : '';
+        const shortWarn = retryCount > 0 ? '【上次问题】上次生成的短文未达到要求（可能字数不够、可用词太少、主题不够贴合或句子逻辑不通）。这次必须严格围绕主题，优先保证每句话意思正确、自然、符合常识；宁可少用指定词汇，也严禁为了用词写意思不对的句子，严禁为了“有趣”写怪诞情节。' : '';
         const knownList = mix.knownWords.join('、');
         const newList = mix.suggestedNew.join('、');
         const recentTopics = readingHistory.slice(0, 10).map(r => ((r.topic || '') + '｜' + (r.title || '')).trim()).filter(s => s && s !== '｜');
         const topicRule = recentTopics.length ? '【话题/标题/内容避重】最近已经写过这些主题和标题：' + recentTopics.join('；') + '。这次必须换一个完全不同的新话题；新标题不能与这些标题相同或意思相近；新内容也不能与这些文章相似（不要只改个名字就重新讲同一件事）。' : '';
         const STYLES = ['新闻简讯', '生活小故事', '人物介绍', '科普小知识', '地方或文化介绍', '日记或书信', '网络帖子'];
-        const styleRule = '【文体与开头变化 - 必须遵守】本次文体必须是：' + STYLES[readingHistory.length % STYLES.length] + '。开头方式必须与最近的文章不同（可选用：时间开头、地点开头、人物开头、问题开头、对话开头、场景描写开头），不要每次都用同一种开头。情节套路也要换：不要总是“某人遇到问题→想办法→解决”的套路，可以用对比、趣闻、见闻、说明、采访等多种方式组织内容。';
+        const styleRule = '【文体与开头变化 - 必须遵守】本次文体必须是：' + STYLES[readingHistory.length % STYLES.length] + '。开头方式必须与最近的文章不同（可选用：时间开头、地点开头、人物开头、问题开头、对话开头、场景描写开头），不要每次都用同一种开头。情节组织可以多样（对比、趣闻、见闻、说明、采访等），但所有情节必须符合常识和逻辑，不能为了换套路而写怪诞内容。';
         const recentArticles = readingHistory.slice(0, 8).map(r => String(r.content || '').replace(/\s+/g, ' ').slice(0, 120)).filter(s => s);
         const recentContentRule = recentArticles.length ? '【用词/情节避重】以下是最近文章的内容片段：' + recentArticles.map(s => '“' + s + '”').join('；') + '。这次的文章不要与这些内容情节相似，不要重复使用其中反复出现的词和固定表达（如“有一天”“很多人”“越来越”“非常有意思”等，除非该词是必用的指定词汇）；同样的情节不要换个名字再讲一遍。' : '';
-        const prompt = `你是一位专业的对外汉语阅读材料编写老师。请编写一篇有趣的短文。${topicInstr}用简单自然的中文讲述，像学生刷手机时看到的真实内容一样。
+        const prompt = `你是一位专业的对外汉语阅读材料编写老师。请编写一篇短文。用简单自然的中文讲述，像学生刷手机时看到的真实内容一样。
 
-【趣味性要求 - 非常重要】
-1. 文章要有趣、有画面感、有信息量，读起来像真实的热点报道或有趣的小故事，不要像课本范文。
+【主题要求 - 一票否决】
+${topicInstr}
+全文必须紧扣上面的主题：标题要点题，每一段都要围绕主题展开，不能跑题，不能写着写着变成另一个话题。如果主题是节日（如中秋节、春节等），必须写该节日的真实习俗、食物、活动或相关故事，不能只借节日名字写无关的事。写完自检：把标题和每段第一句连起来读，如果看不出文章在讲这个主题，就重写。
+
+【常识与逻辑 - 一票否决】
+文章必须符合真实世界的常识、常理和人之常情：
+1. 前后句要有清楚的因果或时间顺序，不能突然出现没有交代的人、事、物；前一句提出的信息，后一句要接得住。
+2. 人物身份、行为、场景要真实可信，像生活中真会发生的事。不要为了“有趣”“新颖”而写怪诞、猎奇、夸张的设定（例如“男人穿裙子”“跟国王一样的爷爷”这类，除非主题本身明确要求且给出合理解释）。
+3. 职业、季节、地点、人物关系要符合常识：例如“暑假”是学生的假期，不能默认所有上班的人都放假；说一个人是“最棒的某职业”之前，必须先写他做这个职业做得好的具体表现。
+4. 写完逐句自检：每句话是否符合常识？前一句和后一句是否自然衔接？有没有没交代的突然转折？发现任何一条不通过就重写。
+
+【语言自然 - 一票否决】
+用词搭配必须像真人平时说话一样自然，不能有语病或别扭搭配：
+1. 注意“的”字结构：说“他做的家常菜很香”，不说“他的家常菜很香”；说“做饭是他的爱好”，不说“做饭是他的爱”。
+2. 副词和动词要搭配自然：“认真地做饭”“做饭很用心”比“仔细地做饭”自然。
+3. 避免语义重复（“它的大小很小”应写“它很小”）和绕弯表达（“这件衣服的颜色是红色”应写“这件衣服是红色的”）。
+4. “谢谢”“喜欢”等词的对象要合理（“我谢谢它”应写“我谢谢他/她”）。
+5. HSK1-2 的句子尤其要最简单、最自然，宁可短，不要绕。例如「开手机」应写「打开手机」。
+6. 写完逐句默读，发现别扭的搭配就换说法。
+
+【趣味性要求 - 重要，但必须服从上面三条】
+1. 文章要有趣、有画面感、有信息量，读起来像真实的热点报道或有趣的小故事，不要像课本范文。有趣来自真实的人物、细节和情感，不来自怪诞设定。
 2. 每次生成必须换一个不同的话题，话题越多样越好。${topicRule}
 3. ${styleRule}
 4. ${recentContentRule}
@@ -8314,8 +8429,8 @@ const HSK2_VOCAB = [
 - 中文水平：${levelName}
 - 学生母语：${targetLang}（新词解释必须用${targetLang}）
 
-【意思优先 - 最高原则（一票否决）】
-任何情况下，语义正确、逻辑通顺、符合常识优先于使用指定词汇。如果某个词只能用「为了用词而用词」的方式塞进文章，导致句子意思不对、别扭或不合逻辑，就绝对不要用这个词。写完后必须逐句检查：每句话都要有正确、清楚的意思；只要发现哪句话意思不对，就重写这句话或删掉那个词，即使因此少用几个指定词汇也没关系。宁可少用词，不可写错意思。
+【意思优先 - 最高原则】
+任何情况下，语义正确、逻辑通顺、符合常识优先于使用指定词汇。如果某个词只能用「为了用词而用词」的方式塞进文章，导致句子意思不对、别扭或不合逻辑，就绝对不要用这个词。宁可少用词，不可写错意思。
 
 【词汇要求 - 尽量遵守，但不允许牺牲意思】
 - 目标比例：本等级（${levelName}及以下）词语覆盖正文约85%的汉字；高一级（${nextLevelName}）新词约占10%；真正超纲的词（超过${nextLevelName}）全文不超过3个。比例是参考值，不是硬性数字——可读性永远优先，如果为了凑比例把句子写别扭，就放弃比例，改写自然的句子。
@@ -8330,7 +8445,9 @@ const HSK2_VOCAB = [
 【篇幅要求 - 最重要】${levelGuide}。content 的汉字总数必须达到这个字数范围，不能太短。内容要连贯、有头有尾，像一篇完整的小文章，不要写成问答或列表。${shortWarn}
 
 【难度控制】句子简短，语法符合${levelName}。
-【自然表达 - 必须遵守】写完后逐句默读检查，句子要像真人平时说话一样自然，不能有重复、别扭或不合常理的表达。反例："它的大小很小"（"大小"与"小"重复，应写"它很小"）；"这件衣服的颜色是红色"（应写"这件衣服是红色的"）；"我谢谢它"（"谢谢"一般对人说，不对动物/物品说，应写"我谢谢他"或"我谢谢她"）。HSK1 的句子尤其要最简单、最自然，宁可短，不要绕。例如「开手机」应写「打开手机」。
+
+【输出前逐句自检 - 必须执行】
+逐句检查全文，确认：①每句意思清楚正确；②每段紧扣主题不跑题；③前后句因果/衔接自然，没有没交代的突然转折；④用词搭配自然，没有“他的家常菜很香”“做饭是他的爱”“仔细地做饭”这类语病；⑤没有怪诞、不合常识的设定。任何一条不通过，就重写该句或该段，直到全部通过后再输出 JSON。
 
 【输出格式 - 严格JSON，不要其他任何文字】
 {
@@ -8347,7 +8464,7 @@ const HSK2_VOCAB = [
             const resp = await fetch(API_BASE, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
-                body: JSON.stringify({ model: 'deepseek-v4-flash', thinking: { type: 'disabled' }, max_tokens: 4096, messages: [{ role: 'user', content: prompt }], temperature: 0.85, response_format: { type: 'json_object' } })
+                body: JSON.stringify({ model: 'deepseek-v4-pro', thinking: { type: 'disabled' }, max_tokens: 4096, messages: [{ role: 'user', content: prompt }], temperature: 0.7, response_format: { type: 'json_object' } })
             });
             const data = await resp.json();
             if (data.error) throw new Error(data.error.message || 'API error');
@@ -8367,9 +8484,10 @@ const HSK2_VOCAB = [
             // 本等级词 = 正文中实际出现的本等级词（文章里的词就是本等级词，不再单独列在文章下方）
             const contentCounts = matchVocabInText(result.content || '');
             const usedWords = Object.keys(contentCounts).filter(w => levelVocabSet.has(w)).slice(0, 30);
-            // 词汇数量不足、或本等级词+高一级词覆盖比例过低时自动重试（最多2次）
+            // 词汇数量不足、或本等级词+高一级词覆盖比例过低、或自定义话题没扣住时自动重试（最多2次）
             const coverage = measureReadingCoverage(result.content || '', mix.level, mix.nextLevel);
-            if (retryCount < 2 && (newWords.length < 1 || usedWords.length < 2 || (coverage.total >= (MIN_CHARS[mix.level] || 180) && coverage.ratio < 0.75))) {
+            const topicOk = !customTopic || readingTopicHit(customTopic, (result.title || '') + '\n' + (result.content || ''));
+            if (retryCount < 2 && (newWords.length < 1 || usedWords.length < 2 || (coverage.total >= (MIN_CHARS[mix.level] || 180) && coverage.ratio < 0.75) || !topicOk)) {
                 return generateReading(retryCount + 1);
             }
             const rawSourceUrl = String(result.sourceUrl || '').trim();
@@ -8440,6 +8558,72 @@ const HSK2_VOCAB = [
             }
         } catch (e) { return [run]; }
         return parts.length ? parts : [run];
+    }
+    // —— 北语在线分词（hsk.blcu.edu.cn「分词工具」后端接口）——
+    // 接口无需登录，CORS 允许跨域。返回 data.token 为按行分组的词数组。
+    const BLCU_TOKENIZE_URL = 'https://hsk.blcu.edu.cn/api/v1/nlp/tools/tokenize';
+    const READING_TOKEN_CACHE = new Map(); // 句子文本 -> [{word,start,end}]
+    async function fetchBlcuTokens(text) {
+        const src = String(text || '');
+        if (!src.trim()) return null;
+        const controller = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+        const timer = controller ? setTimeout(() => controller.abort(), 10000) : null;
+        try {
+            const resp = await fetch(BLCU_TOKENIZE_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ sentence: src }),
+                signal: controller ? controller.signal : undefined
+            });
+            if (!resp.ok) return null;
+            const json = await resp.json();
+            const lines = json && json.data && json.data.token;
+            if (!Array.isArray(lines)) return null;
+            // 按顺序在原文中定位每个词，得到绝对起止位置（自动跳过换行等未返回的字符）
+            const tokens = [];
+            let pos = 0;
+            for (const line of lines) {
+                if (!Array.isArray(line)) continue;
+                for (const w of line) {
+                    if (!w) continue;
+                    const start = src.indexOf(w, pos);
+                    if (start < 0) continue;
+                    tokens.push({ word: w, start, end: start + w.length });
+                    pos = start + w.length;
+                }
+            }
+            READING_TOKEN_CACHE.set(src, tokens);
+            return tokens;
+        } catch (e) {
+            return null;
+        } finally {
+            if (timer) clearTimeout(timer);
+        }
+    }
+    // 用北语分词结果 + 本地 HSK 词库生成阅读高亮 tokens
+    function buildReadingTokensFromBlcu(text, level, blcuTokens) {
+        const lexicon = getReadingLexiconByFirst();
+        const isHan = ch => /[\u4e00-\u9fff]/.test(ch);
+        const lookup = w => {
+            const arr = lexicon.get(w[0]);
+            if (!arr) return null;
+            return arr.find(x => x.w === w) || null;
+        };
+        const tokens = [];
+        for (const bt of blcuTokens) {
+            const w = bt.word;
+            if (!isHan(w[0])) {
+                tokens.push({ start: bt.start, end: bt.end, cls: 'punct', word: w, level: 0 });
+                continue;
+            }
+            const entry = lookup(w);
+            if (entry) {
+                tokens.push({ start: bt.start, end: bt.end, cls: 'lv' + entry.lv, word: w, level: entry.lv });
+            } else {
+                tokens.push({ start: bt.start, end: bt.end, cls: 'plain', word: w, level: 0 });
+            }
+        }
+        return tokens;
     }
     function buildReadingTokens(text, level) {
         const lexicon = getReadingLexiconByFirst();
@@ -8522,7 +8706,10 @@ const HSK2_VOCAB = [
         return tokens;
     }
     function buildReadingHighlighted(text, level) {
-        const tokens = buildReadingTokens(text, level);
+        const blcuTokens = READING_TOKEN_CACHE.get(text);
+        const tokens = (blcuTokens && blcuTokens.length)
+            ? buildReadingTokensFromBlcu(text, level, blcuTokens)
+            : buildReadingTokens(text, level);
         let html = '', pos = 0;
         for (const tk of tokens) {
             if (tk.start < pos) continue;
@@ -8551,25 +8738,37 @@ const HSK2_VOCAB = [
         if (last) parts.push(last);
         return parts;
     }
+    // 与 splitReadingSentences 一致，但额外记录每个句子在原文中的起始位置
+    function splitReadingSentencesWithOffsets(text) {
+        const parts = [];
+        let buf = '';
+        let start = 0;
+        for (let idx = 0; idx < text.length; idx++) {
+            const ch = text[idx];
+            buf += ch;
+            if ('。！？!?；;，,'.includes(ch)) {
+                const raw = buf;
+                const s = raw.trim();
+                if (s) parts.push({ text: s, start: start + raw.indexOf(s) });
+                buf = '';
+                start = idx + 1;
+            }
+        }
+        const raw = buf;
+        const last = raw.trim();
+        if (last) parts.push({ text: last, start: start + raw.indexOf(last) });
+        return parts;
+    }
     function stripReadingFieldLabel(s) {
         return String(s || '')
             .replace(/^\s*(new\s+)?topic\s*[:：]\s*/i, '')
             .replace(/^\s*background\s*[:：]\s*/i, '')
             .trim();
     }
-    function renderReadingArticle(reading) {
-        const isSameArticle = currentReading && currentReading.title === reading.title && currentReading.date === reading.date;
-        currentReading = reading;
-        if (!isSameArticle) {
-            readingSessionUnknowns = [];
-            currentReadingAnalyzed = false;
-            const finishBtn = document.getElementById('readingFinishBtn');
-            if (finishBtn) finishBtn.textContent = t('reading.finish_btn');
-        }
+    let readingRenderSeq = 0;
+    function renderReadingArticleHtml(reading, paras, rLevel) {
         const contentEl = document.getElementById('readingContent');
         if (!contentEl) return;
-        const rLevel = reading.level || getReadingLevel();
-        updateReadingLevelHint(rLevel);
         let html = '<div class="reading-article">';
         if (reading.title) html += '<h3>' + escapeHtml(reading.title) + '</h3>';
         const topicText = stripReadingFieldLabel(reading.topic);
@@ -8582,7 +8781,6 @@ const HSK2_VOCAB = [
             const searchUrl = 'https://www.bing.com/search?q=' + encodeURIComponent(reading.title);
             html += '<div class="reading-background">' + t('reading.source_label') + '<a href="' + searchUrl + '" target="_blank" rel="noopener noreferrer">' + t('reading.source_search') + ' ↗</a></div>';
         }
-        const paras = String(reading.content || '').split(/\n+/).filter(p => p.trim());
         for (const para of paras) {
             html += '<p class="reading-para">';
             const sentences = splitReadingSentences(para);
@@ -8599,6 +8797,53 @@ const HSK2_VOCAB = [
         html += '</div>';
         contentEl.innerHTML = html;
         hideReadingSelection();
+    }
+    async function renderReadingArticle(reading) {
+        const renderSeq = ++readingRenderSeq;
+        const isSameArticle = currentReading && currentReading.title === reading.title && currentReading.date === reading.date;
+        currentReading = reading;
+        if (!isSameArticle) {
+            readingSessionUnknowns = [];
+            currentReadingAnalyzed = false;
+            const finishBtn = document.getElementById('readingFinishBtn');
+            if (finishBtn) finishBtn.textContent = t('reading.finish_btn');
+        }
+        const rLevel = reading.level || getReadingLevel();
+        updateReadingLevelHint(rLevel);
+        const paras = String(reading.content || '').split(/\n+/).filter(p => p.trim());
+        // 先用本地分词立即渲染，避免等待网络；拿到北语分词结果后再重渲染一次
+        renderReadingArticleHtml(reading, paras, rLevel);
+        const wholeText = paras.join('\n');
+        if (!wholeText.trim()) return;
+        const blcuTokens = await fetchBlcuTokens(wholeText);
+        if (renderSeq !== readingRenderSeq) return;
+        if (blcuTokens && blcuTokens.length) {
+            let paraStart = 0;
+            for (const para of paras) {
+                const pieces = splitReadingSentencesWithOffsets(para);
+                if (pieces.length === 0) {
+                    if (para.trim() && !READING_TOKEN_CACHE.has(para)) {
+                        const subset = blcuTokens
+                            .filter(t => t.start >= paraStart && t.end <= paraStart + para.length)
+                            .map(t => ({ word: t.word, start: t.start - paraStart, end: t.end - paraStart }));
+                        if (subset.length) READING_TOKEN_CACHE.set(para, subset);
+                    }
+                } else {
+                    for (const piece of pieces) {
+                        if (READING_TOKEN_CACHE.has(piece.text)) continue;
+                        const absStart = paraStart + piece.start;
+                        const absEnd = absStart + piece.text.length;
+                        const subset = blcuTokens
+                            .filter(t => t.start >= absStart && t.end <= absEnd)
+                            .map(t => ({ word: t.word, start: t.start - absStart, end: t.end - absStart }));
+                        if (subset.length) READING_TOKEN_CACHE.set(piece.text, subset);
+                    }
+                }
+                paraStart += para.length + 1;
+            }
+            // 北语分词已缓存，重新渲染以应用更准确的分词高亮
+            renderReadingArticleHtml(reading, paras, rLevel);
+        }
     }
     window._readingSpeak = function (text) { speakChinese(text); };
     function syncReadingSelected() {
@@ -9173,7 +9418,7 @@ const HSK2_VOCAB = [
             const resp = await fetch(API_BASE, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
-                body: JSON.stringify({ model: 'deepseek-v4-flash', thinking: { type: 'disabled' }, max_tokens: 4096, messages: [{ role: 'user', content: prompt }], temperature: 0, response_format: { type: 'json_object' } })
+                body: JSON.stringify({ model: 'deepseek-v4-pro', thinking: { type: 'disabled' }, max_tokens: 4096, messages: [{ role: 'user', content: prompt }], temperature: 0, response_format: { type: 'json_object' } })
             });
             const data = await resp.json();
             if (data.error) throw new Error(data.error.message || 'API error');
@@ -9836,7 +10081,7 @@ function saveFullState(){ if(!currentUser) return; const entries=Array.from(used
 只要有一项不符合，就删掉多余内容，缩短后再回复。` + enforce;
         const messages = [{role:'system', content:system}, ...chatHistory, {role:'user', content:userMsg}];
         try{
-            const resp = await fetch(API_BASE, {method:'POST', headers:{'Content-Type':'application/json', 'Authorization':'Bearer '+apiKey}, body: JSON.stringify({model:'deepseek-v4-flash', thinking:{type:'disabled'}, max_tokens:512, messages, temperature:0.4}), signal});
+            const resp = await fetch(API_BASE, {method:'POST', headers:{'Content-Type':'application/json', 'Authorization':'Bearer '+apiKey}, body: JSON.stringify({model:'deepseek-v4-pro', thinking:{type:'disabled'}, max_tokens:512, messages, temperature:0.4}), signal});
             const data = await resp.json();
             if (data.error) throw new Error(data.error.message || "API error");
             if (!data.choices || !data.choices[0] || !data.choices[0].message) throw new Error("API error");
@@ -9940,7 +10185,7 @@ N=名词, V=动词, Adj=形容词, Adv=副词, Prep=介词, Pron=代词(同Prono
 输出JSON：{"results":[{"sentence":"句子","matches":[{"pattern":"语法格式","level":等级}]}]}
 没有匹配的句子也要包含，matches为空数组。只输出纯JSON，不要任何解释文字。`;
 
-try{ const resp=await fetch(API_BASE,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${apiKey}`}, body:JSON.stringify({model:'deepseek-v4-flash',thinking:{type:'disabled'}, max_tokens:4096, messages:[{role:'system',content:prompt},{role:'user',content:blocksText}], temperature:0.1, response_format:{type:'json_object'}})}); const data=await resp.json(); if(data.error) throw new Error(data.error.message||"API error"); if(!data.choices||!data.choices[0]||!data.choices[0].message) throw new Error("API error"); let content=data.choices[0].message.content; content=content.replace(/```json/g,'').replace(/```/g,'').trim(); const parsed=JSON.parse(content); return parsed.results||parsed.matches||parsed||[]; }catch(e){ return null; } }async function analyzeMistakesBatch(userMessages, aiReplyRaw){ const apiKey=apiKeyInput.value.trim(); if(!apiKey||userMessages.length===0) return []; const targetLang = targetLangSelect ? targetLangSelect.value : 'English'; const prompt=`你是HSK中文教师。请严格分析学生句子本身的偏误（error analysis）：先识别错误，再给出改正和原因。只报告真正的偏误：既不要误报，也不要漏报——任何真实的偏误，无论大小（别字、错词、缺字、多字、量词、语气词、补语、语序等），都要报告。
+try{ const resp=await fetch(API_BASE,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${apiKey}`}, body:JSON.stringify({model:'deepseek-v4-pro',thinking:{type:'disabled'}, max_tokens:4096, messages:[{role:'system',content:prompt},{role:'user',content:blocksText}], temperature:0.1, response_format:{type:'json_object'}})}); const data=await resp.json(); if(data.error) throw new Error(data.error.message||"API error"); if(!data.choices||!data.choices[0]||!data.choices[0].message) throw new Error("API error"); let content=data.choices[0].message.content; content=content.replace(/```json/g,'').replace(/```/g,'').trim(); const parsed=JSON.parse(content); return parsed.results||parsed.matches||parsed||[]; }catch(e){ return null; } }async function analyzeMistakesBatch(userMessages, aiReplyRaw){ const apiKey=apiKeyInput.value.trim(); if(!apiKey||userMessages.length===0) return []; const targetLang = targetLangSelect ? targetLangSelect.value : 'English'; const prompt=`你是HSK中文教师。请严格分析学生句子本身的偏误（error analysis）：先识别错误，再给出改正和原因。只报告真正的偏误：既不要误报，也不要漏报——任何真实的偏误，无论大小（别字、错词、缺字、多字、量词、语气词、补语、语序等），都要报告。
 
 【重要原则 - 必须遵守】
 1. 【禁止无效纠错】original和corrected必须不同。如果不需要改动，说明没有偏误，不要输出。
@@ -9966,7 +10211,7 @@ try{ const resp=await fetch(API_BASE,{method:'POST',headers:{'Content-Type':'app
 - 缺少结果补语：「第一次看了鲜肉月饼的时候」→「第一次看到鲜肉月饼」（"看"后缺结果补语"到"，"了…的时候"冗余）
 - 表达不地道：「一吃这个就喜欢了」→「一吃就爱上了」（更自然的说法）
 
-输出JSON数组：[{"original":"学生原文(片段)","corrected":"改正后(必须与original不同)","type":"类型","note":"错误原因（用${targetLang}，具体说明，禁止空话）"}]。无错误返回[]。`; try{ const resp=await fetch(API_BASE,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${apiKey}`}, body:JSON.stringify({model:'deepseek-v4-flash',thinking:{type:'disabled'}, max_tokens:4096, messages:[{role:'system',content:prompt},{role:'user',content:(aiReplyRaw ? ('学生句子: '+JSON.stringify(userMessages)+'\n\nAI对话伙伴的自然回复（仅供参考，可能已包含正确说法）:\n'+String(aiReplyRaw)) : ('学生句子: '+JSON.stringify(userMessages)))}], temperature:0.1, response_format:{type:'json_object'}})}); const data=await resp.json(); if(data.error) throw new Error(data.error.message||"API error"); if(!data.choices||!data.choices[0]||!data.choices[0].message) throw new Error("API error"); let content=data.choices[0].message.content; content=content.replace(/```json/g,'').replace(/```/g,'').trim(); const parsed=JSON.parse(content); return Array.isArray(parsed)?parsed:(parsed.mistakes||parsed.results||[]); }catch(e){ return []; } }
+输出JSON数组：[{"original":"学生原文(片段)","corrected":"改正后(必须与original不同)","type":"类型","note":"错误原因（用${targetLang}，具体说明，禁止空话）"}]。无错误返回[]。`; try{ const resp=await fetch(API_BASE,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${apiKey}`}, body:JSON.stringify({model:'deepseek-v4-pro',thinking:{type:'disabled'}, max_tokens:4096, messages:[{role:'system',content:prompt},{role:'user',content:(aiReplyRaw ? ('学生句子: '+JSON.stringify(userMessages)+'\n\nAI对话伙伴的自然回复（仅供参考，可能已包含正确说法）:\n'+String(aiReplyRaw)) : ('学生句子: '+JSON.stringify(userMessages)))}], temperature:0.1, response_format:{type:'json_object'}})}); const data=await resp.json(); if(data.error) throw new Error(data.error.message||"API error"); if(!data.choices||!data.choices[0]||!data.choices[0].message) throw new Error("API error"); let content=data.choices[0].message.content; content=content.replace(/```json/g,'').replace(/```/g,'').trim(); const parsed=JSON.parse(content); return Array.isArray(parsed)?parsed:(parsed.mistakes||parsed.results||[]); }catch(e){ return []; } }
     function isPunctuationOnlyDiff(a,b){var p='，。、！？；：…—·《》〈〉（）【】,.!?;:()[]{}<> ';var s=function(x){return (x||'').split('').filter(function(c){return p.indexOf(c)<0;}).join('');};return s(a)===s(b);}
     function filterMistakes(mistakes){ if(!mistakes||!mistakes.length) return []; const out=[]; for(const m of mistakes){ if(!m||!m.original||!m.corrected) continue; if(m.original===m.corrected) continue; if(isPunctuationOnlyDiff(m.original,m.corrected)) continue; if(out.some(x=>x.original===m.original&&x.corrected===m.corrected)) continue; out.push(m); } return out; }
     // 💡 纠错块展示去重：同一个学生原句只展示一次，避免自然纠错与批量分析重复提取
@@ -10123,7 +10368,7 @@ try{ const resp=await fetch(API_BASE,{method:'POST',headers:{'Content-Type':'app
     }
     function renderVocabDetailModal(items){ if(items.length===0){ modalContentDiv.innerHTML='<div class="empty-detail">'+t('modal.empty_vocab')+'</div>'; return; } let html='<table class="grammar-detail-table"><thead><tr><th style="width:18%">'+t('table.word')+'</th><th style="width:10%">'+t('table.count')+'</th><th style="width:72%">'+t('table.usage_examples')+'</th></tr></thead><tbody>'; for(let it of items){ let exHtml=''; const practiceOnly=it.practiceCount>0&&(it.count||0)===0; const useExamples=it.examples||[]; const pExamples=it.practiceExamples||[]; if(practiceOnly&&pExamples.length>0){ for(let ex of pExamples){ const highlighted=escapeHtml(ex.sentence).replace(new RegExp(escapeHtml(it.word),'g'),'<span style="color:#1565c0;font-weight:bold;">'+escapeHtml(it.word)+'</span>'); exHtml+='<div class="example-row">📝 '+highlighted+' <small style="color:#94a3b8;font-size:0.7rem;">'+(ex.date||'')+'</small></div>'; } } else { for(let ex of useExamples){ const highlighted=escapeHtml(ex.sentence).replace(new RegExp(escapeHtml(it.word),'g'),'<span style="color:#c62828;font-weight:bold;">'+escapeHtml(it.word)+'</span>'); exHtml+='<div class="example-row">📌 '+highlighted+' <small style="color:#94a3b8;font-size:0.7rem;">'+(ex.date||'')+'</small></div>'; } if(pExamples.length>0&&!practiceOnly){ exHtml+='<div style="margin-top:8px;font-weight:600;color:#1565c0;">📝 '+t('table.practice_examples')+'</div>'; for(let ex of pExamples){ const highlighted=escapeHtml(ex.sentence).replace(new RegExp(escapeHtml(it.word),'g'),'<span style="color:#1565c0;font-weight:bold;">'+escapeHtml(it.word)+'</span>'); exHtml+='<div class="example-row">📝 '+highlighted+' <small style="color:#94a3b8;font-size:0.7rem;">'+(ex.date||'')+'</small></div>'; } } } const lvTag=vocabLevelLabel(it.level); html+='<tr><td><span class="level-tag">'+lvTag+'</span> '+escapeHtml(it.word)+'<button class="del-detail-btn" data-pattern="'+escapeHtml(it.word)+'" data-type="vocab" style="margin-left:4px;background:none;border:1px solid #e0e0e0;border-radius:8px;padding:1px 5px;font-size:0.6rem;cursor:pointer;color:#c0392b;" title="删除此词汇记录">🗑️</button></td><td style="text-align:center">'+((it.count>0?it.count:(it.practiceCount||0))+t('modal.count_unit'))+'</td><td>'+(exHtml||'<span class="empty-detail">—</span>')+'</td></tr>'; } html+='</tbody></table>'; modalContentDiv.innerHTML=html; }
     async function analyzeVocabBatch(clauses){ if(!clauses||clauses.length===0) return []; var allWords=[]; for(var lv=1;lv<=6;lv++){ var vocab=VOCAB_LEVEL_MAP[lv]; if(vocab) allWords=allWords.concat(vocab); } allWords.sort((a,b)=>b.w.length-a.w.length); var results=[]; for(var ci=0;ci<clauses.length;ci++){ var sentence=clauses[ci]; if(!sentence) continue; var wordCounts={}; var covered=sentence.split("").map(()=>false); for(var wi=0;wi<allWords.length;wi++){ var w=allWords[wi].w; var idx=sentence.indexOf(w); while(idx!==-1){ var overlap=false; for(var k=idx;k<idx+w.length;k++){ if(covered[k]){ overlap=true; break; } } if(!overlap){ wordCounts[w]=(wordCounts[w]||0)+1; for(var k=idx;k<idx+w.length;k++) covered[k]=true; } idx=sentence.indexOf(w,idx+1); } } if(Object.keys(wordCounts).length>0){ var wcKeys=Object.keys(wordCounts).sort((a,b)=>b.length-a.length); for(var i=0;i<wcKeys.length;i++){ for(var j=i+1;j<wcKeys.length;j++){ if(wcKeys[i].includes(wcKeys[j])&&wcKeys[j].length<wcKeys[i].length){ delete wordCounts[wcKeys[j]]; } } } if(Object.keys(wordCounts).length>0){ results.push({sentence:sentence, wordCounts:wordCounts}); } } } return results; }function mergeVocabResults(results){ if(!results) return; const today=getLocalDate(); for(let item of results){ var wc=item.wordCounts||{}; for(let w of Object.keys(wc)){ var occ=wc[w]||1; const entry=vocabUsedMap.get(w); if(!entry){ let v=null; for(let lv of[1,2,3,4,5,6]){ const vocab=VOCAB_LEVEL_MAP[lv]; if(vocab){ v=vocab.find(x=>x.w===w); if(v) break; } } if(!v) continue; vocabUsedMap.set(w,{count:occ, correctCount:0, practiceCount:0, level:v.l, examples:[{sentence:item.sentence, date:today}]}); } else { var hasEx=entry.examples.some(ex=>ex.sentence===item.sentence); if(!hasEx){ entry.count+=occ; entry.examples.push({sentence:item.sentence, date:today}); } vocabUsedMap.set(w,entry); } } } saveVocabState(); renderVocabLevelProgress(); renderVocabTrackList(); }function mergeVocabResultsFiltered(results){ if(!results) return; const today=getLocalDate(); for(let item of results){ var wc=item.wordCounts||{}; for(let w of Object.keys(wc)){ if(isQueriedWord(w)) continue; var occ=wc[w]||1; const entry=vocabUsedMap.get(w); if(!entry){ let v=null; for(let lv of[1,2,3,4,5,6]){ const vocab=VOCAB_LEVEL_MAP[lv]; if(vocab){ v=vocab.find(x=>x.w===w); if(v) break; } } if(!v) continue; vocabUsedMap.set(w,{count:occ, correctCount:0, practiceCount:0, level:v.l, examples:[{sentence:item.sentence, date:today}]}); } else { var hasEx=entry.examples.some(ex=>ex.sentence===item.sentence); if(!hasEx){ entry.count+=occ; entry.examples.push({sentence:item.sentence, date:today}); } vocabUsedMap.set(w,entry); } } } saveVocabState(); renderVocabLevelProgress(); renderVocabTrackList(); }
-    async function generateVocabPractice(word, level, retryCount=0){ stopAllSpeech(); primeSpeechSynthesis(); if(practiceGenerating) return; const apiKey=apiKeyInput.value.trim(); if(!apiKey){ alert(t('api_key_required')); return; } practiceGenerating=true; const targetLang=targetLangSelect.value; const effectiveLevel=level===5?3:(level===6?4:level); const pt=document.getElementById('practiceModalTitle'); if(pt) pt.textContent=t('practice.vocab_title'); practiceContent.innerHTML='<div class="loading">'+t('practice.generating')+'</div>'; practiceModal.style.display='block';document.body.style.overflow='hidden'; let v2=VOCAB_LEVEL_MAP[level]?.find(x=>x.w===word); const meaning=v2?v2.m:''; const pos=v2?v2.p:''; if(!lastGeneratedVocabSentences.has(word)) lastGeneratedVocabSentences.set(word,new Set()); if(!lastGeneratedCollocations.has(word)) lastGeneratedCollocations.set(word,new Set()); const historySet=lastGeneratedVocabSentences.get(word); let historyStr=""; const allHistory=[...new Set([...historySet, ...Array.from(allGeneratedVocabSet).slice(0,100)])]; if(allHistory.length>0) historyStr="每次生成全新句子，不要与以下任何句子相同："+allHistory.join("；")+"。"; const collHistorySet=lastGeneratedCollocations.get(word); let collHistoryStr=""; if(collHistorySet&&collHistorySet.size>0) collHistoryStr="不要使用以下已用过的搭配："+[...collHistorySet].join("；")+"。"; const prompt=`你是一位 HSK 汉语教师。请生成一个"${targetLang}译中文"词汇练习题。\n目标词汇：${word} (HSK${level})，词义：${meaning}\n\n【难度控制】请严格根据 HSK${effectiveLevel} 级水平控制句子的句长、词汇复杂度和句法复杂度：\\n  - HSK1级：极短句（4-7字），只用最常见的基础词汇，简单主谓/主谓宾结构\\n  - HSK2级：短句（5-9字），用基础日常词汇，可用简单状动/动补结构\\n  - HSK3级：中等句（7-14字），用日常词汇，可包含趋向补语、结果补语、把字句等\\n  - HSK4级：中等偏长句（10-18字），用较丰富词汇，可包含较复杂补语结构、关联词\\n  - HSK5级：正常中文句（12-22字），用丰富词汇，可以有一定句法复杂度\\n  - 【重要】句子结构和句型要有变化，不要每次都用相同的主谓宾顺序。可以变换使用：主题句、把字句、被字句、倒装句、设问句等，但要符合当前等级。\n\n【关键：搭配优先，句子服从搭配】请严格按以下顺序生成，不要跳过任何步骤：\n\n第1步：先构思一个包含"${word}"的自然常用搭配短语（collocation）。\n  - 该词的词性是"${pos}"，请根据词性选择对应的搭配类型：\n    · 若为名词（名），搭配应以名词为中心语，如：形名"好老师"、动名"吃苹果"、数量名"三个苹果"、代名"这个地方"、名名"学生宿舍"等偏正结构\n    · 若为动词（动），搭配应为：动宾"打电话"、动补"看完"、偏正/状动"快跑"等\n    · 若为形容词（形），搭配应为：副形"很大"、形补"好极了"等\n    · 若为短语/固定表达（短语、固定短语、动词短语、关联短语等），不要把它拆开或强行加「于、的、着、了」等字去造词，应整体使用；搭配只能是一个简短的凝固短语，如「程度副词+短语」（还差得远、差得远呢）或「短语+语气词」（差得远吧）。严禁把「和/跟/与...比」这类跨主语的比较结构写进搭配（如「和他比差得远」「还差得远跟...比」都是完整句子/错误语序，不是搭配）。禁止生造「差得远于」这类错误搭配。\n    · 若为其他词性，选择符合该词性常见组合的搭配类型\n  - 【重要】搭配必须是两个或多个词的组合，但不能是横跨主谓宾的完整句子结构（如"我吃饭"是句子不是搭配）\n  - 搭配应是常见的主谓搭配、动宾搭配、偏正搭配、动补搭配、并列搭配、介宾搭配等两元结构\n  - "${word}"必须是搭配的一部分但不是全部。错误：搭配等于"${word}"本身\n  - 搭配必须简短（2-6个字），是汉语母语者会自然使用的、凝固度高的短语\n  - 搭配将作为展示给学生的提示，所以一定要是地道自然的\n  ${collHistoryStr}\n\n第2步：根据这个搭配短语，构思一句自然地道的中文句子。\n  - 句子必须包含第1步生成的搭配短语，搭配短语必须在句子中连续出现\n  - 句子要让汉语母语者觉得自然，不能生硬\n  - 不要先想${targetLang}再翻译成中文\n  - 根据难度控制要求选择用词\n\n第3步：将构思好的中文句子翻译成${targetLang}。\n  - 翻译必须准确对应中文原意\n  - 只能使用${targetLang}，禁止夹杂中文\n\n第4步：自检验证：\n  (a) chineseRaw 中确实包含搭配短语？\n  (b) 搭配短语确实包含"${word}"？\n  (c) 中文语序地道？\n  (d) ${targetLang}翻译准确？\n\n【中文翻译带拼音，每个汉字单独标注，拼音之间空格分开，绝不能连写。正确：我(wǒ) 是(shì) 学(xué) 生(shēng)。错误：我们(wǒmen)】\n【同时返回不带拼音的中文纯文本 chineseRaw】\n【collocationRaw必须是第1步生成的搭配短语（纯汉字，不含拼音）】\n【用${targetLang}给一句简短词义解释 briefExplanation，不超过20字】\n${historyStr}\n输出 JSON：{"english":"${targetLang}句子","chinese":"带拼音的中文","chineseRaw":"不带拼音的中文","collocation":"搭配短语（汉字+拼音）","collocationRaw":"搭配短语纯文本","hint":"词汇：${word}","briefExplanation":"${targetLang}词义"}\n只输出 JSON。`;    try{ const resp=await fetch(API_BASE,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${apiKey}`}, body:JSON.stringify({model:'deepseek-v4-flash',thinking:{type:'disabled'}, max_tokens:4096, messages:[{role:'user',content:prompt}], temperature:0.9, response_format:{type:'json_object'}})}); const data=await resp.json(); if(data.error) throw new Error(data.error.message||"API error"); if(!data.choices||!data.choices[0]||!data.choices[0].message) throw new Error("API error"); let c=data.choices[0].message.content; c=c.replace(/```json/g,'').replace(/```/g,'').trim(); let aiResult=safeJsonParse(c); const {chars,pinyins}=parsePinyinString(aiResult.chinese); const chineseRaw=aiResult.chineseRaw||aiResult.chinese.replace(/\([^)]+\)/g,''); const diffCheck=validateDifficulty(chineseRaw, effectiveLevel, [word]); if(!diffCheck.valid&&retryCount<3){ practiceGenerating=false; generateVocabPractice(word,level,retryCount+1); return; } if(allGeneratedVocabSet.has(chineseRaw)){ if(retryCount<3){ historySet.add(chineseRaw); saveGenHistory(); practiceGenerating=false; generateVocabPractice(word,level,retryCount+1); return; } } if(!chineseRaw.includes(word)&&retryCount<3){ practiceGenerating=false; generateVocabPractice(word,level,retryCount+1); return; } const collRawVal=aiResult.collocationRaw||(aiResult.collocation||'').replace(/\([^)]+\)/g,''); if((collRawVal===word||!collRawVal.includes(word))&&retryCount<3){ practiceGenerating=false; generateVocabPractice(word,level,retryCount+1); return; } if(collRawVal.length>6&&retryCount<3){ practiceGenerating=false; generateVocabPractice(word,level,retryCount+1); return; } if(collRawVal&&!chineseRaw.includes(collRawVal)&&retryCount<3){ practiceGenerating=false; generateVocabPractice(word,level,retryCount+1); return; } if((()=>{const fcs=extractPatternFixedChars(word);if(fcs.length===0)return false;let li=-1;for(const c of fcs){const i=chineseRaw.indexOf(c,li+1);if(i===-1)return true;li=i;}return false;})()&&retryCount<3){ practiceGenerating=false; generateVocabPractice(word,level,retryCount+1); return; } historySet.add(chineseRaw); const collSave=aiResult.collocationRaw||(aiResult.collocation||'').replace(/\([^)]+\)/g,''); if(collSave&&collSave!==word) lastGeneratedCollocations.get(word).add(collSave); if(historySet.size>100){ const arr=Array.from(historySet); arr.shift(); lastGeneratedVocabSentences.set(word,new Set(arr)); } allGeneratedVocabSet.add(chineseRaw); saveGenHistory(); const vEntry=vocabUsedMap.get(word); if(!vEntry){ vocabUsedMap.set(word,{count:0, correctCount:0, practiceCount:0, level:level, examples:[]}); } saveVocabState(); renderVocabLibrary(level); renderVocabTrackList(); const exerciseData={grammarPattern:'词汇: '+word, grammarLevel:level, english:aiResult.english, hint:aiResult.hint||('词汇: '+word), chineseRaw, chars, pinyins, isVocab:true, briefExplanation:aiResult.briefExplanation||'', collocation:aiResult.collocation||'', collocationRaw:aiResult.collocationRaw||(aiResult.collocation||'').replace(/\([^)]+\)/g,'')}; practiceGenerating=false; renderPractice(exerciseData); }catch(err){ practiceGenerating=false; practiceContent.innerHTML=`<div class="loading" style="color:red;">`+t('practice.loading_fail')+err.message+`</div>`; } }
+    async function generateVocabPractice(word, level, retryCount=0){ stopAllSpeech(); primeSpeechSynthesis(); if(practiceGenerating) return; const apiKey=apiKeyInput.value.trim(); if(!apiKey){ alert(t('api_key_required')); return; } practiceGenerating=true; const targetLang=targetLangSelect.value; const effectiveLevel=level===5?3:(level===6?4:level); const pt=document.getElementById('practiceModalTitle'); if(pt) pt.textContent=t('practice.vocab_title'); practiceContent.innerHTML='<div class="loading">'+t('practice.generating')+'</div>'; practiceModal.style.display='block';document.body.style.overflow='hidden'; let v2=VOCAB_LEVEL_MAP[level]?.find(x=>x.w===word); const meaning=v2?v2.m:''; const pos=v2?v2.p:''; if(!lastGeneratedVocabSentences.has(word)) lastGeneratedVocabSentences.set(word,new Set()); if(!lastGeneratedCollocations.has(word)) lastGeneratedCollocations.set(word,new Set()); const historySet=lastGeneratedVocabSentences.get(word); let historyStr=""; const allHistory=[...new Set([...historySet, ...Array.from(allGeneratedVocabSet).slice(0,100)])]; if(allHistory.length>0) historyStr="每次生成全新句子，不要与以下任何句子相同："+allHistory.join("；")+"。"; const collHistorySet=lastGeneratedCollocations.get(word); let collHistoryStr=""; if(collHistorySet&&collHistorySet.size>0) collHistoryStr="不要使用以下已用过的搭配："+[...collHistorySet].join("；")+"。"; const prompt=`你是一位 HSK 汉语教师。请生成一个"${targetLang}译中文"词汇练习题。\n目标词汇：${word} (HSK${level})，词义：${meaning}\n\n【难度控制】请严格根据 HSK${effectiveLevel} 级水平控制句子的句长、词汇复杂度和句法复杂度：\\n  - HSK1级：极短句（4-7字），只用最常见的基础词汇，简单主谓/主谓宾结构\\n  - HSK2级：短句（5-9字），用基础日常词汇，可用简单状动/动补结构\\n  - HSK3级：中等句（7-14字），用日常词汇，可包含趋向补语、结果补语、把字句等\\n  - HSK4级：中等偏长句（10-18字），用较丰富词汇，可包含较复杂补语结构、关联词\\n  - HSK5级：正常中文句（12-22字），用丰富词汇，可以有一定句法复杂度\\n  - 【重要】句子结构和句型要有变化，不要每次都用相同的主谓宾顺序。可以变换使用：主题句、把字句、被字句、倒装句、设问句等，但要符合当前等级。\n\n【关键：搭配优先，句子服从搭配】请严格按以下顺序生成，不要跳过任何步骤：\n\n第1步：先构思一个包含"${word}"的自然常用搭配短语（collocation）。\n  - 该词的词性是"${pos}"，请根据词性选择对应的搭配类型：\n    · 若为名词（名），搭配应以名词为中心语，如：形名"好老师"、动名"吃苹果"、数量名"三个苹果"、代名"这个地方"、名名"学生宿舍"等偏正结构\n    · 若为动词（动），搭配应为：动宾"打电话"、动补"看完"、偏正/状动"快跑"等\n    · 若为形容词（形），搭配应为：副形"很大"、形补"好极了"等\n    · 若为短语/固定表达（短语、固定短语、动词短语、关联短语等），不要把它拆开或强行加「于、的、着、了」等字去造词，应整体使用；搭配只能是一个简短的凝固短语，如「程度副词+短语」（还差得远、差得远呢）或「短语+语气词」（差得远吧）。严禁把「和/跟/与...比」这类跨主语的比较结构写进搭配（如「和他比差得远」「还差得远跟...比」都是完整句子/错误语序，不是搭配）。禁止生造「差得远于」这类错误搭配。\n    · 若为其他词性，选择符合该词性常见组合的搭配类型\n  - 【重要】搭配必须是两个或多个词的组合，但不能是横跨主谓宾的完整句子结构（如"我吃饭"是句子不是搭配）\n  - 搭配应是常见的主谓搭配、动宾搭配、偏正搭配、动补搭配、并列搭配、介宾搭配等两元结构\n  - "${word}"必须是搭配的一部分但不是全部。错误：搭配等于"${word}"本身\n  - 搭配必须简短（2-6个字），是汉语母语者会自然使用的、凝固度高的短语\n  - 搭配将作为展示给学生的提示，所以一定要是地道自然的\n  ${collHistoryStr}\n\n第2步：根据这个搭配短语，构思一句自然地道的中文句子。\n  - 句子必须包含第1步生成的搭配短语，搭配短语必须在句子中连续出现\n  - 句子要让汉语母语者觉得自然，不能生硬\n  - 不要先想${targetLang}再翻译成中文\n  - 根据难度控制要求选择用词\n\n第3步：将构思好的中文句子翻译成${targetLang}。\n  - 翻译必须准确对应中文原意\n  - 只能使用${targetLang}，禁止夹杂中文\n\n第4步：自检验证：\n  (a) chineseRaw 中确实包含搭配短语？\n  (b) 搭配短语确实包含"${word}"？\n  (c) 中文语序地道？\n  (d) ${targetLang}翻译准确？\n\n【中文翻译带拼音，每个汉字单独标注，拼音之间空格分开，绝不能连写。正确：我(wǒ) 是(shì) 学(xué) 生(shēng)。错误：我们(wǒmen)】\n【同时返回不带拼音的中文纯文本 chineseRaw】\n【collocationRaw必须是第1步生成的搭配短语（纯汉字，不含拼音）】\n【用${targetLang}给一句简短词义解释 briefExplanation，不超过20字】\n${historyStr}\n输出 JSON：{"english":"${targetLang}句子","chinese":"带拼音的中文","chineseRaw":"不带拼音的中文","collocation":"搭配短语（汉字+拼音）","collocationRaw":"搭配短语纯文本","hint":"词汇：${word}","briefExplanation":"${targetLang}词义"}\n只输出 JSON。`;    try{ const resp=await fetch(API_BASE,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${apiKey}`}, body:JSON.stringify({model:'deepseek-v4-pro',thinking:{type:'disabled'}, max_tokens:4096, messages:[{role:'user',content:prompt}], temperature:0.9, response_format:{type:'json_object'}})}); const data=await resp.json(); if(data.error) throw new Error(data.error.message||"API error"); if(!data.choices||!data.choices[0]||!data.choices[0].message) throw new Error("API error"); let c=data.choices[0].message.content; c=c.replace(/```json/g,'').replace(/```/g,'').trim(); let aiResult=safeJsonParse(c); const {chars,pinyins}=parsePinyinString(aiResult.chinese); const chineseRaw=aiResult.chineseRaw||aiResult.chinese.replace(/\([^)]+\)/g,''); const diffCheck=validateDifficulty(chineseRaw, effectiveLevel, [word]); if(!diffCheck.valid&&retryCount<3){ practiceGenerating=false; generateVocabPractice(word,level,retryCount+1); return; } if(allGeneratedVocabSet.has(chineseRaw)){ if(retryCount<3){ historySet.add(chineseRaw); saveGenHistory(); practiceGenerating=false; generateVocabPractice(word,level,retryCount+1); return; } } if(!chineseRaw.includes(word)&&retryCount<3){ practiceGenerating=false; generateVocabPractice(word,level,retryCount+1); return; } const collRawVal=aiResult.collocationRaw||(aiResult.collocation||'').replace(/\([^)]+\)/g,''); if((collRawVal===word||!collRawVal.includes(word))&&retryCount<3){ practiceGenerating=false; generateVocabPractice(word,level,retryCount+1); return; } if(collRawVal.length>6&&retryCount<3){ practiceGenerating=false; generateVocabPractice(word,level,retryCount+1); return; } if(collRawVal&&!chineseRaw.includes(collRawVal)&&retryCount<3){ practiceGenerating=false; generateVocabPractice(word,level,retryCount+1); return; } if((()=>{const fcs=extractPatternFixedChars(word);if(fcs.length===0)return false;let li=-1;for(const c of fcs){const i=chineseRaw.indexOf(c,li+1);if(i===-1)return true;li=i;}return false;})()&&retryCount<3){ practiceGenerating=false; generateVocabPractice(word,level,retryCount+1); return; } historySet.add(chineseRaw); const collSave=aiResult.collocationRaw||(aiResult.collocation||'').replace(/\([^)]+\)/g,''); if(collSave&&collSave!==word) lastGeneratedCollocations.get(word).add(collSave); if(historySet.size>100){ const arr=Array.from(historySet); arr.shift(); lastGeneratedVocabSentences.set(word,new Set(arr)); } allGeneratedVocabSet.add(chineseRaw); saveGenHistory(); const vEntry=vocabUsedMap.get(word); if(!vEntry){ vocabUsedMap.set(word,{count:0, correctCount:0, practiceCount:0, level:level, examples:[]}); } saveVocabState(); renderVocabLibrary(level); renderVocabTrackList(); const exerciseData={grammarPattern:'词汇: '+word, grammarLevel:level, english:aiResult.english, hint:aiResult.hint||('词汇: '+word), chineseRaw, chars, pinyins, isVocab:true, briefExplanation:aiResult.briefExplanation||'', collocation:aiResult.collocation||'', collocationRaw:aiResult.collocationRaw||(aiResult.collocation||'').replace(/\([^)]+\)/g,'')}; practiceGenerating=false; renderPractice(exerciseData); }catch(err){ practiceGenerating=false; practiceContent.innerHTML=`<div class="loading" style="color:red;">`+t('practice.loading_fail')+err.message+`</div>`; } }
     function downloadTextFile(text, filename) {
         try {
             // 老版 Edge/IE 兜底
@@ -10568,7 +10813,7 @@ function renderPractice(exerciseData) {
         }
     }
 
-async function generateAndShowPractice(grammarPattern, grammarLevel, forceNew=false, retryCount=0){ stopAllSpeech(); primeSpeechSynthesis(); const apiKey=apiKeyInput.value.trim(); if(!apiKey){ alert(t('api_key_required')); return; } const targetLang=targetLangSelect.value; const aiLevel=grammarLevel; const pt=document.getElementById('practiceModalTitle'); if(pt) pt.textContent=t('practice.title'); practiceContent.innerHTML='<div class="loading">'+t('practice.generating')+'</div>'; practiceModal.style.display='block';document.body.style.overflow='hidden'; if(!lastGeneratedSentences.has(grammarPattern)) lastGeneratedSentences.set(grammarPattern,new Set()); if(!lastGeneratedCollocations.has(grammarPattern)) lastGeneratedCollocations.set(grammarPattern,new Set()); const historySet=lastGeneratedSentences.get(grammarPattern); let historyStr=""; const allHistory2=[...new Set([...historySet, ...Array.from(allGeneratedVocabSet).slice(0,100)])]; if(allHistory2.length>0) historyStr="不要与以下任何句子相同："+allHistory2.join("；")+"。"; const prompt=`你是一位 HSK 汉语教师。请根据以下语法点生成一个"${targetLang}译中文"练习题。\n语法点模式：${grammarPattern} (HSK${grammarLevel})\n\n【难度控制 - 重要】请严格根据 HSK${aiLevel} 级水平控制句子的句长、词汇复杂度和句法复杂度：\n  - 句子中除指定语法结构外的其他用词，应严格控制在 HSK${aiLevel} 级以内\n  - HSK1级：极短句（4-7字），只用最常见基础词汇，简单主谓/主谓宾\n  - HSK2级：短句（5-9字），用基础日常词汇，可含简单状动/动补\n  - HSK3级：中等句（7-14字），用日常词汇，可含趋向补语、结果补语、把字句\n  - HSK4级：中等偏长（10-18字），用较丰富词汇，可含复杂补语结构、关联词\n  - HSK5级：正常中文（12-22字），用丰富词汇，可有一定句法复杂度\n  - 【结构变化】每次生成的句子结构和句型要有变化，不要总用"S+V+O"顺序。可变换：主题评论句、把字句、被字句、存现句、比较句、设问句等，但必须符合当前等级\n  - 如果语法结构本身超出当前难度等级，翻译句也要尽量简单，让学生容易理解\n\n【生成步骤 - 请严格按此顺序执行】\n第1步：先构思一句自然地道的中文句子，这句中文必须使用此语法结构"${grammarPattern}"。\n  - 这句话必须是汉语母语者会自然说出的句子，语序、用词都要地道。\n  - 不要先想${targetLang}再翻译成中文——那样容易出语序错误。\n  - 根据难度控制要求选择用词。\n第2步：将构思好的中文句子翻译成${targetLang}。\n  - ${targetLang}翻译必须准确对应中文原意。\n  - 只能使用${targetLang}，禁止夹杂中文或其他语言。\n第3步：自检验证 - 请确认：\n  (a) chineseRaw 确实使用了"${grammarPattern}"这个语法结构？\n  (b) 中文语序是否地道？（主语-状语-动词-宾语 的顺序正确吗？）\n  (c) ${targetLang}翻译是否准确？\n  (d) 句子难度符合 HSK${aiLevel} 级水平吗？\n\n【写出该语法结构的具体形式作为提示】\n【中文翻译带拼音，每个汉字都必须单独用括号标注拼音，拼音之间用空格分开，绝不能将多个字的拼音连在一起。正确示例：我(wǒ) 是(shì) 学(xué) 生(shēng)。错误示例（严禁）：我们(wǒmen)——这是错误的！必须写成：我(wǒ) 们(men)。再强调：每个汉字只对应一个拼音音节！】\n【同时返回不带拼音的中文纯文本 chineseRaw】\n【用${targetLang}给一句简短用法解释 briefExplanation，不超过30字，禁止用中文】\n${historyStr}\n输出 JSON：{"english":"${targetLang}句子","hint":"语法结构","chinese":"带拼音的中文","chineseRaw":"不带拼音的中文","briefExplanation":"简短用法解释"}\n只输出 JSON。`; try{ const resp=await fetch(API_BASE,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${apiKey}`}, body:JSON.stringify({model:'deepseek-v4-flash',thinking:{type:'disabled'}, max_tokens:4096, messages:[{role:'user',content:prompt}], temperature:0.9, response_format:{type:'json_object'}})}); const data=await resp.json(); if(data.error) throw new Error(data.error.message||"API error"); if(!data.choices||!data.choices[0]||!data.choices[0].message) throw new Error("API error"); let content=data.choices[0].message.content; content=content.replace(/```json/g,'').replace(/```/g,'').trim(); let aiResult=safeJsonParse(content); const {chars,pinyins}=parsePinyinString(aiResult.chinese); const chineseRaw=aiResult.chineseRaw||aiResult.chinese.replace(/\([^)]+\)/g,''); const diffCheckG=validateDifficulty(chineseRaw, aiLevel, patternFixedCharsFlat(grammarPattern)); if(!diffCheckG.valid&&retryCount<3){ generateAndShowPractice(grammarPattern,grammarLevel,forceNew,retryCount+1); return; } if(allGeneratedVocabSet.has(chineseRaw)){ if(retryCount<3){ historySet.add(chineseRaw); saveGenHistory(); generateAndShowPractice(grammarPattern,grammarLevel,forceNew,retryCount+1); return; } } const validation=validatePracticeSentence(grammarPattern,chineseRaw); if(!validation.valid&&retryCount<3){ generateAndShowPractice(grammarPattern,grammarLevel,forceNew,retryCount+1); return; } const collRawG2=aiResult.collocationRaw||(aiResult.collocation||'').replace(/\([^)]+\)/g,''); if(collRawG2&&!chineseRaw.includes(collRawG2)&&retryCount<3){ generateAndShowPractice(grammarPattern,grammarLevel,forceNew,retryCount+1); return; } historySet.add(chineseRaw); const collSaveG=aiResult.collocationRaw||(aiResult.collocation||'').replace(/\([^)]+\)/g,''); if(collSaveG) lastGeneratedCollocations.get(grammarPattern).add(collSaveG); if(historySet.size>100){ const arr=Array.from(historySet); arr.shift(); lastGeneratedSentences.set(grammarPattern,new Set(arr)); } allGeneratedVocabSet.add(chineseRaw); saveGenHistory(); if(!forceNew||!lastGrammarMeta.has(grammarPattern)) lastGrammarMeta.set(grammarPattern,{brief:aiResult.briefExplanation||'',hint:aiResult.hint}); const meta=lastGrammarMeta.get(grammarPattern); const exerciseData={grammarPattern, grammarLevel, english:aiResult.english, hint:forceNew?meta.hint:aiResult.hint, chineseRaw, chars, pinyins, briefExplanation:forceNew?meta.brief:aiResult.briefExplanation||''}; const gEntry=usedMap.get(grammarPattern); if(!gEntry){ usedMap.set(grammarPattern,{count:0, correctCount:0, practiceCount:0, level:grammarLevel, examples:[]}); } saveFullState(); updateGrammarDisplayByLevel(grammarLevel); renderTrackList(); renderPractice(exerciseData); }catch(err){ practiceContent.innerHTML=`<div class="loading" style="color:red;">`+t('practice.loading_fail')+err.message+`</div>`; } }
+async function generateAndShowPractice(grammarPattern, grammarLevel, forceNew=false, retryCount=0){ stopAllSpeech(); primeSpeechSynthesis(); const apiKey=apiKeyInput.value.trim(); if(!apiKey){ alert(t('api_key_required')); return; } const targetLang=targetLangSelect.value; const aiLevel=grammarLevel; const pt=document.getElementById('practiceModalTitle'); if(pt) pt.textContent=t('practice.title'); practiceContent.innerHTML='<div class="loading">'+t('practice.generating')+'</div>'; practiceModal.style.display='block';document.body.style.overflow='hidden'; if(!lastGeneratedSentences.has(grammarPattern)) lastGeneratedSentences.set(grammarPattern,new Set()); if(!lastGeneratedCollocations.has(grammarPattern)) lastGeneratedCollocations.set(grammarPattern,new Set()); const historySet=lastGeneratedSentences.get(grammarPattern); let historyStr=""; const allHistory2=[...new Set([...historySet, ...Array.from(allGeneratedVocabSet).slice(0,100)])]; if(allHistory2.length>0) historyStr="不要与以下任何句子相同："+allHistory2.join("；")+"。"; const prompt=`你是一位 HSK 汉语教师。请根据以下语法点生成一个"${targetLang}译中文"练习题。\n语法点模式：${grammarPattern} (HSK${grammarLevel})\n\n【难度控制 - 重要】请严格根据 HSK${aiLevel} 级水平控制句子的句长、词汇复杂度和句法复杂度：\n  - 句子中除指定语法结构外的其他用词，应严格控制在 HSK${aiLevel} 级以内\n  - HSK1级：极短句（4-7字），只用最常见基础词汇，简单主谓/主谓宾\n  - HSK2级：短句（5-9字），用基础日常词汇，可含简单状动/动补\n  - HSK3级：中等句（7-14字），用日常词汇，可含趋向补语、结果补语、把字句\n  - HSK4级：中等偏长（10-18字），用较丰富词汇，可含复杂补语结构、关联词\n  - HSK5级：正常中文（12-22字），用丰富词汇，可有一定句法复杂度\n  - 【结构变化】每次生成的句子结构和句型要有变化，不要总用"S+V+O"顺序。可变换：主题评论句、把字句、被字句、存现句、比较句、设问句等，但必须符合当前等级\n  - 如果语法结构本身超出当前难度等级，翻译句也要尽量简单，让学生容易理解\n\n【生成步骤 - 请严格按此顺序执行】\n第1步：先构思一句自然地道的中文句子，这句中文必须使用此语法结构"${grammarPattern}"。\n  - 这句话必须是汉语母语者会自然说出的句子，语序、用词都要地道。\n  - 不要先想${targetLang}再翻译成中文——那样容易出语序错误。\n  - 根据难度控制要求选择用词。\n第2步：将构思好的中文句子翻译成${targetLang}。\n  - ${targetLang}翻译必须准确对应中文原意。\n  - 只能使用${targetLang}，禁止夹杂中文或其他语言。\n第3步：自检验证 - 请确认：\n  (a) chineseRaw 确实使用了"${grammarPattern}"这个语法结构？\n  (b) 中文语序是否地道？（主语-状语-动词-宾语 的顺序正确吗？）\n  (c) ${targetLang}翻译是否准确？\n  (d) 句子难度符合 HSK${aiLevel} 级水平吗？\n\n【写出该语法结构的具体形式作为提示】\n【中文翻译带拼音，每个汉字都必须单独用括号标注拼音，拼音之间用空格分开，绝不能将多个字的拼音连在一起。正确示例：我(wǒ) 是(shì) 学(xué) 生(shēng)。错误示例（严禁）：我们(wǒmen)——这是错误的！必须写成：我(wǒ) 们(men)。再强调：每个汉字只对应一个拼音音节！】\n【同时返回不带拼音的中文纯文本 chineseRaw】\n【用${targetLang}给一句简短用法解释 briefExplanation，不超过30字，禁止用中文】\n${historyStr}\n输出 JSON：{"english":"${targetLang}句子","hint":"语法结构","chinese":"带拼音的中文","chineseRaw":"不带拼音的中文","briefExplanation":"简短用法解释"}\n只输出 JSON。`; try{ const resp=await fetch(API_BASE,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${apiKey}`}, body:JSON.stringify({model:'deepseek-v4-pro',thinking:{type:'disabled'}, max_tokens:4096, messages:[{role:'user',content:prompt}], temperature:0.9, response_format:{type:'json_object'}})}); const data=await resp.json(); if(data.error) throw new Error(data.error.message||"API error"); if(!data.choices||!data.choices[0]||!data.choices[0].message) throw new Error("API error"); let content=data.choices[0].message.content; content=content.replace(/```json/g,'').replace(/```/g,'').trim(); let aiResult=safeJsonParse(content); const {chars,pinyins}=parsePinyinString(aiResult.chinese); const chineseRaw=aiResult.chineseRaw||aiResult.chinese.replace(/\([^)]+\)/g,''); const diffCheckG=validateDifficulty(chineseRaw, aiLevel, patternFixedCharsFlat(grammarPattern)); if(!diffCheckG.valid&&retryCount<3){ generateAndShowPractice(grammarPattern,grammarLevel,forceNew,retryCount+1); return; } if(allGeneratedVocabSet.has(chineseRaw)){ if(retryCount<3){ historySet.add(chineseRaw); saveGenHistory(); generateAndShowPractice(grammarPattern,grammarLevel,forceNew,retryCount+1); return; } } const validation=validatePracticeSentence(grammarPattern,chineseRaw); if(!validation.valid&&retryCount<3){ generateAndShowPractice(grammarPattern,grammarLevel,forceNew,retryCount+1); return; } const collRawG2=aiResult.collocationRaw||(aiResult.collocation||'').replace(/\([^)]+\)/g,''); if(collRawG2&&!chineseRaw.includes(collRawG2)&&retryCount<3){ generateAndShowPractice(grammarPattern,grammarLevel,forceNew,retryCount+1); return; } historySet.add(chineseRaw); const collSaveG=aiResult.collocationRaw||(aiResult.collocation||'').replace(/\([^)]+\)/g,''); if(collSaveG) lastGeneratedCollocations.get(grammarPattern).add(collSaveG); if(historySet.size>100){ const arr=Array.from(historySet); arr.shift(); lastGeneratedSentences.set(grammarPattern,new Set(arr)); } allGeneratedVocabSet.add(chineseRaw); saveGenHistory(); if(!forceNew||!lastGrammarMeta.has(grammarPattern)) lastGrammarMeta.set(grammarPattern,{brief:aiResult.briefExplanation||'',hint:aiResult.hint}); const meta=lastGrammarMeta.get(grammarPattern); const exerciseData={grammarPattern, grammarLevel, english:aiResult.english, hint:forceNew?meta.hint:aiResult.hint, chineseRaw, chars, pinyins, briefExplanation:forceNew?meta.brief:aiResult.briefExplanation||''}; const gEntry=usedMap.get(grammarPattern); if(!gEntry){ usedMap.set(grammarPattern,{count:0, correctCount:0, practiceCount:0, level:grammarLevel, examples:[]}); } saveFullState(); updateGrammarDisplayByLevel(grammarLevel); renderTrackList(); renderPractice(exerciseData); }catch(err){ practiceContent.innerHTML=`<div class="loading" style="color:red;">`+t('practice.loading_fail')+err.message+`</div>`; } }
     // 快捷键监听（使用自定义键位）
     document.addEventListener('keydown', (e) => {
         if (practiceModal.style.display !== 'block') return;
