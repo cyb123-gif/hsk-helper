@@ -7174,6 +7174,15 @@ const HSK2_VOCAB = [
             'dictation.done':'🎉 听写完成！总正确率 {pct}%',
             'dictation.empty_input':'请先写出你听到的内容，再提交批改。',
             'dictation.replay_limit':'重播次数已达上限（每句最多重播3次）',
+            'reflection.question':'你为什么写了这个句子？',
+            'reflection.question_hint':'（例如：我是按母语翻译的 / 语序弄错了 / 语法点不懂 / 词语或汉字意思不懂 / 没听清没看清 / 其他）',
+            'reflection.question_reading':'你标记了“不懂”，是哪里不懂？',
+            'reflection.your':'你写的',
+            'reflection.correct':'正确',
+            'reflection.placeholder':'请写下来：为什么这么写？哪里没弄懂？可以用母语写，也可以跳过',
+            'reflection.skip':'跳过',
+            'reflection.save':'保存并下一个 →',
+            'reflection.saved':'✅ 反思已保存，已汇总到完整学习报告',
             'dictation.text_auto_split':'✅ 文本已自动按句拆分为 {n} 句',
             'dictation.even_split_hint':'⚠️ 未检测到明显停顿，音频按句均分（切分点可能不够准）'
         },
@@ -7219,6 +7228,15 @@ const HSK2_VOCAB = [
             'dictation.done':'🎉 Dictation complete! Overall accuracy {pct}%',
             'dictation.empty_input':'Please write what you heard before submitting.',
             'dictation.replay_limit':'Replay limit reached (max 3 replays per sentence)',
+            'reflection.question':'Why did you write this sentence?',
+            'reflection.question_hint':'(e.g. I translated from my native language / wrong word order / I don\'t understand the grammar point / I don\'t understand the word or character / I didn\'t hear or see clearly / other)',
+            'reflection.question_reading':'You marked this as "not understood". What is unclear?',
+            'reflection.your':'You wrote',
+            'reflection.correct':'Correct',
+            'reflection.placeholder':'Please write: why did you write it this way? What is unclear? You can write in your native language, or skip.',
+            'reflection.skip':'Skip',
+            'reflection.save':'Save & next →',
+            'reflection.saved':'✅ Reflections saved and added to the full learning report',
             'dictation.text_auto_split':'✅ Transcript auto-split into {n} sentences',
             'dictation.even_split_hint':'⚠️ No clear pauses detected; audio split evenly by sentence (boundaries may be approximate)'
         },
@@ -11686,43 +11704,28 @@ async function generateAndShowPractice(grammarPattern, grammarLevel, forceNew=fa
             ov.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;';
             document.body.appendChild(ov);
         }
-        const title = isReading ? '你标记了“不懂”，是哪里不懂？' : '你为什么写了这个句子？';
+        const title = isReading ? t('reflection.question_reading') : t('reflection.question');
         let sentenceHtml = '';
         if (isReading) {
             sentenceHtml = '<div style="background:#fef3e2;border:1px solid #f0c040;border-radius:12px;padding:10px 12px;font-size:0.95rem;margin-bottom:10px;">' + escapeHtml(it.text) + '</div>';
         } else {
-            if (it.user) sentenceHtml += '<div style="background:#fdecea;border:1px solid #e74c3c;border-radius:12px;padding:10px 12px;font-size:0.95rem;margin-bottom:6px;">❌ 你写的：' + escapeHtml(it.user) + '</div>';
-            if (it.text) sentenceHtml += '<div style="background:#eafaf1;border:1px solid #27ae60;border-radius:12px;padding:10px 12px;font-size:0.95rem;margin-bottom:10px;">✅ 正确：' + escapeHtml(it.text) + '</div>';
+            if (it.user) sentenceHtml += '<div style="background:#fdecea;border:1px solid #e74c3c;border-radius:12px;padding:10px 12px;font-size:0.95rem;margin-bottom:6px;">❌ ' + escapeHtml(t('reflection.your')) + '：' + escapeHtml(it.user) + '</div>';
+            if (it.text) sentenceHtml += '<div style="background:#eafaf1;border:1px solid #27ae60;border-radius:12px;padding:10px 12px;font-size:0.95rem;margin-bottom:10px;">✅ ' + escapeHtml(t('reflection.correct')) + '：' + escapeHtml(it.text) + '</div>';
         }
-        const chip = (label) => '<span class="reflection-chip" style="display:inline-flex;align-items:center;padding:6px 12px;border-radius:14px;border:1.5px solid #d0dae8;background:#f8fafc;font-size:0.85rem;cursor:pointer;user-select:none;color:#475569;">' + label + '</span>';
+        const hintHtml = isReading ? '' : '<div style="font-size:0.82rem;color:#94a3b8;margin-bottom:10px;line-height:1.5;">' + escapeHtml(t('reflection.question_hint')) + '</div>';
         ov.innerHTML = '<div style="background:#fff;border-radius:20px;max-width:560px;width:100%;padding:22px;box-shadow:0 10px 40px rgba(0,0,0,0.25);font-family:inherit;">' +
             '<div style="font-weight:700;font-size:1rem;color:#1e2b5e;margin-bottom:10px;">💭 ' + escapeHtml(title) + '（' + idx + '/' + total + '）</div>' +
             sentenceHtml +
-            '<div style="font-size:0.85rem;color:#475569;margin-bottom:8px;">请选择原因（可多选）：</div>' +
-            '<div id="reflectionOptions" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;">' +
-            chip('🌍 母语翻译') + chip('🧩 语法点不懂') + chip('📖 词语/汉字不懂') + chip('👂 没听清/没看清') + chip('🤔 其他') +
-            '</div>' +
-            '<textarea id="reflectionReason" placeholder="还有哪里不懂？可以用母语写，也可以跳过" style="width:100%;min-height:64px;border:1.5px solid #d0dae8;border-radius:12px;padding:10px;font-size:0.9rem;font-family:inherit;box-sizing:border-box;"></textarea>' +
+            hintHtml +
+            '<textarea id="reflectionReason" placeholder="' + escapeHtml(t('reflection.placeholder')) + '" style="width:100%;min-height:80px;border:1.5px solid #d0dae8;border-radius:12px;padding:10px;font-size:0.9rem;font-family:inherit;box-sizing:border-box;"></textarea>' +
             '<div style="display:flex;gap:10px;justify-content:flex-end;margin-top:12px;">' +
-            '<button id="reflectionSkipBtn" style="padding:7px 16px;border-radius:14px;border:1px solid #d0dae8;background:#f8fafc;cursor:pointer;font-size:0.85rem;">跳过</button>' +
-            '<button id="reflectionSaveBtn" style="padding:7px 16px;border-radius:14px;border:none;background:#1e2b5e;color:#fff;cursor:pointer;font-size:0.85rem;">保存并下一个 →</button>' +
+            '<button id="reflectionSkipBtn" style="padding:7px 16px;border-radius:14px;border:1px solid #d0dae8;background:#f8fafc;cursor:pointer;font-size:0.85rem;">' + escapeHtml(t('reflection.skip')) + '</button>' +
+            '<button id="reflectionSaveBtn" style="padding:7px 16px;border-radius:14px;border:none;background:#1e2b5e;color:#fff;cursor:pointer;font-size:0.85rem;">' + escapeHtml(t('reflection.save')) + '</button>' +
             '</div></div>';
-        ov.querySelectorAll('#reflectionOptions .reflection-chip').forEach(function(c){
-            c.onclick = function(){
-                const on = c.classList.toggle('selected');
-                c.style.background = on ? '#1e2b5e' : '#f8fafc';
-                c.style.color = on ? '#fff' : '#475569';
-                c.style.borderColor = on ? '#1e2b5e' : '#d0dae8';
-            };
-        });
         document.getElementById('reflectionSkipBtn').onclick = function(){ nextReflection(''); };
         document.getElementById('reflectionSaveBtn').onclick = function(){
-            const selected = [];
-            ov.querySelectorAll('#reflectionOptions .reflection-chip.selected').forEach(function(c){ selected.push(c.textContent); });
             const ta = document.getElementById('reflectionReason');
-            const free = ta ? ta.value.trim() : '';
-            const reason = selected.join('；') + (free ? (selected.length ? '；' : '') + free : '');
-            nextReflection(reason);
+            nextReflection(ta ? ta.value.trim() : '');
         };
         const ta = document.getElementById('reflectionReason');
         if(ta) setTimeout(function(){ ta.focus(); }, 50);
@@ -11745,7 +11748,7 @@ async function generateAndShowPractice(grammarPattern, grammarLevel, forceNew=fa
         else {
             const ov = document.getElementById('reflectionOverlay');
             if(ov) ov.remove();
-            showToast('✅ 反思已保存，已汇总到完整学习报告');
+            showToast(t('reflection.saved'));
         }
     }
     function finishPracticeReflection(){
