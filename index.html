@@ -8372,8 +8372,10 @@ const HSK2_VOCAB = [
         return map[v] || '中国 新闻';
     }
     function newsSearchBase(){
-        if(location.hostname === 'localhost' || location.hostname === '127.0.0.1') return '/search-news';
-        return 'https://news.google.com/rss/search';
+        // 页面通过服务器打开（本地或线上部署 server.js）时，用同源 /search-news 代理；
+        // file:// 直接打开或纯静态托管时没有后端，返回空字符串并跳过搜索。
+        if(location.protocol === 'http:' || location.protocol === 'https:') return '/search-news';
+        return '';
     }
     function getTodayCnDate(offsetDays){
         const d = new Date();
@@ -8478,18 +8480,21 @@ const HSK2_VOCAB = [
         // 联网搜索：为 AI 提供真实近期新闻素材
         const searchQuery = customTopic || readingTopicSearchQuery(topicObj ? topicObj.v : 'news');
         let newsContext = '';
-        try {
-            const newsResp = await fetch(newsSearchBase() + '?q=' + encodeURIComponent(searchQuery));
-            if (newsResp.ok) {
-                const newsData = await newsResp.json();
-                const items = (newsData && newsData.items) || [];
-                if (items.length) {
-                    const top = items.slice(0, 8);
-                    newsContext = '【联网搜索到的真实近期新闻素材 - 优先基于这些写】以下是刚刚搜索“' + searchQuery + '”得到的近期真实新闻，文章必须从其中选择一条来写，保留新闻里的真实时间、地点、人物和事实，不要编造新闻里没有的细节。\n' +
-                        top.map((it, i) => (i + 1) + '. [' + (it.pubDate || '') + '] ' + (it.title || '') + (it.snippet ? ' —— ' + it.snippet : '') + (it.link ? '\n   链接：' + it.link : '')).join('\n');
+        const _searchBase = newsSearchBase();
+        if (_searchBase) {
+            try {
+                const newsResp = await fetch(_searchBase + '?q=' + encodeURIComponent(searchQuery));
+                if (newsResp.ok) {
+                    const newsData = await newsResp.json();
+                    const items = (newsData && newsData.items) || [];
+                    if (items.length) {
+                        const top = items.slice(0, 8);
+                        newsContext = '【联网搜索到的真实近期新闻素材 - 优先基于这些写】以下是刚刚搜索“' + searchQuery + '”得到的近期真实新闻，文章必须从其中选择一条来写，保留新闻里的真实时间、地点、人物和事实，不要编造新闻里没有的细节。\n' +
+                            top.map((it, i) => (i + 1) + '. [' + (it.pubDate || '') + '] ' + (it.title || '') + (it.snippet ? ' —— ' + it.snippet : '') + (it.link ? '\n   链接：' + it.link : '')).join('\n');
+                    }
                 }
-            }
-        } catch (e) { /* 搜索失败时继续，走无搜索素材的提示词 */ }
+            } catch (e) { /* 搜索失败时继续，走无搜索素材的提示词 */ }
+        }
         const searchRule = newsContext ? newsContext : '【联网搜索素材】本次未搜索到新闻素材，文章可以写一个时间明确属于2026年近期的话题，但不要编造具体可查证的假新闻。';
         btn.disabled = true; btn.textContent = t('reading.generating');
         const LEN = {1:'全文100-150字，每句4-9字，分2-3段', 2:'全文150-200字，每句5-10字，分2-3段', 3:'全文200-300字，每句6-14字，分3-4段', 4:'全文300-400字，每句8-18字，分3-5段', 5:'全文350-450字，每句10-20字，分3-5段', 6:'全文400-500字，每句10-22字，分4-5段'};
