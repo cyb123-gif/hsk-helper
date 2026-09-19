@@ -497,6 +497,8 @@
             <div class="input-group">
                 <input type="text" id="userInput" placeholder="聊点什么吧..." autocomplete="off">
                 <button id="voiceBtn" class="voice-btn unsupported" title="语音输入（点击开始/停止）">🎤</button>
+                <button id="audioUploadBtn" class="voice-btn" title="上传录音文件转文字">🎙️</button>
+                <input type="file" id="audioFileInput" accept="audio/*" style="display:none;">
             </div>
             <div id="voiceInputHint" class="voice-input-hint"></div>
             <div class="button-group">
@@ -9645,7 +9647,7 @@ ${searchRule}
         const _wReflect = [];
         const _wh = (writingSession && writingSession.lastHints) || [];
         for(const h of _wh){
-            _wReflect.push({ mode: '写作', text: h.text || h.sentence || h.original || String(h), note: h.hint || h.note || '作文中的问题提示' });
+            _wReflect.push({ mode: '写作', text: h.original || h.text || h.sentence || String(h), note: h.issue || h.hint || h.note || '作文中的问题提示' });
         }
         if(_wReflect.length) setTimeout(function(){ startReflection(_wReflect); }, 600);
         writingSession = null;
@@ -9868,6 +9870,43 @@ ${searchRule}
     const modalContentDiv = document.getElementById('modalDynamicContent'), closeModalSpan = document.querySelector('.close-modal');
     const closePracticeSpan = document.querySelector('.close-practice-modal');
     const voiceBtn = document.getElementById('voiceBtn');
+    const audioUploadBtn = document.getElementById('audioUploadBtn');
+    const audioFileInput = document.getElementById('audioFileInput');
+    if (audioUploadBtn && audioFileInput) {
+        audioUploadBtn.onclick = () => audioFileInput.click();
+        audioFileInput.onchange = async () => {
+            const file = audioFileInput.files && audioFileInput.files[0];
+            audioFileInput.value = '';
+            if (!file) return;
+            if (location.protocol !== 'http:' && location.protocol !== 'https:') {
+                showToast('上传转写需要服务器支持，请通过 http://localhost:3001 打开');
+                return;
+            }
+            audioUploadBtn.disabled = true; audioUploadBtn.textContent = '⏳';
+            try {
+                const fd = new FormData();
+                fd.append('file', file);
+                fd.append('model', 'whisper-large-v3');
+                fd.append('language', 'zh');
+                const resp = await fetch('/groq/openai/v1/audio/transcriptions', { method: 'POST', body: fd });
+                const data = await resp.json();
+                if (!resp.ok || !data || !data.text) {
+                    throw new Error((data && data.error && (data.error.message || data.error.code)) || '识别失败');
+                }
+                const text = String(data.text || '').trim();
+                if (text) {
+                    userInput.value = text;
+                    showToast('✅ 识别完成，已填入输入框');
+                } else {
+                    showToast('未识别到内容');
+                }
+            } catch (e) {
+                showToast('转写失败：' + (e.message || '请检查服务器 Groq Key'));
+            } finally {
+                audioUploadBtn.disabled = false; audioUploadBtn.textContent = '🎙️';
+            }
+        };
+    }
 
     // ========== 语音输入（桌面端实时识别 + 移动端键盘麦克风引导） ==========
     let voiceRecognition = null, voiceIsSupported = false, voiceIsRecording = false;
