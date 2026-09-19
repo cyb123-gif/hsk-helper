@@ -179,8 +179,62 @@ function handleGroqProxy(req, res) {
     req.pipe(proxyReq);
 }
 
+// 北语 TTS 语音合成代理（hsk.blcu.edu.cn/tts，返回音频流）
+function handleTtsProxy(req, res) {
+    let query = '';
+    const qIndex = req.url.indexOf('?');
+    if (qIndex >= 0) query = req.url.slice(qIndex + 1);
+    const params = new URLSearchParams(query);
+    const text = params.get('text') || '';
+    if (!text) {
+        res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ error: '缺少 text 参数' }));
+        return;
+    }
+    const speed = params.get('speed') || '5';
+    const voice = params.get('voice') || '1';
+    const volume = params.get('volume') || '5';
+    const upstreamPath = '/tts?text=' + encodeURIComponent(text) + '&speed=' + encodeURIComponent(speed) + '&voice=' + encodeURIComponent(voice) + '&volume=' + encodeURIComponent(volume);
+    const options = {
+        hostname: 'hsk.blcu.edu.cn',
+        port: 443,
+        path: upstreamPath,
+        method: 'GET',
+        headers: {
+            'User-Agent': 'Mozilla/5.0',
+            'Referer': 'https://hsk.blcu.edu.cn/'
+        },
+        timeout: 30000
+    };
+    const proxyReq = https.get(options, (proxyRes) => {
+        if (proxyRes.statusCode !== 200) {
+            res.writeHead(502, { 'Content-Type': 'application/json; charset=utf-8' });
+            res.end(JSON.stringify({ error: 'TTS 上游返回 ' + proxyRes.statusCode }));
+            return;
+        }
+        res.writeHead(200, { 'Content-Type': proxyRes.headers['content-type'] || 'audio/mpeg' });
+        proxyRes.pipe(res);
+    });
+    proxyReq.on('error', (err) => {
+        console.error('[TTS] 请求失败:', err.message);
+        res.writeHead(502, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ error: 'TTS 请求失败: ' + err.message }));
+    });
+    proxyReq.on('timeout', () => {
+        proxyReq.destroy();
+        res.writeHead(504, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ error: 'TTS 请求超时' }));
+    });
+}
+
 // ========== HTTP 服务器 ==========
 const server = http.createServer((req, res) => {
+    // TTS 语音合成代理
+    if (req.url.startsWith('/tts?')) {
+        handleTtsProxy(req, res);
+        return;
+    }
+
     // API 代理
     if (req.url === DEEPSEEK_PATH && req.method === 'POST') {
         handleProxy(req, res);
