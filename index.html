@@ -8236,6 +8236,11 @@ const HSK2_VOCAB = [
         }
         const reflectionItems = [];
         for(const u of readingSessionUnknowns){
+            // 阅读反思：只问句子/短语/虚词/语法点；实词（名词、动词等）不询问
+            if(u.type === 'word'){
+                const pos = vocabPosOfWord(u.text);
+                if(!pos || isContentWordPos(pos)) continue;
+            }
             reflectionItems.push({ mode: '阅读', text: u.sentence || u.text, note: '你在这篇文章里标了“不懂”' });
         }
         currentReadingAnalyzed = true;
@@ -8278,6 +8283,14 @@ const HSK2_VOCAB = [
     function vocabLevelOfWord(w) {
         for (let lv = 1; lv <= 6; lv++) { const vocab = VOCAB_LEVEL_MAP[lv]; if (vocab) { const v = vocab.find(x => x.w === w); if (v) return v.l; } }
         return 0;
+    }
+    function vocabPosOfWord(w) {
+        for (let lv = 1; lv <= 6; lv++) { const vocab = VOCAB_LEVEL_MAP[lv]; if (vocab) { const v = vocab.find(x => x.w === w); if (v) return v.p || ''; } }
+        return '';
+    }
+    // 实词（名词、动词、形容词、数词、量词、代词）不用反思询问；虚词/语法点才问
+    function isContentWordPos(p) {
+        return ['名', '动', '形', '数', '量', '代', '区别'].indexOf(p) >= 0;
     }
     // 收集学生已接触的词语：词汇追踪（用过+练过）+ 学习计划（读打/听打）+ 收藏句子 + 聊天历史 + 语法分析/练习例句（可理解输入来源）
     function collectReadingSourceWords() {
@@ -9647,7 +9660,7 @@ ${searchRule}
         const _wReflect = [];
         const _wh = (writingSession && writingSession.lastHints) || [];
         for(const h of _wh){
-            _wReflect.push({ mode: '写作', text: h.original || h.text || h.sentence || String(h), note: h.issue || h.hint || h.note || '作文中的问题提示' });
+            _wReflect.push({ mode: '写作', text: '', user: h.original || h.text || h.sentence || String(h), note: h.issue || h.hint || h.note || '作文中的问题提示' });
         }
         if(_wReflect.length) setTimeout(function(){ startReflection(_wReflect); }, 600);
         writingSession = null;
@@ -11663,6 +11676,9 @@ async function generateAndShowPractice(grammarPattern, grammarLevel, forceNew=fa
             return;
         }
         const it = q[0];
+        const isReading = it.mode === '阅读';
+        const total = (window._reflectionDone || 0) + q.length;
+        const idx = (window._reflectionDone || 0) + 1;
         let ov = document.getElementById('reflectionOverlay');
         if(!ov){
             ov = document.createElement('div');
@@ -11670,20 +11686,43 @@ async function generateAndShowPractice(grammarPattern, grammarLevel, forceNew=fa
             ov.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;';
             document.body.appendChild(ov);
         }
-        ov.innerHTML = '<div style="background:#fff;border-radius:20px;max-width:520px;width:100%;padding:22px;box-shadow:0 10px 40px rgba(0,0,0,0.25);font-family:inherit;">' +
-            '<div style="font-weight:700;font-size:1rem;color:#1e2b5e;margin-bottom:6px;">💭 反思一下这个句子（' + (window._reflectionDone + 1) + '/' + (window._reflectionDone + q.length) + '）</div>' +
-            '<div style="font-size:0.85rem;color:#94a3b8;margin-bottom:12px;">' + escapeHtml(it.note || '这个句子和标准答案不一样') + '</div>' +
-            '<div style="background:#fef3e2;border:1px solid #f0c040;border-radius:12px;padding:10px 12px;font-size:0.95rem;margin-bottom:10px;">' + escapeHtml(it.text) + '</div>' +
-            (it.user ? '<div style="font-size:0.85rem;color:#64748b;margin-bottom:10px;">✍️ 你写的：' + escapeHtml(it.user) + '</div>' : '') +
-            '<textarea id="reflectionReason" placeholder="为什么这么写？哪里没弄懂？（可以用母语写，也可以跳过）" style="width:100%;min-height:64px;border:1.5px solid #d0dae8;border-radius:12px;padding:10px;font-size:0.9rem;font-family:inherit;box-sizing:border-box;"></textarea>' +
+        const title = isReading ? '你标记了“不懂”，是哪里不懂？' : '你为什么写了这个句子？';
+        let sentenceHtml = '';
+        if (isReading) {
+            sentenceHtml = '<div style="background:#fef3e2;border:1px solid #f0c040;border-radius:12px;padding:10px 12px;font-size:0.95rem;margin-bottom:10px;">' + escapeHtml(it.text) + '</div>';
+        } else {
+            if (it.user) sentenceHtml += '<div style="background:#fdecea;border:1px solid #e74c3c;border-radius:12px;padding:10px 12px;font-size:0.95rem;margin-bottom:6px;">❌ 你写的：' + escapeHtml(it.user) + '</div>';
+            if (it.text) sentenceHtml += '<div style="background:#eafaf1;border:1px solid #27ae60;border-radius:12px;padding:10px 12px;font-size:0.95rem;margin-bottom:10px;">✅ 正确：' + escapeHtml(it.text) + '</div>';
+        }
+        const chip = (label) => '<span class="reflection-chip" style="display:inline-flex;align-items:center;padding:6px 12px;border-radius:14px;border:1.5px solid #d0dae8;background:#f8fafc;font-size:0.85rem;cursor:pointer;user-select:none;color:#475569;">' + label + '</span>';
+        ov.innerHTML = '<div style="background:#fff;border-radius:20px;max-width:560px;width:100%;padding:22px;box-shadow:0 10px 40px rgba(0,0,0,0.25);font-family:inherit;">' +
+            '<div style="font-weight:700;font-size:1rem;color:#1e2b5e;margin-bottom:10px;">💭 ' + escapeHtml(title) + '（' + idx + '/' + total + '）</div>' +
+            sentenceHtml +
+            '<div style="font-size:0.85rem;color:#475569;margin-bottom:8px;">请选择原因（可多选）：</div>' +
+            '<div id="reflectionOptions" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;">' +
+            chip('🌍 母语翻译') + chip('🧩 语法点不懂') + chip('📖 词语/汉字不懂') + chip('👂 没听清/没看清') + chip('🤔 其他') +
+            '</div>' +
+            '<textarea id="reflectionReason" placeholder="还有哪里不懂？可以用母语写，也可以跳过" style="width:100%;min-height:64px;border:1.5px solid #d0dae8;border-radius:12px;padding:10px;font-size:0.9rem;font-family:inherit;box-sizing:border-box;"></textarea>' +
             '<div style="display:flex;gap:10px;justify-content:flex-end;margin-top:12px;">' +
             '<button id="reflectionSkipBtn" style="padding:7px 16px;border-radius:14px;border:1px solid #d0dae8;background:#f8fafc;cursor:pointer;font-size:0.85rem;">跳过</button>' +
             '<button id="reflectionSaveBtn" style="padding:7px 16px;border-radius:14px;border:none;background:#1e2b5e;color:#fff;cursor:pointer;font-size:0.85rem;">保存并下一个 →</button>' +
             '</div></div>';
+        ov.querySelectorAll('#reflectionOptions .reflection-chip').forEach(function(c){
+            c.onclick = function(){
+                const on = c.classList.toggle('selected');
+                c.style.background = on ? '#1e2b5e' : '#f8fafc';
+                c.style.color = on ? '#fff' : '#475569';
+                c.style.borderColor = on ? '#1e2b5e' : '#d0dae8';
+            };
+        });
         document.getElementById('reflectionSkipBtn').onclick = function(){ nextReflection(''); };
         document.getElementById('reflectionSaveBtn').onclick = function(){
+            const selected = [];
+            ov.querySelectorAll('#reflectionOptions .reflection-chip.selected').forEach(function(c){ selected.push(c.textContent); });
             const ta = document.getElementById('reflectionReason');
-            nextReflection(ta ? ta.value.trim() : '');
+            const free = ta ? ta.value.trim() : '';
+            const reason = selected.join('；') + (free ? (selected.length ? '；' : '') + free : '');
+            nextReflection(reason);
         };
         const ta = document.getElementById('reflectionReason');
         if(ta) setTimeout(function(){ ta.focus(); }, 50);
