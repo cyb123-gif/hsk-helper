@@ -227,8 +227,86 @@ function handleTtsProxy(req, res) {
     });
 }
 
+// 新闻搜索代理（百度新闻搜索，无需 API Key，国内可访问）
+function handleNewsSearchProxy(req, res) {
+    let query = '';
+    const qIndex = req.url.indexOf('?');
+    if (qIndex >= 0) query = req.url.slice(qIndex + 1);
+    const params = new URLSearchParams(query);
+    const q = (params.get('q') || '').trim();
+    if (!q) {
+        res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ error: '缺少 q 参数' }));
+        return;
+    }
+    const searchPath = '/s?tn=news&word=' + encodeURIComponent(q) + '&rtt=4';
+    const options = {
+        hostname: 'www.baidu.com',
+        port: 443,
+        path: searchPath,
+        method: 'GET',
+        headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0 Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            'Accept-Language': 'zh-CN,zh;q=0.9'
+        },
+        timeout: 20000
+    };
+    const proxyReq = https.get(options, (proxyRes) => {
+        if (proxyRes.statusCode !== 200) {
+            res.writeHead(502, { 'Content-Type': 'application/json; charset=utf-8' });
+            res.end(JSON.stringify({ error: '新闻搜索上游返回 ' + proxyRes.statusCode }));
+            return;
+        }
+        let body = '';
+        proxyRes.setEncoding('utf8');
+        proxyRes.on('data', chunk => { body += chunk; });
+        proxyRes.on('end', () => {
+            const items = [];
+            const seen = new Set();
+            const stripTags = (s) => String(s || '').replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'").trim();
+            // 新闻结果块：<h3 class="c-title..."> / <h3 class="news-title...">
+            const h3Re = /<h3[^>]*class="[^"]*(?:c-title|news-title)[^"]*"[^>]*>([\s\S]*?)<\/h3>/g;
+            let m;
+            while ((m = h3Re.exec(body)) !== null && items.length < 15) {
+                const inner = m[1];
+                const aRe = /<a[^>]*href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/i;
+                const am = aRe.exec(inner);
+                const title = stripTags(inner);
+                const link = am ? am[1].replace(/^\/\//, 'https://') : '';
+                if (!title || seen.has(title)) continue;
+                seen.add(title);
+                // 尝试取该标题块后面的简介文本（最多向后找 800 字符内的文字）
+                const tail = body.slice(m.index + m[0].length, m.index + m[0].length + 900);
+                let txt = stripTags(tail).replace(/\s+/g, ' ');
+                const lt = txt.indexOf('<');
+                if (lt >= 0) txt = txt.slice(0, lt);
+                items.push({ title, link, pubDate: '', snippet: txt.slice(0, 120) });
+            }
+            res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+            res.end(JSON.stringify({ items }));
+        });
+    });
+    proxyReq.on('error', (err) => {
+        console.error('[NewsSearch] 请求失败:', err.message);
+        res.writeHead(502, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ error: '新闻搜索失败: ' + err.message }));
+    });
+    proxyReq.on('timeout', () => {
+        proxyReq.destroy();
+        res.writeHead(504, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ error: '新闻搜索超时' }));
+    });
+}
+
 // ========== HTTP 服务器 ==========
 const server = http.createServer((req, res) => {
+    // 新闻搜索代理
+    if (req.url.startsWith('/search-news?')) {
+        handleNewsSearchProxy(req, res);
+        return;
+    }
+
     // TTS 语音合成代理
     if (req.url.startsWith('/tts?')) {
         handleTtsProxy(req, res);

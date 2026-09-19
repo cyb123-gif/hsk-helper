@@ -8362,6 +8362,19 @@ const HSK2_VOCAB = [
         const v = sel ? sel.value : 'news';
         return READING_TOPICS.find(x => x.v === v) || READING_TOPICS[0];
     }
+    function readingTopicSearchQuery(v){
+        const map = {
+            news:'中国 新闻', hot:'中国 热搜', football:'足球 新闻', photography:'摄影 新闻',
+            food:'美食 新闻', travel:'旅行 新闻', tech:'科技 新闻', animals:'动物 新闻',
+            music:'音乐 新闻', movies:'电影 新闻', history:'考古 新闻', health:'健康 新闻',
+            fashion:'时尚 新闻', games:'游戏 新闻', education:'教育 新闻', environment:'环保 新闻'
+        };
+        return map[v] || '中国 新闻';
+    }
+    function newsSearchBase(){
+        if(location.hostname === 'localhost' || location.hostname === '127.0.0.1') return '/search-news';
+        return 'https://news.google.com/rss/search';
+    }
     function getTodayCnDate(offsetDays){
         const d = new Date();
         d.setDate(d.getDate() + (offsetDays || 0));
@@ -8444,6 +8457,7 @@ const HSK2_VOCAB = [
         saveReadingLevel();
         saveReadingTopic();
         const customTopic = (document.getElementById('readingTopicInput') ? document.getElementById('readingTopicInput').value : '').trim();
+        const topicObj = customTopic ? null : getReadingTopic();
         let topicInstr;
         if (customTopic) {
             if (isIllegalReadingTopic(customTopic)) {
@@ -8452,7 +8466,7 @@ const HSK2_VOCAB = [
             }
             topicInstr = '文章主题必须是：' + customTopic + '。话题必须合法合规、积极健康；如果话题涉及违法、暴力、色情、政治敏感等内容，请拒绝该话题并改写为一个安全、积极、适合语言学习的话题。';
         } else {
-            const topic = getReadingTopic();
+            const topic = topicObj;
             const todayCn = getTodayCnDate(0);
             const yesterdayCn = getTodayCnDate(-1);
             topicInstr = topic.v === 'news'
@@ -8460,7 +8474,23 @@ const HSK2_VOCAB = [
                 : topic.prompt;
         }
         const todayCnFresh = getTodayCnDate(0);
-        const freshRule = '【时效性要求 - 必须遵守】现在是' + todayCnFresh + '。文章内容要尽量取材于2026年当下真实、新鲜的话题或作品：近期新闻、刚上映的电影/剧集、新科技产品、正在流行的社会热点等。不要写陈旧、没有时间背景的泛泛故事。';
+        const freshRule = '【时效性要求 - 必须遵守】现在是' + todayCnFresh + '。文章必须取材于最近几个月（2026年6月到' + todayCnFresh.slice(5, 10) + '）真实、新鲜的话题或作品：近期新闻、刚上映的电影/剧集、新科技产品、正在流行的社会热点、最近的节日活动等。写新闻类文章时，正文里必须明确点出事情发生的具体时间（2026年某月或某日）；其他文体也要让读者看得出是2026年最近的内容。严禁写2025年及更早的旧闻，严禁出现“去年”“前年”“2024年”“2025年”这类旧时间表述；如果某件事你无法确认最近是否真实发生，就改写一个时间上明确属于2026年近期的话题（如最近的节日、刚上映的电影、当季活动），不要编造具体可查证的假新闻细节。';
+        // 联网搜索：为 AI 提供真实近期新闻素材
+        const searchQuery = customTopic || readingTopicSearchQuery(topicObj ? topicObj.v : 'news');
+        let newsContext = '';
+        try {
+            const newsResp = await fetch(newsSearchBase() + '?q=' + encodeURIComponent(searchQuery));
+            if (newsResp.ok) {
+                const newsData = await newsResp.json();
+                const items = (newsData && newsData.items) || [];
+                if (items.length) {
+                    const top = items.slice(0, 8);
+                    newsContext = '【联网搜索到的真实近期新闻素材 - 优先基于这些写】以下是刚刚搜索“' + searchQuery + '”得到的近期真实新闻，文章必须从其中选择一条来写，保留新闻里的真实时间、地点、人物和事实，不要编造新闻里没有的细节。\n' +
+                        top.map((it, i) => (i + 1) + '. [' + (it.pubDate || '') + '] ' + (it.title || '') + (it.snippet ? ' —— ' + it.snippet : '') + (it.link ? '\n   链接：' + it.link : '')).join('\n');
+                }
+            }
+        } catch (e) { /* 搜索失败时继续，走无搜索素材的提示词 */ }
+        const searchRule = newsContext ? newsContext : '【联网搜索素材】本次未搜索到新闻素材，文章可以写一个时间明确属于2026年近期的话题，但不要编造具体可查证的假新闻。';
         btn.disabled = true; btn.textContent = t('reading.generating');
         const LEN = {1:'全文100-150字，每句4-9字，分2-3段', 2:'全文150-200字，每句5-10字，分2-3段', 3:'全文200-300字，每句6-14字，分3-4段', 4:'全文300-400字，每句8-18字，分3-5段', 5:'全文350-450字，每句10-20字，分3-5段', 6:'全文400-500字，每句10-22字，分4-5段'};
         const levelGuide = LEN[mix.level] || LEN[3];
@@ -8482,6 +8512,8 @@ ${topicInstr}
 全文必须紧扣上面的主题：标题要点题，每一段都要围绕主题展开，不能跑题，不能写着写着变成另一个话题。如果主题是节日（如中秋节、春节等），必须写该节日的真实习俗、食物、活动或相关故事，不能只借节日名字写无关的事。写完自检：把标题和每段第一句连起来读，如果看不出文章在讲这个主题，就重写。
 
 ${freshRule}
+
+${searchRule}
 
 【常识与逻辑 - 一票否决】
 文章必须符合真实世界的常识、常理和人之常情：
@@ -8553,6 +8585,11 @@ ${freshRule}
             const content = (data.choices[0].message.content || '').replace(/```json/g, '').replace(/```/g, '').trim();
             const result = safeJsonParse(content);
             if (!result.content) throw new Error('empty content');
+            // 时效性校验：出现2025年及更早的旧时间表述就重试
+            const _freshText = (result.title || '') + '\n' + (result.content || '');
+            if (/(202[0-4]年|2020年|2021年|2022年|2023年|2024年|2025年|去年|前年)/.test(_freshText) && retryCount < 2) {
+                return generateReading(retryCount + 1);
+            }
             const MIN_CHARS = {1:80, 2:120, 3:180, 4:260, 5:320, 6:360};
             const hanziCount = String(result.content).replace(/[^\u4e00-\u9fff]/g, '').length;
             if (hanziCount < (MIN_CHARS[mix.level] || 180) && retryCount < 2) {
