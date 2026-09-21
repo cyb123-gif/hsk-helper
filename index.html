@@ -633,7 +633,7 @@
                 <p class="dictation-subtitle" id="dictationSubtitle">上传或粘贴文本（每句一行），系统会用自然语音逐句朗读，你逐句写出，提交后自动批改并统计正确率。</p>
                 <div class="dictation-upload-row">
                     <label style="display:flex;align-items:center;gap:6px;font-size:0.82rem;color:#475569;">
-                        <span>🗣️ 音色</span>
+                        <span id="dictationVoiceLabel">🗣️ 音色</span>
                         <select id="dictationVoiceSelect" style="padding:4px 8px;border-radius:12px;border:1.5px solid #d0dae8;font-size:0.82rem;background:white;">
                             <option value="female">女声</option>
                             <option value="male">男声</option>
@@ -7747,6 +7747,26 @@ const HSK2_VOCAB = [
         const dsubb = document.getElementById('dictationSubmitBtn'); if(dsubb) dsubb.textContent = t('dictation.submit');
         const dnxb = document.getElementById('dictationNextBtn'); if(dnxb) dnxb.textContent = t('dictation.next');
         const dinp = document.getElementById('dictationUserInput'); if(dinp) dinp.placeholder = t('dictation.input_placeholder');
+        const dVoiceLabel = document.getElementById('dictationVoiceLabel');
+        const dVoiceSel = document.getElementById('dictationVoiceSelect');
+        const dictationVoiceI18n = {
+            'Chinese': { label:'🗣️ 音色', female:'女声', male:'男声', dialogF:'男女对话（女先）', dialogM:'男女对话（男先）' },
+            'English': { label:'🗣️ Voice', female:'Female', male:'Male', dialogF:'Dialogue (female first)', dialogM:'Dialogue (male first)' },
+            'Japanese': { label:'🗣️ 音色', female:'女性', male:'男性', dialogF:'男女会話（女性先）', dialogM:'男女会話（男性先）' },
+            'Korean': { label:'🗣️ 음색', female:'여성', male:'남성', dialogF:'남녀 대화(여성 먼저)', dialogM:'남녀 대화(남성 먼저)' },
+            'French': { label:'🗣️ Voix', female:'Femme', male:'Homme', dialogF:'Dialogue (femme d\'abord)', dialogM:'Dialogue (homme d\'abord)' },
+            'German': { label:'🗣️ Stimme', female:'Weiblich', male:'Männlich', dialogF:'Dialog (Frau zuerst)', dialogM:'Dialog (Mann zuerst)' },
+            'Spanish': { label:'🗣️ Voz', female:'Femenina', male:'Masculina', dialogF:'Diálogo (mujer primero)', dialogM:'Diálogo (hombre primero)' },
+            'Russian': { label:'🗣️ Голос', female:'Женский', male:'Мужской', dialogF:'Диалог (жен. первым)', dialogM:'Диалог (муж. первым)' },
+            'Thai': { label:'🗣️ เสียง', female:'ผู้หญิง', male:'ผู้ชาย', dialogF:'บทสนทนา (หญิงก่อน)', dialogM:'บทสนทนา (ชายก่อน)' },
+            'Italian': { label:'🗣️ Voce', female:'Femminile', male:'Maschile', dialogF:'Dialogo (donna prima)', dialogM:'Dialogo (uomo prima)' }
+        };
+        const dVoiceTxt = dictationVoiceI18n[lang] || dictationVoiceI18n['Chinese'];
+        if(dVoiceLabel) dVoiceLabel.textContent = dVoiceTxt.label;
+        if(dVoiceSel){
+            const dOptMap = { 'female': dVoiceTxt.female, 'male': dVoiceTxt.male, 'dialog-f': dVoiceTxt.dialogF, 'dialog-m': dVoiceTxt.dialogM };
+            for(const dOpt of dVoiceSel.options){ if(dOptMap[dOpt.value]) dOpt.textContent = dOptMap[dOpt.value]; }
+        }
         const dfs = document.getElementById('dictationFileStatus'); if(dfs && !dictationState.file) dfs.textContent = t('dictation.file_status_empty');
         if (dictationState.active) renderDictationProgress();
     }
