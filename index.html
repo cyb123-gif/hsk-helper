@@ -440,6 +440,7 @@
         .practice-answer-reveal .ans-sent .hl-coll { background: #ffe0b2; color: #e65100; padding: 2px 6px; border-radius: 4px; border-bottom: 2px solid #ff9800; }
         .practice-answer-reveal .ans-py { color: #94a3b8; font-size: 0.85rem; }
         .practice-answer-reveal .ans-name { font-size: 0.85rem; color: #64748b; margin-bottom: 4px; }
+        .mistake-type-badge { display: inline-block; background: #eef2ff; color: #4338ca; border: 1px solid #c7d2fe; border-radius: 10px; padding: 0 8px; font-size: 0.72rem; line-height: 1.6; margin: 2px 4px 2px 0; }
         </style>
 </head>
 <body>
@@ -691,7 +692,8 @@
                 </select>
             </div>
             <div class="stat-title"><span>📚 API 设置</span><span class="level-badge">🔑</span></div>
-            <input type="password" class="api-key-input" id="apiKeyInput" placeholder="DeepSeek API Key" autocomplete="off" value="sk-10806fc904a04e618daa622fdb8d0878">
+            <input type="password" class="api-key-input" id="apiKeyInput" placeholder="请输入你的 DeepSeek API Key" autocomplete="off">
+            <div class="small-note" id="apiKeyStatus">🔑 每次使用时请输入你的 DeepSeek API Key，本页面不会保存，关闭后需重新输入。</div>
             <div class="stat-title"><span>📊 语法点明细 (点击查看明细)</span></div>
             <div class="progress-grid" id="levelProgress"></div>
         </div>
@@ -5032,6 +5034,32 @@ const HSK2_VOCAB = [
     const ACQUIRED_THRESHOLD = 3;
     const STORAGE_KEY_PREFIX = 'HSK_GRAMMAR_MASTER_V10_';
     const API_KEY_STORAGE = 'DEEPSEEK_API_KEY';
+    const MISTAKE_TYPE_LIST = ['错字','别字','漏字','多字','词语错误','离合词错误','缺词','多词','语序错误','搭配不当','成分残缺','成分多余','句式杂糅','关联词错误','语义错误'];
+    function normalizeMistakeType(t){
+        if(!t) return '';
+        t = String(t).trim();
+        if(MISTAKE_TYPE_LIST.indexOf(t) >= 0) return t;
+        const alias = { '错别字':'错字', '语序颠倒':'语序错误', '搭配错误':'搭配不当', '缺字':'漏字', '冗余':'成分多余', '杂糅':'句式杂糅', '关联词':'关联词错误', '语义':'语义错误', '离合词':'离合词错误', '语法错误':'语序错误', 'vocabulary':'词语错误', 'grammar':'语序错误', 'character':'别字', 'redundant':'成分多余', 'collocation':'搭配不当', 'idiomatic':'语义错误', '表达':'语义错误', 'word order':'语序错误' };
+        if(alias[t]) return alias[t];
+        return '';
+    }
+    function inferMistakeType(m){
+        const n = String((m && m.note) || '').toLowerCase();
+        const kw = [
+            ['离合', '离合词错误'], ['不能直接带宾语', '离合词错误'], ['见面', '离合词错误'], ['帮忙', '离合词错误'], ['生气', '离合词错误'],
+            ['语序', '语序错误'], ['顺序', '语序错误'], ['word order', '语序错误'], ['order', '语序错误'],
+            ['搭配', '搭配不当'], ['collocation', '搭配不当'],
+            ['杂糅', '句式杂糅'], ['句式', '句式杂糅'],
+            ['关联词', '关联词错误'], ['连词', '关联词错误'], ['connective', '关联词错误'],
+            ['漏', '漏字'], ['缺', '成分残缺'], ['missing', '成分残缺'],
+            ['多余', '成分多余'], ['多词', '多词'], ['redundant', '成分多余'], ['extra', '成分多余'],
+            ['别字', '别字'], ['错字', '错字'], ['typo', '错字'], ['character', '错字'],
+            ['虚词', '词语错误'], ['particle', '词语错误'], ['用词', '词语错误'], ['词语', '词语错误'], ['词性', '词语错误'], ['vocabulary', '词语错误'],
+            ['否定', '语义错误'], ['逻辑', '语义错误'], ['语义', '语义错误'], ['meaning', '语义错误'], ['表达', '语义错误']
+        ];
+        for(const [k, v] of kw){ if(n.indexOf(k.toLowerCase()) >= 0) return v; }
+        return '词语错误';
+    }
     const FAVORITE_STORAGE_PREFIX = 'HSK_FAVORITES_V1_';
     const USERS_STORAGE = 'HSK_USERS_V1';
     const CURRENT_USER_STORAGE = 'HSK_CURRENT_USER';
@@ -5043,6 +5071,120 @@ const HSK2_VOCAB = [
     const API_BASE = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
         ? '/v1/chat/completions'
         : 'https://api.deepseek.com/v1/chat/completions';
+
+    // ==================== API Key 校验（保持占位符：不校验，Key 不写入 HTML） ====================
+    // VALID_API_KEY_HASH 可由 node set_api_key_hash.js 写入，但按需求不再使用。
+    // 保持占位符 __API_KEY_SHA256_PLACEHOLDER__ 时不做校验，任何非空 Key 都能用。
+    // 每个用户每次打开页面手动输入自己的 Key，页面不会保存 Key。
+    const VALID_API_KEY_HASH = '__API_KEY_SHA256_PLACEHOLDER__';
+    function apiKeyHashConfigured(){
+        return !!VALID_API_KEY_HASH
+            && VALID_API_KEY_HASH !== '__API_KEY_SHA256_PLACEHOLDER__'
+            && /^[0-9a-fA-F]{64}$/.test(VALID_API_KEY_HASH.trim());
+    }
+    // 浏览器端同步 SHA-256（用于校验用户输入的 API Key，密钥原文不出现在网页源码里）
+    function sha256Hex(ascii){
+        function rightRotate(v, a){ return (v >>> a) | (v << (32 - a)); }
+        const maxWord = Math.pow(2, 32);
+        const words = [];
+        const asciiBitLength = ascii.length * 8;
+        let result = '';
+        let hash = sha256Hex.h = sha256Hex.h || [];
+        const k = sha256Hex.k = sha256Hex.k || [];
+        let primeCounter = k.length;
+        const isComposite = {};
+        for (let candidate = 2; primeCounter < 64; candidate++) {
+            if (!isComposite[candidate]) {
+                for (let i = 0; i < 313; i += candidate) isComposite[i] = candidate;
+                hash[primeCounter] = (Math.pow(candidate, 0.5) * maxWord) | 0;
+                k[primeCounter++] = (Math.pow(candidate, 1 / 3) * maxWord) | 0;
+            }
+        }
+        ascii += '\x80';
+        while (ascii.length % 64 !== 56) ascii += '\x00';
+        for (let i = 0; i < ascii.length; i++) {
+            const j = ascii.charCodeAt(i);
+            if (j >> 8) return '';
+            words[i >> 2] |= j << ((3 - i) % 4) * 8;
+        }
+        words[words.length] = (asciiBitLength / maxWord) | 0;
+        words[words.length] = asciiBitLength;
+        for (let j = 0; j < words.length;) {
+            const w = words.slice(j, j += 16), oldHash = hash;
+            hash = hash.slice(0, 8);
+            for (let i = 0; i < 64; i++) {
+                const w15 = w[i - 15], w2 = w[i - 2];
+                const a = hash[0], e = hash[4];
+                const temp1 = hash[7]
+                    + (rightRotate(e, 6) ^ rightRotate(e, 11) ^ rightRotate(e, 25))
+                    + ((e & hash[5]) ^ ((~e) & hash[6]))
+                    + k[i]
+                    + (w[i] = (i < 16) ? w[i] : (
+                        w[i - 16]
+                        + (rightRotate(w15, 7) ^ rightRotate(w15, 18) ^ (w15 >>> 3))
+                        + w[i - 7]
+                        + (rightRotate(w2, 17) ^ rightRotate(w2, 19) ^ (w2 >>> 10))
+                    ) | 0);
+                const temp2 = (rightRotate(a, 2) ^ rightRotate(a, 13) ^ rightRotate(a, 22))
+                    + ((a & hash[1]) ^ (a & hash[2]) ^ (hash[1] & hash[2]));
+                hash = [(temp1 + temp2) | 0].concat(hash);
+                hash[4] = (hash[4] + temp1) | 0;
+            }
+            for (let i = 0; i < 8; i++) hash[i] = (hash[i] + oldHash[i]) | 0;
+        }
+        for (let i = 0; i < 8; i++) {
+            for (let j = 3; j + 1; j--) {
+                const b = (hash[i] >> (j * 8)) & 255;
+                result += ((b < 16) ? '0' : '') + b.toString(16);
+            }
+        }
+        return result;
+    }
+    function isValidApiKey(k){
+        if (!k) return false;
+        if (!apiKeyHashConfigured()) return true;   // 未配置哈希时不校验
+        return sha256Hex(k) === VALID_API_KEY_HASH.trim().toLowerCase();
+    }
+    // 拦截 DeepSeek 请求：只有通过校验的 Key 才会真正发送（其它请求不受影响）
+    (function installApiKeyGuard(){
+        const originalFetch = window.fetch.bind(window);
+        window.fetch = function(url, opts){
+            const urlStr = String(url);
+            const isDeepSeek = urlStr.indexOf('deepseek') !== -1 || urlStr.indexOf('/v1/chat/completions') !== -1;
+            if (isDeepSeek && opts && opts.headers) {
+                const h = opts.headers;
+                const auth = h.Authorization || h['Authorization'] || '';
+                if (auth.indexOf('Bearer ') === 0) {
+                    const key = auth.slice(7).trim();
+                    if (!isValidApiKey(key)) {
+                        showToast('❌ API Key 不正确，只有管理员提供的新 Key 才能使用');
+                        return Promise.reject(new Error('❌ API Key 不正确，只有管理员提供的新 Key 才能使用'));
+                    }
+                }
+            }
+            return originalFetch(url, opts);
+        };
+    })();
+    function refreshApiKeyStatus(){
+        const el = document.getElementById('apiKeyStatus');
+        if (!el) return;
+        const k = apiKeyInput.value.trim();
+        if (!apiKeyHashConfigured()) {
+            el.textContent = '🔑 请输入你的 DeepSeek API Key（不会保存，关闭页面后需重新输入）。';
+            el.style.color = '#64748b';
+            return;
+        }
+        if (!k) {
+            el.textContent = '🔑 请输入你的 DeepSeek API Key（不会保存，关闭页面后需重新输入）。';
+            el.style.color = '#64748b';
+        } else if (isValidApiKey(k)) {
+            el.textContent = '✅ API Key 正确，可以使用。';
+            el.style.color = '#2e7d32';
+        } else {
+            el.textContent = '❌ API Key 不正确，只有管理员提供的新 Key 才能使用。';
+            el.style.color = '#c0392b';
+        }
+    }
 
     // ==================== I18N 多语言系统 ====================
     const I18N = {
@@ -5163,7 +5305,7 @@ const HSK2_VOCAB = [
             'reset.confirm':'Reset all grammar records?',
             'reset.done':'All grammar records have been reset.',
             'logout.confirm':'Are you sure you want to log out? Your data is saved locally.',
-            'api_key_required':'Please fill in the API Key',
+            'api_key_required':'Please fill in the correct API Key',
             'login.title':'Chinese Learning Assistant',
             'login.subtitle':'Log in to save your learning progress',
             'login.username_placeholder':'Username',
@@ -6609,7 +6751,7 @@ const HSK2_VOCAB = [
         'toast.no_chinese_voice':'⚠️ 未找到中文语音，请在系统设置中添加中文语言包',
         'reset.confirm':'重置所有语法记录？', 'reset.done':'已重置全局语法记录。',
         'logout.confirm':'确定要退出登录吗？你的数据已保存在本地。',
-        'api_key_required':'请填写API Key',
+        'api_key_required':'请先填写正确的 API Key',
         'login.title':'汉语学习助手', 'login.subtitle':'登录以保存你的学习进度',
         'login.username_placeholder':'用户名', 'login.password_placeholder':'密码',
         'login.button':'登 录',
@@ -9744,8 +9886,8 @@ ${searchRule}
     function buildWritingPrompt(text, level, min, charCount, targetLang, session, isRevision) {
         const langName = WRITING_LANG_NAMES[targetLang] || targetLang;
         const lengthRule = '【字数要求】当前 HSK' + level + ' 水平，本次作文要求至少 ' + min + ' 个汉字。学生本次写了 ' + charCount + ' 个汉字。' + (charCount < min ? '字数不达标，必须判为不及格（59分及以下），并在 overall 中明确提示需要扩充到至少 ' + min + ' 字。' : '字数达标。');
-        const heuristic = '【启发式批改 - 必须遵守】1. 绝对不要输出 corrected（修改后的完整作文）字段，也不要直接给修改稿。2. 针对每个错误，给出启发式提示 hints（指出错误原文，用提问或提示引导学生自己发现并修改，不要直接写出正确答案）。3. 评价要具体、可操作、多鼓励。4. 每个评价字段内用"\\n"分行。5. 【语言要求】所有反馈文字（discourse、syntax、semantic、characters、overall、hints 中每个 issue）必须全部用' + langName + '（' + targetLang + '）撰写，禁止使用中文，只有引用学生错误原文（original 字段）时才可以保留中文。';
-        const jsonFmt = '输出JSON格式：{"score":整数0-100,"length_chars":' + charCount + ',"length_ok":' + (charCount >= min) + ',"discourse":"' + langName + '语篇结构评价","syntax":"' + langName + '句法语法评价","semantic":"' + langName + '词汇语义评价","characters":"' + langName + '汉字书写评价","overall":"' + langName + '总体评价","hints":[{"original":"错误原文(中文)","issue":"' + langName + '启发式提示，不直接给答案"}]}';
+        const heuristic = '【启发式批改 - 必须遵守】1. 绝对不要输出 corrected（修改后的完整作文）字段，也不要直接给修改稿。2. 针对每个错误，给出启发式提示 hints（指出错误原文，用提问或提示引导学生自己发现并修改，不要直接写出正确答案）。3. 评价要具体、可操作、多鼓励。4. 每个评价字段内用"\\n"分行。5. 【语言要求】所有反馈文字（discourse、syntax、semantic、characters、overall、hints 中每个 issue）必须全部用' + langName + '（' + targetLang + '）撰写，禁止使用中文，只有引用学生错误原文（original 字段）时才可以保留中文。6. hints 中每个错误必须输出 type 字段，从固定中文错误类型（' + MISTAKE_TYPE_LIST.join('、') + '）中选一个，不要翻译、不要自创。';
+        const jsonFmt = '输出JSON格式：{"score":整数0-100,"length_chars":' + charCount + ',"length_ok":' + (charCount >= min) + ',"discourse":"' + langName + '语篇结构评价","syntax":"' + langName + '句法语法评价","semantic":"' + langName + '词汇语义评价","characters":"' + langName + '汉字书写评价","overall":"' + langName + '总体评价","hints":[{"original":"错误原文(中文)","type":"固定中文错误类型","issue":"' + langName + '启发式提示，不直接给答案"}]}';
         if (!isRevision) {
             return '你是一位资深中文写作教师。请批改以下学生作文，并用' + langName + '（' + targetLang + '）撰写全部反馈。\n\n【学生当前水平】HSK' + level + '\n' + lengthRule + '\n\n【评分规则】1. 长度达标是及格前提，字数不足时总分≤59。2. 字数达标后，评分核心是"正确性"和"地道性"（语法、用词、是否自然），不要因为内容简单而压分。3. 分数档位：90-100优秀，80-89良好，70-79一般，60-69需努力，60以下错误很多。4. 评分要稳定一致：同一篇作文、同样的问题应给出相同分数，不要出现随机波动。\n\n【学生作文】\n' + text + '\n\n' + heuristic + '\n\n' + jsonFmt + '\n只用JSON回复。';
         }
@@ -9852,7 +9994,8 @@ ${searchRule}
                 result.hints.forEach(h => {
                     const orig = typeof h === 'string' ? '' : (h.original || '');
                     const issue = typeof h === 'string' ? h : (h.issue || '');
-                    html += `<p style="margin-bottom:8px;">${orig ? '<span class="example-highlight">' + escapeHtml(orig) + '</span><br>' : ''}💬 ${escapeHtml(issue)}</p>`;
+                    const htype = typeof h === 'string' ? '' : (h.type || '');
+                    html += `<p style="margin-bottom:8px;">${orig ? '<span class="example-highlight">' + escapeHtml(orig) + '</span><br>' : ''}${htype ? '<span class="mistake-type-badge">🏷 ' + escapeHtml(normalizeMistakeType(htype)) + '</span> ' : ''}💬 ${escapeHtml(issue)}</p>`;
                 });
                 html += `</div>`;
             }
@@ -10318,9 +10461,9 @@ ${searchRule}
     function queriedKey(){ return 'HSK_QUERIED_' + currentUser; }
     function saveWrongSentences(){ if(!currentUser) return; localStorage.setItem('HSK_WRONG_SENTENCES_'+currentUser, JSON.stringify(wrongSentences)); }
 function loadWrongSentences(){ if(!currentUser) return; wrongSentences=[]; var raw=localStorage.getItem('HSK_WRONG_SENTENCES_'+currentUser); if(raw) try{ wrongSentences=JSON.parse(raw); }catch(e){ wrongSentences=[]; } }
-function addWrongSentence(word,type,chineseRaw,english,userAnswer,note){ if(wrongSentences.some(function(s){ return s.sentence===chineseRaw&&s.userAnswer===userAnswer; })) return; wrongSentences.unshift({word:word,type:type,sentence:chineseRaw,english:english,userAnswer:userAnswer,note:note||'',date:getLocalDate()}); if(wrongSentences.length>500) wrongSentences.pop(); saveWrongSentences(); renderWrongSentences(); }
+function addWrongSentence(word,type,chineseRaw,english,userAnswer,note,errType){ if(wrongSentences.some(function(s){ return s.sentence===chineseRaw&&s.userAnswer===userAnswer; })) return; wrongSentences.unshift({word:word,type:type,sentence:chineseRaw,english:english,userAnswer:userAnswer,note:note||'',errType:normalizeMistakeType(errType)||'',date:getLocalDate()}); if(wrongSentences.length>500) wrongSentences.pop(); saveWrongSentences(); renderWrongSentences(); }
 window._removeWrongSentence=function(idx){ wrongSentences.splice(idx,1); saveWrongSentences(); renderWrongSentences(); };
-function renderWrongSentences(){ const el=document.getElementById('wrongSentenceList'); if(!el) return; if(wrongSentences.length===0){ el.innerHTML='<div class="empty-detail">'+t('wrong_sentences.empty')+'</div>'; return; } let html=''; for(let i=0;i<wrongSentences.length;i++){ const ws=wrongSentences[i]; const delBtn=' <button onclick="window._removeWrongSentence('+i+')" style="background:none;border:1px solid #f5c6cb;border-radius:8px;padding:1px 6px;font-size:0.68rem;cursor:pointer;color:#c0392b;margin-left:6px;">🗑️</button>'; if(ws.type==='对话纠错'){ html+='<div class="mistake-item"><div style="color:#27ae60;font-weight:600;">✅ '+escapeHtml(ws.sentence)+'</div><div class="mistake-original" style="color:#c0392b;">❌ '+escapeHtml(ws.userAnswer)+'</div>'+(ws.note?'<div style="font-size:0.78rem;color:#e67e22;">💡 '+escapeHtml(ws.note)+'</div>':'')+'<div style="font-size:0.7rem;color:#94a3b8;">📅 '+formatDate(ws.date)+delBtn+'</div></div>'; } else { html+='<div class="mistake-item"><div class="mistake-original">📝 '+escapeHtml(ws.word||ws.userAnswer)+'</div><div style="color:#27ae60;">✅ '+escapeHtml(ws.sentence)+'</div><div>✏️ '+escapeHtml(ws.userAnswer)+delBtn+'</div></div>'; } } el.innerHTML=html; translateLegacyWrongNotes(); }
+function renderWrongSentences(){ const el=document.getElementById('wrongSentenceList'); if(!el) return; if(wrongSentences.length===0){ el.innerHTML='<div class="empty-detail">'+t('wrong_sentences.empty')+'</div>'; return; } let html=''; for(let i=0;i<wrongSentences.length;i++){ const ws=wrongSentences[i]; const delBtn=' <button onclick="window._removeWrongSentence('+i+')" style="background:none;border:1px solid #f5c6cb;border-radius:8px;padding:1px 6px;font-size:0.68rem;cursor:pointer;color:#c0392b;margin-left:6px;">🗑️</button>'; if(ws.type==='对话纠错'){ html+='<div class="mistake-item"><div style="color:#27ae60;font-weight:600;">✅ '+escapeHtml(ws.sentence)+'</div><div class="mistake-original" style="color:#c0392b;">❌ '+escapeHtml(ws.userAnswer)+'</div>'+(ws.errType?'<div style="margin:2px 0;"><span class="mistake-type-badge">🏷 '+escapeHtml(ws.errType)+'</span></div>':'')+(ws.note?'<div style="font-size:0.78rem;color:#e67e22;">💡 '+escapeHtml(ws.note)+'</div>':'')+'<div style="font-size:0.7rem;color:#94a3b8;">📅 '+formatDate(ws.date)+delBtn+'</div></div>'; } else { html+='<div class="mistake-item"><div class="mistake-original">📝 '+escapeHtml(ws.word||ws.userAnswer)+'</div><div style="color:#27ae60;">✅ '+escapeHtml(ws.sentence)+'</div><div>✏️ '+escapeHtml(ws.userAnswer)+delBtn+'</div></div>'; } } el.innerHTML=html; translateLegacyWrongNotes(); }
 let wrongNoteTranslating = false;
 async function translateLegacyWrongNotes(){
     if(wrongNoteTranslating) return;
@@ -10667,19 +10810,17 @@ try{ const resp=await fetch(API_BASE,{method:'POST',headers:{'Content-Type':'app
 ⑥ 搭配不当、表达不地道
 
 【note 要求】
-1. note 用${targetLang}具体指出：哪个字/词/结构错了、应改成什么、属于哪类错误（别字/错词/缺词/多词/语序/搭配）。禁止空话套话（如“语序或表达的问题”“corrected based on the AI reply”）。
+1. note 用${targetLang}具体指出：哪个字/词/结构错了、应改成什么、属于哪类错误（别字/错词/离合词/缺词/多词/语序/搭配）。禁止空话套话（如“语序或表达的问题”“corrected based on the AI reply”）。
 2. 语序颠倒必须具体指出哪个词/字的顺序反了，禁止只写笼统的“语序问题”，禁止写「X」→「X」这种同字假替换。
 3. 如果提供了AI对话伙伴的自然回复，只能作为参考：学生句子正确、只是AI换了一种说法的，不要报告。
+4. 深入解释正确用法：note 不能只写错误类型。必须解释正确的用法规则，例如：离合词（见面、帮忙、生气、洗澡、睡觉、毕业等）不能直接带宾语，应写「跟/和/与+人+见面」；虚词要说清该用哪个（的/地/得/了/着/过）以及为什么；固定搭配要给出正确搭配。
+5. note 结构：先指出错误 → 再说明正确用法规则 → 最后可给一个正确例句（用「」括起）。
 
-【偏误类型】
-grammar：语法结构错误（语序不对、虚词用错/缺失、句式混乱）
-vocabulary：词语用错（生造词、近义词混淆、词性错误）
-character：汉字别字（同音/近音混淆）
-redundant：多余字词
-collocation：搭配不当
-idiomatic：表达不地道
+【偏误类型 - 必须遵守】
+type 字段必须从以下固定中文类型中选一个（不要自创、不要翻译成其他语言）：错字、别字、漏字、多字、词语错误、离合词错误、缺词、多词、语序错误、搭配不当、成分残缺、成分多余、句式杂糅、关联词错误、语义错误。
+类型定义：错字=写错笔画结构（不存在的字）；别字=同音/形近用错字；漏字=少写字；多字=多写字；词语错误=生造词/近义词误用/词性错误；离合词错误=离合词（见面/帮忙/生气等）用法错误，如直接带宾语；缺词=该用词没写；多词=多了不该有的词；语序错误=词序颠倒；搭配不当=动宾/主谓等搭配不合理；成分残缺=缺主语/谓语/宾语等成分；成分多余=多出不必要的成分；句式杂糅=两个句式搅在一起；关联词错误=关联词搭配或逻辑错误；语义错误=逻辑不通/否定不当等。
 
-输出JSON数组：[{"original":"学生原文(片段)","corrected":"改正后(必须与original不同)","type":"类型","note":"错误原因（用${targetLang}，具体说明，禁止空话）"}]。无错误返回[]。`; try{ const resp=await fetch(API_BASE,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${apiKey}`}, body:JSON.stringify({model:'deepseek-v4-pro',thinking:{type:'disabled'}, max_tokens:4096, messages:[{role:'system',content:prompt},{role:'user',content:(aiReplyRaw ? ('学生句子: '+JSON.stringify(userMessages)+'\n\nAI对话伙伴的自然回复（仅供参考，可能已包含正确说法）:\n'+String(aiReplyRaw)) : ('学生句子: '+JSON.stringify(userMessages)))}], temperature:0.1, response_format:{type:'json_object'}})}); const data=await resp.json(); if(data.error) throw new Error(data.error.message||"API error"); if(!data.choices||!data.choices[0]||!data.choices[0].message) throw new Error("API error"); let content=data.choices[0].message.content; content=content.replace(/```json/g,'').replace(/```/g,'').trim(); const parsed=JSON.parse(content); return Array.isArray(parsed)?parsed:(parsed.mistakes||parsed.results||[]); }catch(e){ return []; } }
+输出JSON数组：[{"original":"学生原文(片段)","corrected":"改正后(必须与original不同)","type":"错误类型（必须从上述固定中文类型中选一个）","note":"错误原因（用${targetLang}，具体说明，禁止空话）"}]。无错误返回[]。`; try{ const resp=await fetch(API_BASE,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${apiKey}`}, body:JSON.stringify({model:'deepseek-v4-pro',thinking:{type:'disabled'}, max_tokens:4096, messages:[{role:'system',content:prompt},{role:'user',content:(aiReplyRaw ? ('学生句子: '+JSON.stringify(userMessages)+'\n\nAI对话伙伴的自然回复（仅供参考，可能已包含正确说法）:\n'+String(aiReplyRaw)) : ('学生句子: '+JSON.stringify(userMessages)))}], temperature:0.1, response_format:{type:'json_object'}})}); const data=await resp.json(); if(data.error) throw new Error(data.error.message||"API error"); if(!data.choices||!data.choices[0]||!data.choices[0].message) throw new Error("API error"); let content=data.choices[0].message.content; content=content.replace(/```json/g,'').replace(/```/g,'').trim(); const parsed=JSON.parse(content); return Array.isArray(parsed)?parsed:(parsed.mistakes||parsed.results||[]); }catch(e){ return []; } }
     function isPunctuationOnlyDiff(a,b){var p='，。、！？；：…—·《》〈〉（）【】,.!?;:()[]{}<> ';var s=function(x){return (x||'').split('').filter(function(c){return p.indexOf(c)<0;}).join('');};return s(a)===s(b);}
     function filterMistakes(mistakes){ if(!mistakes||!mistakes.length) return []; const out=[]; for(const m of mistakes){ if(!m||!m.original||!m.corrected) continue; if(m.original===m.corrected) continue; if(isPunctuationOnlyDiff(m.original,m.corrected)) continue; if(out.some(x=>x.original===m.original&&x.corrected===m.corrected)) continue; out.push(m); } return out; }
     function charLcsLen(a,b){ const n=a.length,m=b.length; const dp=Array.from({length:n+1},()=>new Array(m+1).fill(0)); for(let i=n-1;i>=0;i--) for(let j=m-1;j>=0;j--) dp[i][j]=a[i]===b[j]?dp[i+1][j+1]+1:Math.max(dp[i+1][j],dp[i][j+1]); return dp[0][0]; }
@@ -11054,11 +11195,11 @@ idiomatic：表达不地道
         }
     }
     function downloadUnifiedReport(){ let rpt='=== 📚 完整学习报告 ===\n'+new Date().toLocaleString()+'\n\n'; rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n✏️ 作文批改（最终提交文本 + 修改过程）\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(writingEssays.length===0){ rpt+='(暂无作文批改记录)\n\n'; } else { writingEssays.forEach((we,i)=>{ rpt+='📌 作文 '+(i+1)+'（'+formatDate(we.date)+'，最终得分 '+(we.score||'--')+'）\n--- 最终提交文本 ---\n'+(we.original||'')+'\n'; if(we.revisions&&we.revisions.length>0){ rpt+='--- 修改过程 ---\n'; we.revisions.forEach((rv,k)=>{ rpt+='修改'+(k+1)+'（'+formatDate(rv.date)+'，得分 '+(rv.score||'--')+'）\n'+(rv.text||'')+'\n'; }); } rpt+='\n'; }); } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n📝 第一部分：全部聊天记录\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(chatHistory.length===0){ rpt+='(暂无聊天记录)\n'; } else { for(let msg of chatHistory){ const roleLabel=msg.role==='user'?'🧑 用户':'🤖 AI'; const timeStr=msg.time?new Date(msg.time).toLocaleString():''; rpt+=roleLabel+' ['+timeStr+']\n'+msg.content+'\n\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n📐 第二部分：语法追踪\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; const gc=()=>{const u=[],p=[],b=[];for(let[pat,entry]of usedMap.entries()){const c=entry.count||0,pc=entry.practiceCount||0;if(c>0&&pc===0)u.push({pat,lv:entry.level,c,pc,ex:entry.examples,ts:entry.practiceTimestamps||[]});else if(pc>0&&c===0)p.push({pat,lv:entry.level,c,pc,ts:entry.practiceTimestamps||[]});else if(c>0&&pc>0)b.push({pat,lv:entry.level,c,pc,ex:entry.examples,ts:entry.practiceTimestamps||[]});}return{u,p,b};};const gu=gc();[gu.u,gu.p,gu.b].forEach(a=>a.sort((x,y)=>x.lv-y.lv));rpt+='=== 仅用过（未练） ===\n';if(gu.u.length===0)rpt+='(无)\n';for(let it of gu.u){rpt+='HSK'+it.lv+' '+it.pat+': 使用'+it.c+'次\n';for(let ex of it.ex){const s=ex.feedback===true?'✓':ex.feedback===false?'✗':'√';rpt+='  '+s+' '+ex.sentence+' ['+(ex.date||'')+']\n';}rpt+='\n';}rpt+='=== 仅练过（未用） ===\n';if(gu.p.length===0)rpt+='(无)\n';for(let it of gu.p){rpt+='HSK'+it.lv+' '+it.pat+': 练习'+it.pc+'次';for(let t of it.ts)rpt+=' ['+t+']';rpt+='\n\n';}rpt+='=== 练过+用过 ===\n';if(gu.b.length===0)rpt+='(无)\n';for(let it of gu.b){rpt+='HSK'+it.lv+' '+it.pat+': 使用'+it.c+'次 练习'+it.pc+'次\n';for(let ex of it.ex){const s=ex.feedback===true?'✓':ex.feedback===false?'✗':'√';rpt+='  '+s+' '+ex.sentence+' ['+(ex.date||'')+']\n';}for(let t of it.ts)rpt+='  [练] '+t+'\n';rpt+='\n';}if(usedMap.size===0)rpt+='(暂无语法记录)\n'; rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n📖 第三部分：词汇追踪\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; const vc=()=>{const u=[],p=[],b=[];for(let[word,entry]of vocabUsedMap.entries()){const c=entry.count||0,pc=entry.practiceCount||0;if(c>0&&pc===0)u.push({word,lv:entry.level,c,pc,ex:entry.examples,ts:entry.practiceTimestamps||[]});else if(pc>0&&c===0)p.push({word,lv:entry.level,c,pc,ts:entry.practiceTimestamps||[]});else if(c>0&&pc>0)b.push({word,lv:entry.level,c,pc,ex:entry.examples,ts:entry.practiceTimestamps||[]});}return{u,p,b};};const vu=vc();[vu.u,vu.p,vu.b].forEach(a=>a.sort((x,y)=>x.lv-y.lv));rpt+='=== 仅用过（未练） ===\n';if(vu.u.length===0)rpt+='(无)\n';for(let it of vu.u){rpt+=vocabLevelLabel(it.lv)+' '+it.word+': 使用'+it.c+'次\n';for(let ex of it.ex)rpt+='  '+formatDate(ex.date)+' '+ex.sentence+'\n';rpt+='\n';}rpt+='=== 仅练过（未用） ===\n';if(vu.p.length===0)rpt+='(无)\n';for(let it of vu.p){rpt+=vocabLevelLabel(it.lv)+' '+it.word+': 练习'+it.pc+'次';for(let t of it.ts)rpt+=' ['+t+']';rpt+='\n\n';}rpt+='=== 练过+用过 ===\n';if(vu.b.length===0)rpt+='(无)\n';for(let it of vu.b){rpt+=vocabLevelLabel(it.lv)+' '+it.word+': 使用'+it.c+'次 练习'+it.pc+'次\n';for(let ex of it.ex)rpt+='  '+formatDate(ex.date)+' '+ex.sentence+'\n';for(let t of it.ts)rpt+='  [练] '+t+'\n';rpt+='\n';}if(vocabUsedMap.size===0)rpt+='(暂无词汇记录)\n'; rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n🔍 第四部分：查询过的词或句子\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(queriedItems.length===0){ rpt+='(暂无查询记录)\n'; } else { for(let i=0;i<queriedItems.length;i++){ const item=queriedItems[i]; const icon=item.type==='sentence'?'📝 句子':'🔤 词语'; rpt+=icon+' '+item.text+'\n  🌐 '+(item.translation||'')+'\n  📅 '+formatDate(item.date?item.date.slice(0,10):'')+'\n\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n❌ 第六部分：错句记录\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
-if(wrongSentences.length===0){ rpt+='(暂无错句记录)\n'; } else { for(var wi=0;wi<wrongSentences.length;wi++){ var ws=wrongSentences[wi]; if(ws.type==='对话纠错'){ rpt+='❌ 你的：'+ws.userAnswer+'\n  ✅ 正确：'+ws.sentence+'\n'+(ws.note?'  💡 '+ws.note+'\n':'')+'  📅 '+ws.date+'\n\n'; } else { rpt+='📝 '+ws.word+' ['+ws.type+']\n  🇨🇳 正确: '+ws.sentence+'\n  ✏️ 你的: '+ws.userAnswer+'\n  🌐 '+ws.english+'\n  📅 '+ws.date+'\n\n'; } } }
-rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n💭 第七部分：今日错句反思记录\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; const _today2=getLocalDate(); const _rr=(window._reflectionResults||[]).filter(r => !r.date || String(r.date).slice(0,10) === _today2); const _rlbl={A:'A.母语的影响',B:'B.规则不清楚',C:'C.其他'}; if(_rr.length===0){ rpt+='(暂无今日反思记录)\n'; } else { for(const r of _rr){ rpt+='['+(r.mode||'')+'] '+(r.text||'')+'\n'; if(r.user) rpt+='  ✏️ 你写的：'+r.user+'\n'; if(r.note) rpt+='  📌 '+(r.note||'')+'\n'; if(r.reasonType && _rlbl[r.reasonType]) rpt+='  💭 反思：'+_rlbl[r.reasonType]+(r.reason?('：'+r.reason):'')+'\n'; else if(r.reason) rpt+='  💭 反思：'+r.reason+'\n'; else rpt+='  💭 反思：（跳过）\n'; rpt+='  📅 '+(r.date||'')+'\n\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n⭐ 第五部分：收藏句子\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(favoriteSentences.length===0){ rpt+='(暂无收藏)\n'; } else { for(let item of favoriteSentences){ rpt+='🇨🇳 '+item.chinese+'\n🌐 '+(item.translation||'')+'\n📅 '+(item.date||'')+'\n\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n💬 「怎么说」尝试记录\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(zmsRecords.length===0){ rpt+='(暂无尝试记录)\n'; } else { for(var zi=0; zi<zmsRecords.length; zi++){ var zr=zmsRecords[zi]; rpt+='🌐 母语：'+zr.original+'\n  ✏️ 你的尝试：'+zr.attempt+'\n  ✅ 参考答案：'+zr.reference+'\n  📅 '+(zr.date||'')+'\n\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n📰 阅读历史\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(readingHistory.length===0){ rpt+='(暂无阅读记录)\n'; } else { readingHistory.forEach((r,i)=>{ rpt+='📌 '+(r.title||('HSK'+r.level))+' [HSK'+r.level+']\n'; rpt+='📅 '+(r.date||'')+' · 主题：'+(r.topic||'')+'\n'; if(r.background) rpt+='背景：'+r.background+'\n'; if(r.sourceUrl) rpt+='🔗 '+r.sourceUrl+'\n'; rpt+='--- 正文 ---\n'+(r.content||'')+'\n\n'; }); } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n📖 阅读词汇追踪（完成阅读后按等级累加）\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; const rtk2=readingTrack||{unknownIn:{},knownIn:{},unknownOut:{}}; const rIn1=Object.entries(rtk2.unknownIn||{}).map(([w,o])=>({word:w,level:o.level||vocabLevelOfWord(w)||0,count:o.count||0})).sort((a,b)=>a.level-b.level); const rIn2=Object.entries(rtk2.knownIn||{}).map(([w,o])=>({word:w,level:o.level||vocabLevelOfWord(w)||0,count:o.count||0})).sort((a,b)=>a.level-b.level); const rOut=Object.entries(rtk2.unknownOut||{}).map(([t,o])=>({text:t,type:o.type||'phrase',count:o.count||0})).sort((a,b)=>b.count-a.count); const rCat=(title,arr,isOut)=>{ rpt+='=== '+title+' ===\n'; if(arr.length===0){ rpt+='(无)\n'; return; } for(const it of arr){ if(isOut){ const ico=it.type==='sentence'?'📝 句子':(it.type==='phrase'?'🔗 短语':'🔤 词语'); rpt+=ico+' '+it.text+'：出现 '+it.count+' 次\n'; } else { rpt+=vocabLevelLabel(it.level)+' '+it.word+'：出现 '+it.count+' 次\n'; } } rpt+='\n'; }; rCat('① 不懂的纲内词', rIn1, false); rCat('② 知道的纲内词', rIn2, false); rCat('③ 不懂的超纲词/短语/句子', rOut, true); const ok = downloadTextFile(rpt, 'HSK_Learning_Report_' + getLocalDate() + '.txt'); showToast(ok ? t('toast.download_started') : t('toast.download_failed')); }
+if(wrongSentences.length===0){ rpt+='(暂无错句记录)\n'; } else { for(var wi=0;wi<wrongSentences.length;wi++){ var ws=wrongSentences[wi]; if(ws.type==='对话纠错'){ rpt+='❌ 你的：'+ws.userAnswer+'\n  ✅ 正确：'+ws.sentence+'\n'+(ws.errType?'  🏷 类型：'+ws.errType+'\n':'')+(ws.note?'  💡 '+ws.note+'\n':'')+'  📅 '+ws.date+'\n\n'; } else { rpt+='📝 '+ws.word+' ['+ws.type+']\n  🇨🇳 正确: '+ws.sentence+'\n  ✏️ 你的: '+ws.userAnswer+'\n  🌐 '+ws.english+'\n  📅 '+ws.date+'\n\n'; } } }
+rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n🏷 错句类型统计\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; { const _tc={}; for(const _ws of wrongSentences){ if(_ws.errType){ _tc[_ws.errType]=(_tc[_ws.errType]||0)+1; } } const _te=Object.entries(_tc).sort((a,b)=>b[1]-a[1]); if(_te.length===0){ rpt+='(暂无类型统计)\n'; } else { for(const _e of _te){ rpt+='🏷 '+_e[0]+'：'+_e[1]+' 次\n'; } } } rpt+='\n'; rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n💭 第七部分：今日错句反思记录\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; const _today2=getLocalDate(); const _rr=(window._reflectionResults||[]).filter(r => !r.date || String(r.date).slice(0,10) === _today2); const _rlbl={A:'A.母语的影响',B:'B.规则不清楚',C:'C.其他'}; if(_rr.length===0){ rpt+='(暂无今日反思记录)\n'; } else { for(const r of _rr){ rpt+='['+(r.mode||'')+'] '+(r.text||'')+'\n'; if(r.user) rpt+='  ✏️ 你写的：'+r.user+'\n'; if(r.note) rpt+='  📌 '+(r.note||'')+'\n'; if(r.reasonType && _rlbl[r.reasonType]) rpt+='  💭 反思：'+_rlbl[r.reasonType]+(r.reason?('：'+r.reason):'')+'\n'; else if(r.reason) rpt+='  💭 反思：'+r.reason+'\n'; else rpt+='  💭 反思：（跳过）\n'; rpt+='  📅 '+(r.date||'')+'\n\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n⭐ 第五部分：收藏句子\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(favoriteSentences.length===0){ rpt+='(暂无收藏)\n'; } else { for(let item of favoriteSentences){ rpt+='🇨🇳 '+item.chinese+'\n🌐 '+(item.translation||'')+'\n📅 '+(item.date||'')+'\n\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n💬 「怎么说」尝试记录\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(zmsRecords.length===0){ rpt+='(暂无尝试记录)\n'; } else { for(var zi=0; zi<zmsRecords.length; zi++){ var zr=zmsRecords[zi]; rpt+='🌐 母语：'+zr.original+'\n  ✏️ 你的尝试：'+zr.attempt+'\n  ✅ 参考答案：'+zr.reference+'\n  📅 '+(zr.date||'')+'\n\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n📰 阅读历史\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(readingHistory.length===0){ rpt+='(暂无阅读记录)\n'; } else { readingHistory.forEach((r,i)=>{ rpt+='📌 '+(r.title||('HSK'+r.level))+' [HSK'+r.level+']\n'; rpt+='📅 '+(r.date||'')+' · 主题：'+(r.topic||'')+'\n'; if(r.background) rpt+='背景：'+r.background+'\n'; if(r.sourceUrl) rpt+='🔗 '+r.sourceUrl+'\n'; rpt+='--- 正文 ---\n'+(r.content||'')+'\n\n'; }); } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n📖 阅读词汇追踪（完成阅读后按等级累加）\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; const rtk2=readingTrack||{unknownIn:{},knownIn:{},unknownOut:{}}; const rIn1=Object.entries(rtk2.unknownIn||{}).map(([w,o])=>({word:w,level:o.level||vocabLevelOfWord(w)||0,count:o.count||0})).sort((a,b)=>a.level-b.level); const rIn2=Object.entries(rtk2.knownIn||{}).map(([w,o])=>({word:w,level:o.level||vocabLevelOfWord(w)||0,count:o.count||0})).sort((a,b)=>a.level-b.level); const rOut=Object.entries(rtk2.unknownOut||{}).map(([t,o])=>({text:t,type:o.type||'phrase',count:o.count||0})).sort((a,b)=>b.count-a.count); const rCat=(title,arr,isOut)=>{ rpt+='=== '+title+' ===\n'; if(arr.length===0){ rpt+='(无)\n'; return; } for(const it of arr){ if(isOut){ const ico=it.type==='sentence'?'📝 句子':(it.type==='phrase'?'🔗 短语':'🔤 词语'); rpt+=ico+' '+it.text+'：出现 '+it.count+' 次\n'; } else { rpt+=vocabLevelLabel(it.level)+' '+it.word+'：出现 '+it.count+' 次\n'; } } rpt+='\n'; }; rCat('① 不懂的纲内词', rIn1, false); rCat('② 知道的纲内词', rIn2, false); rCat('③ 不懂的超纲词/短语/句子', rOut, true); const ok = downloadTextFile(rpt, 'HSK_Learning_Report_' + getLocalDate() + '.txt'); showToast(ok ? t('toast.download_started') : t('toast.download_failed')); }
 
 async function handleEndConversation(){ if(chatAbortController){ chatAbortController.abort(); chatAbortController=null; } if(currentSessionClauses.length===0&&sessionUserMessages.length===0){ addAssistantMessage(t('analysis.no_sentences')); return; } const filteredClauses=currentSessionClauses.filter(c=>!isQueriedSentence(c)); const savedClauses=[...filteredClauses]; if(filteredClauses.length===0){ addAssistantMessage(t('analysis.no_sentences')); currentSessionClauses=[]; sessionUserMessages=[]; return; } addAssistantMessage(t('analysis.analyzing_prefix')+filteredClauses.length+'...'); try{ const analysis=await analyzeGrammarBatch(filteredClauses); if(analysis) mergeAnalysisResults(analysis); addAssistantMessage(t('analysis.grammar_done')); }catch(e){ addAssistantMessage(t('analysis.grammar_timeout')); } addAssistantMessage(t('analysis.vocab_analyzing')); try{ const vocabAnalysis=await analyzeVocabBatch(savedClauses); if(vocabAnalysis){ mergeVocabResultsFiltered(vocabAnalysis); } const matchCount=vocabAnalysis?vocabAnalysis.reduce((sum,item)=>sum+Object.keys(item.wordCounts||{}).length,0):0; addAssistantMessage(t('analysis.vocab_done')+' 匹配到 '+matchCount+' 个词'); }catch(e){ console.log('Vocab error:',e); addAssistantMessage(t('analysis.vocab_timeout')); } renderVocabLevelProgress(); renderVocabTrackList(); const _userHanzi = sessionUserMessages.map(u => stripHanziOnly(u)); const _chatReflect = []; for(const it of (window._chatSessionMistakes || [])){ const key = stripHanziOnly(it.user || ''); if(!key) continue; if(!_userHanzi.some(u => u.includes(key))) continue; const dupIdx = _chatReflect.findIndex(x => { const xk = stripHanziOnly(x.user || ''); return xk === key || xk.includes(key) || key.includes(xk); }); if(dupIdx !== -1){ const xk = stripHanziOnly(_chatReflect[dupIdx].user || ''); if(key.length > xk.length) _chatReflect[dupIdx] = it; continue; } _chatReflect.push(it); } window._chatSessionMistakes = []; if(_chatReflect.length) setTimeout(function(){ startReflection(_chatReflect); },600); currentSessionClauses=[]; sessionUserMessages=[]; }
-    async function handleUserMessage(){ if(window._chatBusy) return; let text=userInput.value.trim(); if(!text) return; window._chatBusy=true; userInput.value=''; addMessage('user',text); currentSessionClauses.push(...splitClauses(text)); sessionUserMessages.push(text); if(chatAbortController){ chatAbortController.abort(); } chatAbortController=new AbortController(); const signal=chatAbortController.signal; try{ const reply=await chatWithContext(text,signal); const cleanReplyRaw = reply ? stripInlineCorrectionBlock(reply.raw) : ''; const mistakes=await analyzeMistakesBatch([text], cleanReplyRaw); for(const m of mistakes){ const _lang = targetLangSelect ? targetLangSelect.value : 'Chinese'; if(!m.note || isVagueMistakeNote(m.note) || hasNonsenseSelfCorrection(m.note) || (_lang !== 'Chinese' && /[\u4e00-\u9fff]/.test(String(m.note)))) m.note = describeMistakeReason(m.original, m.corrected); } const natural = reply ? extractNaturalCorrections(text, cleanReplyRaw) : []; const filtered=dedupeMistakesByOriginal([...filterMistakes(mistakes), ...natural].filter(m => !isFalseCorrection(m.original, m.corrected))); window._chatSessionMistakes = window._chatSessionMistakes || []; for(const m of filtered){ const _whyWrong = m.note || ''; window._chatSessionMistakes.push({ mode:'聊天', text:m.corrected, user:m.original, note:_whyWrong }); } if(reply){ for(const m of filtered){ const _whyWrong2 = m.note || ''; addWrongSentence('','对话纠错',m.corrected,'',m.original,_whyWrong2); } let html=cleanReplyRaw.replace(/\n/g,'<br>'), raw=cleanReplyRaw; if(filtered.length>0){ const htmlParts=[], rawLines=[]; for(const m of filtered){ rawLines.push('✅ '+m.corrected); rawLines.push('❌ '+m.original); if(m.note) rawLines.push('💡 '+t('chat.why_wrong')+'：'+m.note); const _wrongHtml = m.note ? ' <span style="color:#e67e22">💡 '+escapeHtml(t('chat.why_wrong'))+'：'+escapeHtml(m.note)+'</span>' : ''; htmlParts.push('<b style="color:#27ae60">✅ '+escapeHtml(m.corrected)+'</b> <b style="color:#c0392b">❌ '+escapeHtml(m.original)+'</b>'+_wrongHtml); } html += '<br><br>' + t('chat.correction') + htmlParts.join('<br>'); raw += '\n' + t('chat.correction') + '\n' + rawLines.join('\n'); const last=chatHistory[chatHistory.length-1]; if(last&&last.role==='assistant'){ last.content=raw; saveChatHistory(); } } addAssistantMessage(html, true, raw); } else { for(const m of filtered){ const _whyWrong3 = m.note || ''; addWrongSentence('','对话纠错',m.corrected,'',m.original,_whyWrong3); } addAssistantMessage(t('analysis.reply_fail')); } }catch(e){ if(e.name!=='AbortError') addAssistantMessage(t('analysis.reply_fail')); }finally{ chatAbortController=null; window._chatBusy=false; } }
+    async function handleUserMessage(){ if(window._chatBusy) return; let text=userInput.value.trim(); if(!text) return; window._chatBusy=true; userInput.value=''; addMessage('user',text); currentSessionClauses.push(...splitClauses(text)); sessionUserMessages.push(text); if(chatAbortController){ chatAbortController.abort(); } chatAbortController=new AbortController(); const signal=chatAbortController.signal; try{ const reply=await chatWithContext(text,signal); const cleanReplyRaw = reply ? stripInlineCorrectionBlock(reply.raw) : ''; const mistakes=await analyzeMistakesBatch([text], cleanReplyRaw); for(const m of mistakes){ const _lang = targetLangSelect ? targetLangSelect.value : 'Chinese'; if(!m.note || isVagueMistakeNote(m.note) || hasNonsenseSelfCorrection(m.note) || (_lang !== 'Chinese' && /[\u4e00-\u9fff]/.test(String(m.note)))) m.note = describeMistakeReason(m.original, m.corrected); } const natural = reply ? extractNaturalCorrections(text, cleanReplyRaw) : []; const filtered=dedupeMistakesByOriginal([...filterMistakes(mistakes), ...natural].filter(m => !isFalseCorrection(m.original, m.corrected))); for(const m of filtered){ m.type = normalizeMistakeType(m.type) || inferMistakeType(m); } window._chatSessionMistakes = window._chatSessionMistakes || []; for(const m of filtered){ const _whyWrong = m.note || ''; window._chatSessionMistakes.push({ mode:'聊天', text:m.corrected, user:m.original, note:_whyWrong, type:m.type||'' }); } if(reply){ for(const m of filtered){ const _whyWrong2 = m.note || ''; addWrongSentence('','对话纠错',m.corrected,'',m.original,_whyWrong2,m.type||''); } let html=cleanReplyRaw.replace(/\n/g,'<br>'), raw=cleanReplyRaw; if(filtered.length>0){ const htmlParts=[], rawLines=[]; for(const m of filtered){ const _typeLabel = normalizeMistakeType(m.type); rawLines.push('✅ '+m.corrected); rawLines.push('❌ '+m.original); if(_typeLabel) rawLines.push('🏷 类型：'+_typeLabel); if(m.note) rawLines.push('💡 '+t('chat.why_wrong')+'：'+m.note); const _wrongHtml = m.note ? ' <span style="color:#e67e22">💡 '+escapeHtml(t('chat.why_wrong'))+'：'+escapeHtml(m.note)+'</span>' : ''; const _typeBadge = _typeLabel ? ' <span class="mistake-type-badge">🏷 '+escapeHtml(_typeLabel)+'</span>' : ''; htmlParts.push('<b style="color:#27ae60">✅ '+escapeHtml(m.corrected)+'</b> <b style="color:#c0392b">❌ '+escapeHtml(m.original)+'</b>'+_typeBadge+_wrongHtml); } html += '<br><br>' + t('chat.correction') + htmlParts.join('<br>'); raw += '\n' + t('chat.correction') + '\n' + rawLines.join('\n'); const last=chatHistory[chatHistory.length-1]; if(last&&last.role==='assistant'){ last.content=raw; saveChatHistory(); } } addAssistantMessage(html, true, raw); } else { for(const m of filtered){ const _whyWrong3 = m.note || ''; addWrongSentence('','对话纠错',m.corrected,'',m.original,_whyWrong3,m.type||''); } addAssistantMessage(t('analysis.reply_fail')); } }catch(e){ if(e.name!=='AbortError') addAssistantMessage(t('analysis.reply_fail')); }finally{ chatAbortController=null; window._chatBusy=false; } }
     let practiceIsSpeaking=false;
     // ========== 语音朗读 ==========
     // 解锁移动端音频播放（微信等WebView首次需用户手势激活AudioContext）
@@ -12547,12 +12688,10 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
         if(document.getElementById('learnLevelSelect')){ document.getElementById('learnLevelSelect').addEventListener('change',()=>{ const lv=parseInt(document.getElementById('learnLevelSelect').value); if(document.getElementById('vocabViewLevel')){ document.getElementById('vocabViewLevel').value=lv; renderVocabLibrary(lv); } }); }
         // 登录后渲染学习任务
         renderLearnTasks();
-        // API Key 持久化：从 localStorage 读取
-        const savedApiKey = localStorage.getItem(API_KEY_STORAGE);
-        if (savedApiKey) apiKeyInput.value = savedApiKey;
-        // 输入后自动保存
-        apiKeyInput.addEventListener('change', () => localStorage.setItem(API_KEY_STORAGE, apiKeyInput.value.trim()));
-        apiKeyInput.addEventListener('blur', () => localStorage.setItem(API_KEY_STORAGE, apiKeyInput.value.trim()));
+        // API Key 不持久化：每次打开页面都由用户手动输入，不写入 localStorage
+        try { localStorage.removeItem(API_KEY_STORAGE); } catch(e) {}
+        apiKeyInput.addEventListener('input', refreshApiKeyStatus);
+        refreshApiKeyStatus();
         if(document.getElementById('downloadUnifiedBtn')) document.getElementById('downloadUnifiedBtn').onclick=downloadUnifiedReport;
         if(!userInput._chatKeyBound){ userInput._chatKeyBound=true; userInput.addEventListener('keypress',e=>{ if(e.key==='Enter' && !e.isComposing && e.keyCode!==229) handleUserMessage(); }); } grammarViewLevel.addEventListener('change',()=>updateGrammarDisplayByLevel(parseInt(grammarViewLevel.value))); closeModalSpan.onclick=()=>{modal.style.display='none';document.body.style.overflow='';}; closePracticeSpan.onclick=()=>{const _wasSelfPractice = window._selfPractice; practiceModal.style.display='none';stopAllSpeech();practiceGenerating=false;practiceSessionToken++;window._selfPractice=false;document.body.style.overflow=''; if(_wasSelfPractice) setTimeout(finishPracticeReflection, 400); window._dictationMode = false; window._reviewMode = false; window._reviewQueue = null; window._learnMode = false; window._learnQueue = null; window._currentReviewItem = null; window._reviewRound = 0; window._practiceRevealed = false; window._practiceFinished = false; window._pendingLearnWord = null; window._learnRound = 0; practiceContent.classList.remove('dictation-active','revealed'); const drb=document.getElementById('dictationRevealBtn'); if(drb) drb.classList.remove('show'); }; window.onclick=e=>{ if(e.target===modal){modal.style.display='none';document.body.style.overflow='';} if(e.target===practiceModal){const _wasSelfPractice2 = window._selfPractice; practiceModal.style.display='none';stopAllSpeech();practiceGenerating=false;practiceSessionToken++;window._selfPractice=false;document.body.style.overflow=''; if(_wasSelfPractice2) setTimeout(finishPracticeReflection, 400);} }; setInterval(()=>{ let delta=(Date.now()-sessionStart)/60000; if(delta>0){ totalMinutes+=delta; sessionStart=Date.now(); saveFullState(); updateStatsUI(); } },60000); /* Chrome speech synthesis keep-alive: resume every 15s to prevent the synthesizer from sleeping (known Chrome bug) */ setInterval(()=>{ try { if('speechSynthesis' in window && window.speechSynthesis && !window.speechSynthesis.speaking) { window.speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(''); u.volume=0; speechSynthesis.speak(u); } } catch(_) {} },15000); }
     window._dictationMode = false;
