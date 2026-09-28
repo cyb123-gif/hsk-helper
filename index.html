@@ -564,10 +564,9 @@
             </div>
             <div id="writingTopicCandidates" class="candidate-bar" style="display:none;margin:0 12px 8px;"></div>
             <div id="writingStatusBar" class="writing-status-bar" data-state="idle">✍️ 写作进行中：请在上方输入作文，然后点「提交批改」</div>
-            <div id="writingFlowHint" class="writing-flow-hint">流程：① 输入作文 → ② 提交批改 → ③ 修改后再提交（可选） → ④ 结束写作</div>
+            <div class="writing-flow-hint"><span id="writingFlowHint">流程：① 输入作文 → ② 提交批改 → ③ 修改后再提交（可选） → ④ 结束写作</span><span id="writingLengthHint" style="margin-left:12px;font-weight:700;color:#1e2b5e;font-size:0.8rem;"></span></div>
             <div id="writingCandidates" class="candidate-bar"></div>
             <textarea class="writing-textarea" id="writingTextarea" placeholder="请在此输入你的中文作文..."></textarea>
-            <div id="writingLengthHint" style="margin:0 12px 6px;font-size:0.78rem;color:#64748b;"></div>
             <div class="writing-results" id="writingResults"></div>
         </div>
         <div class="reading-panel" id="readingPanel">
@@ -782,11 +781,13 @@
                 <button class="browser-tab active" onclick="switchGrammarTab('grammarUsedOnlyList',this)">💬 聊天出现语法</button>
                 <button class="browser-tab" onclick="switchGrammarTab('grammarPracticeOnlyList',this)">🎧 听打听写练习语法</button>
                 <button class="browser-tab" onclick="switchGrammarTab('grammarBothList',this)">✏️ 写作出现语法</button>
+                <button class="browser-tab" onclick="switchGrammarTab('grammarReadingList',this)">📖 阅读出现语法</button>
             </div>
             <div id="grammarTrackContent" class="browser-tab-content">
                 <div class="track-list" id="grammarUsedOnlyList" style="display:block;"></div>
                 <div class="track-list" id="grammarPracticeOnlyList" style="display:none;"></div>
                 <div class="track-list" id="grammarBothList" style="display:none;"></div>
+                <div class="track-list" id="grammarReadingList" style="display:none;"></div>
             </div>
             <button id="downloadUnifiedBtn" class="btn" style="background:#1e2b5e; color:white; border:none; margin-bottom:6px;">⬇️ 下载完整学习报告（词语+语法+查询）</button>
             <div class="stat-title" style="margin-top:12px;"><span>⭐ 收藏笔记本</span></div>
@@ -5110,6 +5111,11 @@ const HSK2_VOCAB = [
         if(alias[t]) return alias[t];
         return '';
     }
+    function mistakeTypeLabel(type){
+        const norm = normalizeMistakeType(type);
+        if(!norm) return '';
+        return norm.split('、').map(tok => { const l = t('mistake.type.' + tok); return (l && l !== ('mistake.type.' + tok)) ? l : tok; }).join('、');
+    }
     function inferMistakeType(m){
         const n = String((m && m.note) || '').toLowerCase();
         const kw = [
@@ -6864,8 +6870,9 @@ const HSK2_VOCAB = [
         'level.hsk_prefix':'HSK ', 'hsk.badge':'🗣️', 'api.badge':'🔑',
         'track.tab_used_only':'📌 仅用过', 'track.tab_practice_only':'📝 仅练过', 'track.tab_both':'✅ 练过+用过',
         'track.tab_chat_word':'💬 聊天出现词语', 'track.tab_practice_word':'🎧 听打听写练习词语', 'track.tab_writing_word':'✏️ 写作出现词语', 'track.tab_reading_word':'📖 阅读出现词语',
-        'track.tab_chat_grammar':'💬 聊天出现语法', 'track.tab_practice_grammar':'🎧 听打听写练习语法', 'track.tab_writing_grammar':'✏️ 写作出现语法',
+        'track.tab_chat_grammar':'💬 聊天出现语法', 'track.tab_practice_grammar':'🎧 听打听写练习语法', 'track.tab_writing_grammar':'✏️ 写作出现语法', 'track.tab_reading_grammar':'📖 阅读出现语法',
         'track.ai_repeat':'⚠️ 重复AI',
+        'mistake.type.错字':'错字', 'mistake.type.别字':'别字', 'mistake.type.漏字':'漏字', 'mistake.type.多字':'多字', 'mistake.type.词语错误':'词语错误', 'mistake.type.离合词错误':'离合词错误', 'mistake.type.缺词':'缺词', 'mistake.type.多词':'多词', 'mistake.type.语序错误':'语序错误', 'mistake.type.搭配不当':'搭配不当', 'mistake.type.成分残缺':'成分残缺', 'mistake.type.成分多余':'成分多余', 'mistake.type.句式杂糅':'句式杂糅', 'mistake.type.关联词错误':'关联词错误', 'mistake.type.语义错误':'语义错误',
         'track.usage_count':'使用次数', 'track.practice_count':'练习次数',
         'table.practice_examples':'练习例句',
         'learn.add_plan':'选择级别和每日词数，点击「确定」开始',
@@ -8102,8 +8109,9 @@ const HSK2_VOCAB = [
             'writing.topic_fail':'Topic recommendation failed, please retry',
             'writing.topic_words':'📖 Recommended words (click to insert)', 'writing.topic_patterns':'🧩 Recommended grammar (click to insert)',
             'writing.topic_opening':'📝 Opening suggestion', 'writing.topic_done':'✅ Topic set',
-            'track.tab_chat_word':'💬 Chat words', 'track.tab_practice_word':'🎧 Listening/dictation words', 'track.tab_writing_word':'✏️ Writing words', 'track.tab_reading_word':'📖 Reading words', 'track.tab_chat_grammar':'💬 Chat grammar', 'track.tab_practice_grammar':'🎧 Listening/dictation grammar', 'track.tab_writing_grammar':'✏️ Writing grammar',
+            'track.tab_chat_word':'💬 Chat words', 'track.tab_practice_word':'🎧 Listening/dictation words', 'track.tab_writing_word':'✏️ Writing words', 'track.tab_reading_word':'📖 Reading words', 'track.tab_chat_grammar':'💬 Chat grammar', 'track.tab_practice_grammar':'🎧 Listening/dictation grammar', 'track.tab_writing_grammar':'✏️ Writing grammar', 'track.tab_reading_grammar':'📖 Reading grammar',
             'track.ai_repeat':'⚠️ Repeated from AI',
+            'mistake.type.错字':'Typo', 'mistake.type.别字':'Wrong character', 'mistake.type.漏字':'Missing character', 'mistake.type.多字':'Extra character', 'mistake.type.词语错误':'Wrong word', 'mistake.type.离合词错误':'Separable verb', 'mistake.type.缺词':'Missing word', 'mistake.type.多词':'Extra word', 'mistake.type.语序错误':'Word order', 'mistake.type.搭配不当':'Collocation', 'mistake.type.成分残缺':'Incomplete element', 'mistake.type.成分多余':'Redundant element', 'mistake.type.句式杂糅':'Mixed patterns', 'mistake.type.关联词错误':'Connective', 'mistake.type.语义错误':'Meaning',
         },
         'Japanese': {
             'zms.disamb_checking':'⏳ この単語に複数の意味があるか確認中...',
@@ -8136,8 +8144,9 @@ const HSK2_VOCAB = [
             'writing.topic_fail':'トピック推薦に失敗しました。再試行してください',
             'writing.topic_words':'📖 おすすめ語（クリックで挿入）', 'writing.topic_patterns':'🧩 おすすめ文法（クリックで挿入）',
             'writing.topic_opening':'📝 書き出しの提案', 'writing.topic_done':'✅ トピック確定',
-            'track.tab_chat_word':'💬 チャット出現語', 'track.tab_practice_word':'🎧 聞き取り/書き取り練習語', 'track.tab_writing_word':'✏️ 作文出現語', 'track.tab_reading_word':'📖 読解出現語', 'track.tab_chat_grammar':'💬 チャット出現文法', 'track.tab_practice_grammar':'🎧 聞き取り/書き取り練習文法', 'track.tab_writing_grammar':'✏️ 作文出現文法',
+            'track.tab_chat_word':'💬 チャット出現語', 'track.tab_practice_word':'🎧 聞き取り/書き取り練習語', 'track.tab_writing_word':'✏️ 作文出現語', 'track.tab_reading_word':'📖 読解出現語', 'track.tab_chat_grammar':'💬 チャット出現文法', 'track.tab_practice_grammar':'🎧 聞き取り/書き取り練習文法', 'track.tab_writing_grammar':'✏️ 作文出現文法', 'track.tab_reading_grammar':'📖 読解出現文法',
             'track.ai_repeat':'⚠️ AIの繰り返し',
+            'mistake.type.错字':'誤字', 'mistake.type.别字':'別字', 'mistake.type.漏字':'文字抜け', 'mistake.type.多字':'余分な文字', 'mistake.type.词语错误':'語彙ミス', 'mistake.type.离合词错误':'離合詞ミス', 'mistake.type.缺词':'語の不足', 'mistake.type.多词':'語の余剰', 'mistake.type.语序错误':'語順ミス', 'mistake.type.搭配不当':'コロケーション', 'mistake.type.成分残缺':'成分不足', 'mistake.type.成分多余':'成分余剰', 'mistake.type.句式杂糅':'文型混在', 'mistake.type.关联词错误':'接続詞ミス', 'mistake.type.语义错误':'意味ミス',
         },
         'Korean': {
             'zms.disamb_checking':'⏳ 이 단어에 여러 뜻이 있는지 확인 중...',
@@ -8170,8 +8179,9 @@ const HSK2_VOCAB = [
             'writing.topic_fail':'주제 추천 실패, 다시 시도하세요',
             'writing.topic_words':'📖 추천 단어 (클릭하여 삽입)', 'writing.topic_patterns':'🧩 추천 문법 (클릭하여 삽입)',
             'writing.topic_opening':'📝 첫 문장 제안', 'writing.topic_done':'✅ 주제 확정',
-            'track.tab_chat_word':'💬 채팅 등장 단어', 'track.tab_practice_word':'🎧 받아쓰기/타자 연습 단어', 'track.tab_writing_word':'✏️ 작문 등장 단어', 'track.tab_reading_word':'📖 읽기 등장 단어', 'track.tab_chat_grammar':'💬 채팅 등장 문법', 'track.tab_practice_grammar':'🎧 받아쓰기/타자 연습 문법', 'track.tab_writing_grammar':'✏️ 작문 등장 문법',
+            'track.tab_chat_word':'💬 채팅 등장 단어', 'track.tab_practice_word':'🎧 받아쓰기/타자 연습 단어', 'track.tab_writing_word':'✏️ 작문 등장 단어', 'track.tab_reading_word':'📖 읽기 등장 단어', 'track.tab_chat_grammar':'💬 채팅 등장 문법', 'track.tab_practice_grammar':'🎧 받아쓰기/타자 연습 문법', 'track.tab_writing_grammar':'✏️ 작문 등장 문법', 'track.tab_reading_grammar':'📖 읽기 등장 문법',
             'track.ai_repeat':'⚠️ AI 반복',
+            'mistake.type.错字':'오자', 'mistake.type.别字':'다른 글자', 'mistake.type.漏字':'빠진 글자', 'mistake.type.多字':'군더더기 글자', 'mistake.type.词语错误':'단어 오류', 'mistake.type.离合词错误':'이합사 오류', 'mistake.type.缺词':'빠진 단어', 'mistake.type.多词':'군더더기 단어', 'mistake.type.语序错误':'어순 오류', 'mistake.type.搭配不当':'연어 오류', 'mistake.type.成分残缺':'성분 부족', 'mistake.type.成分多余':'성분 잉여', 'mistake.type.句式杂糅':'문형 혼재', 'mistake.type.关联词错误':'관련어 오류', 'mistake.type.语义错误':'의미 오류',
         },
         'French': {
             'zms.disamb_checking':'⏳ Vérification si ce mot a plusieurs sens...',
@@ -8204,8 +8214,9 @@ const HSK2_VOCAB = [
             'writing.topic_fail':'Échec de la recommandation, réessayez',
             'writing.topic_words':'📖 Mots recommandés (cliquer pour insérer)', 'writing.topic_patterns':'🧩 Grammaire recommandée (cliquer pour insérer)',
             'writing.topic_opening':'📝 Suggestion d\'ouverture', 'writing.topic_done':'✅ Sujet choisi',
-            'track.tab_chat_word':'💬 Mots du chat', 'track.tab_practice_word':'🎧 Mots de dictée/frappe', 'track.tab_writing_word':'✏️ Mots d\'écriture', 'track.tab_reading_word':'📖 Mots de lecture', 'track.tab_chat_grammar':'💬 Grammaire du chat', 'track.tab_practice_grammar':'🎧 Grammaire de dictée/frappe', 'track.tab_writing_grammar':'✏️ Grammaire d\'écriture',
+            'track.tab_chat_word':'💬 Mots du chat', 'track.tab_practice_word':'🎧 Mots de dictée/frappe', 'track.tab_writing_word':'✏️ Mots d\'écriture', 'track.tab_reading_word':'📖 Mots de lecture', 'track.tab_chat_grammar':'💬 Grammaire du chat', 'track.tab_practice_grammar':'🎧 Grammaire de dictée/frappe', 'track.tab_writing_grammar':'✏️ Grammaire d\'écriture', 'track.tab_reading_grammar':'📖 Grammaire de lecture',
             'track.ai_repeat':'⚠️ Répété de l\'IA',
+            'mistake.type.错字':'Faute de frappe', 'mistake.type.别字':'Mauvais caractère', 'mistake.type.漏字':'Caractère manquant', 'mistake.type.多字':'Caractère en trop', 'mistake.type.词语错误':'Mauvais mot', 'mistake.type.离合词错误':'Verbe séparable', 'mistake.type.缺词':'Mot manquant', 'mistake.type.多词':'Mot en trop', 'mistake.type.语序错误':'Ordre des mots', 'mistake.type.搭配不当':'Collocation', 'mistake.type.成分残缺':'Élément manquant', 'mistake.type.成分多余':'Élément en trop', 'mistake.type.句式杂糅':'Mélange de structures', 'mistake.type.关联词错误':'Connecteur', 'mistake.type.语义错误':'Sens',
         },
         'German': {
             'zms.disamb_checking':'⏳ Prüfe, ob dieses Wort mehrere Bedeutungen hat...',
@@ -8238,8 +8249,9 @@ const HSK2_VOCAB = [
             'writing.topic_fail':'Empfehlung fehlgeschlagen, bitte erneut versuchen',
             'writing.topic_words':'📖 Empfohlene Wörter (zum Einfügen klicken)', 'writing.topic_patterns':'🧩 Empfohlene Grammatik (zum Einfügen klicken)',
             'writing.topic_opening':'📝 Einstiegsvorschlag', 'writing.topic_done':'✅ Thema festgelegt',
-            'track.tab_chat_word':'💬 Chat-Wörter', 'track.tab_practice_word':'🎧 Diktat-/Tippwörter', 'track.tab_writing_word':'✏️ Schreib-Wörter', 'track.tab_reading_word':'📖 Lese-Wörter', 'track.tab_chat_grammar':'💬 Chat-Grammatik', 'track.tab_practice_grammar':'🎧 Diktat-/Tippgrammatik', 'track.tab_writing_grammar':'✏️ Schreib-Grammatik',
+            'track.tab_chat_word':'💬 Chat-Wörter', 'track.tab_practice_word':'🎧 Diktat-/Tippwörter', 'track.tab_writing_word':'✏️ Schreib-Wörter', 'track.tab_reading_word':'📖 Lese-Wörter', 'track.tab_chat_grammar':'💬 Chat-Grammatik', 'track.tab_practice_grammar':'🎧 Diktat-/Tippgrammatik', 'track.tab_writing_grammar':'✏️ Schreib-Grammatik', 'track.tab_reading_grammar':'📖 Lese-Grammatik',
             'track.ai_repeat':'⚠️ Von KI wiederholt',
+            'mistake.type.错字':'Tippfehler', 'mistake.type.别字':'Falsches Zeichen', 'mistake.type.漏字':'Fehlendes Zeichen', 'mistake.type.多字':'Überflüssiges Zeichen', 'mistake.type.词语错误':'Falsches Wort', 'mistake.type.离合词错误':'Trennbares Verb', 'mistake.type.缺词':'Fehlendes Wort', 'mistake.type.多词':'Überflüssiges Wort', 'mistake.type.语序错误':'Wortstellung', 'mistake.type.搭配不当':'Kollokation', 'mistake.type.成分残缺':'Fehlendes Element', 'mistake.type.成分多余':'Überflüssiges Element', 'mistake.type.句式杂糅':'Strukturmischung', 'mistake.type.关联词错误':'Konnektor', 'mistake.type.语义错误':'Bedeutung',
         },
         'Spanish': {
             'zms.disamb_checking':'⏳ Comprobando si esta palabra tiene varios significados...',
@@ -8272,8 +8284,9 @@ const HSK2_VOCAB = [
             'writing.topic_fail':'Error al recomendar, inténtalo de nuevo',
             'writing.topic_words':'📖 Palabras recomendadas (clic para insertar)', 'writing.topic_patterns':'🧩 Gramática recomendada (clic para insertar)',
             'writing.topic_opening':'📝 Sugerencia de inicio', 'writing.topic_done':'✅ Tema fijado',
-            'track.tab_chat_word':'💬 Palabras del chat', 'track.tab_practice_word':'🎧 Palabras de dictado/tecleo', 'track.tab_writing_word':'✏️ Palabras de escritura', 'track.tab_reading_word':'📖 Palabras de lectura', 'track.tab_chat_grammar':'💬 Gramática del chat', 'track.tab_practice_grammar':'🎧 Gramática de dictado/tecleo', 'track.tab_writing_grammar':'✏️ Gramática de escritura',
+            'track.tab_chat_word':'💬 Palabras del chat', 'track.tab_practice_word':'🎧 Palabras de dictado/tecleo', 'track.tab_writing_word':'✏️ Palabras de escritura', 'track.tab_reading_word':'📖 Palabras de lectura', 'track.tab_chat_grammar':'💬 Gramática del chat', 'track.tab_practice_grammar':'🎧 Gramática de dictado/tecleo', 'track.tab_writing_grammar':'✏️ Gramática de escritura', 'track.tab_reading_grammar':'📖 Gramática de lectura',
             'track.ai_repeat':'⚠️ Repetido de la IA',
+            'mistake.type.错字':'Error tipográfico', 'mistake.type.别字':'Carácter equivocado', 'mistake.type.漏字':'Carácter faltante', 'mistake.type.多字':'Carácter de más', 'mistake.type.词语错误':'Palabra equivocada', 'mistake.type.离合词错误':'Verbo separable', 'mistake.type.缺词':'Palabra faltante', 'mistake.type.多词':'Palabra de más', 'mistake.type.语序错误':'Orden de palabras', 'mistake.type.搭配不当':'Colocación', 'mistake.type.成分残缺':'Elemento faltante', 'mistake.type.成分多余':'Elemento de más', 'mistake.type.句式杂糅':'Mezcla de estructuras', 'mistake.type.关联词错误':'Conector', 'mistake.type.语义错误':'Significado',
         },
         'Russian': {
             'zms.disamb_checking':'⏳ Проверяем, есть ли у слова несколько значений...',
@@ -8306,8 +8319,9 @@ const HSK2_VOCAB = [
             'writing.topic_fail':'Ошибка рекомендации, попробуйте ещё раз',
             'writing.topic_words':'📖 Рекомендуемые слова (нажмите для вставки)', 'writing.topic_patterns':'🧩 Рекомендуемая грамматика (нажмите для вставки)',
             'writing.topic_opening':'📝 Подсказка для начала', 'writing.topic_done':'✅ Тема выбрана',
-            'track.tab_chat_word':'💬 Слова из чата', 'track.tab_practice_word':'🎧 Слова из диктанта/набора', 'track.tab_writing_word':'✏️ Слова из письма', 'track.tab_reading_word':'📖 Слова из чтения', 'track.tab_chat_grammar':'💬 Грамматика из чата', 'track.tab_practice_grammar':'🎧 Грамматика из диктанта/набора', 'track.tab_writing_grammar':'✏️ Грамматика из письма',
+            'track.tab_chat_word':'💬 Слова из чата', 'track.tab_practice_word':'🎧 Слова из диктанта/набора', 'track.tab_writing_word':'✏️ Слова из письма', 'track.tab_reading_word':'📖 Слова из чтения', 'track.tab_chat_grammar':'💬 Грамматика из чата', 'track.tab_practice_grammar':'🎧 Грамматика из диктанта/набора', 'track.tab_writing_grammar':'✏️ Грамматика из письма', 'track.tab_reading_grammar':'📖 Грамматика из чтения',
             'track.ai_repeat':'⚠️ Повтор из ИИ',
+            'mistake.type.错字':'Опечатка', 'mistake.type.别字':'Не тот иероглиф', 'mistake.type.漏字':'Пропущен иероглиф', 'mistake.type.多字':'Лишний иероглиф', 'mistake.type.词语错误':'Не то слово', 'mistake.type.离合词错误':'Глагол с разрывом', 'mistake.type.缺词':'Пропущено слово', 'mistake.type.多词':'Лишнее слово', 'mistake.type.语序错误':'Порядок слов', 'mistake.type.搭配不当':'Сочетаемость', 'mistake.type.成分残缺':'Пропущен компонент', 'mistake.type.成分多余':'Лишний компонент', 'mistake.type.句式杂糅':'Смешение конструкций', 'mistake.type.关联词错误':'Союз', 'mistake.type.语义错误':'Смысл',
         },
         'Thai': {
             'zms.disamb_checking':'⏳ กำลังตรวจสอบว่าคำนี้มีหลายความหมายหรือไม่...',
@@ -8340,8 +8354,9 @@ const HSK2_VOCAB = [
             'writing.topic_fail':'แนะนำไม่สำเร็จ กรุณาลองใหม่',
             'writing.topic_words':'📖 คำแนะนำ (คลิกเพื่อแทรก)', 'writing.topic_patterns':'🧩 ไวยากรณ์แนะนำ (คลิกเพื่อแทรก)',
             'writing.topic_opening':'📝 แนะนำประโยคเริ่มต้น', 'writing.topic_done':'✅ กำหนดหัวข้อแล้ว',
-            'track.tab_chat_word':'💬 คำจากแชท', 'track.tab_practice_word':'🎧 คำจากเขียนตามคำบอก/พิมพ์', 'track.tab_writing_word':'✏️ คำจากการเขียน', 'track.tab_reading_word':'📖 คำจากการอ่าน', 'track.tab_chat_grammar':'💬 ไวยากรณ์จากแชท', 'track.tab_practice_grammar':'🎧 ไวยากรณ์จากเขียนตามคำบอก/พิมพ์', 'track.tab_writing_grammar':'✏️ ไวยากรณ์จากการเขียน',
+            'track.tab_chat_word':'💬 คำจากแชท', 'track.tab_practice_word':'🎧 คำจากเขียนตามคำบอก/พิมพ์', 'track.tab_writing_word':'✏️ คำจากการเขียน', 'track.tab_reading_word':'📖 คำจากการอ่าน', 'track.tab_chat_grammar':'💬 ไวยากรณ์จากแชท', 'track.tab_practice_grammar':'🎧 ไวยากรณ์จากเขียนตามคำบอก/พิมพ์', 'track.tab_writing_grammar':'✏️ ไวยากรณ์จากการเขียน', 'track.tab_reading_grammar':'📖 ไวยากรณ์จากการอ่าน',
             'track.ai_repeat':'⚠️ ซ้ำจาก AI',
+            'mistake.type.错字':'พิมพ์ผิด', 'mistake.type.别字':'ตัวอักษรผิด', 'mistake.type.漏字':'ตัวอักษรหาย', 'mistake.type.多字':'ตัวอักษรเกิน', 'mistake.type.词语错误':'ใช้คำผิด', 'mistake.type.离合词错误':'คำกริยาแยกได้', 'mistake.type.缺词':'คำหาย', 'mistake.type.多词':'คำเกิน', 'mistake.type.语序错误':'ลำดับคำ', 'mistake.type.搭配不当':'คำคู่กัน', 'mistake.type.成分残缺':'ส่วนประกอบหาย', 'mistake.type.成分多余':'ส่วนประกอบเกิน', 'mistake.type.句式杂糅':'โครงสร้างผสม', 'mistake.type.关联词错误':'คำเชื่อม', 'mistake.type.语义错误':'ความหมาย',
         },
         'Italian': {
             'zms.disamb_checking':'⏳ Verifico se questa parola ha più significati...',
@@ -8374,8 +8389,9 @@ const HSK2_VOCAB = [
             'writing.topic_fail':'Raccomandazione non riuscita, riprova',
             'writing.topic_words':'📖 Parole consigliate (clicca per inserire)', 'writing.topic_patterns':'🧩 Grammatica consigliata (clicca per inserire)',
             'writing.topic_opening':'📝 Suggerimento di apertura', 'writing.topic_done':'✅ Tema scelto',
-            'track.tab_chat_word':'💬 Parole della chat', 'track.tab_practice_word':'🎧 Parole di dettato/digitazione', 'track.tab_writing_word':'✏️ Parole di scrittura', 'track.tab_reading_word':'📖 Parole di lettura', 'track.tab_chat_grammar':'💬 Grammatica della chat', 'track.tab_practice_grammar':'🎧 Grammatica di dettato/digitazione', 'track.tab_writing_grammar':'✏️ Grammatica di scrittura',
+            'track.tab_chat_word':'💬 Parole della chat', 'track.tab_practice_word':'🎧 Parole di dettato/digitazione', 'track.tab_writing_word':'✏️ Parole di scrittura', 'track.tab_reading_word':'📖 Parole di lettura', 'track.tab_chat_grammar':'💬 Grammatica della chat', 'track.tab_practice_grammar':'🎧 Grammatica di dettato/digitazione', 'track.tab_writing_grammar':'✏️ Grammatica di scrittura', 'track.tab_reading_grammar':'📖 Grammatica di lettura',
             'track.ai_repeat':'⚠️ Ripetuto dall\'IA',
+            'mistake.type.错字':'Refuso', 'mistake.type.别字':'Carattere sbagliato', 'mistake.type.漏字':'Carattere mancante', 'mistake.type.多字':'Carattere in più', 'mistake.type.词语错误':'Parola sbagliata', 'mistake.type.离合词错误':'Verbo separabile', 'mistake.type.缺词':'Parola mancante', 'mistake.type.多词':'Parola in più', 'mistake.type.语序错误':'Ordine delle parole', 'mistake.type.搭配不当':'Collocazione', 'mistake.type.成分残缺':'Elemento mancante', 'mistake.type.成分多余':'Elemento in più', 'mistake.type.句式杂糅':'Strutture miste', 'mistake.type.关联词错误':'Connettivo', 'mistake.type.语义错误':'Significato',
         }
     };
 
@@ -8465,6 +8481,7 @@ const HSK2_VOCAB = [
             gtabs[0].textContent = t('track.tab_chat_grammar');
             gtabs[1].textContent = t('track.tab_practice_grammar');
             gtabs[2].textContent = t('track.tab_writing_grammar');
+            gtabs[3].textContent = t('track.tab_reading_grammar');
         }
         // 刷新词汇追踪 tab 按钮
         const vtabs = document.querySelectorAll('#vocabTrackTabs .browser-tab');
@@ -10487,13 +10504,14 @@ ${searchRule}
             }
             if (newBtn) newBtn.disabled = false;
         }
+        try{ updateWritingLengthHint(); }catch(e){}
     }
 
     function buildWritingPrompt(text, level, min, charCount, targetLang, session, isRevision) {
         const langName = WRITING_LANG_NAMES[targetLang] || targetLang;
         const lengthRule = '【字数要求】当前 HSK' + level + ' 水平，本次作文要求至少 ' + min + ' 个汉字。学生本次写了 ' + charCount + ' 个汉字。' + (charCount < min ? '字数不达标，必须判为不及格（59分及以下），并在 overall 中明确提示需要扩充到至少 ' + min + ' 字。' : '字数达标。');
-        const heuristic = '【启发式批改 - 必须遵守】1. 绝对不要输出 corrected（修改后的完整作文）字段，也不要直接给修改稿。2. 针对每个错误，给出启发式提示 hints（指出错误原文，用提问或提示引导学生自己发现并修改，不要直接写出正确答案）。3. 评价要具体、可操作、多鼓励。4. 每个评价字段内用"\\n"分行。5. 【语言要求】所有反馈文字（discourse、syntax、semantic、characters、overall、hints 中每个 issue）必须全部用' + langName + '（' + targetLang + '）撰写，禁止使用中文，只有引用学生错误原文（original 字段）时才可以保留中文。6. hints 中每个错误必须输出 type 字段，从固定中文错误类型（' + MISTAKE_TYPE_LIST.join('、') + '）中选一个，不要翻译、不要自创。';
-        const jsonFmt = '输出JSON格式：{"score":整数0-100,"length_chars":' + charCount + ',"length_ok":' + (charCount >= min) + ',"discourse":"' + langName + '语篇结构评价","syntax":"' + langName + '句法语法评价","semantic":"' + langName + '词汇语义评价","characters":"' + langName + '汉字书写评价","overall":"' + langName + '总体评价","hints":[{"original":"错误原文(中文)","type":"固定中文错误类型","issue":"' + langName + '启发式提示，不直接给答案"}]}';
+        const heuristic = '【直接改正 - 必须遵守】1. 针对每个错误，只输出有错误的分句（按逗号/分句切分，不要输出整个复句）。2. 每个 hint 输出 original（错误分句，中文原文）和 corrected（AI 直接改好的正确分句），直接给出改正后的句子，不要让学生自己再改。3. 评价要具体、可操作、多鼓励。4. 每个评价字段内用"\\n"分行。5. 【语言要求】所有反馈文字（discourse、syntax、semantic、characters、overall、hints 中每个 issue）必须全部用' + langName + '（' + targetLang + '）撰写，禁止使用中文，只有引用学生错误原文（original）和正确句子（corrected）时才可以保留中文。6. hints 中每个错误必须输出 type 字段，从固定中文错误类型（' + MISTAKE_TYPE_LIST.join('、') + '）中选一个，不要翻译、不要自创。';
+        const jsonFmt = '输出JSON格式：{"score":整数0-100,"length_chars":' + charCount + ',"length_ok":' + (charCount >= min) + ',"discourse":"' + langName + '语篇结构评价","syntax":"' + langName + '句法语法评价","semantic":"' + langName + '词汇语义评价","characters":"' + langName + '汉字书写评价","overall":"' + langName + '总体评价","hints":[{"original":"错误分句(中文)","corrected":"AI直接改好的正确分句(中文)","type":"固定中文错误类型","issue":"' + langName + '简短说明"}]}';
         if (!isRevision) {
             return '你是一位资深中文写作教师。请批改以下学生作文，并用' + langName + '（' + targetLang + '）撰写全部反馈。\n\n【学生当前水平】HSK' + level + '\n' + lengthRule + '\n\n【评分规则】1. 长度达标是及格前提，字数不足时总分≤59。2. 字数达标后，评分核心是"正确性"和"地道性"（语法、用词、是否自然），不要因为内容简单而压分。3. 分数档位：90-100优秀，80-89良好，70-79一般，60-69需努力，60以下错误很多。4. 评分要稳定一致：同一篇作文、同样的问题应给出相同分数，不要出现随机波动。\n\n【学生作文】\n' + text + '\n\n' + heuristic + '\n\n' + jsonFmt + '\n只用JSON回复。';
         }
@@ -10600,16 +10618,18 @@ ${searchRule}
                 html += `<div class="writing-section" style="background:#fff8f0;border:1px solid #f0c78e;"><h4>${t('writing.hints')}</h4>`;
                 result.hints.forEach(h => {
                     const orig = typeof h === 'string' ? '' : (h.original || '');
+                    const corr = typeof h === 'string' ? '' : (h.corrected || '');
                     const issue = typeof h === 'string' ? h : (h.issue || '');
                     const htype = typeof h === 'string' ? '' : (h.type || '');
+                    const typeLabel = htype ? mistakeTypeLabel(htype) : '';
                     let explainBtn = '';
-                    if(orig){
+                    if(corr || orig){
                         const _whId = 'whint_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6);
                         window._correctionStore = window._correctionStore || {};
-                        window._correctionStore[_whId] = { chinese: orig };
+                        window._correctionStore[_whId] = { chinese: corr || orig, note: issue };
                         explainBtn = `<button class="corr-explain-btn" onclick="window._toggleCorrectionExplain('${_whId}')">${escapeHtml(t('corr.explain'))}</button><div class="corr-explain-box" id="${_whId}_box"></div>`;
                     }
-                    html += `<p style="margin-bottom:8px;">${orig ? '<span class="example-highlight">' + escapeHtml(orig) + '</span><br>' : ''}${htype ? '<span class="mistake-type-badge">🏷 ' + escapeHtml(normalizeMistakeType(htype)) + '</span> ' : ''}💬 ${escapeHtml(issue)}${explainBtn}</p>`;
+                    html += `<p style="margin-bottom:8px;">${orig ? '<span class="example-highlight">❌ ' + escapeHtml(orig) + '</span><br>' : ''}${corr ? '<span style="color:#27ae60;font-weight:600;">✅ ' + escapeHtml(corr) + '</span><br>' : ''}${typeLabel ? '<span class="mistake-type-badge">🏷 ' + escapeHtml(typeLabel) + '</span> ' : ''}💬 ${escapeHtml(issue)}${explainBtn}</p>`;
                 });
                 html += `</div>`;
             }
@@ -10659,8 +10679,9 @@ ${searchRule}
         const _wh = (writingSession && writingSession.lastHints) || [];
         for(const h of _wh){
             const _orig = h.original || h.text || h.sentence || String(h);
-            _wReflect.push({ mode: '写作', text: '', user: _orig, note: h.issue || h.hint || h.note || '作文中的问题提示' });
-            recordGapFromMistake({ original: _orig, corrected: '', type: h.type || '', note: h.issue || h.hint || h.note || '' });
+            const _corr = h.corrected || '';
+            _wReflect.push({ mode: '写作', text: _corr, user: _orig, note: h.issue || h.hint || h.note || '作文中的问题提示' });
+            recordGapFromMistake({ original: _orig, corrected: _corr, type: h.type || '', note: h.issue || h.hint || h.note || '' });
         }
         if(_wReflect.length) setTimeout(function(){ startReflection(_wReflect); }, 600);
         writingSession = null;
@@ -10706,54 +10727,18 @@ ${searchRule}
         updateWritingStatus();
         ta.focus();
     };
-    async function startWritingWithTopic(){
+    function startWritingWithTopic(){
         const input = document.getElementById('writingTopicInput');
         const topic = input ? input.value.trim() : '';
         if(!topic){ alert(t('writing.topic_required')); return; }
         writingTopic = topic;
         const ta = document.getElementById('writingTextarea');
         if(ta){ ta.disabled = false; ta.placeholder = '请在此输入你的中文作文...'; }
-        updateWritingStatus('idle');
-        const apiKey = apiKeyInput.value.trim();
-        if(!apiKey){ alert(t('api_key_required')); return; }
-        const level = parseInt(aiLevelSelect.value) || 3;
-        const targetLang = targetLangSelect.value;
         const cand = document.getElementById('writingTopicCandidates');
-        if(cand){ cand.style.display = 'block'; cand.innerHTML = '<div class="candidate-hint">' + t('writing.topic_thinking') + '</div>'; }
-        const gapWords = gapActiveWords().slice(0, 10).map(w => w.text + (w.sentence ? '（原句：' + w.sentence + '）' : ''));
-        const gapPatterns = gapActivePatterns().slice(0, 5).map(p => (p.text || p.sentence) + (p.sentence ? '（原句：' + p.sentence + '）' : ''));
-        try{
-            const prompt = '你是中文写作老师。学生要写一篇 HSK' + level + ' 作文，话题：「' + topic + '」。请推荐写作可用的词和语法。\n' +
-                '学生缺口词/短语（优先推荐2-4个最适合这个话题的，并说明要用原句句型）：' + (gapWords.join('；') || '（无）') + '\n' +
-                '学生缺口语法（优先推荐1-2个最适合这个话题的，给出例句）：' + (gapPatterns.join('；') || '（无）') + '\n' +
-                '另外从 HSK' + level + ' 常用词中补充2-3个与话题相关的词。\n' +
-                '输出JSON：{"opening":"1-2句开头建议（中文）","words":[{"w":"推荐词","why":"为什么推荐（' + targetLang + '，≤15字）"}],"patterns":[{"sentence":"缺口语法例句","use":"怎么用（' + targetLang + '，≤15字）"}]}';
-            const resp = await fetch(API_BASE, { method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey}, body: JSON.stringify({ model:'deepseek-v4-flash', thinking:{ type:'disabled' }, max_tokens:2048, messages:[{ role:'user', content:prompt }], temperature:0.5, response_format:{ type:'json_object' } }) });
-            const data = await resp.json();
-            if(data.error) throw new Error(data.error.message || 'API error');
-            if(!data.choices || !data.choices[0] || !data.choices[0].message) throw new Error('API error');
-            let c = data.choices[0].message.content;
-            c = c.replace(/```json/g,'').replace(/```/g,'').trim();
-            const r = safeJsonParse(c);
-            let html = '<div class="candidate-hint">🎯 ' + t('writing.topic') + '：' + escapeHtml(topic) + '</div>';
-            if(r.opening){
-                html += '<div class="candidate-chip-row"><span class="candidate-chip-label">' + t('writing.topic_opening') + '</span><span class="candidate-chip" data-text="' + escapeHtml(r.opening) + '" onclick="window._insertWritingText(this)">' + escapeHtml(r.opening) + '</span></div>';
-            }
-            if(r.words && r.words.length){
-                html += '<div class="candidate-chip-row"><span class="candidate-chip-label">' + t('writing.topic_words') + '</span>';
-                for(const w of r.words){ if(!w || !w.w) continue; html += '<span class="candidate-chip" data-text="' + escapeHtml(w.w) + '" onclick="window._insertWritingText(this)" title="' + escapeHtml(w.why || '') + '">' + escapeHtml(w.w) + '</span>'; }
-                html += '</div>';
-            }
-            if(r.patterns && r.patterns.length){
-                html += '<div class="candidate-chip-row"><span class="candidate-chip-label">' + t('writing.topic_patterns') + '</span>';
-                for(const p of r.patterns){ if(!p || !p.sentence) continue; html += '<span class="candidate-chip" data-text="' + escapeHtml(p.sentence) + '" onclick="window._insertWritingText(this)" title="' + escapeHtml(p.use || '') + '">' + escapeHtml(p.sentence) + '</span>'; }
-                html += '</div>';
-            }
-            if(cand) cand.innerHTML = html;
-            showToast(t('writing.topic_done'));
-        }catch(e){
-            if(cand) cand.innerHTML = '<div class="candidate-hint" style="color:#e74c3c;">' + t('writing.topic_fail') + '</div>';
-        }
+        if(cand){ cand.style.display = 'block'; cand.innerHTML = '<div class="candidate-hint">🎯 ' + t('writing.topic') + '：' + escapeHtml(topic) + '</div>'; }
+        updateWritingStatus('idle');
+        showToast(t('writing.topic_done'));
+        if(ta) ta.focus();
     }
     const _wtb = document.getElementById('writingTopicBtn');
     if(_wtb) _wtb.onclick = startWritingWithTopic;
@@ -11000,6 +10985,19 @@ ${searchRule}
         }
         return '';
     }
+    const FRAME_PATTERNS = ['要是...就...','如果...就...','虽然...但是...','因为...所以...','不但...而且...','只要...就...','只有...才...','无论...都...','即使...也...','既然...就...','一方面...另一方面...','不是...而是...','不是...就是...','宁可...也不...','与其...不如...','一...就...','越...越...','又...又...','一边...一边...','首先...然后...'];
+    function detectFramePattern(sentence){
+        const s = String(sentence || '');
+        if(!s) return '';
+        for(const frame of FRAME_PATTERNS){
+            const parts = frame.split('...').map(x => x.trim()).filter(Boolean);
+            if(parts.length < 2) continue;
+            let pos = 0, ok = true;
+            for(const part of parts){ const idx = s.indexOf(part, pos); if(idx === -1){ ok = false; break; } pos = idx + part.length; }
+            if(ok) return frame;
+        }
+        return '';
+    }
     function recordGapFromMistake(m){
         if(!m) return;
         const type = normalizeMistakeType(m.type) || inferMistakeType(m) || '';
@@ -11026,7 +11024,10 @@ ${searchRule}
                 if(hz.length >= 1 && hz.length <= 6) recordGapWord(hz, '纠错', note, '', original);
             }
         } else if(GAP_PATTERN_TYPES.includes(type)){
-            if(corrected && gapHanzi(corrected).length >= 4) recordGapPattern('', corrected, '纠错', note + (type ? '（' + type + '）' : ''));
+            if(corrected && gapHanzi(corrected).length >= 4){
+                const frame = detectFramePattern(corrected);
+                recordGapPattern(frame, corrected, '纠错', note + (type ? '（' + type + '）' : ''));
+            }
         } else if(corrected){
             const hz = gapHanzi(corrected);
             if(hz.length <= 6) recordGapWord(hz, '纠错', note, original, corrected);
@@ -11516,7 +11517,7 @@ function saveFullState(){ if(!currentUser) return; const entries=Array.from(used
     function refreshAll(){ grammarList=buildFullGrammarList(); renderLevelProgress(); updateGrammarDisplayByLevel(parseInt(grammarViewLevel.value)); renderTrackList(); renderVocabLevelProgress(); renderVocabLibrary(parseInt(document.getElementById('vocabViewLevel')?.value)||1); renderVocabTrackList(); renderFavoriteBook(); renderQueriedBook(); saveFullState(); }
     function renderLevelProgress(){ const totalByLevel=new Map(), usedByLevel=new Map(); for(let i=1;i<=5;i++){ totalByLevel.set(i,0); usedByLevel.set(i,0); } grammarList.forEach(g=>{ totalByLevel.set(g.level, totalByLevel.get(g.level)+1); }); for(let [pattern,entry] of usedMap.entries()){ const lv=grammarList.find(g=>g.pattern===pattern)?.level||entry.level; usedByLevel.set(lv, usedByLevel.get(lv)+1); } let html=''; for(let lv=1;lv<=5;lv++){ const total=totalByLevel.get(lv)||0, used=usedByLevel.get(lv)||0; const percent=total===0?0:(used/total*100).toFixed(1); html+=`<div class="level-row" data-level="${lv}"><span>HSK ${lv}</span><div class="progress-bar-bg"><div class="progress-bar-fill" style="width:${percent}%;"></div></div><span>${used}/${total}</span></div>`; } levelProgressDiv.innerHTML=html; levelProgressDiv.querySelectorAll('.level-row').forEach(row=>row.addEventListener('click',()=>openGrammarDetailModal(parseInt(row.dataset.level)))); }
     function updateGrammarDisplayByLevel(level){ const patterns=LEVEL_MAP[level]; if(!patterns){ grammarLibraryList.innerHTML='<div>'+t('status.no_grammar')+'</div>'; return; } const oldScroll=grammarLibraryList.querySelector('.grammar-list-scroll'); const savedScrollTop=oldScroll?oldScroll.scrollTop:0; let html=`<div class="grammar-list-scroll">`; for(let pattern of patterns){ const entry=usedMap.get(pattern); const count=entry?entry.count:0; const pCount=entry?(entry.practiceCount||0):0; const acc=accuracyFor(entry); let status=''; if(count>0) status=`<span class="mastered-tag" style="background:#e3f2fd;">`+t('status.using')+`</span>`; else status=`<span class="not-mastered-tag">`+t('status.unused')+`</span>`; let example=SPECIFIC_EXAMPLE_MAP.get(pattern)||''; if(!example&&entry){ const exs=entry.examples||[]; const pexs=entry.practiceExamples||[]; if(exs.length) example=exs[exs.length-1].sentence||''; else if(pexs.length) example=pexs[pexs.length-1].sentence||''; } let titleAttr=example?` title="${escapeHtml(example)}"`:''; html+=`<div class="grammar-list-item" data-pattern="${escapeHtml(pattern)}" data-level="${level}"${titleAttr}><span class="grammar-pattern">${escapeHtml(pattern.length>55?pattern.slice(0,52)+'…':pattern)}</span>${status}</div>`; } html+=`</div>`; grammarLibraryList.innerHTML=html; const newScroll=grammarLibraryList.querySelector('.grammar-list-scroll'); if(newScroll) newScroll.scrollTop=savedScrollTop; document.querySelectorAll('#grammarLibraryList .grammar-list-item').forEach(el=>el.addEventListener('click',()=>{ const p=el.dataset.pattern; const lv=parseInt(el.dataset.level)||1; if(!p) return; window._learnMode=false; window._reviewMode=false; window._currentReviewItem=null; window._pendingLearnWord=null; window._practiceFinished=false; window._dictationMode=false; window._selfPractice=false; currentPracticeGrammar={pattern:p, level:lv}; currentPracticeVocab=null; generateAndShowPractice(p, lv, true); })); }
-    function renderTrackList(){ const chat=[], practice=[], writing=[]; const gapWords = new Set(gapBank.words.map(w=>stripForCompare(w.text))); for(let [pat,entry] of usedMap.entries()){ if(gapWords.has(stripForCompare(pat))) continue; const cCnt=entry.chatCount||0, wCnt=entry.writingCount||0, pCnt=entry.practiceCount||0; if(cCnt>0) chat.push({pattern:pat, level:entry.level, count:cCnt}); if(pCnt>0) practice.push({pattern:pat, level:entry.level, count:pCnt}); if(wCnt>0) writing.push({pattern:pat, level:entry.level, count:wCnt}); } const sorter=(a,b)=>a.level-b.level; chat.sort(sorter); practice.sort(sorter); writing.sort(sorter); const renderCat=(elId, items, isGrammar)=>{const el=document.getElementById(elId);if(!el)return;if(items.length===0){el.innerHTML='';return;}let h='';for(let it of items){const lvLabel=isGrammar?('HSK'+it.level):vocabLevelLabel(it.level);const name=isGrammar?it.pattern:it.word;const useTimes=it.count||0, pracTimes=it.practiceCount||0;let acquiredBadge='';if(isGrammar){const ge=usedMap.get(name);if(isAcquired(ge))acquiredBadge=' <span class="acquired-badge" style="font-size:0.68rem;padding:1px 6px;border-radius:10px;">'+t('status.acquired')+'</span>';}else{const ve=vocabUsedMap.get(name);if(isVocabAcquired(ve))acquiredBadge=' <span class="acquired-badge" style="font-size:0.68rem;padding:1px 6px;border-radius:10px;">'+t('status.acquired')+'</span>';}let timesHtml=''; if(useTimes>0&&pracTimes===0) timesHtml=acquiredBadge+' <span style="font-size:0.72rem;color:#2e7d32;">'+t('track.usage_count')+': '+useTimes+'</span>'; else if(pracTimes>0&&useTimes===0) timesHtml=acquiredBadge+' <span style="font-size:0.72rem;color:#1565c0;">'+t('track.practice_count')+': '+pracTimes+'</span>'; else if(useTimes>0&&pracTimes>0) timesHtml=acquiredBadge+' <span style="font-size:0.72rem;color:#2e7d32;">'+t('track.usage_count')+': '+useTimes+'</span> <span style="font-size:0.72rem;color:#1565c0;">'+t('track.practice_count')+': '+pracTimes+'</span>';h+='<div class="track-item" data-key="'+escapeHtml(name)+'" data-level="'+it.level+'"><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="'+escapeHtml(name)+'">'+lvLabel+' '+escapeHtml(String(name).length>40?String(name).slice(0,37)+'…':name)+'</span><span style="flex-shrink:0;min-width:55px;text-align:right;">'+timesHtml+'</span></div>';}el.innerHTML=h;el.querySelectorAll('.track-item').forEach(e=>e.addEventListener('click',()=>{const k=e.dataset.key;const entry=isGrammar?usedMap.get(k):vocabUsedMap.get(k);if(entry){if(isGrammar){const e2=usedMap.get(k); const items2=[{pattern:k, level:e2.level, count:e2.count, correctCount:e2.correctCount||0, practiceCount:e2.practiceCount||0, examples:e2.examples, practiceExamples:e2.practiceExamples||[]}]; document.getElementById('modalTitle').textContent='📖 语法点明细'; renderGrammarDetailModal(items2); modal.style.display='block';document.body.style.overflow='hidden';}else{const its=[{word:k,level:entry.level,count:entry.count,practiceCount:entry.practiceCount||0,examples:entry.examples,practiceExamples:entry.practiceExamples||[]}];document.getElementById('modalTitle').textContent=t('modal.vocab_detail');renderVocabDetailModal(its);modal.style.display='block';document.body.style.overflow='hidden';}}}));}; renderCat('grammarUsedOnlyList',chat,true); renderCat('grammarPracticeOnlyList',practice,true); renderCat('grammarBothList',writing,true); }
+    function renderTrackList(){ const chat=[], practice=[], writing=[]; const gapWords = new Set(gapBank.words.map(w=>stripForCompare(w.text))); for(let [pat,entry] of usedMap.entries()){ if(gapWords.has(stripForCompare(pat))) continue; const cCnt=entry.chatCount||0, wCnt=entry.writingCount||0, pCnt=entry.practiceCount||0; if(cCnt>0) chat.push({pattern:pat, level:entry.level, count:cCnt}); if(pCnt>0) practice.push({pattern:pat, level:entry.level, count:pCnt}); if(wCnt>0) writing.push({pattern:pat, level:entry.level, count:wCnt}); } const sorter=(a,b)=>a.level-b.level; chat.sort(sorter); practice.sort(sorter); writing.sort(sorter); const renderCat=(elId, items, isGrammar)=>{const el=document.getElementById(elId);if(!el)return;if(items.length===0){el.innerHTML='';return;}let h='';for(let it of items){const lvLabel=isGrammar?(it.level?'HSK'+it.level:'📖'):vocabLevelLabel(it.level);const name=isGrammar?it.pattern:it.word;const useTimes=it.count||0, pracTimes=it.practiceCount||0;let acquiredBadge='';if(isGrammar){const ge=usedMap.get(name);if(isAcquired(ge))acquiredBadge=' <span class="acquired-badge" style="font-size:0.68rem;padding:1px 6px;border-radius:10px;">'+t('status.acquired')+'</span>';}else{const ve=vocabUsedMap.get(name);if(isVocabAcquired(ve))acquiredBadge=' <span class="acquired-badge" style="font-size:0.68rem;padding:1px 6px;border-radius:10px;">'+t('status.acquired')+'</span>';}let timesHtml=''; if(useTimes>0&&pracTimes===0) timesHtml=acquiredBadge+' <span style="font-size:0.72rem;color:#2e7d32;">'+t('track.usage_count')+': '+useTimes+'</span>'; else if(pracTimes>0&&useTimes===0) timesHtml=acquiredBadge+' <span style="font-size:0.72rem;color:#1565c0;">'+t('track.practice_count')+': '+pracTimes+'</span>'; else if(useTimes>0&&pracTimes>0) timesHtml=acquiredBadge+' <span style="font-size:0.72rem;color:#2e7d32;">'+t('track.usage_count')+': '+useTimes+'</span> <span style="font-size:0.72rem;color:#1565c0;">'+t('track.practice_count')+': '+pracTimes+'</span>';h+='<div class="track-item" data-key="'+escapeHtml(name)+'" data-level="'+it.level+'"><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="'+escapeHtml(name)+'">'+lvLabel+' '+escapeHtml(String(name).length>40?String(name).slice(0,37)+'…':name)+'</span><span style="flex-shrink:0;min-width:55px;text-align:right;">'+timesHtml+'</span></div>';}el.innerHTML=h;el.querySelectorAll('.track-item').forEach(e=>e.addEventListener('click',()=>{const k=e.dataset.key;const entry=isGrammar?usedMap.get(k):vocabUsedMap.get(k);if(entry){if(isGrammar){const e2=usedMap.get(k); const items2=[{pattern:k, level:e2.level, count:e2.count, correctCount:e2.correctCount||0, practiceCount:e2.practiceCount||0, examples:e2.examples, practiceExamples:e2.practiceExamples||[]}]; document.getElementById('modalTitle').textContent='📖 语法点明细'; renderGrammarDetailModal(items2); modal.style.display='block';document.body.style.overflow='hidden';}else{const its=[{word:k,level:entry.level,count:entry.count,practiceCount:entry.practiceCount||0,examples:entry.examples,practiceExamples:entry.practiceExamples||[]}];document.getElementById('modalTitle').textContent=t('modal.vocab_detail');renderVocabDetailModal(its);modal.style.display='block';document.body.style.overflow='hidden';}}}));}; renderCat('grammarUsedOnlyList',chat,true); renderCat('grammarPracticeOnlyList',practice,true); renderCat('grammarBothList',writing,true); const readPat = gapBank.patterns.filter(p => String(p.source||'').includes('阅读')).map(p => ({pattern: (p.text||p.sentence), level: 0, count: p.count||1})); renderCat('grammarReadingList',readPat,true); }
     function openGrammarDetailModalWithEntry(pattern, entry){ currentDetailLevel=null; const items=[{pattern, level:entry.level, count:entry.count, correctCount:entry.correctCount||0, practiceCount:entry.practiceCount||0, examples:entry.examples}]; const title=document.getElementById('modalTitle'); if(title) title.textContent=t('modal.grammar_detail'); renderGrammarDetailModal(items); modal.style.display='block'; document.body.style.overflow='hidden'; }
     function openGrammarDetailModal(level=null){ currentDetailLevel=level; const items=[]; for(let [pattern,entry] of usedMap.entries()) if((level===null||entry.level===level)&&!isAcquired(entry)) items.push({pattern, level:entry.level, count:entry.count, correctCount:entry.correctCount||0, practiceCount:entry.practiceCount||0, examples:entry.examples}); items.sort((a,b)=>a.level-b.level); const title=document.getElementById('modalTitle'); if(title) title.textContent=t('modal.grammar_detail'); renderGrammarDetailModal(items); modal.style.display='block'; document.body.style.overflow='hidden'; }
     function renderGrammarDetailModal(items){
@@ -12327,7 +12328,7 @@ if(wrongSentences.length===0){ rpt+='(暂无错句记录)\n'; } else { for(var w
 rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n🎯 缺口库（缺口词/短语 + 缺口语法，全部来源）\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(gapBank.words.length===0&&gapBank.patterns.length===0){ rpt+='(暂无缺口记录)\n'; } else { const _gw=[...gapBank.words].sort(gapSort); const _gp=[...gapBank.patterns].sort(gapSort); if(_gw.length){ rpt+='=== 缺口词/短语（未习得优先，按频次） ===\n'; for(const w of _gw){ rpt+=(w.acquired?'✅已习得':'🔴未习得')+' '+w.text+'｜出现'+(w.count||1)+'次｜来源：'+(w.source||'')+'\n'; if(w.sentence) rpt+='  原句：'+w.sentence+'\n'; if(w.translation) rpt+='  翻译：'+w.translation+'\n'; if(w.correctUseCount) rpt+='  正确使用：'+w.correctUseCount+'/3\n'; if(w.occurrences&&w.occurrences.length) rpt+='  出现时间：'+w.occurrences.map(o=>o.date).join('、')+'\n'; if(w.usedSentences&&w.usedSentences.length) rpt+='  使用句子（时间）：'+w.usedSentences.map(u=>u.sentence+'('+u.source+' '+(u.time||u.date||'')+')').join('；')+'\n'; rpt+='\n'; } } if(_gp.length){ rpt+='=== 缺口语法 ===\n'; for(const p of _gp){ rpt+=(p.acquired?'✅已习得':'🔴未习得')+' '+(p.text||p.sentence)+'｜出现'+(p.count||1)+'次｜来源：'+(p.source||'')+'\n'; if(p.sentence) rpt+='  原句：'+p.sentence+'\n'; if(p.correctUseCount) rpt+='  正确使用：'+p.correctUseCount+'/3\n'; if(p.occurrences&&p.occurrences.length) rpt+='  出现时间：'+p.occurrences.map(o=>o.date).join('、')+'\n'; if(p.usedSentences&&p.usedSentences.length) rpt+='  使用句子（时间）：'+p.usedSentences.map(u=>u.sentence+'('+u.source+' '+(u.time||u.date||'')+')').join('；')+'\n'; rpt+='\n'; } } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n🏷 错句类型统计\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; { const _tc={}; for(const _ws of wrongSentences){ if(_ws.errType){ _tc[_ws.errType]=(_tc[_ws.errType]||0)+1; } } const _te=Object.entries(_tc).sort((a,b)=>b[1]-a[1]); if(_te.length===0){ rpt+='(暂无类型统计)\n'; } else { for(const _e of _te){ rpt+='🏷 '+_e[0]+'：'+_e[1]+' 次\n'; } } } rpt+='\n'; rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n💭 第七部分：今日错句反思记录\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; const _today2=getLocalDate(); const _rr=(window._reflectionResults||[]).filter(r => !r.date || String(r.date).slice(0,10) === _today2); if(_rr.length===0){ rpt+='(暂无今日反思记录)\n'; } else { for(const r of _rr){ rpt+='['+(r.mode||'')+'] '+(r.text||'')+'\n'; if(r.user) rpt+='  ✏️ 你写的：'+r.user+'\n'; if(r.note) rpt+='  📌 '+(r.note||'')+'\n'; if(r.native) rpt+='  🌐 母语表达：'+r.native+'\n'; if(r.reason) rpt+='  💭 哪里不明白：'+r.reason+'\n'; else rpt+='  💭 反思：（跳过）\n'; rpt+='  📅 '+(r.date||'')+'\n\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n⭐ 第五部分：收藏句子\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(favoriteSentences.length===0){ rpt+='(暂无收藏)\n'; } else { for(let item of favoriteSentences){ rpt+='🇨🇳 '+item.chinese+'\n🌐 '+(item.translation||'')+'\n📅 '+(item.date||'')+'\n\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n💬 「怎么说」尝试记录\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(zmsRecords.length===0){ rpt+='(暂无尝试记录)\n'; } else { for(var zi=0; zi<zmsRecords.length; zi++){ var zr=zmsRecords[zi]; rpt+='🌐 母语：'+zr.original+'\n  ✏️ 你的尝试：'+zr.attempt+'\n  ✅ 参考答案：'+zr.reference+'\n  📅 '+(zr.date||'')+'\n\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n📰 阅读历史\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(readingHistory.length===0){ rpt+='(暂无阅读记录)\n'; } else { readingHistory.forEach((r,i)=>{ rpt+='📌 '+(r.title||('HSK'+r.level))+' [HSK'+r.level+']\n'; rpt+='📅 '+(r.date||'')+' · 主题：'+(r.topic||'')+'\n'; if(r.background) rpt+='背景：'+r.background+'\n'; if(r.sourceUrl) rpt+='🔗 '+r.sourceUrl+'\n'; rpt+='--- 正文 ---\n'+(r.content||'')+'\n\n'; }); } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n📖 阅读词汇追踪（完成阅读后按等级累加）\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; const rtk2=readingTrack||{unknownIn:{},knownIn:{},unknownOut:{}}; const rIn1=Object.entries(rtk2.unknownIn||{}).map(([w,o])=>({word:w,level:o.level||vocabLevelOfWord(w)||0,count:o.count||0})).sort((a,b)=>a.level-b.level); const rIn2=Object.entries(rtk2.knownIn||{}).map(([w,o])=>({word:w,level:o.level||vocabLevelOfWord(w)||0,count:o.count||0})).sort((a,b)=>a.level-b.level); const rOut=Object.entries(rtk2.unknownOut||{}).map(([t,o])=>({text:t,type:o.type||'phrase',count:o.count||0})).sort((a,b)=>b.count-a.count); const rCat2=(arr)=>{ if(arr.length===0){ rpt+='(无)\n'; return; } for(const it of arr){ if(it.out){ const ico=it.type==='sentence'?'📝 句子(超纲)':(it.type==='phrase'?'🔗 短语(超纲)':'🔤 词语(超纲)'); rpt+=ico+' '+it.text+'：出现 '+it.count+' 次\n'; } else { rpt+=vocabLevelLabel(it.level)+' '+it.text+'：出现 '+it.count+' 次\n'; } } }; const rUnknown=[...rIn1.map(it=>({text:it.word,level:it.level,count:it.count,out:false})),...rOut.map(it=>({text:it.text,level:0,count:it.count,out:true,type:it.type}))].sort((a,b)=>(a.out?1:0)-(b.out?1:0)||b.count-a.count); rpt+='=== ① 不懂的词 ===\n'; rCat2(rUnknown); rpt+='\n'; rpt+='=== ② 知道的词 ===\n'; if(rIn2.length===0){ rpt+='(无)\n'; } else { for(const it of rIn2){ rpt+=vocabLevelLabel(it.level)+' '+it.word+'：出现 '+it.count+' 次\n'; } } rpt+='\n'; const ok = downloadTextFile(rpt, 'HSK_Learning_Report_' + getLocalDate() + '.txt'); showToast(ok ? t('toast.download_started') : t('toast.download_failed')); }
 
 async function handleEndConversation(){ if(chatAbortController){ chatAbortController.abort(); chatAbortController=null; } if(currentSessionClauses.length===0&&sessionUserMessages.length===0){ const _zmsOnly = (window._zmsWrongAttempts || []).slice(); if(!_zmsOnly.length){ addAssistantMessage(t('analysis.no_sentences')); return; } window._zmsWrongAttempts = []; setTimeout(function(){ startReflection(_zmsOnly); }, 300); return; } const filteredClauses=currentSessionClauses.filter(c=>!isQueriedSentence(c)); const savedClauses=[...filteredClauses]; if(filteredClauses.length===0){ addAssistantMessage(t('analysis.no_sentences')); currentSessionClauses=[]; sessionUserMessages=[]; return; } addAssistantMessage(t('analysis.analyzing_prefix')+filteredClauses.length+'...'); try{ const analysis=await analyzeGrammarBatch(filteredClauses); if(analysis) mergeAnalysisResults(analysis, 'chat'); addAssistantMessage(t('analysis.grammar_done')); }catch(e){ addAssistantMessage(t('analysis.grammar_timeout')); } addAssistantMessage(t('analysis.vocab_analyzing')); try{ const vocabAnalysis=await analyzeVocabBatch(savedClauses); if(vocabAnalysis){ mergeVocabResultsFiltered(vocabAnalysis, 'chat'); } const matchCount=vocabAnalysis?vocabAnalysis.reduce((sum,item)=>sum+Object.keys(item.wordCounts||{}).length,0):0; addAssistantMessage(t('analysis.vocab_done')+' 匹配到 '+matchCount+' 个词'); }catch(e){ console.log('Vocab error:',e); addAssistantMessage(t('analysis.vocab_timeout')); } renderVocabLevelProgress(); renderVocabTrackList(); const _userHanzi = sessionUserMessages.map(u => stripForCompare(u)); const _chatReflect = []; for(const it of (window._chatSessionMistakes || [])){ const key = stripForCompare(it.user || ''); const txt = stripForCompare(it.text || ''); if(!key) continue; if(!_userHanzi.some(u => u.includes(key))) continue; const dupIdx = _chatReflect.findIndex(x => stripForCompare(x.user || '') === key && stripForCompare(x.text || '') === txt); if(dupIdx === -1) _chatReflect.push(it); } window._chatSessionMistakes = []; const _zmsReflect = (window._zmsWrongAttempts || []).slice(); window._zmsWrongAttempts = []; for(const it of _zmsReflect){ if(it && it.user && it.text) _chatReflect.push(it); } if(_chatReflect.length) setTimeout(function(){ startReflection(_chatReflect); },600); currentSessionClauses=[]; sessionUserMessages=[]; }
-    async function handleUserMessage(){ if(window._chatBusy) return; let text=userInput.value.trim(); if(!text) return; window._chatBusy=true; userInput.value=''; addMessage('user',text); currentSessionClauses.push(...splitClauses(text)); sessionUserMessages.push(text); if(chatAbortController){ chatAbortController.abort(); } chatAbortController=new AbortController(); const signal=chatAbortController.signal; try{ const mistakes=await analyzeMistakesBatch([text], ''); for(const m of mistakes){ const _lang = targetLangSelect ? targetLangSelect.value : 'Chinese'; if(!m.note || isVagueMistakeNote(m.note) || hasNonsenseSelfCorrection(m.note) || /^(missing|extra|缺少|多余|不足|余分|fehlt|überflüssig|falta|sobra|пропущено|лишнее|ขาด|เกิน|manca|in più)/i.test(String(m.note||'').trim()) || (_lang !== 'Chinese' && /[\u4e00-\u9fff]/.test(String(m.note)))) m.note = describeMistakeReason(m.original, m.corrected); } const reply=await chatWithContext(text, signal, 0, null, mistakes); const cleanReplyRaw = reply ? stripInlineCorrectionBlock(reply.raw) : ''; const natural = reply ? extractNaturalCorrections(text, cleanReplyRaw) : []; const batch = filterMistakes(mistakes); const natByOrig = new Map(); for(const n of natural){ const k = stripForCompare(n.original); if(k && !natByOrig.has(k)) natByOrig.set(k, n); } for(const m of batch){ const k = stripForCompare(m.original); const n = natByOrig.get(k); if(n && n.corrected && stripForCompare(n.corrected) !== k){ m.corrected = n.corrected; if(!m.note && n.note) m.note = n.note; } } const filtered=dedupeMistakesByOriginal([...batch, ...natural].filter(m => !isFalseCorrection(m.original, m.corrected))); for(const m of filtered){ m.type = normalizeMistakeType(m.type) || inferMistakeType(m); const _nw = narrowMistakeToClauses(m.original, m.corrected); if(_nw){ m.original = _nw.original; m.corrected = _nw.corrected; } } if(filtered.length === 0){ for(const w of gapActiveWords()){ if(text.includes(w.text)) recordGapCorrectUse('word', w.text, text, 'chat'); } for(const p of gapActivePatterns()){ if(gapGrammarMatches(p, text)) recordGapCorrectUse('pattern', p.text || p.sentence, text, 'chat'); } } const _shallow = filtered.filter(m => isShallowMistakeNote(m.note)); if(_shallow.length > 0){ try{ const _explained = await explainMistakeUsages(_shallow); if(_explained && _explained.length > 0){ for(const _ex of _explained){ if(!_ex || !_ex.note) continue; const _target = _shallow.find(x => String(x.original||'').trim() === String(_ex.original||'').trim() && String(x.corrected||'').trim() === String(_ex.corrected||'').trim()); if(_target) _target.note = _ex.note; } } }catch(_ee){} } window._chatSessionMistakes = window._chatSessionMistakes || []; for(const m of filtered){ const _whyWrong = m.note || ''; window._chatSessionMistakes.push({ mode:'聊天', text:m.corrected, user:m.original, note:_whyWrong, type:m.type||'' }); recordGapFromMistake(m); } if(reply){ for(const m of filtered){ const _whyWrong2 = m.note || ''; addWrongSentence('','对话纠错',m.corrected,'',m.original,_whyWrong2,m.type||''); } let html=cleanReplyRaw.replace(/\n/g,'<br>'), raw=cleanReplyRaw; if(filtered.length>0){ const htmlParts=[], rawLines=[]; const _msgToken='m'+Date.now()+'_'+Math.random().toString(36).slice(2,6); for(const m of filtered){ const _typeLabel = normalizeMistakeType(m.type) || String(m.type||'').trim(); rawLines.push('❌ '+t('reflection.your')+'：'+m.original); rawLines.push('✅ '+t('reflection.correct')+'：'+m.corrected); if(_typeLabel) rawLines.push('🏷 类型：'+_typeLabel); const _typeBadge = _typeLabel ? ' <span class="mistake-type-badge">🏷 '+escapeHtml(_typeLabel)+'</span>' : ''; const _cid=_msgToken+'_'+htmlParts.length; window._correctionStore=window._correctionStore||{}; window._correctionStore[_cid]={chinese:m.corrected, note:m.note}; const _explainBtn=' <button class="corr-explain-btn" onclick="window._toggleCorrectionExplain(\''+_cid+'\')">'+escapeHtml(t('corr.explain'))+'</button><div class="corr-explain-box" id="'+_cid+'_box"></div>'; htmlParts.push('<b style="color:#c0392b">❌ '+escapeHtml(t('reflection.your'))+'：'+escapeHtml(m.original)+'</b><br><b style="color:#27ae60">✅ '+escapeHtml(t('reflection.correct'))+'：'+escapeHtml(m.corrected)+'</b>'+_typeBadge+_explainBtn); } html += '<br><br>' + t('chat.correction') + htmlParts.join('<br>'); raw += '\n' + t('chat.correction') + '\n' + rawLines.join('\n'); const last=chatHistory[chatHistory.length-1]; if(last&&last.role==='assistant'){ last.content=raw; saveChatHistory(); } } addAssistantMessage(html, true, raw); } else { for(const m of filtered){ const _whyWrong3 = m.note || ''; addWrongSentence('','对话纠错',m.corrected,'',m.original,_whyWrong3,m.type||''); } addAssistantMessage(t('analysis.reply_fail')); } }catch(e){ if(e.name!=='AbortError') addAssistantMessage(t('analysis.reply_fail')); }finally{ chatAbortController=null; window._chatBusy=false; } }
+    async function handleUserMessage(){ if(window._chatBusy) return; let text=userInput.value.trim(); if(!text) return; window._chatBusy=true; userInput.value=''; addMessage('user',text); currentSessionClauses.push(...splitClauses(text)); sessionUserMessages.push(text); if(chatAbortController){ chatAbortController.abort(); } chatAbortController=new AbortController(); const signal=chatAbortController.signal; try{ const mistakes=await analyzeMistakesBatch([text], ''); for(const m of mistakes){ const _lang = targetLangSelect ? targetLangSelect.value : 'Chinese'; if(!m.note || isVagueMistakeNote(m.note) || hasNonsenseSelfCorrection(m.note) || /^(missing|extra|缺少|多余|不足|余分|fehlt|überflüssig|falta|sobra|пропущено|лишнее|ขาด|เกิน|manca|in più)/i.test(String(m.note||'').trim()) || (_lang !== 'Chinese' && /[\u4e00-\u9fff]/.test(String(m.note)))) m.note = describeMistakeReason(m.original, m.corrected); } const reply=await chatWithContext(text, signal, 0, null, mistakes); const cleanReplyRaw = reply ? stripInlineCorrectionBlock(reply.raw) : ''; const natural = reply ? extractNaturalCorrections(text, cleanReplyRaw) : []; const batch = filterMistakes(mistakes); const natByOrig = new Map(); for(const n of natural){ const k = stripForCompare(n.original); if(k && !natByOrig.has(k)) natByOrig.set(k, n); } for(const m of batch){ const k = stripForCompare(m.original); const n = natByOrig.get(k); if(n && n.corrected && stripForCompare(n.corrected) !== k){ m.corrected = n.corrected; if(!m.note && n.note) m.note = n.note; } } const filtered=dedupeMistakesByOriginal([...batch, ...natural].filter(m => !isFalseCorrection(m.original, m.corrected))); for(const m of filtered){ m.type = normalizeMistakeType(m.type) || inferMistakeType(m); const _nw = narrowMistakeToClauses(m.original, m.corrected); if(_nw){ m.original = _nw.original; m.corrected = _nw.corrected; } } if(filtered.length === 0){ for(const w of gapActiveWords()){ if(text.includes(w.text)) recordGapCorrectUse('word', w.text, text, 'chat'); } for(const p of gapActivePatterns()){ if(gapGrammarMatches(p, text)) recordGapCorrectUse('pattern', p.text || p.sentence, text, 'chat'); } } const _shallow = filtered.filter(m => isShallowMistakeNote(m.note)); if(_shallow.length > 0){ try{ const _explained = await explainMistakeUsages(_shallow); if(_explained && _explained.length > 0){ for(const _ex of _explained){ if(!_ex || !_ex.note) continue; const _target = _shallow.find(x => String(x.original||'').trim() === String(_ex.original||'').trim() && String(x.corrected||'').trim() === String(_ex.corrected||'').trim()); if(_target) _target.note = _ex.note; } } }catch(_ee){} } window._chatSessionMistakes = window._chatSessionMistakes || []; for(const m of filtered){ const _whyWrong = m.note || ''; window._chatSessionMistakes.push({ mode:'聊天', text:m.corrected, user:m.original, note:_whyWrong, type:m.type||'' }); recordGapFromMistake(m); } if(reply){ for(const m of filtered){ const _whyWrong2 = m.note || ''; addWrongSentence('','对话纠错',m.corrected,'',m.original,_whyWrong2,m.type||''); } let html=cleanReplyRaw.replace(/\n/g,'<br>'), raw=cleanReplyRaw; if(filtered.length>0){ const htmlParts=[], rawLines=[]; const _msgToken='m'+Date.now()+'_'+Math.random().toString(36).slice(2,6); for(const m of filtered){ const _typeLabel = mistakeTypeLabel(m.type) || normalizeMistakeType(m.type) || String(m.type||'').trim(); rawLines.push('❌ '+t('reflection.your')+'：'+m.original); rawLines.push('✅ '+t('reflection.correct')+'：'+m.corrected); if(_typeLabel) rawLines.push('🏷 类型：'+_typeLabel); const _typeBadge = _typeLabel ? ' <span class="mistake-type-badge">🏷 '+escapeHtml(_typeLabel)+'</span>' : ''; const _cid=_msgToken+'_'+htmlParts.length; window._correctionStore=window._correctionStore||{}; window._correctionStore[_cid]={chinese:m.corrected, note:m.note}; const _explainBtn=' <button class="corr-explain-btn" onclick="window._toggleCorrectionExplain(\''+_cid+'\')">'+escapeHtml(t('corr.explain'))+'</button><div class="corr-explain-box" id="'+_cid+'_box"></div>'; htmlParts.push('<b style="color:#c0392b">❌ '+escapeHtml(t('reflection.your'))+'：'+escapeHtml(m.original)+'</b><br><b style="color:#27ae60">✅ '+escapeHtml(t('reflection.correct'))+'：'+escapeHtml(m.corrected)+'</b>'+_typeBadge+_explainBtn); } html += '<br><br>' + t('chat.correction') + htmlParts.join('<br>'); raw += '\n' + t('chat.correction') + '\n' + rawLines.join('\n'); const last=chatHistory[chatHistory.length-1]; if(last&&last.role==='assistant'){ last.content=raw; saveChatHistory(); } } addAssistantMessage(html, true, raw); } else { for(const m of filtered){ const _whyWrong3 = m.note || ''; addWrongSentence('','对话纠错',m.corrected,'',m.original,_whyWrong3,m.type||''); } addAssistantMessage(t('analysis.reply_fail')); } }catch(e){ if(e.name!=='AbortError') addAssistantMessage(t('analysis.reply_fail')); }finally{ chatAbortController=null; window._chatBusy=false; } }
     let practiceIsSpeaking=false;
     // ========== 语音朗读 ==========
     // 解锁移动端音频播放（微信等WebView首次需用户手势激活AudioContext）
