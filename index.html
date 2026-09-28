@@ -596,6 +596,7 @@
                 <div class="reading-level-row">
                     <label id="readingCustomWordsLabel">🔑 必用词语：</label>
                     <input type="text" id="readingWordsInput" placeholder="输入必须出现在文章里的词语，用空格或逗号分开，如：中秋节 月饼 团圆" autocomplete="off">
+                    <button id="readingUseGapBtn" title="开启后生成的文章会优先使用错误库中的词语和语法" style="margin-left:8px;background:#fff;border:1px solid #d0dae8;color:#1e2b5e;border-radius:14px;padding:4px 12px;cursor:pointer;font-size:0.8rem;white-space:nowrap;">🔘 使用错误库词语</button>
                 </div>
                 <div class="reading-mode-row">
                     <span class="reading-mode-label" id="readingModeLabel">🎯 选择方式：</span>
@@ -7078,6 +7079,7 @@ const HSK2_VOCAB = [
             'reading.topic_select':'📌 阅读话题：', 'reading.topic_custom':'✍️ 自定义话题：',
             'reading.topic_custom_ph':'自己输入话题，如：足球、摄影、太空探索…（违法内容禁止）',
             'reading.fresh_topics_btn':'🌐 最新话题', 'reading.fresh_topics_title':'联网获取今天的最新话题', 'reading.fresh_topics_done':'✅ 已获取最新话题', 'reading.fresh_topics_fail':'获取失败，请检查网络或API',
+            'reading.use_gap_off':'🔘 使用错误库词语', 'reading.use_gap_on':'✅ 使用错误库词语（已开启）',
             'reading.custom_words':'🔑 必用词语：', 'reading.custom_words_ph':'输入必须出现在文章里的词语，用空格或逗号分开，如：中秋节 月饼 团圆',
             'reading.topic_news':'📰 今日新闻（当天/前一天）', 'reading.topic_hot':'🔥 随机热点',
             'reading.topic_football':'⚽ 足球', 'reading.topic_photography':'📷 摄影', 'reading.topic_food':'🍜 美食',
@@ -7104,6 +7106,7 @@ const HSK2_VOCAB = [
             'reading.topic_select':'📌 Topic: ', 'reading.topic_custom':'✍️ Custom topic: ',
             'reading.topic_custom_ph':'Type your own topic, e.g. football, photography, space... (illegal content prohibited)',
             'reading.fresh_topics_btn':'🌐 Latest topics', 'reading.fresh_topics_title':'Fetch today\'s latest topics online', 'reading.fresh_topics_done':'✅ Latest topics loaded', 'reading.fresh_topics_fail':'Failed to load, check network or API',
+            'reading.use_gap_off':'🔘 Use error-bank words', 'reading.use_gap_on':'✅ Use error-bank words (on)',
             'reading.custom_words':'🔑 Required words: ', 'reading.custom_words_ph':'Type words that must appear in the article, separated by spaces or commas, e.g. mooncake reunion lantern',
             'reading.topic_news':"📰 Today's News (today/yesterday)", 'reading.topic_hot':'🔥 Random Hot Topics',
             'reading.topic_football':'⚽ Football', 'reading.topic_photography':'📷 Photography', 'reading.topic_food':'🍜 Food',
@@ -7130,6 +7133,7 @@ const HSK2_VOCAB = [
             'reading.topic_select':'📌 トピック：', 'reading.topic_custom':'✍️ カスタムトピック：',
             'reading.topic_custom_ph':'トピックを入力（例：サッカー、写真、宇宙…違法な内容は禁止）',
             'reading.fresh_topics_btn':'🌐 最新トピック', 'reading.fresh_topics_title':'今日の最新トピックをオンラインで取得', 'reading.fresh_topics_done':'✅ 最新トピックを取得しました', 'reading.fresh_topics_fail':'取得失敗、ネットワークまたはAPIを確認',
+            'reading.use_gap_off':'🔘 エラーバンク語を使う', 'reading.use_gap_on':'✅ エラーバンク語を使う（オン）',
             'reading.custom_words':'🔑 必須単語：', 'reading.custom_words_ph':'文章に必ず入れる単語をスペースかカンマ区切りで入力（例：月餅 再会 ランタン）',
             'reading.topic_news':'📰 今日のニュース（当日/前日）', 'reading.topic_hot':'🔥 ランダム話題',
             'reading.topic_football':'⚽ サッカー', 'reading.topic_photography':'📷 写真', 'reading.topic_food':'🍜 グルメ',
@@ -7156,6 +7160,7 @@ const HSK2_VOCAB = [
             'reading.topic_select':'📌 주제: ', 'reading.topic_custom':'✍️ 직접 입력 주제: ',
             'reading.topic_custom_ph':'주제 직접 입력(예: 축구, 사진, 우주… 불법 내용 금지)',
             'reading.fresh_topics_btn':'🌐 최신 토픽', 'reading.fresh_topics_title':'오늘의 최신 토픽 온라인 가져오기', 'reading.fresh_topics_done':'✅ 최신 토픽을 가져왔습니다', 'reading.fresh_topics_fail':'가져오기 실패, 네트워크/API 확인',
+            'reading.use_gap_off':'🔘 오류 뱅크 단어 사용', 'reading.use_gap_on':'✅ 오류 뱅크 단어 사용(켜짐)',
             'reading.custom_words':'🔑 필수 단어: ', 'reading.custom_words_ph':'문장에 반드시 들어갈 단어를 공백이나 쉼표로 구분해 입력 (예: 월병 재회 등불)',
             'reading.topic_news':'📰 오늘의 뉴스(당일/전날)', 'reading.topic_hot':'🔥 무작위 핫토픽',
             'reading.topic_football':'⚽ 축구', 'reading.topic_photography':'📷 사진', 'reading.topic_food':'🍜 음식',
@@ -7182,6 +7187,7 @@ const HSK2_VOCAB = [
             'reading.topic_select':'📌 Sujet : ', 'reading.topic_custom':'✍️ Sujet personnalisé : ',
             'reading.topic_custom_ph':'Saisissez votre sujet (ex. football, photo, espace…) — contenu illégal interdit',
             'reading.fresh_topics_btn':'🌐 Sujets récents', 'reading.fresh_topics_title':'Récupérer les sujets du jour en ligne', 'reading.fresh_topics_done':'✅ Sujets récents chargés', 'reading.fresh_topics_fail':'Échec, vérifiez le réseau ou l\'API',
+            'reading.use_gap_off':'🔘 Mots de la banque d\'erreurs', 'reading.use_gap_on':'✅ Mots de la banque d\'erreurs (activé)',
             'reading.custom_words':'🔑 Mots obligatoires : ', 'reading.custom_words_ph':'Saisissez les mots qui doivent apparaître dans l’article, séparés par des espaces ou des virgules (ex. lune gâteau retrouvailles lanterne)',
             'reading.topic_news':"📰 Actualités du jour (aujourd'hui/hier)", 'reading.topic_hot':'🔥 Tendances aléatoires',
             'reading.topic_football':'⚽ Football', 'reading.topic_photography':'📷 Photographie', 'reading.topic_food':'🍜 Gastronomie',
@@ -7208,6 +7214,7 @@ const HSK2_VOCAB = [
             'reading.topic_select':'📌 Thema: ', 'reading.topic_custom':'✍️ Eigenes Thema: ',
             'reading.topic_custom_ph':'Eigenes Thema eingeben, z. B. Fußball, Fotografie, Weltraum… (illegale Inhalte verboten)',
             'reading.fresh_topics_btn':'🌐 Aktuelle Themen', 'reading.fresh_topics_title':'Heutige aktuelle Themen online abrufen', 'reading.fresh_topics_done':'✅ Aktuelle Themen geladen', 'reading.fresh_topics_fail':'Fehlgeschlagen, Netzwerk/API prüfen',
+            'reading.use_gap_off':'🔘 Fehlerbank-Wörter', 'reading.use_gap_on':'✅ Fehlerbank-Wörter (an)',
             'reading.custom_words':'🔑 Pflichtwörter: ', 'reading.custom_words_ph':'Wörter eingeben, die im Artikel vorkommen müssen, getrennt durch Leerzeichen oder Kommas (z. B. Mondkuchen Wiedersehen Laterne)',
             'reading.topic_news':'📰 Nachrichten von heute (heute/gestern)', 'reading.topic_hot':'🔥 Zufällige Trends',
             'reading.topic_football':'⚽ Fußball', 'reading.topic_photography':'📷 Fotografie', 'reading.topic_food':'🍜 Essen',
@@ -7234,6 +7241,7 @@ const HSK2_VOCAB = [
             'reading.topic_select':'📌 Tema: ', 'reading.topic_custom':'✍️ Tema personalizado: ',
             'reading.topic_custom_ph':'Escribe tu propio tema, p. ej. fútbol, fotografía, espacio… (contenido ilegal prohibido)',
             'reading.fresh_topics_btn':'🌐 Temas recientes', 'reading.fresh_topics_title':'Obtener temas de hoy en línea', 'reading.fresh_topics_done':'✅ Temas recientes cargados', 'reading.fresh_topics_fail':'Error, revisa la red o la API',
+            'reading.use_gap_off':'🔘 Palabras del banco de errores', 'reading.use_gap_on':'✅ Palabras del banco de errores (activado)',
             'reading.custom_words':'🔑 Palabras obligatorias: ', 'reading.custom_words_ph':'Escribe las palabras que deben aparecer en el artículo, separadas por espacios o comas (p. ej. pastel lunar reencuentro farol)',
             'reading.topic_news':'📰 Noticias de hoy (hoy/ayer)', 'reading.topic_hot':'🔥 Tendencias aleatorias',
             'reading.topic_football':'⚽ Fútbol', 'reading.topic_photography':'📷 Fotografía', 'reading.topic_food':'🍜 Comida',
@@ -7260,6 +7268,7 @@ const HSK2_VOCAB = [
             'reading.topic_select':'📌 Тема: ', 'reading.topic_custom':'✍️ Своя тема: ',
             'reading.topic_custom_ph':'Введите свою тему, напр. футбол, фотография, космос… (незаконный контент запрещён)',
             'reading.fresh_topics_btn':'🌐 Свежие темы', 'reading.fresh_topics_title':'Получить сегодняшние свежие темы онлайн', 'reading.fresh_topics_done':'✅ Свежие темы загружены', 'reading.fresh_topics_fail':'Ошибка, проверьте сеть или API',
+            'reading.use_gap_off':'🔘 Слова из банка ошибок', 'reading.use_gap_on':'✅ Слова из банка ошибок (вкл)',
             'reading.custom_words':'🔑 Обязательные слова: ', 'reading.custom_words_ph':'Введите слова, которые должны встретиться в тексте, через пробел или запятую (напр. лунный пряник встреча фонарь)',
             'reading.topic_news':'📰 Новости сегодня (сегодня/вчера)', 'reading.topic_hot':'🔥 Случайные темы',
             'reading.topic_football':'⚽ Футбол', 'reading.topic_photography':'📷 Фотография', 'reading.topic_food':'🍜 Еда',
@@ -7286,6 +7295,7 @@ const HSK2_VOCAB = [
             'reading.topic_select':'📌 หัวข้อ: ', 'reading.topic_custom':'✍️ หัวข้อกำหนดเอง: ',
             'reading.topic_custom_ph':'พิมพ์หัวข้อเอง เช่น ฟุตบอล ถ่ายภาพ อวกาศ… (ห้ามเนื้อหาผิดกฎหมาย)',
             'reading.fresh_topics_btn':'🌐 หัวข้อล่าสุด', 'reading.fresh_topics_title':'ดึงหัวข้อล่าสุดของวันนี้ออนไลน์', 'reading.fresh_topics_done':'✅ โหลดหัวข้อล่าสุดแล้ว', 'reading.fresh_topics_fail':'ล้มเหลว ตรวจสอบเครือข่าย/API',
+            'reading.use_gap_off':'🔘 ใช้คำจากคลังข้อผิดพลาด', 'reading.use_gap_on':'✅ ใช้คำจากคลังข้อผิดพลาด (เปิด)',
             'reading.custom_words':'🔑 คำบังคับ: ', 'reading.custom_words_ph':'พิมพ์คำที่ต้องปรากฏในบทความ คั่นด้วยช่องว่างหรือจุลภาค เช่น ขนมไหว้พระจันทร์ พบกันใหม่ โคมไฟ',
             'reading.topic_news':'📰 ข่าววันนี้ (วันนี้/เมื่อวาน)', 'reading.topic_hot':'🔥 หัวข้อฮิตสุ่ม',
             'reading.topic_football':'⚽ ฟุตบอล', 'reading.topic_photography':'📷 ถ่ายภาพ', 'reading.topic_food':'🍜 อาหาร',
@@ -7312,6 +7322,7 @@ const HSK2_VOCAB = [
             'reading.topic_select':'📌 Argomento: ', 'reading.topic_custom':'✍️ Argomento personalizzato: ',
             'reading.topic_custom_ph':'Scrivi il tuo argomento, es. calcio, fotografia, spazio… (contenuti illegali vietati)',
             'reading.fresh_topics_btn':'🌐 Argomenti recenti', 'reading.fresh_topics_title':'Recupera gli argomenti di oggi online', 'reading.fresh_topics_done':'✅ Argomenti recenti caricati', 'reading.fresh_topics_fail':'Errore, controlla rete o API',
+            'reading.use_gap_off':'🔘 Parole della banca errori', 'reading.use_gap_on':'✅ Parole della banca errori (attivo)',
             'reading.custom_words':'🔑 Parole obbligatorie: ', 'reading.custom_words_ph':'Inserisci le parole che devono comparire nell’articolo, separate da spazi o virgole (es. torta lunare riunione lanterna)',
             'reading.topic_news':'📰 Notizie di oggi (oggi/ieri)', 'reading.topic_hot':'🔥 Tendenze casuali',
             'reading.topic_football':'⚽ Calcio', 'reading.topic_photography':'📷 Fotografia', 'reading.topic_food':'🍜 Cibo',
@@ -9319,8 +9330,6 @@ const HSK2_VOCAB = [
     function updateReadingLevelHint(level){ const el=document.getElementById('readingLevelHint'); if(!el) return; const colors={1:'#2e7d32',2:'#ef6c00',3:'#1565c0',4:'#7b1fa2',5:'#c2185b',6:'#00695c'}; let html='<span style="color:#8a7a5a;">颜色标等级：</span>'; for(let i=1;i<=6;i++){ html+='<span style="display:inline-flex;align-items:center;margin-right:6px;"><span style="width:10px;height:10px;border-radius:3px;background:'+colors[i]+';display:inline-block;margin-right:3px;"></span>'+vocabLevelLabel(i)+'</span>'; } html+='<span style="color:#94a3b8;">· 无色=超纲词 · 目标比例：本等级词约85% + 高一级新词约10%，更高级超纲词≤3个</span>'; el.innerHTML=html; }
     // 阅读话题（学生可选自己喜欢的话题，默认当天/前一天新闻）
     const READING_TOPICS = [
-        { v:'news', labelKey:'reading.topic_news', prompt:'文章必须基于今天（或前一天）真实发生的新闻热点来写，先交代新闻日期，再讲述事件。像真实的新闻简讯，有信息量、有画面感。' },
-        { v:'hot', labelKey:'reading.topic_hot', prompt:'主题必须是最近中国社交媒体上流行的真实热点话题（抖音、微博、小红书、B站等），像学生刷手机时看到的真实内容。' },
         { v:'football', labelKey:'reading.topic_football', prompt:'主题必须围绕足球：比赛、球员、球队、世界杯、球迷故事等，像真实的体育报道。' },
         { v:'photography', labelKey:'reading.topic_photography', prompt:'主题必须围绕摄影：拍照技巧、相机/手机摄影、著名照片背后的故事、摄影师故事等。' },
         { v:'food', labelKey:'reading.topic_food', prompt:'主题必须围绕美食：中国或世界各地的特色菜、小吃、烹饪故事、美食探店等。' },
@@ -9338,16 +9347,24 @@ const HSK2_VOCAB = [
     ];
     function readingTopicKey(){ return 'HSK_READING_TOPIC_' + currentUser; }
     function saveReadingTopic(){ if(!currentUser) return; const sel = document.getElementById('readingTopicSelect'); if(sel) localStorage.setItem(readingTopicKey(), sel.value); }
-    let readingFreshTopics = [];
+    let readingFreshTopic = null;
+    let readingUseGapWords = false;
+    function updateReadingGapBtn(){
+        const b = document.getElementById('readingUseGapBtn');
+        if(b){
+            b.textContent = readingUseGapWords ? (t('reading.use_gap_on') || '✅ 使用错误库词语') : (t('reading.use_gap_off') || '🔘 使用错误库词语');
+            b.style.background = readingUseGapWords ? '#fff7ed' : '#fff';
+            b.style.borderColor = readingUseGapWords ? '#fdba74' : '#d0dae8';
+            b.style.color = readingUseGapWords ? '#9a3412' : '#1e2b5e';
+        }
+    }
     function renderReadingTopicSelect(){
         const sel = document.getElementById('readingTopicSelect');
         if(!sel) return;
-        const saved = (currentUser && localStorage.getItem(readingTopicKey())) || 'news';
+        const saved = (currentUser && localStorage.getItem(readingTopicKey())) || 'football';
         let html = '';
-        for(let i = 0; i < readingFreshTopics.length; i++){
-            const tp = readingFreshTopics[i];
-            const v = 'fresh_' + i;
-            html += '<option value="' + v + '"' + (v === saved ? ' selected' : '') + '>🌐 ' + escapeHtml(tp.label || tp.v) + '</option>';
+        if(readingFreshTopic){
+            html += '<option value="fresh_0"' + ('fresh_0' === saved ? ' selected' : '') + '>🌐 ' + escapeHtml(readingFreshTopic.label || readingFreshTopic.v) + '</option>';
         }
         for(const tp of READING_TOPICS){
             html += '<option value="' + tp.v + '"' + (tp.v === saved ? ' selected' : '') + '>' + t(tp.labelKey) + '</option>';
@@ -9356,54 +9373,46 @@ const HSK2_VOCAB = [
     }
     function getReadingTopic(){
         const sel = document.getElementById('readingTopicSelect');
-        const v = sel ? sel.value : 'news';
-        if(String(v).startsWith('fresh_')){
-            const idx = parseInt(String(v).slice(6), 10);
-            return readingFreshTopics[idx] || READING_TOPICS[0];
-        }
+        const v = sel ? sel.value : 'football';
+        if(String(v).startsWith('fresh_') && readingFreshTopic) return readingFreshTopic;
         return READING_TOPICS.find(x => x.v === v) || READING_TOPICS[0];
     }
     function readingTopicSearchQuery(v){
         const map = {
-            news:'中国 新闻', hot:'中国 热搜', football:'足球 新闻', photography:'摄影 新闻',
+            football:'足球 新闻', photography:'摄影 新闻',
             food:'美食 新闻', travel:'旅行 新闻', tech:'科技 新闻', animals:'动物 新闻',
             music:'音乐 新闻', movies:'电影 新闻', history:'考古 新闻', health:'健康 新闻',
             fashion:'时尚 新闻', games:'游戏 新闻', education:'教育 新闻', environment:'环保 新闻'
         };
-        if(String(v).startsWith('fresh_')){
-            const idx = parseInt(String(v).slice(6), 10);
-            const tp = readingFreshTopics[idx];
-            if(tp) return tp.label || tp.v || '中国 新闻';
-        }
-        return map[v] || '中国 新闻';
+        if(String(v).startsWith('fresh_') && readingFreshTopic) return readingFreshTopic.label || readingFreshTopic.v || '中国 热搜';
+        return map[v] || '中国 热搜';
     }
     async function fetchFreshReadingTopics(){
         const apiKey = apiKeyInput.value.trim();
         if(!apiKey){ alert(t('api_key_required')); return; }
         const btn = document.getElementById('readingFreshTopicsBtn');
         if(btn){ btn.disabled = true; btn.textContent = '⏳...'; }
-        const targetLang = targetLangSelect.value;
         const todayCn = getTodayCnDate(0);
         try{
-            const prompt = '今天是' + todayCn + '。请基于最近（' + todayCn + '前后几天）中国互联网上真实流行的最新热点，给出8个适合HSK学生练习阅读的最新话题。话题要真实、积极健康、不过时（必须是最近正在流行的，不要旧闻）。输出JSON：{"topics":[{"v":"话题英文标识","label":"话题中文名（8字以内）","prompt":"文章必须围绕这个最新热点来写，先交代最近发生的具体时间，再讲述内容，像真实的近期网络热帖"}]}';
-            const resp = await fetch(API_BASE, { method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey}, body: JSON.stringify({ model:'deepseek-v4-flash', thinking:{ type:'disabled' }, max_tokens:2048, messages:[{ role:'user', content:prompt }], temperature:0.7, response_format:{ type:'json_object' } }) });
+            const prompt = '今天是' + todayCn + '。请给我【一个】最近中国社交媒体（抖音、微博、小红书、B站等）上真实流行的最新热点话题，适合HSK学生做阅读练习。话题要真实、积极健康、不过时。输出JSON：{"v":"话题英文标识","label":"话题中文名（10字以内）","prompt":"文章必须围绕这个最新热点来写，先交代最近发生的具体时间，再讲述内容，像真实的近期网络热帖"}';
+            const resp = await fetch(API_BASE, { method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey}, body: JSON.stringify({ model:'deepseek-v4-flash', thinking:{ type:'disabled' }, max_tokens:1024, messages:[{ role:'user', content:prompt }], temperature:0.9, response_format:{ type:'json_object' } }) });
             const data = await resp.json();
             if(data.error) throw new Error(data.error.message || 'API error');
             let c = data.choices[0].message.content;
             c = c.replace(/```json/g,'').replace(/```/g,'').trim();
             const r = safeJsonParse(c);
-            const list = (r && Array.isArray(r.topics)) ? r.topics.slice(0, 8) : [];
-            if(!list.length) throw new Error('empty');
-            readingFreshTopics = list.map(t => ({ v: t.v || 'fresh', label: t.label || t.v || '最新话题', prompt: t.prompt || ('文章必须围绕最新热点「' + (t.label || '') + '」来写，内容要像最近的真实网络内容，交代最近的时间。') }));
+            const t = (r && r.topic) || r;
+            if(!t || !t.label) throw new Error('empty');
+            readingFreshTopic = { v: t.v || 'fresh', label: t.label, prompt: t.prompt || ('文章必须围绕最新热点「' + t.label + '」来写，内容要像最近的真实网络内容，交代最近的时间。') };
             renderReadingTopicSelect();
             const sel = document.getElementById('readingTopicSelect');
-            if(sel && readingFreshTopics.length) sel.value = 'fresh_0';
+            if(sel) sel.value = 'fresh_0';
             saveReadingTopic();
             showToast(t('reading.fresh_topics_done') || '✅ 已获取最新话题');
         }catch(e){
             alert(t('reading.fresh_topics_fail') || '获取失败，请检查网络或API');
         }
-        if(btn){ btn.disabled = false; btn.textContent = '🌐 最新话题'; }
+        if(btn){ btn.disabled = false; btn.textContent = t('reading.fresh_topics_btn') || '🌐 最新话题'; }
     }
     function newsSearchBase(){
         // 页面通过服务器打开（本地或线上部署 server.js）时，用同源 /search-news 代理；
@@ -9496,25 +9505,24 @@ const HSK2_VOCAB = [
         const customWordsRaw = (document.getElementById('readingWordsInput') ? document.getElementById('readingWordsInput').value : '').trim();
         const mustWords = customWordsRaw ? customWordsRaw.split(/[\s,，、;；]+/).map(w => w.trim()).filter(w => w && !isIllegalReadingTopic(w)).slice(0, 10) : [];
         const topicObj = customTopic ? null : getReadingTopic();
+        const freshCtx = readingFreshTopic ? ('最新热点「' + (readingFreshTopic.label || '') + '」：' + (readingFreshTopic.prompt || '')) : '';
         let topicInstr;
         if (customTopic) {
             if (isIllegalReadingTopic(customTopic)) {
                 alert(t('reading.topic_illegal'));
                 return;
             }
-            topicInstr = '文章主题必须是：' + customTopic + '。话题必须合法合规、积极健康；如果话题涉及违法、暴力、色情、政治敏感等内容，请拒绝该话题并改写为一个安全、积极、适合语言学习的话题。';
+            topicInstr = '文章主题必须是：' + customTopic + '。话题必须合法合规、积极健康；如果话题涉及违法、暴力、色情、政治敏感等内容，请拒绝该话题并改写为一个安全、积极、适合语言学习的话题。' + (freshCtx ? ' 同时请结合最近的热点：' + freshCtx : '');
         } else {
             const topic = topicObj;
-            const todayCn = getTodayCnDate(0);
-            const yesterdayCn = getTodayCnDate(-1);
-            topicInstr = topic.v === 'news'
-                ? '今天日期是' + todayCn + '。短文必须基于今天（' + todayCn + '）或前一天（' + yesterdayCn + '）真实发生的新闻热点来写，先交代新闻发生的日期，再讲述事件，像一篇真实的新闻简讯。'
+            topicInstr = String(topic.v).startsWith('fresh_')
+                ? topic.prompt
                 : topic.prompt;
         }
         const todayCnFresh = getTodayCnDate(0);
-        const freshRule = '【时效性要求 - 必须遵守】现在是' + todayCnFresh + '。文章必须取材于最近几个月（2026年6月到' + todayCnFresh.slice(5, 10) + '）真实、新鲜的话题或作品：近期新闻、刚上映的电影/剧集、新科技产品、正在流行的社会热点、最近的节日活动等。写新闻类文章时，正文里必须明确点出事情发生的具体时间（2026年某月或某日）；其他文体也要让读者看得出是2026年最近的内容。严禁写2025年及更早的旧闻，严禁出现“去年”“前年”“2024年”“2025年”这类旧时间表述；如果某件事你无法确认最近是否真实发生，就改写一个时间上明确属于2026年近期的话题（如最近的节日、刚上映的电影、当季活动），不要编造具体可查证的假新闻细节。';
+        const freshRule = '【时效性要求 - 必须遵守】现在是' + todayCnFresh + '。文章必须取材于最近几个月（2026年6月到' + todayCnFresh.slice(5, 10) + '）真实、新鲜的话题或作品：近期新闻、抖音/微博/小红书/B站上正在流行的社会热点、刚上映的电影/剧集、新科技产品、最近的节日活动等。写新闻类文章时，正文里必须明确点出事情发生的具体时间（2026年某月或某日）；其他文体也要让读者看得出是2026年最近的内容。严禁写2025年及更早的旧闻，严禁出现“去年”“前年”“2024年”“2025年”这类旧时间表述；如果某件事你无法确认最近是否真实发生，就改写一个时间上明确属于2026年近期的话题（如最近的节日、刚上映的电影、当季活动），不要编造具体可查证的假新闻细节。';
         // 联网搜索：为 AI 提供真实近期新闻素材
-        const searchQuery = customTopic || readingTopicSearchQuery(topicObj ? topicObj.v : 'news');
+        const searchQuery = customTopic || readingTopicSearchQuery(topicObj ? topicObj.v : 'football');
         let newsContext = '';
         const _searchBase = newsSearchBase();
         if (_searchBase) {
@@ -9547,8 +9555,8 @@ const HSK2_VOCAB = [
         }
         const searchRule = newsContext ? newsContext : '【联网搜索素材】本次未搜索到新闻素材，文章可以写一个时间明确属于2026年近期的话题，但不要编造具体可查证的假新闻。';
         const mustWordsRule = mustWords.length ? '【必用词语 - 最高优先级】以下词语必须全部自然地出现在正文 content 中（每个词至少出现一次，顺序不限，不要改动这些词）：' + mustWords.join('、') + '。写完后逐词自检：如果缺少任何一个，就必须重写正文，直到全部包含为止。' : '';
-        const gapWordsArr = gapActiveWords().slice(0, 10).map(w => w.text);
-        const gapRules = gapPromptRules(10, 5);
+        const gapWordsArr = readingUseGapWords ? gapActiveWords().slice(0, 10).map(w => w.text) : [];
+        const gapRules = readingUseGapWords ? gapPromptRules(10, 5) : '';
         btn.disabled = true; btn.textContent = t('reading.generating');
         const LEN = {1:'全文100-150字，每句4-9字，分2-3段', 2:'全文150-200字，每句5-10字，分2-3段', 3:'全文200-300字，每句6-14字，分3-4段', 4:'全文300-400字，每句8-18字，分3-5段', 5:'全文350-450字，每句10-20字，分3-5段', 6:'全文400-500字，每句10-22字，分4-5段'};
         const levelGuide = LEN[mix.level] || LEN[3];
@@ -10441,6 +10449,9 @@ ${searchRule}
         if (btn) btn.onclick = generateReading;
         const freshBtn = document.getElementById('readingFreshTopicsBtn');
         if (freshBtn) freshBtn.onclick = fetchFreshReadingTopics;
+        const useGapBtn = document.getElementById('readingUseGapBtn');
+        if (useGapBtn) useGapBtn.onclick = function(){ readingUseGapWords = !readingUseGapWords; updateReadingGapBtn(); };
+        updateReadingGapBtn();
         const finishBtn = document.getElementById('readingFinishBtn');
         if (finishBtn) finishBtn.onclick = finishReadingAnalysis;
         const pinyinBtn = document.getElementById('readingPinyinBtn');
