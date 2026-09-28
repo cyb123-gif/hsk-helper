@@ -699,7 +699,7 @@
                 </div>
                 <div class="dictation-upload-row">
                     <label style="display:flex;align-items:center;gap:6px;font-size:0.82rem;color:#475569;">
-                        <span>📖 生成等级</span>
+                        <span id="dictationGenLevelLabel">📖 生成等级</span>
                         <select id="dictationGenLevelSelect" style="padding:4px 8px;border-radius:12px;border:1.5px solid #d0dae8;font-size:0.82rem;background:white;">
                             <option value="1">HSK 1</option>
                             <option value="2">HSK 2</option>
@@ -709,7 +709,7 @@
                         </select>
                     </label>
                     <label style="display:flex;align-items:center;gap:6px;font-size:0.82rem;color:#475569;">
-                        <span>🎯 内容侧重</span>
+                        <span id="dictationGenSourceLabel">🎯 内容侧重</span>
                         <select id="dictationGenSourceSelect" style="padding:4px 8px;border-radius:12px;border:1.5px solid #d0dae8;font-size:0.82rem;background:white;">
                             <option value="gap" selected>缺口词/语法优先</option>
                             <option value="hsk">HSK 词汇/语法</option>
@@ -840,9 +840,9 @@
         </div>
 
         <div class="card">
-            <div class="stat-title"><span>🎯 缺口库（动态调整5大模式）</span><span class="level-badge" id="gapCountBadge">0词/0语法</span></div>
+            <div class="stat-title"><span id="gapBankTitle">🎯 缺口库（动态调整5大模式）</span><span class="level-badge" id="gapCountBadge">0词/0语法</span></div>
             <div id="gapBankList" class="mistake-list">暂无缺口词/短语/语法</div>
-            <div class="small-note">缺口词/短语/语法来自：怎么说查询、聊天纠错、阅读标不懂、听写/读打/听打错误、写作提示。每个缺口词/短语都会连同原句一起记录，生成练习时沿用原句句型、替换其他成分。阅读、听写、写作、练习、聊天会据此动态调整内容。</div>
+            <div class="small-note" id="gapBankNote">缺口词/短语/语法来自：怎么说查询、聊天纠错、阅读标不懂、听写/读打/听打错误、写作提示。每个缺口词/短语都会连同原句一起记录，生成练习时沿用原句句型、替换其他成分。阅读、听写、写作、练习、聊天会据此动态调整内容。</div>
         </div>
     </div>
 </div>
@@ -6779,6 +6779,19 @@ const HSK2_VOCAB = [
         'gap.cleared':'缺口库已清空', 'gap.none':'还没有缺口词/短语/语法，请先在聊天、阅读、听写等模式中产生记录',
         'gap.all_acquired':'🎉 所有缺口词/语法都已习得（正确使用3次），无需再专门练习',
         'gap.word_sentence':'原句', 'gap.pattern_label':'语法格式',
+        'gap.title':'🎯 缺口库（动态调整5大模式）',
+        'gap.note':'缺口词/短语/语法来自：怎么说查询、聊天纠错、阅读标不懂、听写/读打/听打错误、写作提示。每个缺口词/短语都会连同原句一起记录，生成练习时沿用原句句型、替换其他成分。阅读、听写、写作、练习、聊天会据此动态调整内容。',
+        'gap.start_btn':'🎯 直接开始（缺口词/语法）',
+        'gap.start_btn_title':'不选词汇和语法，直接练习缺口词/缺口语法，其余句子部分按右侧所选HSK等级生成',
+        'gap.level_title':'缺口练习的HSK等级：生成句子其余部分时按此等级',
+        'dictation.gen_btn':'✨ AI 生成听写文章',
+        'dictation.gen_level':'📖 生成等级',
+        'dictation.gen_source':'🎯 内容侧重',
+        'dictation.gen_source_gap':'缺口词/语法优先',
+        'dictation.gen_source_hsk':'HSK 词汇/语法',
+        'dictation.gen_source_mix':'缺口 + HSK 混合',
+        'writing.topic_btn':'🚀 确定话题',
+        'writing.topic_ph':'🎯 先确定写作话题，如：我的周末、一次旅行、我最喜欢的运动...',
         'writing.topic_required':'请先输入写作话题', 'writing.topic':'写作话题',
         'writing.need_topic_first':'请先在上方输入并确定写作话题，然后才能开始写',
         'writing.topic_thinking':'⏳ 正在根据话题推荐缺口词/语法和HSK词...',
@@ -8059,13 +8072,287 @@ const HSK2_VOCAB = [
             'reflection.saved':'✅ Riflessione salvata e aggiunta al report di apprendimento completo'
         }
     };
+    // ===== 缺口库 / 写作话题 / 听写生成 / 怎么说歧义 多语种 =====
+    const I18N_GAP = {
+        'English': {
+            'zms.disamb_checking':'⏳ Checking whether this word has multiple meanings...',
+            'zms.disamb_placeholder':'What sentence meaning do you want to express? (write in your language)',
+            'zms.disamb_confirm':'✅ Confirm, give me this word',
+            'zms.disamb_need':'Please select or write the sentence meaning you want',
+            'corr.explain':'📖 Usage',
+            'gap.empty':'No gap words/phrases/grammar yet. They are recorded automatically from chat corrections, reading marks and How-to-say queries.',
+            'gap.words':'Gap words/phrases', 'gap.patterns':'Gap grammar',
+            'gap.clear':'🗑️ Clear', 'gap.clear_confirm':'Clear all gap words/phrases/grammar?',
+            'gap.cleared':'Gap bank cleared', 'gap.none':'No gap words/phrases/grammar yet. Chat, read or do dictation first.',
+            'gap.all_acquired':'🎉 All gap words/grammar acquired (3 correct uses)',
+            'gap.word_sentence':'Original sentence', 'gap.pattern_label':'Grammar pattern',
+            'gap.title':'🎯 Gap Bank (adapts all 5 modes)',
+            'gap.note':'Gap items come from How-to-say, chat corrections, reading marks, dictation/typing errors and writing hints. Each word/phrase is stored with its sentence; practice keeps the original pattern and replaces other parts. Reading, dictation, writing, practice and chat adapt dynamically.',
+            'gap.start_btn':'🎯 Start directly (gaps)',
+            'gap.start_btn_title':'Practice gap words/grammar without selecting vocab/grammar; other sentence parts follow the HSK level on the right',
+            'gap.level_title':'HSK level for gap practice: other sentence parts follow this level',
+            'dictation.gen_btn':'✨ AI article', 'dictation.gen_level':'📖 Level', 'dictation.gen_source':'🎯 Focus',
+            'dictation.gen_source_gap':'Gap words/grammar first', 'dictation.gen_source_hsk':'HSK words/grammar', 'dictation.gen_source_mix':'Gaps + HSK',
+            'dictation.gen_generating':'⏳ AI is writing a dictation article...',
+            'dictation.gen_done':'✅ Dictation article ready. Click Start Dictation',
+            'dictation.gen_fail':'Generation failed, please retry',
+            'writing.topic_btn':'🚀 Set topic', 'writing.topic_ph':'🎯 Set a writing topic first, e.g. my weekend, a trip, my favorite sport...',
+            'writing.topic_required':'Please enter a writing topic first', 'writing.topic':'Writing topic',
+            'writing.need_topic_first':'Set a writing topic above first',
+            'writing.topic_thinking':'⏳ Recommending gap words/grammar and HSK words for the topic...',
+            'writing.topic_fail':'Topic recommendation failed, please retry',
+            'writing.topic_words':'📖 Recommended words (click to insert)', 'writing.topic_patterns':'🧩 Recommended grammar (click to insert)',
+            'writing.topic_opening':'📝 Opening suggestion', 'writing.topic_done':'✅ Topic set'
+        },
+        'Japanese': {
+            'zms.disamb_checking':'⏳ この単語に複数の意味があるか確認中...',
+            'zms.disamb_placeholder':'どんな文の意味を表したいですか？（母語で書いてください）',
+            'zms.disamb_confirm':'✅ 確定、この単語をください',
+            'zms.disamb_need':'先に文の意味を選ぶか書いてください',
+            'corr.explain':'📖 用法の説明',
+            'gap.empty':'まだギャップ語/句/文法はありません。チャット訂正・読解の「わからない」・「どう言う」から自動記録されます。',
+            'gap.words':'ギャップ語/句', 'gap.patterns':'ギャップ文法',
+            'gap.clear':'🗑️ クリア', 'gap.clear_confirm':'すべてのギャップ語/句/文法を消去しますか？',
+            'gap.cleared':'ギャップバンクを消去しました', 'gap.none':'まだギャップ語/句/文法がありません。先にチャット・読解・書き取りを行ってください。',
+            'gap.all_acquired':'🎉 すべてのギャップ語/文法を習得しました（3回正しく使用）',
+            'gap.word_sentence':'元の文', 'gap.pattern_label':'文法形式',
+            'gap.title':'🎯 ギャップバンク（5モードを自動調整）',
+            'gap.note':'ギャップは「どう言う」・チャット訂正・読解のマーク・書き取り/タイピング誤り・作文ヒントから記録されます。各語/句は元の文ごと保存され、練習では元の文型を保ち他の成分を置き換えます。読解・書き取り・作文・練習・チャットが自動調整されます。',
+            'gap.start_btn':'🎯 直接開始（ギャップ語/文法）',
+            'gap.start_btn_title':'語彙・文法を選ばずにギャップ語/文法を練習。文の他の部分は右のHSKレベルに従う',
+            'gap.level_title':'ギャップ練習のHSKレベル：文の他の部分はこのレベル',
+            'dictation.gen_btn':'✨ AI文章生成', 'dictation.gen_level':'📖 レベル', 'dictation.gen_source':'🎯 重点',
+            'dictation.gen_source_gap':'ギャップ語/文法優先', 'dictation.gen_source_hsk':'HSK語彙/文法', 'dictation.gen_source_mix':'ギャップ+HSK',
+            'dictation.gen_generating':'⏳ AIが書き取り文章を作成中...',
+            'dictation.gen_done':'✅ 書き取り文章ができました。「開始」を押してください',
+            'dictation.gen_fail':'生成に失敗しました。再試行してください',
+            'writing.topic_btn':'🚀 トピック確定', 'writing.topic_ph':'🎯 先に作文トピックを決めてください。例：私の週末、旅行、好きなスポーツ...',
+            'writing.topic_required':'先に作文トピックを入力してください', 'writing.topic':'作文トピック',
+            'writing.need_topic_first':'先に上の作文トピックを確定してください',
+            'writing.topic_thinking':'⏳ トピックに合うギャップ語/文法とHSK語を推薦中...',
+            'writing.topic_fail':'トピック推薦に失敗しました。再試行してください',
+            'writing.topic_words':'📖 おすすめ語（クリックで挿入）', 'writing.topic_patterns':'🧩 おすすめ文法（クリックで挿入）',
+            'writing.topic_opening':'📝 書き出しの提案', 'writing.topic_done':'✅ トピック確定'
+        },
+        'Korean': {
+            'zms.disamb_checking':'⏳ 이 단어에 여러 뜻이 있는지 확인 중...',
+            'zms.disamb_placeholder':'어떤 문장 의미를 표현하고 싶나요? (모국어로 쓰세요)',
+            'zms.disamb_confirm':'✅ 확인, 이 단어를 주세요',
+            'zms.disamb_need':'먼저 문장 의미를 선택하거나 쓰세요',
+            'corr.explain':'📖 용법 설명',
+            'gap.empty':'아직 갭 단어/구/문법이 없습니다. 채팅 교정, 읽기 표시, "어떻게 말해요"에서 자동 기록됩니다.',
+            'gap.words':'갭 단어/구', 'gap.patterns':'갭 문법',
+            'gap.clear':'🗑️ 비우기', 'gap.clear_confirm':'모든 갭 단어/구/문법을 비울까요?',
+            'gap.cleared':'갭 뱅크를 비웠습니다', 'gap.none':'아직 갭 단어/구/문법이 없습니다. 채팅, 읽기, 받아쓰기를 먼저 하세요.',
+            'gap.all_acquired':'🎉 모든 갭 단어/문법을 습득했습니다 (3회 올바르게 사용)',
+            'gap.word_sentence':'원문장', 'gap.pattern_label':'문법 형식',
+            'gap.title':'🎯 갭 뱅크 (5개 모드 자동 조정)',
+            'gap.note':'갭은 "어떻게 말해요", 채팅 교정, 읽기 표시, 받아쓰기/타자 오류, 작문 힌트에서 기록됩니다. 각 단어/구는 원문장과 함께 저장되며, 연습 시 원래 문형을 유지하고 다른 성분을 바꿉니다. 읽기, 받아쓰기, 작문, 연습, 채팅이 자동 조정됩니다.',
+            'gap.start_btn':'🎯 바로 시작 (갭 단어/문법)',
+            'gap.start_btn_title':'어휘/문법 선택 없이 갭 단어/문법 연습. 문장의 나머지 부분은 오른쪽 HSK 레벨을 따름',
+            'gap.level_title':'갭 연습 HSK 레벨: 문장의 나머지 부분이 이 레벨을 따름',
+            'dictation.gen_btn':'✨ AI 받아쓰기 생성', 'dictation.gen_level':'📖 레벨', 'dictation.gen_source':'🎯 중점',
+            'dictation.gen_source_gap':'갭 단어/문법 우선', 'dictation.gen_source_hsk':'HSK 어휘/문법', 'dictation.gen_source_mix':'갭 + HSK',
+            'dictation.gen_generating':'⏳ AI가 받아쓰기 글을 쓰는 중...',
+            'dictation.gen_done':'✅ 받아쓰기 글이 생성되었습니다. 시작을 누르세요',
+            'dictation.gen_fail':'생성 실패, 다시 시도하세요',
+            'writing.topic_btn':'🚀 주제 확정', 'writing.topic_ph':'🎯 먼저 작문 주제를 정하세요. 예: 내 주말, 여행, 좋아하는 운동...',
+            'writing.topic_required':'먼저 작문 주제를 입력하세요', 'writing.topic':'작문 주제',
+            'writing.need_topic_first':'먼저 위에서 작문 주제를 확정하세요',
+            'writing.topic_thinking':'⏳ 주제에 맞는 갭 단어/문법과 HSK 단어 추천 중...',
+            'writing.topic_fail':'주제 추천 실패, 다시 시도하세요',
+            'writing.topic_words':'📖 추천 단어 (클릭하여 삽입)', 'writing.topic_patterns':'🧩 추천 문법 (클릭하여 삽입)',
+            'writing.topic_opening':'📝 첫 문장 제안', 'writing.topic_done':'✅ 주제 확정'
+        },
+        'French': {
+            'zms.disamb_checking':'⏳ Vérification si ce mot a plusieurs sens...',
+            'zms.disamb_placeholder':'Quel sens de phrase voulez-vous exprimer ? (écrivez dans votre langue)',
+            'zms.disamb_confirm':'✅ Confirmer, donnez-moi ce mot',
+            'zms.disamb_need':'Veuillez choisir ou écrire le sens de phrase souhaité',
+            'corr.explain':'📖 Explication',
+            'gap.empty':'Aucun mot/expression/grammaire lacunaire. Ils sont enregistrés automatiquement via corrections, lecture et « Comment dire ».',
+            'gap.words':'Mots/expressions lacunaires', 'gap.patterns':'Grammaire lacunaire',
+            'gap.clear':'🗑️ Vider', 'gap.clear_confirm':'Vider tous les mots/expressions/grammaire lacunaires ?',
+            'gap.cleared':'Banque lacunaire vidée', 'gap.none':'Aucun mot/expression/grammaire lacunaire. Discutez, lisez ou faites une dictée d\'abord.',
+            'gap.all_acquired':'🎉 Tous les mots/grammaire lacunaires sont acquis (3 utilisations correctes)',
+            'gap.word_sentence':'Phrase d\'origine', 'gap.pattern_label':'Format grammatical',
+            'gap.title':'🎯 Banque lacunaire (adapte les 5 modes)',
+            'gap.note':'Les lacunes viennent de « Comment dire », corrections, marques de lecture, erreurs de dictée/frappe et conseils d\'écriture. Chaque mot/expression est enregistré avec sa phrase ; l\'entraînement garde la structure d\'origine et remplace le reste. Lecture, dictée, écriture, exercices et chat s\'adaptent.',
+            'gap.start_btn':'🎯 Commencer directement (lacunes)',
+            'gap.start_btn_title':'S\'entraîner sans choisir vocabulaire/grammaire ; le reste de la phrase suit le niveau HSK de droite',
+            'gap.level_title':'Niveau HSK pour l\'entraînement des lacunes',
+            'dictation.gen_btn':'✨ Article IA', 'dictation.gen_level':'📖 Niveau', 'dictation.gen_source':'🎯 Priorité',
+            'dictation.gen_source_gap':'Lacunes d\'abord', 'dictation.gen_source_hsk':'Vocabulaire/grammaire HSK', 'dictation.gen_source_mix':'Lacunes + HSK',
+            'dictation.gen_generating':'⏳ L\'IA écrit un article de dictée...',
+            'dictation.gen_done':'✅ Article prêt. Cliquez sur Démarrer',
+            'dictation.gen_fail':'Échec de la génération, réessayez',
+            'writing.topic_btn':'🚀 Choisir le sujet', 'writing.topic_ph':'🎯 Choisissez d\'abord un sujet, ex : mon week-end, un voyage, mon sport préféré...',
+            'writing.topic_required':'Veuillez d\'abord saisir un sujet', 'writing.topic':'Sujet d\'écriture',
+            'writing.need_topic_first':'Choisissez d\'abord un sujet ci-dessus',
+            'writing.topic_thinking':'⏳ Recommandation de lacunes et de mots HSK pour le sujet...',
+            'writing.topic_fail':'Échec de la recommandation, réessayez',
+            'writing.topic_words':'📖 Mots recommandés (cliquer pour insérer)', 'writing.topic_patterns':'🧩 Grammaire recommandée (cliquer pour insérer)',
+            'writing.topic_opening':'📝 Suggestion d\'ouverture', 'writing.topic_done':'✅ Sujet choisi'
+        },
+        'German': {
+            'zms.disamb_checking':'⏳ Prüfe, ob dieses Wort mehrere Bedeutungen hat...',
+            'zms.disamb_placeholder':'Welche Satzbedeutung möchtest du ausdrücken? (in deiner Sprache)',
+            'zms.disamb_confirm':'✅ Bestätigen, gib mir dieses Wort',
+            'zms.disamb_need':'Bitte wähle oder schreibe die gewünschte Satzbedeutung',
+            'corr.explain':'📖 Gebrauch',
+            'gap.empty':'Noch keine Lückenwörter/-phrasen/-grammatik. Sie werden automatisch aus Chatkorrekturen, Lesemarkierungen und „Wie sagt man" erfasst.',
+            'gap.words':'Lückenwörter/-phrasen', 'gap.patterns':'Lückengrammatik',
+            'gap.clear':'🗑️ Leeren', 'gap.clear_confirm':'Alle Lückenwörter/-phrasen/-grammatik leeren?',
+            'gap.cleared':'Lückenbank geleert', 'gap.none':'Noch keine Lücken. Bitte erst chatten, lesen oder diktieren.',
+            'gap.all_acquired':'🎉 Alle Lückenwörter/-grammatik erworben (3× richtig verwendet)',
+            'gap.word_sentence':'Ursprünglicher Satz', 'gap.pattern_label':'Grammatikformat',
+            'gap.title':'🎯 Lückenbank (passt 5 Modi an)',
+            'gap.note':'Lücken stammen aus „Wie sagt man", Korrekturen, Lesemarkierungen, Diktat-/Tippfehlern und Schreibhinweisen. Jedes Wort/jede Phrase wird mit dem Satz gespeichert; das Training behält das ursprüngliche Muster bei und ersetzt andere Teile. Lesen, Diktat, Schreiben, Üben und Chat passen sich an.',
+            'gap.start_btn':'🎯 Direkt starten (Lücken)',
+            'gap.start_btn_title':'Übe Lückenwörter/-grammatik ohne Wortschatz-/Grammatikauswahl; der Rest folgt dem HSK-Level rechts',
+            'gap.level_title':'HSK-Level für das Lückentraining',
+            'dictation.gen_btn':'✨ KI-Diktattext', 'dictation.gen_level':'📖 Level', 'dictation.gen_source':'🎯 Fokus',
+            'dictation.gen_source_gap':'Lücken zuerst', 'dictation.gen_source_hsk':'HSK-Wortschatz/-Grammatik', 'dictation.gen_source_mix':'Lücken + HSK',
+            'dictation.gen_generating':'⏳ KI schreibt einen Diktattext...',
+            'dictation.gen_done':'✅ Diktattext fertig. Klicke auf Start',
+            'dictation.gen_fail':'Generierung fehlgeschlagen, bitte erneut versuchen',
+            'writing.topic_btn':'🚀 Thema festlegen', 'writing.topic_ph':'🎯 Erst ein Thema festlegen, z. B. mein Wochenende, eine Reise, mein Lieblingssport...',
+            'writing.topic_required':'Bitte zuerst ein Thema eingeben', 'writing.topic':'Schreibthema',
+            'writing.need_topic_first':'Bitte zuerst oben ein Thema festlegen',
+            'writing.topic_thinking':'⏳ Empfehle Lücken und HSK-Wörter zum Thema...',
+            'writing.topic_fail':'Empfehlung fehlgeschlagen, bitte erneut versuchen',
+            'writing.topic_words':'📖 Empfohlene Wörter (zum Einfügen klicken)', 'writing.topic_patterns':'🧩 Empfohlene Grammatik (zum Einfügen klicken)',
+            'writing.topic_opening':'📝 Einstiegsvorschlag', 'writing.topic_done':'✅ Thema festgelegt'
+        },
+        'Spanish': {
+            'zms.disamb_checking':'⏳ Comprobando si esta palabra tiene varios significados...',
+            'zms.disamb_placeholder':'¿Qué significado de frase quieres expresar? (escríbelo en tu idioma)',
+            'zms.disamb_confirm':'✅ Confirmar, dame esta palabra',
+            'zms.disamb_need':'Elige o escribe primero el significado de frase que quieres',
+            'corr.explain':'📖 Uso',
+            'gap.empty':'Aún no hay palabras/frases/gramática en hueco. Se registran automáticamente con correcciones, lectura y "Cómo se dice".',
+            'gap.words':'Palabras/frases en hueco', 'gap.patterns':'Gramática en hueco',
+            'gap.clear':'🗑️ Vaciar', 'gap.clear_confirm':'¿Vaciar todas las palabras/frases/gramática en hueco?',
+            'gap.cleared':'Banco de huecos vaciado', 'gap.none':'Aún no hay huecos. Chatea, lee o haz dictados primero.',
+            'gap.all_acquired':'🎉 Todos los huecos adquiridos (3 usos correctos)',
+            'gap.word_sentence':'Frase original', 'gap.pattern_label':'Formato gramatical',
+            'gap.title':'🎯 Banco de huecos (adapta los 5 modos)',
+            'gap.note':'Los huecos provienen de "Cómo se dice", correcciones, marcas de lectura, errores de dictado/tecleo y sugerencias de escritura. Cada palabra/frase se guarda con su frase; la práctica mantiene la estructura original y cambia el resto. Lectura, dictado, escritura, práctica y chat se adaptan.',
+            'gap.start_btn':'🎯 Empezar directo (huecos)',
+            'gap.start_btn_title':'Practica huecos sin elegir vocabulario/gramática; el resto de la frase sigue el nivel HSK de la derecha',
+            'gap.level_title':'Nivel HSK para practicar huecos',
+            'dictation.gen_btn':'✨ Texto IA', 'dictation.gen_level':'📖 Nivel', 'dictation.gen_source':'🎯 Enfoque',
+            'dictation.gen_source_gap':'Huecos primero', 'dictation.gen_source_hsk':'Vocabulario/gramática HSK', 'dictation.gen_source_mix':'Huecos + HSK',
+            'dictation.gen_generating':'⏳ La IA escribe un texto de dictado...',
+            'dictation.gen_done':'✅ Texto listo. Pulsa Iniciar dictado',
+            'dictation.gen_fail':'Error al generar, inténtalo de nuevo',
+            'writing.topic_btn':'🚀 Fijar tema', 'writing.topic_ph':'🎯 Primero elige un tema, p. ej. mi fin de semana, un viaje, mi deporte favorito...',
+            'writing.topic_required':'Primero introduce un tema', 'writing.topic':'Tema de escritura',
+            'writing.need_topic_first':'Primero fija un tema arriba',
+            'writing.topic_thinking':'⏳ Recomendando huecos y palabras HSK para el tema...',
+            'writing.topic_fail':'Error al recomendar, inténtalo de nuevo',
+            'writing.topic_words':'📖 Palabras recomendadas (clic para insertar)', 'writing.topic_patterns':'🧩 Gramática recomendada (clic para insertar)',
+            'writing.topic_opening':'📝 Sugerencia de inicio', 'writing.topic_done':'✅ Tema fijado'
+        },
+        'Russian': {
+            'zms.disamb_checking':'⏳ Проверяем, есть ли у слова несколько значений...',
+            'zms.disamb_placeholder':'Какой смысл фразы вы хотите выразить? (напишите на родном языке)',
+            'zms.disamb_confirm':'✅ Подтвердить, дайте мне это слово',
+            'zms.disamb_need':'Сначала выберите или напишите нужный смысл фразы',
+            'corr.explain':'📖 Употребление',
+            'gap.empty':'Пока нет пробелов (слов/фраз/грамматики). Они записываются автоматически из исправлений, чтения и «Как сказать».',
+            'gap.words':'Пробелы: слова/фразы', 'gap.patterns':'Пробелы: грамматика',
+            'gap.clear':'🗑️ Очистить', 'gap.clear_confirm':'Очистить все пробелы (слова/фразы/грамматику)?',
+            'gap.cleared':'Банк пробелов очищен', 'gap.none':'Пока нет пробелов. Сначала пообщайтесь, почитайте или сделайте диктант.',
+            'gap.all_acquired':'🎉 Все пробелы усвоены (3 правильных использования)',
+            'gap.word_sentence':'Исходное предложение', 'gap.pattern_label':'Грамматический формат',
+            'gap.title':'🎯 Банк пробелов (адаптирует 5 режимов)',
+            'gap.note':'Пробелы берутся из «Как сказать», исправлений, отметок при чтении, ошибок диктанта/набора и подсказок письма. Каждое слово/фраза хранится с предложением; тренировка сохраняет исходную конструкцию и меняет остальное. Чтение, диктант, письмо, упражнения и чат адаптируются.',
+            'gap.start_btn':'🎯 Начать сразу (пробелы)',
+            'gap.start_btn_title':'Тренировка пробелов без выбора лексики/грамматики; остальная часть предложения по уровню HSK справа',
+            'gap.level_title':'Уровень HSK для тренировки пробелов',
+            'dictation.gen_btn':'✨ Текст ИИ', 'dictation.gen_level':'📖 Уровень', 'dictation.gen_source':'🎯 Акцент',
+            'dictation.gen_source_gap':'Сначала пробелы', 'dictation.gen_source_hsk':'Лексика/грамматика HSK', 'dictation.gen_source_mix':'Пробелы + HSK',
+            'dictation.gen_generating':'⏳ ИИ пишет текст для диктанта...',
+            'dictation.gen_done':'✅ Текст готов. Нажмите «Начать диктант»',
+            'dictation.gen_fail':'Ошибка генерации, попробуйте ещё раз',
+            'writing.topic_btn':'🚀 Выбрать тему', 'writing.topic_ph':'🎯 Сначала выберите тему, напр. мои выходные, поездка, любимый спорт...',
+            'writing.topic_required':'Сначала введите тему', 'writing.topic':'Тема сочинения',
+            'writing.need_topic_first':'Сначала выберите тему выше',
+            'writing.topic_thinking':'⏳ Рекомендуем пробелы и слова HSK по теме...',
+            'writing.topic_fail':'Ошибка рекомендации, попробуйте ещё раз',
+            'writing.topic_words':'📖 Рекомендуемые слова (нажмите для вставки)', 'writing.topic_patterns':'🧩 Рекомендуемая грамматика (нажмите для вставки)',
+            'writing.topic_opening':'📝 Подсказка для начала', 'writing.topic_done':'✅ Тема выбрана'
+        },
+        'Thai': {
+            'zms.disamb_checking':'⏳ กำลังตรวจสอบว่าคำนี้มีหลายความหมายหรือไม่...',
+            'zms.disamb_placeholder':'คุณต้องการสื่อความหมายประโยคว่าอะไร? (เขียนเป็นภาษาของคุณ)',
+            'zms.disamb_confirm':'✅ ยืนยัน ขอคำนี้',
+            'zms.disamb_need':'กรุณาเลือกหรือเขียนความหมายประโยคที่ต้องการก่อน',
+            'corr.explain':'📖 วิธีใช้',
+            'gap.empty':'ยังไม่มีคำ/วลี/ไวยากรณ์ที่ขาด บันทึกอัตโนมัติจากการแก้ไข แชท การอ่าน และ "พูดอย่างไร"',
+            'gap.words':'คำ/วลีที่ขาด', 'gap.patterns':'ไวยากรณ์ที่ขาด',
+            'gap.clear':'🗑️ ล้าง', 'gap.clear_confirm':'ล้างคำ/วลี/ไวยากรณ์ที่ขาดทั้งหมด?',
+            'gap.cleared':'ล้างคลังคำที่ขาดแล้ว', 'gap.none':'ยังไม่มีคำ/วลี/ไวยากรณ์ที่ขาด กรุณาแชท อ่าน หรือเขียนตามคำบอกก่อน',
+            'gap.all_acquired':'🎉 เรียนรู้คำ/ไวยากรณ์ที่ขาดครบแล้ว (ใช้ถูก 3 ครั้ง)',
+            'gap.word_sentence':'ประโยคต้นฉบับ', 'gap.pattern_label':'รูปแบบไวยากรณ์',
+            'gap.title':'🎯 คลังคำที่ขาด (ปรับ 5 โหมดอัตโนมัติ)',
+            'gap.note':'รายการที่ขาดมาจาก "พูดอย่างไร" การแก้ไข การทำเครื่องหมายการอ่าน ข้อผิดพลาดการเขียนตามคำบอก/พิมพ์ และคำแนะนำการเขียน แต่ละคำ/วลีบันทึกพร้อมประโยค การฝึกใช้โครงสร้างเดิมและเปลี่ยนส่วนอื่น การอ่าน เขียนตามคำบอก การเขียน ฝึกฝน และแชทปรับตามอัตโนมัติ',
+            'gap.start_btn':'🎯 เริ่มเลย (คำ/ไวยากรณ์ที่ขาด)',
+            'gap.start_btn_title':'ฝึกคำ/ไวยากรณ์ที่ขาดโดยไม่ต้องเลือกคำศัพท์/ไวยากรณ์ ส่วนอื่นของประโยคตามระดับ HSK ด้านขวา',
+            'gap.level_title':'ระดับ HSK สำหรับฝึกคำที่ขาด',
+            'dictation.gen_btn':'✨ AI เขียนบทความ', 'dictation.gen_level':'📖 ระดับ', 'dictation.gen_source':'🎯 เน้น',
+            'dictation.gen_source_gap':'คำ/ไวยากรณ์ที่ขาดก่อน', 'dictation.gen_source_hsk':'คำศัพท์/ไวยากรณ์ HSK', 'dictation.gen_source_mix':'คำขาด + HSK',
+            'dictation.gen_generating':'⏳ AI กำลังเขียนบทความสำหรับเขียนตามคำบอก...',
+            'dictation.gen_done':'✅ บทความพร้อมแล้ว กดเริ่มเขียนตามคำบอก',
+            'dictation.gen_fail':'สร้างไม่สำเร็จ กรุณาลองใหม่',
+            'writing.topic_btn':'🚀 กำหนดหัวข้อ', 'writing.topic_ph':'🎯 กำหนดหัวข้อก่อน เช่น วันหยุดของฉัน การท่องเที่ยว กีฬาที่ชอบ...',
+            'writing.topic_required':'กรุณาใส่หัวข้อก่อน', 'writing.topic':'หัวข้อการเขียน',
+            'writing.need_topic_first':'กรุณากำหนดหัวข้อด้านบนก่อน',
+            'writing.topic_thinking':'⏳ กำลังแนะนำคำ/ไวยากรณ์ที่ขาดและคำ HSK สำหรับหัวข้อ...',
+            'writing.topic_fail':'แนะนำไม่สำเร็จ กรุณาลองใหม่',
+            'writing.topic_words':'📖 คำแนะนำ (คลิกเพื่อแทรก)', 'writing.topic_patterns':'🧩 ไวยากรณ์แนะนำ (คลิกเพื่อแทรก)',
+            'writing.topic_opening':'📝 แนะนำประโยคเริ่มต้น', 'writing.topic_done':'✅ กำหนดหัวข้อแล้ว'
+        },
+        'Italian': {
+            'zms.disamb_checking':'⏳ Verifico se questa parola ha più significati...',
+            'zms.disamb_placeholder':'Che significato di frase vuoi esprimere? (scrivilo nella tua lingua)',
+            'zms.disamb_confirm':'✅ Conferma, dammi questa parola',
+            'zms.disamb_need':'Scegli o scrivi prima il significato di frase desiderato',
+            'corr.explain':'📖 Uso',
+            'gap.empty':'Nessuna parola/frase/grammatica lacunosa. Vengono registrate automaticamente da correzioni, lettura e "Come si dice".',
+            'gap.words':'Parole/frasi lacunose', 'gap.patterns':'Grammatica lacunosa',
+            'gap.clear':'🗑️ Svuota', 'gap.clear_confirm':'Svuotare tutte le parole/frasi/grammatica lacunose?',
+            'gap.cleared':'Banca lacune svuotata', 'gap.none':'Nessuna lacuna. Prima chatta, leggi o fai un dettato.',
+            'gap.all_acquired':'🎉 Tutte le lacune acquisite (3 usi corretti)',
+            'gap.word_sentence':'Frase originale', 'gap.pattern_label':'Formato grammaticale',
+            'gap.title':'🎯 Banca lacune (adatta i 5 modi)',
+            'gap.note':'Le lacune provengono da "Come si dice", correzioni, segni di lettura, errori di dettato/digitazione e suggerimenti di scrittura. Ogni parola/frase è salvata con la frase; l\'allenamento mantiene la struttura originale e sostituisce il resto. Lettura, dettato, scrittura, esercizi e chat si adattano.',
+            'gap.start_btn':'🎯 Inizia subito (lacune)',
+            'gap.start_btn_title':'Allena le lacune senza scegliere vocabolario/grammatica; il resto segue il livello HSK a destra',
+            'gap.level_title':'Livello HSK per l\'allenamento delle lacune',
+            'dictation.gen_btn':'✨ Testo IA', 'dictation.gen_level':'📖 Livello', 'dictation.gen_source':'🎯 Focus',
+            'dictation.gen_source_gap':'Prima le lacune', 'dictation.gen_source_hsk':'Vocabolario/grammatica HSK', 'dictation.gen_source_mix':'Lacune + HSK',
+            'dictation.gen_generating':'⏳ L\'IA scrive un testo di dettato...',
+            'dictation.gen_done':'✅ Testo pronto. Premi Inizia dettato',
+            'dictation.gen_fail':'Generazione non riuscita, riprova',
+            'writing.topic_btn':'🚀 Scegli tema', 'writing.topic_ph':'🎯 Prima scegli un tema, es. il mio weekend, un viaggio, il mio sport preferito...',
+            'writing.topic_required':'Inserisci prima un tema', 'writing.topic':'Tema di scrittura',
+            'writing.need_topic_first':'Scegli prima un tema qui sopra',
+            'writing.topic_thinking':'⏳ Raccomando lacune e parole HSK per il tema...',
+            'writing.topic_fail':'Raccomandazione non riuscita, riprova',
+            'writing.topic_words':'📖 Parole consigliate (clicca per inserire)', 'writing.topic_patterns':'🧩 Grammatica consigliata (clicca per inserire)',
+            'writing.topic_opening':'📝 Suggerimento di apertura', 'writing.topic_done':'✅ Tema scelto'
+        }
+    };
+
     function t(key) {
         const lang = targetLangSelect ? targetLangSelect.value : 'English';
         const dict = I18N[lang];
-        const extra = Object.assign({}, I18N_EXTRA['Chinese'] || {}, I18N_EXTRA2['Chinese'] || {}, I18N_EXTRA3['Chinese'] || {}, I18N_EXTRA[lang] || {}, I18N_EXTRA2[lang] || {}, I18N_EXTRA3[lang] || {});
+        const extra = Object.assign({}, I18N_EXTRA['Chinese'] || {}, I18N_EXTRA2['Chinese'] || {}, I18N_EXTRA3['Chinese'] || {}, (typeof I18N_GAP !== 'undefined' && I18N_GAP['Chinese']) || {}, I18N_EXTRA[lang] || {}, I18N_EXTRA2[lang] || {}, I18N_EXTRA3[lang] || {}, (typeof I18N_GAP !== 'undefined' && I18N_GAP[lang]) || {});
         const voice = I18N_VOICE[lang] || I18N_VOICE['Chinese'] || {};
         const translated = (dict && dict[key]) ? dict[key] : (extra[key] || voice[key] || '');
-        const chinese = (ZH && ZH[key]) ? ZH[key] : ((I18N_EXTRA['Chinese'] && I18N_EXTRA['Chinese'][key]) || (I18N_EXTRA2['Chinese'] && I18N_EXTRA2['Chinese'][key]) || (I18N_EXTRA3['Chinese'] && I18N_EXTRA3['Chinese'][key]) || (I18N_VOICE['Chinese'] && I18N_VOICE['Chinese'][key]) || '');
+        const chinese = (ZH && ZH[key]) ? ZH[key] : ((I18N_EXTRA['Chinese'] && I18N_EXTRA['Chinese'][key]) || (I18N_EXTRA2['Chinese'] && I18N_EXTRA2['Chinese'][key]) || (I18N_EXTRA3['Chinese'] && I18N_EXTRA3['Chinese'][key]) || (typeof I18N_GAP !== 'undefined' && I18N_GAP['Chinese'] && I18N_GAP['Chinese'][key]) || (I18N_VOICE['Chinese'] && I18N_VOICE['Chinese'][key]) || '');
         if (!translated) return chinese || key;
         return translated;
     }
@@ -8254,6 +8541,22 @@ const HSK2_VOCAB = [
         }
         const dfs = document.getElementById('dictationFileStatus'); if(dfs && !dictationState.file) dfs.textContent = t('dictation.file_status_empty');
         if (dictationState.active) renderDictationProgress();
+        // 缺口库 / 写作话题 / 听写生成 静态元素
+        const gbt = document.getElementById('gapBankTitle'); if(gbt) gbt.textContent = t('gap.title');
+        const gbn = document.getElementById('gapBankNote'); if(gbn) gbn.textContent = t('gap.note');
+        const sgbtn = document.getElementById('startGapLearnBtn'); if(sgbtn){ sgbtn.textContent = t('gap.start_btn'); sgbtn.title = t('gap.start_btn_title'); }
+        const gpls = document.getElementById('gapPracticeLevelSelect'); if(gpls) gpls.title = t('gap.level_title');
+        const dgbtn = document.getElementById('dictationGenBtn'); if(dgbtn && !dgbtn.disabled) dgbtn.textContent = t('dictation.gen_btn');
+        const dglbl = document.getElementById('dictationGenLevelLabel'); if(dglbl) dglbl.textContent = t('dictation.gen_level');
+        const dgslbl = document.getElementById('dictationGenSourceLabel'); if(dgslbl) dgslbl.textContent = t('dictation.gen_source');
+        const dgsel = document.getElementById('dictationGenSourceSelect');
+        if(dgsel){
+            const dgOptMap = { 'gap': t('dictation.gen_source_gap'), 'hsk': t('dictation.gen_source_hsk'), 'mix': t('dictation.gen_source_mix') };
+            for(const dgOpt of dgsel.options){ if(dgOptMap[dgOpt.value]) dgOpt.textContent = dgOptMap[dgOpt.value]; }
+        }
+        const wtbtn = document.getElementById('writingTopicBtn'); if(wtbtn) wtbtn.textContent = t('writing.topic_btn');
+        const wtinp = document.getElementById('writingTopicInput'); if(wtinp) wtinp.placeholder = t('writing.topic_ph');
+        if(typeof renderGapBankUI === 'function') renderGapBankUI();
     }
 
     // 模式切换
