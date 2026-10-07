@@ -11978,7 +11978,7 @@ N=名词, V=动词, Adj=形容词, Adv=副词, Prep=介词, Pron=代词(同Prono
 输出JSON：{"results":[{"sentence":"句子","matches":[{"pattern":"语法格式","level":等级}]}]}
 没有匹配的句子也要包含，matches为空数组。只输出纯JSON，不要任何解释文字。`;
 
-try{ const resp=await fetch(API_BASE,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${apiKey}`}, body:JSON.stringify({model:'deepseek-v4-pro',thinking:{type:'disabled'}, max_tokens:4096, messages:[{role:'system',content:prompt},{role:'user',content:blocksText}], temperature:0.1, response_format:{type:'json_object'}})}); const data=await resp.json(); if(data.error) throw new Error(data.error.message||"API error"); if(!data.choices||!data.choices[0]||!data.choices[0].message) throw new Error("API error"); let content=data.choices[0].message.content; content=content.replace(/```json/g,'').replace(/```/g,'').trim(); const parsed=JSON.parse(content); return parsed.results||parsed.matches||parsed||[]; }catch(e){ return null; } }async function analyzeMistakesBatch(userMessages, aiReplyRaw){ const apiKey=apiKeyInput.value.trim(); if(!apiKey||userMessages.length===0) return []; const targetLang = targetLangSelect ? targetLangSelect.value : 'English'; const prompt=`你是HSK中文教师兼严格的阅卷老师。请逐词逐句分析学生句子的偏误（error analysis）：先判断是否有真实偏误，再给出最小改动的改正和具体原因。纠错准确率是第一要求：有错必报（包括一个字的小错），无错不报；拿不准（两种说法母语者都常说）就不要报。\n\n【逐项检查清单 - 必须逐项过一遍】\n1. 词语意义和词性：单字词、双字词、短语的意思是否用对。\n2. 词语搭配：动宾搭配（如“庆祝节日”不能说“祝节日”）、定中搭配、数量词位置（如“一整天”不能说“整一天”）、介词搭配。\n3. 离合词：见面、帮忙、生气、洗澡等不能直接带宾语。\n4. 虚词：的/地/得/了/着/过/把/被/关于/对于/因为/所以等用对没有。\n5. 语序：时间、地点、方式状语的位置，数量词位置。\n6. 框式结构：要是...就...、虽然...但是...、越...越...等框架完整不完整。\n7. 成分残缺/多余、句式杂糅、关联词错误。\n每类都要检查，确有此类的错误就报告。
+try{ const resp=await fetch(API_BASE,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${apiKey}`}, body:JSON.stringify({model:'deepseek-v4-pro',thinking:{type:'disabled'}, max_tokens:4096, messages:[{role:'system',content:prompt},{role:'user',content:blocksText}], temperature:0.1, response_format:{type:'json_object'}})}); const data=await resp.json(); if(data.error) throw new Error(data.error.message||"API error"); if(!data.choices||!data.choices[0]||!data.choices[0].message) throw new Error("API error"); let content=data.choices[0].message.content; content=content.replace(/```json/g,'').replace(/```/g,'').trim(); const parsed=JSON.parse(content); return parsed.results||parsed.matches||parsed||[]; }catch(e){ return null; } }async function analyzeMistakesBatch(userMessages, aiReplyRaw, contextMessages){ const apiKey=apiKeyInput.value.trim(); if(!apiKey||userMessages.length===0) return []; const targetLang = targetLangSelect ? targetLangSelect.value : 'English'; const prompt=`你是HSK中文教师兼严格的阅卷老师。请逐词逐句分析学生句子的偏误（error analysis）：先判断是否有真实偏误，再给出最小改动的改正和具体原因。纠错准确率是第一要求：有错必报（包括一个字的小错），无错不报；拿不准（两种说法母语者都常说）就不要报。\n\n【逐项检查清单 - 必须逐项过一遍】\n1. 词语意义和词性：单字词、双字词、短语的意思是否用对。\n2. 词语搭配：动宾搭配（如“庆祝节日”不能说“祝节日”）、定中搭配、数量词位置（如“一整天”不能说“整一天”）、介词搭配。\n3. 离合词：见面、帮忙、生气、洗澡等不能直接带宾语。\n4. 虚词：的/地/得/了/着/过/把/被/关于/对于/因为/所以等用对没有。\n5. 语序：时间、地点、方式状语的位置，数量词位置。\n6. 框式结构：要是...就...、虽然...但是...、越...越...等框架完整不完整。\n7. 成分残缺/多余、句式杂糅、关联词错误。\n每类都要检查，确有此类的错误就报告。
 
 【判断标准：句子本身有没有错】
 1. 先判断学生句子本身是否真的有偏误（错别字、生造词、搭配不当、缺词、多词、语序错误、虚词误用或缺失等）。句子正确就返回[]，不要为了“更像母语”改写。
@@ -12024,6 +12024,9 @@ try{ const resp=await fetch(API_BASE,{method:'POST',headers:{'Content-Type':'app
 ⑭ 「离开」和「出」：表示离开某个国家/地方用「离开」。例：「出中国」→「离开中国」。
 ⑮ 句式杂糅/重复：表原因的「因为」和表目的的「为了」不能叠用。例：「因为为了我参加朋友公司的聚会」→「因为我要参加朋友公司的聚会」（或「为了参加朋友公司的聚会」）。
 ⑯ 转述句中的「应该说/说是」等引述框架不改变原句正确性，不要为了「更像转述」改写。
+⑰ 「了」和「是……的」混淆：学生明显在回答或强调「谁做的、什么时候做的、在哪里做的、怎么做的」时，汉语用「是……的」，不用「了」。例：「朋友们做了」→「是朋友们做的」（强调施事）；「我坐火车来了」→「我是坐火车来的」（强调方式）。若上下文不足以判断是否在强调，uncertain 填 true。
+⑱ 「多+V」结构：表示建议/叮嘱「多吃、多喝、多休息、多运动」时，「多」放在动词前面，不能写成「吃很多、喝很多」。例：「吃很多，喝很多」→「多吃，多喝水」（祈使/建议）。如果学生是在陈述自己「已经吃了很多、喝了很多」，句子本身没错——uncertain 填 true，不要硬纠。
+⑲ corrected 禁止生造词：改正后的每个词都必须是汉语真实存在的词；禁止把两个近义词拼接（如「时光」和「时间」不能拼成「时光间」），拿不准用词时选更简单、更常见的那个。
 
 【note 要求】
 1. note 用${targetLang}具体指出：哪个字/词/结构错了、应改成什么、属于哪类错误（别字/错词/离合词/缺词/多词/语序/搭配）。禁止空话套话（如“语序或表达的问题”“corrected based on the AI reply”）。
@@ -12051,7 +12054,7 @@ uncertain 表示你是否读不懂这个句子/分句、无法可靠推断学生
 - "最近日本的物价越来越增加"→"最近日本的物价越来越高"（"越来越"后接形容词）
 - "出中国"→"离开中国"（离开某地用"离开"）
 - "我听过我朋友看过那本书，但是她说了我不太理解了"→"我听说我朋友看过那本书，但是她说她不太理解"（两个分句都有错，各改各的："听过"→"听说"；"她说了我不太理解了"→"她说她不太理解"）
-这类短语/词语性错误也必须纠正，不要漏报。\n\n输出JSON数组：[{"original":"学生原文(片段)","corrected":"改正后(必须与original不同)","uncertain":true或false,"type":"错误类型（必须从上述固定中文类型中选一个）","pattern":"如果这个错误涉及语法格式/框式结构（可以填充其他内容的格式），写出该格式本身（如：要是...就...、越...越...、把字句、被字句、一边...一边...；不涉及就写空字符串）","note":"错误原因（用${targetLang}，具体说明，禁止空话）"}]。无错误返回[]。`; try{ const resp=await fetch(API_BASE,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${apiKey}`}, body:JSON.stringify({model:'deepseek-v4-pro',thinking:{type:'disabled'}, max_tokens:4096, messages:[{role:'system',content:prompt},{role:'user',content:(aiReplyRaw ? ('学生句子: '+JSON.stringify(userMessages)+'\n\nAI对话伙伴的自然回复（仅供参考，可能已包含正确说法）:\n'+String(aiReplyRaw)) : ('学生句子: '+JSON.stringify(userMessages)))}], temperature:0.1, response_format:{type:'json_object'}})}); const data=await resp.json(); if(data.error) throw new Error(data.error.message||"API error"); if(!data.choices||!data.choices[0]||!data.choices[0].message) throw new Error("API error"); let content=data.choices[0].message.content; content=content.replace(/```json/g,'').replace(/```/g,'').trim(); let parsed=null; try{ parsed=JSON.parse(content); }catch(e){ const arrM=content.match(/\[[\s\S]*\]/); const objM=content.match(/\{[\s\S]*\}/); const cand=arrM?arrM[0]:(objM?objM[0]:''); if(cand){ try{ parsed=JSON.parse(cand); }catch(e2){ parsed=null; } } } let arr=[]; if(Array.isArray(parsed)) arr=parsed; else if(parsed&&Array.isArray(parsed.mistakes)) arr=parsed.mistakes; else if(parsed&&Array.isArray(parsed.results)) arr=parsed.results; else if(parsed&&Array.isArray(parsed.errors)) arr=parsed.errors; else if(parsed&&typeof parsed.original==='string'&&typeof parsed.corrected==='string') arr=[parsed]; return arr; }catch(e){ return []; } }
+这类短语/词语性错误也必须纠正，不要漏报。\n\n输出JSON数组：[{"original":"学生原文(片段)","corrected":"改正后(必须与original不同)","uncertain":true或false,"type":"错误类型（必须从上述固定中文类型中选一个）","pattern":"如果这个错误涉及语法格式/框式结构（可以填充其他内容的格式），写出该格式本身（如：要是...就...、越...越...、把字句、被字句、一边...一边...；不涉及就写空字符串）","note":"错误原因（用${targetLang}，具体说明，禁止空话）"}]。无错误返回[]。`; try{ const resp=await fetch(API_BASE,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${apiKey}`}, body:JSON.stringify({model:'deepseek-v4-pro',thinking:{type:'disabled'}, max_tokens:4096, messages:[{role:'system',content:prompt},{role:'user',content:((contextMessages?('【对话上下文】（仅用于理解学生当前句子的意思，不要纠错上下文内容）\n'+contextMessages+'\n\n'):'') + (aiReplyRaw ? ('学生句子: '+JSON.stringify(userMessages)+'\n\nAI对话伙伴的自然回复（仅供参考，可能已包含正确说法）:\n'+String(aiReplyRaw)) : ('学生句子: '+JSON.stringify(userMessages))))}], temperature:0.1, response_format:{type:'json_object'}})}); const data=await resp.json(); if(data.error) throw new Error(data.error.message||"API error"); if(!data.choices||!data.choices[0]||!data.choices[0].message) throw new Error("API error"); let content=data.choices[0].message.content; content=content.replace(/```json/g,'').replace(/```/g,'').trim(); let parsed=null; try{ parsed=JSON.parse(content); }catch(e){ const arrM=content.match(/\[[\s\S]*\]/); const objM=content.match(/\{[\s\S]*\}/); const cand=arrM?arrM[0]:(objM?objM[0]:''); if(cand){ try{ parsed=JSON.parse(cand); }catch(e2){ parsed=null; } } } let arr=[]; if(Array.isArray(parsed)) arr=parsed; else if(parsed&&Array.isArray(parsed.mistakes)) arr=parsed.mistakes; else if(parsed&&Array.isArray(parsed.results)) arr=parsed.results; else if(parsed&&Array.isArray(parsed.errors)) arr=parsed.errors; else if(parsed&&typeof parsed.original==='string'&&typeof parsed.corrected==='string') arr=[parsed]; return arr; }catch(e){ return []; } }
     function isPunctuationOnlyDiff(a,b){var p='，。、！？；：…—·《》〈〉（）【】,.!?;:()[]{}<> ';var s=function(x){return (x||'').split('').filter(function(c){return p.indexOf(c)<0;}).join('');};return s(a)===s(b);}
     function filterMistakes(mistakes){ if(!mistakes||!mistakes.length) return []; const out=[]; for(const m of mistakes){ if(!m||!m.original||!m.corrected) continue; if(m.original===m.corrected) continue; if(isPunctuationOnlyDiff(m.original,m.corrected)) continue; if(out.some(x=>x.original===m.original&&x.corrected===m.corrected)) continue; out.push(m); } return out; }
     function charLcsLen(a,b){ const n=a.length,m=b.length; const dp=Array.from({length:n+1},()=>new Array(m+1).fill(0)); for(let i=n-1;i>=0;i--) for(let j=m-1;j>=0;j--) dp[i][j]=a[i]===b[j]?dp[i+1][j+1]+1:Math.max(dp[i+1][j],dp[i][j+1]); return dp[0][0]; }
@@ -12095,7 +12098,11 @@ uncertain 表示你是否读不懂这个句子/分句、无法可靠推断学生
         const c = stripForCompare(String(m.corrected || ''));
         if(o && c && o !== c && o.length >= 4){
             const sim = charLcsLen(o, c) / Math.max(o.length, c.length);
-            if(sim < 0.5) return true;
+            if(sim < 0.6) return true;
+            // 「了」和「是……的」混淆：原句用「了」、改句用「是……的」（如「朋友们做了」→「是朋友们做的」），意图常需确认
+            if(o.includes('了') && c.includes('是') && c.includes('的') && !o.includes('是')) return true;
+            // 原句很短、改句明显变长：句式改写，意图可能不确定
+            if(o.length <= 6 && c.length >= o.length + 2 && sim < 0.75) return true;
         }
         return false;
     }
@@ -12103,14 +12110,14 @@ uncertain 表示你是否读不懂这个句子/分句、无法可靠推断学生
         return (mistakes || []).some(isMeaningUncertainMistake);
     }
     // 💡 纠错块展示去重/合并：同一句（或同一错误片段）只展示一条；多个错误类型合并到这一条的 note 和 type 中
-    async function doubleCheckMistakes(userMessages, firstPass){
+    async function doubleCheckMistakes(userMessages, firstPass, contextMessages){
         const apiKey = apiKeyInput.value.trim();
         if(!apiKey || !userMessages || !userMessages.length) return [];
         const targetLang = targetLangSelect ? targetLangSelect.value : 'English';
         const firstDesc = (firstPass || []).map(m => '「' + (m.original||'') + '」→「' + (m.corrected||'') + '」(' + (m.type||'') + ')').join('；') || '（无）';
         const prompt = '你是HSK中文教师。第一轮纠错已经找出这些错误：' + firstDesc + '。现在请复查学生句子，专门找出【第一轮漏掉的】词语/短语/搭配/数量词/虚词/语序/框式结构等错误。要求：\n1. 逐词检查词义和搭配（动宾搭配、数量词位置、离合词、虚词用法等）。\n2. 只要确实有错误就报告；没有就返回[]，不要硬凑。4. 不要重复报告第一轮已经找出的错误。5. 学生转述/引用自己以前说错的句子不算错；可加可不加的成分（如「餐馆里」的「里」）不算错；同义虚词（但是/但）不要互相替换。\n3. 每个错误输出 original（只写有错误的最小片段/分句）、corrected、type（必须从固定中文错误类型中选一个）、pattern（若涉及框式结构/虚词格式则写出格式本身，否则空字符串）、uncertain（读不懂/无法推断意思时填 true，能猜到意思的小错填 false）、note（用' + targetLang + '，具体说明）。\n输出JSON数组：[{"original":"","corrected":"","type":"","uncertain":true或false,"pattern":"","note":""}]';
         try{
-            const resp = await fetch(API_BASE, { method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey}, body: JSON.stringify({ model:'deepseek-v4-pro', thinking:{ type:'disabled' }, max_tokens:2048, messages:[{ role:'system', content:prompt },{ role:'user', content: JSON.stringify(userMessages) }], temperature:0.1, response_format:{ type:'json_object' } }) });
+            const resp = await fetch(API_BASE, { method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey}, body: JSON.stringify({ model:'deepseek-v4-pro', thinking:{ type:'disabled' }, max_tokens:2048, messages:[{ role:'system', content:prompt },{ role:'user', content: (contextMessages ? ('【对话上下文】（仅用于理解学生当前句子的意思，不要纠错上下文内容）\n' + contextMessages + '\n\n') : '') + JSON.stringify(userMessages) }], temperature:0.1, response_format:{ type:'json_object' } }) });
             const data = await resp.json();
             if(data.error) return [];
             if(!data.choices || !data.choices[0] || !data.choices[0].message) return [];
@@ -12184,9 +12191,24 @@ uncertain 表示你是否读不懂这个句子/分句、无法可靠推断学生
             const right = '庆祝' + fest[1];
             out.push({ original: wrong, corrected: right, type: '搭配不当', note: '「祝+节日」不完整，应说「庆祝' + fest[1] + '」或「祝' + fest[1] + '快乐」。' });
         }
+        // 「了」和「是……的」混淆：孤立的「N们做了」很可能在回答「谁做的？」，应用「是……的」
+        const shiDe = t.match(/^([\u4e00-\u9fff]{1,8}们)做了[。！？!?]?$/);
+        if(shiDe){
+            const subject = shiDe[1];
+            out.push({ original: t, corrected: '是' + subject + '做的', type: '语义错误', uncertain: true, note: '如果你想强调「是谁做的」，应说「是' + subject + '做的」，不用「了」。请确认你的意思。' });
+        }
+        // 「吃/喝很多」：建议/叮嘱用「多+V」；陈述已发生的事则原句可能没错 → 标 uncertain 走母语确认
+        const eatDrink = t.match(/^(吃|喝)(?:得|的)?很多[，,、\s]*(?:(吃|喝)(?:得|的)?很多)?(?:的)?[。！？!?]?$/);
+        if(eatDrink){
+            const v1 = eatDrink[1], v2 = eatDrink[2];
+            let right;
+            if(v2) right = '多' + v1 + '，多' + v2 + (v2 === '喝' ? '水' : '');
+            else right = '多' + v1 + (v1 === '喝' ? '水' : '');
+            out.push({ original: t, corrected: right, type: '语义错误', uncertain: true, note: '这句话有两种可能：如果是建议/叮嘱，应说「' + right + '」；如果是陈述已经吃了很多、喝了很多，原句没有错。请确认你想表达的意思。' });
+        }
         return out;
     }
-    function dedupeMistakesByOriginal(mistakes){ if(!mistakes||!mistakes.length) return []; const out=[]; for(const m of mistakes){ const o=String(m.original||'').trim(); const c=String(m.corrected||'').trim(); if(!o||!c) continue; const ok=stripForCompare(o); const dupIdx=out.findIndex(x=>{ const xo=String(x.original||'').trim(); const xk=stripForCompare(xo); const xc=String(x.corrected||'').trim(); if(xk===ok) return true; if(xc===c) return true; const oOverlap=xk.includes(ok)||ok.includes(xk); const cOverlap=xc.includes(c)||c.includes(xc); return oOverlap&&cOverlap; }); if(dupIdx===-1){ out.push(m); continue; } const prev=out[dupIdx]; const xo=String(prev.original||'').trim(); const xc=String(prev.corrected||'').trim(); if(ok.length > stripForCompare(xo).length) prev.original = o; if(stripForCompare(c).length > stripForCompare(xc).length) prev.corrected = c; if(m.uncertain === true || String(m.uncertain) === 'true' || m.uncertain === 1) prev.uncertain = true; if(!prev.note && m.note) prev.note = m.note; else if(prev.note && m.note && String(prev.note).trim() !== String(m.note).trim()) prev.note = String(prev.note).trim() + '；' + String(m.note).trim(); const prevType = normalizeMistakeType(prev.type); const mType = normalizeMistakeType(m.type) || inferMistakeType(m); if(prevType && mType && !String(prev.type).includes(mType)) prev.type = prevType + '、' + mType; else if(!prevType && mType) prev.type = mType; out[dupIdx] = prev; } return out; }
+    function dedupeMistakesByOriginal(mistakes){ if(!mistakes||!mistakes.length) return []; const out=[]; for(const m of mistakes){ const o=String(m.original||'').trim(); const c=String(m.corrected||'').trim(); if(!o||!c) continue; const ok=stripForCompare(o); const dupIdx=out.findIndex(x=>{ const xo=String(x.original||'').trim(); const xk=stripForCompare(xo); const xc=String(x.corrected||'').trim(); if(xk===ok) return true; if(xc===c) return true; const oOverlap=xk.includes(ok)||ok.includes(xk); const cOverlap=xc.includes(c)||c.includes(xc); return oOverlap&&cOverlap; }); if(dupIdx===-1){ out.push(m); continue; } const prev=out[dupIdx]; const xo=String(prev.original||'').trim(); const xc=String(prev.corrected||'').trim(); if(ok.length > stripForCompare(xo).length) prev.original = o; const _mo=stripForCompare(prev.original); const _mc=stripForCompare(prev.corrected); const _nc=stripForCompare(c); const _prevSim=(_mo&&_mc)?(charLcsLen(_mo,_mc)/Math.max(_mo.length,_mc.length)):0; const _newSim=(_mo&&_nc)?(charLcsLen(_mo,_nc)/Math.max(_mo.length,_nc.length)):0; if(_newSim>_prevSim+0.05 || (Math.abs(_newSim-_prevSim)<=0.05 && _nc.length<_mc.length)) prev.corrected = c; if(m.uncertain === true || String(m.uncertain) === 'true' || m.uncertain === 1) prev.uncertain = true; if(!prev.note && m.note) prev.note = m.note; else if(prev.note && m.note && String(prev.note).trim() !== String(m.note).trim()) prev.note = String(prev.note).trim() + '；' + String(m.note).trim(); const prevType = normalizeMistakeType(prev.type); const mType = normalizeMistakeType(m.type) || inferMistakeType(m); if(prevType && mType && !String(prev.type).includes(mType)) prev.type = prevType + '、' + mType; else if(!prevType && mType) prev.type = mType; out[dupIdx] = prev; } return out; }
     // 复句只显示有错误的分句：按逗号/分号切分，只保留与改动区间重叠的分句（如含关联词的两个分句都有错就都显示）
     function narrowMistakeToClauses(original, corrected){
         const o = String(original || '').trim(), c = String(corrected || '').trim();
@@ -12669,12 +12691,28 @@ async function handleEndConversation(){ if(chatAbortController){ chatAbortContro
     function alignReplyWithCorrections(replyRaw, mistakes){
         let r = String(replyRaw || '');
         if(!r || !mistakes || !mistakes.length) return r;
+        const items = [];
         for(const m of mistakes){
             const o = String(m.original || '').trim();
             const c = String(m.corrected || '').trim();
             if(!o || !c || o === c || o.length < 2) continue;
             if(c.includes(o)) continue;
-            r = r.replace(o, c);
+            items.push({ o, c });
+        }
+        if(!items.length) return r;
+        // 1) AI 未改写、直接复述原句时：逐个替换为 corrected
+        for(const it of items){
+            if(r.includes(it.o)) r = r.split(it.o).join(it.c);
+        }
+        // 2) AI 已改写复述（如「哦，你是说度过了开心的时光吧」）：把确认引导语后的复述内容整体替换为 corrected
+        const leadMatch = r.match(/(?:哦[，,]?\s*)?(?:你是说|你是想说|你的意思是|意思是说|是说)/);
+        if(leadMatch && leadMatch.index !== undefined){
+            const start = leadMatch.index + leadMatch[0].length;
+            const rest = r.slice(start);
+            const tailMatch = rest.match(/[。！？!?；;\n]/);
+            const endIdx = tailMatch ? start + tailMatch.index : r.length;
+            const joined = items.map(it => it.c).join('，');
+            r = r.slice(0, start) + joined + '，对吗？' + r.slice(endIdx + 1);
         }
         return r;
     }
@@ -12776,7 +12814,7 @@ async function handleEndConversation(){ if(chatAbortController){ chatAbortContro
                 if(_nw){ m.original = _nw.original; m.corrected = _nw.corrected; }
                 if(meaning) m.native = meaning;
             }
-            if(filtered.length === 0){
+            if(filtered.length === 0 && !meaning){
                 const _lh = localMistakeHeuristics(text);
                 for(const _m of _lh){ filtered.push(_m); }
             }
@@ -12804,6 +12842,10 @@ async function handleEndConversation(){ if(chatAbortController){ chatAbortContro
                 recordGapFromMistake(m);
             }
             if(reply){
+                if(filtered.length > 0){
+                    // 最终一致性：纠错块显示的是 narrow 后的分句，AI 复述部分必须与之完全一致
+                    cleanReplyRaw = alignReplyWithCorrections(cleanReplyRaw, filtered);
+                }
                 for(const m of filtered){
                     addWrongSentence('','对话纠错',m.corrected,'',m.original,m.note||'',m.type||'');
                 }
@@ -12844,6 +12886,13 @@ async function handleEndConversation(){ if(chatAbortController){ chatAbortContro
         }
     }
 
+    // 构造纠错用的聊天上下文：取最近几轮对话，帮助 AI 判断学生当前句子的意图（如是否在回答「谁做的？」）
+    function buildChatContextForCorrection(){
+        const msgs = (chatHistory || []).slice(-6);
+        if(!msgs.length) return '';
+        return msgs.map(m => (m.role === 'assistant' ? 'AI：' : '学生：') + stripInlineCorrectionBlock(m.content)).join('\n');
+    }
+
     const _chatMistakeCache = new Map();
     async function handleUserMessage(){
         if(window._chatBusy) return;
@@ -12858,9 +12907,10 @@ async function handleEndConversation(){ if(chatAbortController){ chatAbortContro
             const _cacheKey = (targetLangSelect ? targetLangSelect.value : 'English') + '|' + stripForCompare(text);
             let mistakes = _chatMistakeCache.get(_cacheKey);
             if(!mistakes){
-                mistakes = await analyzeMistakesBatch([text], '');
+                const _context = buildChatContextForCorrection();
+                mistakes = await analyzeMistakesBatch([text], '', _context);
                 let _extra = [];
-                try{ _extra = await doubleCheckMistakes([text], mistakes); }catch(e){ _extra = []; }
+                try{ _extra = await doubleCheckMistakes([text], mistakes, _context); }catch(e){ _extra = []; }
                 if(_extra && _extra.length){ for(const _em of _extra){ if(_em && _em.original && _em.corrected) mistakes.push(_em); } }
                 mistakes = mistakes.map(m => Object.assign({}, m));
                 _chatMistakeCache.set(_cacheKey, mistakes);
@@ -12868,7 +12918,12 @@ async function handleEndConversation(){ if(chatAbortController){ chatAbortContro
             } else {
                 mistakes = mistakes.map(m => Object.assign({}, m));
             }
-            const preFiltered = dedupeMistakesByOriginal(filterMistakes(mistakes).filter(m => !isFalseCorrection(m.original, m.corrected)));
+            let preFiltered = dedupeMistakesByOriginal(filterMistakes(mistakes).filter(m => !isFalseCorrection(m.original, m.corrected)));
+            if(preFiltered.length === 0){
+                // AI 全部漏报时的本地兜底：先跑规则，若命中可疑句（uncertain）则走「先问母语」流程
+                const _lh = localMistakeHeuristics(text);
+                if(_lh.length){ preFiltered = _lh; mistakes = _lh; }
+            }
             if(preFiltered.length > 0 && shouldAskMeaning(preFiltered)){
                 const _askItems = preFiltered.filter(isMeaningUncertainMistake);
                 window._chatMeaningPending = { text: text, mistakes: mistakes };
