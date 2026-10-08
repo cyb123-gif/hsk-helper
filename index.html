@@ -13117,39 +13117,39 @@ ${searchRule}
         const original = String(m.original || '').trim();
         const note = String(m.note || '').slice(0, 120);
         if(!original && !corrected) return;
-        // 缺口词/缺口语法统一记录「错误句子」（学生原句）；词类额外记录「错误词/字」作为练习目标。
-        // 语法类：记录错误句子 + 语法框架（框架从改正句/差异中提取，作为生成时沿用的结构）
+        // 缺口词/缺口语法统一记录「改正后的句子」；词类额外记录「错误词/字」作为练习目标。
+        // 语法类：记录改正后的句子 + 语法框架（框架从改正句/差异中提取，作为生成时沿用的结构）
         if(GAP_PATTERN_TYPES.includes(type)){
             if(corrected && gapHanzi(corrected).length >= 4){
                 const frame = (m.pattern && String(m.pattern).trim()) || detectFramePattern(corrected) || detectXuciInDiff(original, corrected);
-                recordGapPattern(frame, original, '纠错', note + (type ? '（' + type + '）' : ''));
+                recordGapPattern(frame, corrected, '纠错', note + (type ? '（' + type + '）' : ''));
             } else if(type === '虚词错误' && corrected){
                 const xc = detectXuciInDiff(original, corrected);
-                recordGapPattern(xc, original, '纠错', note + (type ? '（' + type + '）' : ''));
+                recordGapPattern(xc, corrected, '纠错', note + (type ? '（' + type + '）' : ''));
             }
             return;
         }
-        // 词类：先找出学生写错的那个词/字（取改正后的正确形式），连同错误句子一起记录
+        // 词类：先找出学生写错的那个词/字（取改正后的正确形式），连同改正后的句子一起记录
         if(type === '离合词错误' && corrected){
             const sep = (typeof SEPARABLE_WORDS !== 'undefined') ? SEPARABLE_WORDS : new Set(['见面','帮忙','生气','洗澡','睡觉','毕业','结婚','聊天','散步','游泳','跑步','跳舞','唱歌','上课','上班','开会','握手','道歉','担心','放心','注意','考试']);
-            for(const wd of sep){ if(corrected.includes(wd)){ recordGapWord(wd, '纠错', note, '', original); return; } }
+            for(const wd of sep){ if(corrected.includes(wd)){ recordGapWord(wd, '纠错', note, '', corrected); return; } }
         }
         if(corrected){
             const w = extractGapWordFromCorrection(original, corrected);
-            if(w){ recordGapWord(w, '纠错', note, '', original); return; }
+            if(w){ recordGapWord(w, '纠错', note, '', corrected); return; }
         }
         if(GAP_WORD_TYPES.includes(type)){
             if(corrected){
                 const hz = gapHanzi(corrected);
-                if(hz.length >= 1 && hz.length <= 6) recordGapWord(hz, '纠错', note, '', original);
+                if(hz.length >= 1 && hz.length <= 6) recordGapWord(hz, '纠错', note, '', corrected);
             } else {
                 const hz = gapHanzi(original);
                 if(hz.length >= 1 && hz.length <= 6) recordGapWord(hz, '纠错', note, '', original);
             }
         } else if(corrected){
             const hz = gapHanzi(corrected);
-            if(hz.length <= 6) recordGapWord(hz, '纠错', note, '', original);
-            else if(hz.length >= 4) recordGapPattern('', original, '纠错', note);
+            if(hz.length <= 6) recordGapWord(hz, '纠错', note, '', corrected);
+            else if(hz.length >= 4) recordGapPattern('', corrected, '纠错', note);
         }
     }
     function recordGapFromDictationWrong(ref, user){
@@ -13284,12 +13284,12 @@ ${searchRule}
         const patterns = gapActivePatterns().slice(0, maxPatterns || 5);
         let s = '';
         if(words.length){
-            s += '【缺口词/短语 - 必须覆盖，且必须沿用错误句子的结构】以下是学生出错过的词/短语，每个都附有他当时写错的那句话。生成新句子时必须写成「缺口词/短语 + 错误句子结构框架 + 换话题的其他成分」：保留该词/短语的正确形式、沿用错误句子的结构框架，只替换话题和其他成分，不能照抄原句；并且该词/短语在新句子中的意思必须与错误句子里想表达的意思完全一致（特别注意多义词/多音词，禁止换成该词的其他意思）。';
-            s += words.map(w => '「' + w.text + '」（错误句子：' + (w.sentence || w.text) + '）').join('、') + '。写完后逐词自检，缺少任何一个就重写。\n';
+            s += '【缺口词/短语 - 必须覆盖，且必须沿用原句的结构】以下是学生出错过的词/短语，每个都附有它出现的原句（已改正）。生成新句子时必须写成「缺口词/短语 + 原句结构框架 + 换话题的其他成分」：保留该词/短语、沿用原句结构框架，只替换话题和其他成分，不能照抄原句；并且该词/短语在新句子中的意思必须与原句里的意思完全一致（特别注意多义词/多音词，禁止换成该词的其他意思）。';
+            s += words.map(w => '「' + w.text + '」（原句：' + (w.sentence || w.text) + '）').join('、') + '。写完后逐词自检，缺少任何一个就重写。\n';
         }
         if(patterns.length){
-            s += '【缺口语法 - 必须包含同语法句子】以下是学生不会的语法格式/框架，每个都附有他当时写错的句子（错误句子只用来了解他当时想表达的意思，不要照抄其中的错误结构）。请在正文中写出至少' + Math.min(2, patterns.length) + '个使用【正确语法格式】的新句子（句型相同、内容不同，不能照抄错误句子）：';
-            s += patterns.map(p => '「' + (p.text || p.sentence) + '」' + (p.sentence ? '（错误句子：' + p.sentence + '）' : '')).join('；') + '。\n';
+            s += '【缺口语法 - 必须包含同语法句子】以下是学生不会的语法格式/框架，每个都附有它出现的原句（已改正）。请在正文中写出至少' + Math.min(2, patterns.length) + '个使用相同语法的新句子（句型相同、内容不同，不能照抄原句）：';
+            s += patterns.map(p => '「' + (p.text || p.sentence) + '」' + (p.sentence ? '（原句：' + p.sentence + '）' : '')).join('；') + '。\n';
         }
         return s;
     }
@@ -13297,9 +13297,9 @@ ${searchRule}
         const words = gapActiveWords().slice(0, 6);
         const patterns = gapActivePatterns().slice(0, 3);
         if(!words.length && !patterns.length) return '';
-        let s = '【缺口词/短语/语法 - 动态运用】学生在以下内容上有缺口，聊天时围绕话题自然、不着痕迹地用上它们（每次选1-2个即可，不要硬塞）。使用时必须沿用所记录错误句子的句型，只替换其他成分；缺口词/短语还要保持它在错误句子里的意思不变（防止多义词换义）：\n';
-        if(words.length) s += '缺口词/短语：' + words.map(w => '「' + w.text + '」（错误句子：' + (w.sentence || w.text) + '）').join('；') + '\n';
-        if(patterns.length) s += '缺口语法（用同语法说新句子，内容不同，不要照抄错误结构）：' + patterns.map(p => '「' + (p.text || p.sentence) + '」' + (p.sentence ? '（错误句子：' + p.sentence + '）' : '')).join('；') + '\n';
+        let s = '【缺口词/短语/语法 - 动态运用】学生在以下内容上有缺口，聊天时围绕话题自然、不着痕迹地用上它们（每次选1-2个即可，不要硬塞）。使用时必须沿用所记录原句的句型，只替换其他成分；缺口词/短语还要保持它在原句里的意思不变（防止多义词换义）：\n';
+        if(words.length) s += '缺口词/短语：' + words.map(w => '「' + w.text + '」（原句：' + (w.sentence || w.text) + '）').join('；') + '\n';
+        if(patterns.length) s += '缺口语法（用同语法说新句子，内容不同）：' + patterns.map(p => '「' + (p.text || p.sentence) + '」' + (p.sentence ? '（原句：' + p.sentence + '）' : '')).join('；') + '\n';
         return s;
     }
     // 测试题库
