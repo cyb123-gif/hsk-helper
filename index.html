@@ -844,9 +844,9 @@
         </div>
 
         <div class="card">
-            <div class="stat-title"><span id="gapBankTitle">🎯 错误库（缺口词/短语 + 缺口语法）</span><span class="level-badge" id="gapCountBadge">0词/0语法</span></div>
-            <div id="gapBankList" class="mistake-list">暂无缺口词/短语/语法</div>
-            <div class="small-note" id="gapBankNote">错误库来自：怎么说查询、聊天纠错、阅读标不懂、听写/读打/听打错误、写作提示。每个缺口词/短语都会连同原句一起记录，生成练习时写成「缺口词/短语 + 原句语法 + 换话题的其他成分」。阅读、听写、写作、练习、聊天会据此动态调整内容。</div>
+            <div class="stat-title"><span id="gapBankTitle">🎯 错误库（错误的词/句子）</span><span class="level-badge" id="gapCountBadge">0条</span></div>
+            <div id="gapBankList" class="mistake-list">暂无错误记录</div>
+            <div class="small-note" id="gapBankNote">错误库来自：怎么说查询、聊天纠错、阅读标不懂、听写/读打/听打错误、写作提示。每条错误都会连同改正后的句子一起记录，生成练习时沿用改正后句子的结构、用正确的形式换话题再生成新句子。阅读、听写、写作、练习、聊天会据此动态调整内容。</div>
         </div>
     </div>
 </div>
@@ -7649,8 +7649,8 @@ const HSK2_VOCAB = [
         'gap.cleared':'缺口库已清空', 'gap.none':'还没有缺口词/短语/语法，请先在聊天、阅读、听写等模式中产生记录',
         'gap.all_acquired':'🎉 所有缺口词/语法都已习得（正确使用3次），无需再专门练习',
         'gap.word_sentence':'原句', 'gap.pattern_label':'语法格式',
-        'gap.title':'🎯 错误库（缺口词/短语 + 缺口语法）',
-        'gap.note':'错误库来自：怎么说查询、聊天纠错、阅读标不懂、听写/读打/听打错误、写作提示。每个缺口词/短语都会连同原句一起记录，生成练习时写成「缺口词/短语 + 原句语法 + 换话题的其他成分」。阅读、听写、写作、练习、聊天会据此动态调整内容。',
+        'gap.title':'🎯 错误库（错误的词/句子）',
+        'gap.note':'错误库来自：怎么说查询、聊天纠错、阅读标不懂、听写/读打/听打错误、写作提示。每条错误都会连同改正后的句子一起记录，生成练习时沿用改正后句子的结构、用正确的形式换话题再生成新句子。阅读、听写、写作、练习、聊天会据此动态调整内容。',
         'gap.acquired_label':'✅ 已习得', 'gap.active_label':'🔴 未习得',
         'gap.first':'首次', 'gap.last':'最近', 'gap.occur_x':'出现x{n}', 'gap.correct_uses':'正确使用{n}/3', 'gap.use_times_label':'🕒 正确使用',
         'gap.start_btn':'🎯 直接开始（缺口词/语法）',
@@ -9840,7 +9840,7 @@ const HSK2_VOCAB = [
             'gap.word_sentence':'Original sentence', 'gap.pattern_label':'Grammar pattern',
             'gap.acquired_label':'✅ Acquired', 'gap.active_label':'🔴 Not acquired',
             'gap.first':'First', 'gap.last':'Last', 'gap.occur_x':'Appeared x{n}', 'gap.correct_uses':'Correct uses {n}/3', 'gap.use_times_label':'🕒 Correct uses',
-            'gap.title':'🎯 Error Bank (gap words/phrases + gap grammar)',
+            'gap.title':'🎯 Error Bank (wrong words/sentences)',
             'gap.note':'Gap items come from How-to-say, chat corrections, reading marks, dictation/typing errors and writing hints. Each word/phrase is stored with its sentence; practice keeps the original pattern and replaces other parts. Reading, dictation, writing, practice and chat adapt dynamically.',
             'gap.start_btn':'🎯 Start directly (gaps)',
             'gap.start_btn_title':'Practice gap words/grammar without selecting vocab/grammar; other sentence parts follow the HSK level on the right',
@@ -9875,7 +9875,7 @@ const HSK2_VOCAB = [
             'gap.word_sentence':'元の文', 'gap.pattern_label':'文法形式',
             'gap.acquired_label':'✅ 習得済み', 'gap.active_label':'🔴 未習得',
             'gap.first':'初回', 'gap.last':'最近', 'gap.occur_x':'出現x{n}', 'gap.correct_uses':'正しく使用{n}/3', 'gap.use_times_label':'🕒 正しく使用',
-            'gap.title':'🎯 エラーバンク（ギャップ語/句 + ギャップ文法）',
+            'gap.title':'🎯 エラーバンク（間違えた語/文）',
             'gap.note':'ギャップは「どう言う」・チャット訂正・読解のマーク・書き取り/タイピング誤り・作文ヒントから記録されます。各語/句は元の文ごと保存され、練習では元の文型を保ち他の成分を置き換えます。読解・書き取り・作文・練習・チャットが自動調整されます。',
             'gap.start_btn':'🎯 直接開始（ギャップ語/文法）',
             'gap.start_btn_title':'語彙・文法を選ばずにギャップ語/文法を練習。文の他の部分は右のHSKレベルに従う',
@@ -9910,7 +9910,7 @@ const HSK2_VOCAB = [
             'gap.word_sentence':'원문장', 'gap.pattern_label':'문법 형식',
             'gap.acquired_label':'✅ 습득함', 'gap.active_label':'🔴 미습득',
             'gap.first':'처음', 'gap.last':'최근', 'gap.occur_x':'등장x{n}', 'gap.correct_uses':'올바른 사용 {n}/3', 'gap.use_times_label':'🕒 올바른 사용',
-            'gap.title':'🎯 오류 뱅크 (갭 단어/구 + 갭 문법)',
+            'gap.title':'🎯 오류 뱅크 (틀린 단어/문장)',
             'gap.note':'갭은 "어떻게 말해요", 채팅 교정, 읽기 표시, 받아쓰기/타자 오류, 작문 힌트에서 기록됩니다. 각 단어/구는 원문장과 함께 저장되며, 연습 시 원래 문형을 유지하고 다른 성분을 바꿉니다. 읽기, 받아쓰기, 작문, 연습, 채팅이 자동 조정됩니다.',
             'gap.start_btn':'🎯 바로 시작 (갭 단어/문법)',
             'gap.start_btn_title':'어휘/문법 선택 없이 갭 단어/문법 연습. 문장의 나머지 부분은 오른쪽 HSK 레벨을 따름',
@@ -9945,7 +9945,7 @@ const HSK2_VOCAB = [
             'gap.word_sentence':'Phrase d\'origine', 'gap.pattern_label':'Format grammatical',
             'gap.acquired_label':'✅ Acquis', 'gap.active_label':'🔴 Non acquis',
             'gap.first':'Première', 'gap.last':'Dernier', 'gap.occur_x':'Apparu x{n}', 'gap.correct_uses':'Bons usages {n}/3', 'gap.use_times_label':'🕒 Bons usages',
-            'gap.title':'🎯 Banque d\'erreurs (mots/expressions + grammaire)',
+            'gap.title':'🎯 Banque d\'erreurs (mots/phrases fautifs)',
             'gap.note':'Les lacunes viennent de « Comment dire », corrections, marques de lecture, erreurs de dictée/frappe et conseils d\'écriture. Chaque mot/expression est enregistré avec sa phrase ; l\'entraînement garde la structure d\'origine et remplace le reste. Lecture, dictée, écriture, exercices et chat s\'adaptent.',
             'gap.start_btn':'🎯 Commencer directement (lacunes)',
             'gap.start_btn_title':'S\'entraîner sans choisir vocabulaire/grammaire ; le reste de la phrase suit le niveau HSK de droite',
@@ -9980,7 +9980,7 @@ const HSK2_VOCAB = [
             'gap.word_sentence':'Ursprünglicher Satz', 'gap.pattern_label':'Grammatikformat',
             'gap.acquired_label':'✅ Erworben', 'gap.active_label':'🔴 Nicht erworben',
             'gap.first':'Erstmals', 'gap.last':'Zuletzt', 'gap.occur_x':'Aufgetreten x{n}', 'gap.correct_uses':'Richtig {n}/3', 'gap.use_times_label':'🕒 Richtig verwendet',
-            'gap.title':'🎯 Fehlerbank (Lückenwörter/-phrasen + -grammatik)',
+            'gap.title':'🎯 Fehlerbank (falsche Wörter/Sätze)',
             'gap.note':'Lücken stammen aus „Wie sagt man", Korrekturen, Lesemarkierungen, Diktat-/Tippfehlern und Schreibhinweisen. Jedes Wort/jede Phrase wird mit dem Satz gespeichert; das Training behält das ursprüngliche Muster bei und ersetzt andere Teile. Lesen, Diktat, Schreiben, Üben und Chat passen sich an.',
             'gap.start_btn':'🎯 Direkt starten (Lücken)',
             'gap.start_btn_title':'Übe Lückenwörter/-grammatik ohne Wortschatz-/Grammatikauswahl; der Rest folgt dem HSK-Level rechts',
@@ -10015,7 +10015,7 @@ const HSK2_VOCAB = [
             'gap.word_sentence':'Frase original', 'gap.pattern_label':'Formato gramatical',
             'gap.acquired_label':'✅ Adquirido', 'gap.active_label':'🔴 No adquirido',
             'gap.first':'Primera', 'gap.last':'Última', 'gap.occur_x':'Apareció x{n}', 'gap.correct_uses':'Usos correctos {n}/3', 'gap.use_times_label':'🕒 Usos correctos',
-            'gap.title':'🎯 Banco de errores (palabras/frases + gramática)',
+            'gap.title':'🎯 Banco de errores (palabras/frases incorrectas)',
             'gap.note':'Los huecos provienen de "Cómo se dice", correcciones, marcas de lectura, errores de dictado/tecleo y sugerencias de escritura. Cada palabra/frase se guarda con su frase; la práctica mantiene la estructura original y cambia el resto. Lectura, dictado, escritura, práctica y chat se adaptan.',
             'gap.start_btn':'🎯 Empezar directo (huecos)',
             'gap.start_btn_title':'Practica huecos sin elegir vocabulario/gramática; el resto de la frase sigue el nivel HSK de la derecha',
@@ -10050,7 +10050,7 @@ const HSK2_VOCAB = [
             'gap.word_sentence':'Исходное предложение', 'gap.pattern_label':'Грамматический формат',
             'gap.acquired_label':'✅ Усвоено', 'gap.active_label':'🔴 Не усвоено',
             'gap.first':'Первый', 'gap.last':'Последний', 'gap.occur_x':'Встретилось x{n}', 'gap.correct_uses':'Правильно {n}/3', 'gap.use_times_label':'🕒 Правильные использования',
-            'gap.title':'🎯 Банк ошибок (пробелы: слова/фразы + грамматика)',
+            'gap.title':'🎯 Банк ошибок (неверные слова/фразы)',
             'gap.note':'Пробелы берутся из «Как сказать», исправлений, отметок при чтении, ошибок диктанта/набора и подсказок письма. Каждое слово/фраза хранится с предложением; тренировка сохраняет исходную конструкцию и меняет остальное. Чтение, диктант, письмо, упражнения и чат адаптируются.',
             'gap.start_btn':'🎯 Начать сразу (пробелы)',
             'gap.start_btn_title':'Тренировка пробелов без выбора лексики/грамматики; остальная часть предложения по уровню HSK справа',
@@ -10085,7 +10085,7 @@ const HSK2_VOCAB = [
             'gap.word_sentence':'ประโยคต้นฉบับ', 'gap.pattern_label':'รูปแบบไวยากรณ์',
             'gap.acquired_label':'✅ เรียนรู้แล้ว', 'gap.active_label':'🔴 ยังไม่เรียนรู้',
             'gap.first':'ครั้งแรก', 'gap.last':'ล่าสุด', 'gap.occur_x':'ปรากฏ x{n}', 'gap.correct_uses':'ใช้ถูก {n}/3', 'gap.use_times_label':'🕒 ใช้ถูก',
-            'gap.title':'🎯 คลังข้อผิดพลาด (คำ/วลี + ไวยากรณ์ที่ขาด)',
+            'gap.title':'🎯 คลังข้อผิดพลาด (คำ/ประโยคที่ผิด)',
             'gap.note':'รายการที่ขาดมาจาก "พูดอย่างไร" การแก้ไข การทำเครื่องหมายการอ่าน ข้อผิดพลาดการเขียนตามคำบอก/พิมพ์ และคำแนะนำการเขียน แต่ละคำ/วลีบันทึกพร้อมประโยค การฝึกใช้โครงสร้างเดิมและเปลี่ยนส่วนอื่น การอ่าน เขียนตามคำบอก การเขียน ฝึกฝน และแชทปรับตามอัตโนมัติ',
             'gap.start_btn':'🎯 เริ่มเลย (คำ/ไวยากรณ์ที่ขาด)',
             'gap.start_btn_title':'ฝึกคำ/ไวยากรณ์ที่ขาดโดยไม่ต้องเลือกคำศัพท์/ไวยากรณ์ ส่วนอื่นของประโยคตามระดับ HSK ด้านขวา',
@@ -10120,7 +10120,7 @@ const HSK2_VOCAB = [
             'gap.word_sentence':'Frase originale', 'gap.pattern_label':'Formato grammaticale',
             'gap.acquired_label':'✅ Acquisito', 'gap.active_label':'🔴 Non acquisito',
             'gap.first':'Prima', 'gap.last':'Ultimo', 'gap.occur_x':'Comparso x{n}', 'gap.correct_uses':'Usi corretti {n}/3', 'gap.use_times_label':'🕒 Usi corretti',
-            'gap.title':'🎯 Banca errori (parole/frasi + grammatica lacunose)',
+            'gap.title':'🎯 Banca errori (parole/frasi sbagliate)',
             'gap.note':'Le lacune provengono da "Come si dice", correzioni, segni di lettura, errori di dettato/digitazione e suggerimenti di scrittura. Ogni parola/frase è salvata con la frase; l\'allenamento mantiene la struttura originale e sostituisce il resto. Lettura, dettato, scrittura, esercizi e chat si adattano.',
             'gap.start_btn':'🎯 Inizia subito (lacune)',
             'gap.start_btn_title':'Allena le lacune senza scegliere vocabolario/grammatica; il resto segue il livello HSK a destra',
@@ -10165,7 +10165,7 @@ const HSK2_VOCAB = [
                         'gap.occur_x':'Xuất hiện x{n}',
                         'gap.correct_uses':'Dùng đúng {n}/3',
                         'gap.use_times_label':'🕒 Lần dùng đúng',
-                        'gap.title':'🎯 Kho lỗi (từ/cụm thiếu hụt + ngữ pháp thiếu hụt)',
+                        'gap.title':'🎯 Kho lỗi (từ/câu sai)',
                         'gap.note':'Mục thiếu hụt đến từ Nói thế nào, sửa lỗi hội thoại, đánh dấu khi đọc, lỗi nghe chép/gõ và gợi ý viết. Mỗi từ/cụm được lưu kèm câu; khi luyện giữ nguyên cấu trúc gốc và thay các phần khác. Đọc, nghe chép, viết, luyện và trò chuyện tự điều chỉnh theo đó.',
                         'gap.start_btn':'🎯 Bắt đầu ngay (thiếu hụt)',
                         'gap.start_btn_title':'Luyện từ/ngữ pháp thiếu hụt, không cần chọn từ vựng/ngữ pháp; phần còn lại của câu theo cấp HSK bên phải',
@@ -10239,7 +10239,7 @@ const HSK2_VOCAB = [
                         'gap.occur_x':'Muncul x{n}',
                         'gap.correct_uses':'Benar {n}/3',
                         'gap.use_times_label':'🕒 Jumlah benar',
-                        'gap.title':'🎯 Bank Kesalahan (kata/frasa gap + tata bahasa gap)',
+                        'gap.title':'🎯 Bank Kesalahan (kata/kalimat salah)',
                         'gap.note':'Item gap berasal dari Bagaimana-bilang, koreksi percakapan, tanda baca, kesalahan dikte/ketik, dan petunjuk menulis. Setiap kata/frasa disimpan dengan kalimatnya; latihan menjaga pola asli dan mengganti bagian lain. Membaca, dikte, menulis, latihan, dan percakapan menyesuaikan secara dinamis.',
                         'gap.start_btn':'🎯 Mulai langsung (gap)',
                         'gap.start_btn_title':'Latihan kata/tata bahasa gap tanpa memilih kosakata/tata bahasa; bagian kalimat lain mengikuti level HSK di kanan',
@@ -10313,7 +10313,7 @@ const HSK2_VOCAB = [
                         'gap.occur_x':'Výskyt x{n}',
                         'gap.correct_uses':'Správne použitia {n}/3',
                         'gap.use_times_label':'🕒 Správne použitia',
-                        'gap.title':'🎯 Banka chýb (medzerové slová/frázy + medzerová gramatika)',
+                        'gap.title':'🎯 Banka chýb (chybné slová/vety)',
                         'gap.note':'Medzerové položky pochádzajú z Ako-sa-povie, opráv konverzácie, označení pri čítaní, chýb diktátu/písania a rád pri písaní. Každé slovo/fráza sa ukladá s vetou; cvičenie zachová pôvodný vzor a mení ostatné časti. Čítanie, diktát, písanie, cvičenie a konverzácia sa dynamicky prispôsobujú.',
                         'gap.start_btn':'🎯 Začať priamo (medzery)',
                         'gap.start_btn_title':'Cvič medzerové slová/gramatiku bez výberu slovnej zásoby/gramatiky; ostatné časti vety sa riadia úrovňou HSK vpravo',
@@ -11040,8 +11040,8 @@ const HSK2_VOCAB = [
         const level = parseInt((document.getElementById('dictationGenLevelSelect') && document.getElementById('dictationGenLevelSelect').value) || aiLevelSelect.value) || 3;
         const source = (document.getElementById('dictationGenSourceSelect') && document.getElementById('dictationGenSourceSelect').value) || 'gap';
         const targetLang = targetLangSelect.value;
-        if(source === 'gap' && gapActiveWords().length === 0 && gapActivePatterns().length === 0){
-            showToast(gapBank.words.length + gapBank.patterns.length > 0 ? t('gap.all_acquired') : t('gap.none'));
+        if(source === 'gap' && gapActiveItems().length === 0){
+            showToast(gapBank.items.length > 0 ? t('gap.all_acquired') : t('gap.none'));
             return;
         }
         if(btn){ btn.disabled = true; btn.textContent = t('dictation.gen_generating'); }
@@ -11186,8 +11186,8 @@ const HSK2_VOCAB = [
             reflectionItems.push({ mode: '阅读', text: u.sentence || u.text, note: '你在这篇文章里标了“不懂”' });
         }
         for(const u of readingSessionUnknowns){
-            if(u.type === 'word') recordGapWord(u.text, '阅读', '阅读中标了「不懂」', '', u.sentence || u.text);
-            else recordGapPattern('', u.sentence || u.text, '阅读', '阅读中标了「不懂」');
+            if(u.type === 'word') recordGapItem(u.text, u.text, u.sentence || u.text, '阅读', '阅读中标了「不懂」', '');
+            else recordGapItem(u.sentence || u.text, '', u.sentence || u.text, '阅读', '阅读中标了「不懂」', '');
         }
         currentReadingAnalyzed = true;
         readingSessionUnknowns = [];
@@ -11515,7 +11515,7 @@ const HSK2_VOCAB = [
         const searchRule = newsContext ? newsContext : '【联网搜索素材】本次未搜索到新闻素材，文章可以写一个时间明确属于2026年近期的话题，但不要编造具体可查证的假新闻。';
         const mustWordsRule = mustWords.length ? '【必用词语 - 最高优先级】以下词语必须全部自然地出现在正文 content 中（每个词至少出现一次，顺序不限，不要改动这些词）：' + mustWords.join('、') + '。写完后逐词自检：如果缺少任何一个，就必须重写正文，直到全部包含为止。' : '';
         const levelCoverageRule = '【等级词汇/语法尽量覆盖 - 不牺牲意思】在句子正确自然的前提下，尽量把 HSK' + mix.level + ' 及以下等级的常用词汇和语法在正文中自然出现一次（能自然用上的就都用上，不要硬塞，也不要为了覆盖写怪句）。';
-        const gapWordsArr = readingUseGapWords ? gapActiveWords().slice(0, 10).map(w => w.text) : [];
+        const gapWordsArr = readingUseGapWords ? gapActiveItems().slice(0, 10).map(it => it.correct || it.text) : [];
         const gapRules = readingUseGapWords ? gapPromptRules(10, 5) : '';
         btn.disabled = true; btn.textContent = t('reading.generating');
         const genHint = document.getElementById('readingGeneratingHint'); if(genHint) genHint.style.display = 'inline';
@@ -11878,19 +11878,14 @@ ${searchRule}
         // 错误库内容在阅读正文中换颜色标注
         const gapSpans = [];
         const gText = text;
-        for(const w of (gapBank.words || [])){
-            const gt = String(w.text || '');
-            if(!gt) continue;
-            let idx = gText.indexOf(gt);
-            while(idx !== -1){ gapSpans.push([idx, idx + gt.length]); idx = gText.indexOf(gt, idx + gt.length); }
-        }
-        for(const p of (gapBank.patterns || [])){
-            const pt = String(p.text || '');
-            const parts = pt.includes('...') ? pt.split('...').map(x => x.trim()).filter(Boolean) : (pt ? [pt] : []);
-            for(const part of parts){
-                if(!part) continue;
-                let idx = gText.indexOf(part);
-                while(idx !== -1){ gapSpans.push([idx, idx + part.length]); idx = gText.indexOf(part, idx + part.length); }
+        for(const it of (gapBank.items || [])){
+            const candidates = [];
+            if(it.correct) candidates.push(String(it.correct));
+            if(it.text && it.text !== it.correct) candidates.push(String(it.text));
+            for(const gt of candidates){
+                if(!gt) continue;
+                let idx = gText.indexOf(gt);
+                while(idx !== -1){ gapSpans.push([idx, idx + gt.length]); idx = gText.indexOf(gt, idx + gt.length); }
             }
         }
         const inGap = (start, end) => gapSpans.some(sp => start < sp[1] && end > sp[0]);
@@ -12477,11 +12472,8 @@ ${searchRule}
             opts += '<option value="' + lv + '"' + (lv === candidateLevel ? ' selected' : '') + '>' + vocabLevelLabel(lv) + '</option>';
         }
         const gapChips = [];
-        for(const w of gapActiveWords().slice(0, 6)){
-            gapChips.push('<span class="cand-chip gap-chip" title="缺口词/短语' + (w.sentence ? '｜原句：' + escapeHtml(w.sentence) : '') + '">' + escapeHtml(w.text) + '</span>');
-        }
-        for(const p of gapActivePatterns().slice(0, 3)){
-            gapChips.push('<span class="cand-chip gap-chip" title="缺口语法' + (p.sentence ? '｜原句：' + escapeHtml(p.sentence) : '') + '">' + escapeHtml(p.text || p.sentence) + '</span>');
+        for(const it of gapActiveItems().slice(0, 8)){
+            gapChips.push('<span class="cand-chip gap-chip" title="错误库：' + escapeHtml(it.text) + (it.correct && it.correct !== it.text ? '｜正确：' + escapeHtml(it.correct) : '') + (it.sentence ? '｜改正后的句子：' + escapeHtml(it.sentence) : '') + '">' + escapeHtml(it.text) + '</span>');
         }
         const normalChips = currentCandidates.length
             ? currentCandidates.map(w => {
@@ -12748,8 +12740,7 @@ ${searchRule}
             if (!isRelang && result) {
                 const hints = result.hints || [];
                 const sentences = splitClauses(text);
-                for(const w of gapActiveWords()){ if(w.acquired) continue; const sent = sentences.find(s => s.includes(w.text)); if(!sent) continue; const bad = hints.some(h => { const o = (typeof h === 'string') ? h : (h.original || ''); return o && sent.includes(o); }); if(!bad) recordGapCorrectUse('word', w.text, sent, 'writing'); }
-                for(const p of gapActivePatterns()){ if(p.acquired) continue; const sent = sentences.find(s => gapGrammarMatches(p, s)); if(!sent) continue; const bad = hints.some(h => { const o = (typeof h === 'string') ? h : (h.original || ''); return o && sent.includes(o); }); if(!bad) recordGapCorrectUse('pattern', p.text || p.sentence, sent, 'writing'); }
+                for(const it of gapActiveItems()){ if(it.acquired) continue; const sent = sentences.find(s => gapItemMatches(it, s)); if(!sent) continue; const bad = hints.some(h => { const o = (typeof h === 'string') ? h : (h.original || ''); return o && sent.includes(o); }); if(!bad) recordGapCorrectUse(it, sent, 'writing'); }
             }
             updateWritingStatus('graded');
         } catch(e) {
@@ -12998,26 +12989,43 @@ ${searchRule}
     // ========== 缺口库（缺口词 / 缺口句式）：5大模式动态调整的数据源 ==========
     const GAP_WORD_TYPES = ['词语错误','离合词错误','错字','别字','漏字','多字','缺词','多词','搭配不当','语义错误'];
     const GAP_PATTERN_TYPES = ['语序错误','句式杂糅','成分残缺','成分多余','关联词错误','虚词错误'];
-    let gapBank = { words: [], patterns: [] };
-    function gapBankKey(){ return 'HSK_GAP_BANK_V1_' + currentUser; }
+    let gapBank = { items: [] };
+    function gapBankKey(){ return 'HSK_GAP_BANK_V2_' + currentUser; }
     function saveGapBank(){ if(!currentUser) return; try{ localStorage.setItem(gapBankKey(), JSON.stringify(gapBank)); }catch(e){} }
     function loadGapBank(){
-        if(!currentUser){ gapBank = { words: [], patterns: [] }; return; }
-        const raw = localStorage.getItem(gapBankKey());
-        try{ gapBank = raw ? JSON.parse(raw) : { words: [], patterns: [] }; }catch(e){ gapBank = { words: [], patterns: [] }; }
-        if(!gapBank || !Array.isArray(gapBank.words) || !Array.isArray(gapBank.patterns)) gapBank = { words: Array.isArray(gapBank && gapBank.words) ? gapBank.words : [], patterns: Array.isArray(gapBank && gapBank.patterns) ? gapBank.patterns : [] };
+        if(!currentUser){ gapBank = { items: [] }; return; }
+        let raw = localStorage.getItem(gapBankKey());
+        if(!raw){
+            // 迁移旧版缺口库（words/patterns 两个列表 → items 单一列表）
+            const oldRaw = localStorage.getItem('HSK_GAP_BANK_V1_' + currentUser);
+            try{
+                const old = oldRaw ? JSON.parse(oldRaw) : null;
+                if(old && (Array.isArray(old.words) || Array.isArray(old.patterns))){
+                    gapBank = { items: [...(Array.isArray(old.words) ? old.words : []), ...(Array.isArray(old.patterns) ? old.patterns : [])] };
+                    for(const _it of gapBank.items){ if(!_it.correct) _it.correct = _it.text || ''; }
+                    saveGapBank();
+                    return;
+                }
+            }catch(e){}
+            gapBank = { items: [] };
+            return;
+        }
+        try{ gapBank = raw ? JSON.parse(raw) : { items: [] }; }catch(e){ gapBank = { items: [] }; }
+        if(!gapBank || !Array.isArray(gapBank.items)) gapBank = { items: [] };
         // 历史脏数据清理：纠错来源的 translation 字段不应该是中文原句，清空以免和母语翻译混淆
-        for(const _w of gapBank.words){
-            if(String(_w.source || '').includes('纠错') && _w.translation && /[\u4e00-\u9fff]/.test(String(_w.translation))) _w.translation = '';
+        for(const _it of gapBank.items){
+            if(String(_it.source || '').includes('纠错') && _it.translation && /[\u4e00-\u9fff]/.test(String(_it.translation))) _it.translation = '';
+            if(!_it.correct) _it.correct = _it.text || '';
         }
     }
     function gapHanzi(s){ return String(s || '').replace(/[^\u4e00-\u9fff]/g, ''); }
-    function recordGapWord(text, source, note, translation, sentence){
+    // 统一记录一条缺口：text=错误的词/句子，correct=正确形式，sentence=改正后的句子
+    function recordGapItem(text, correct, sentence, source, note, translation){
         text = String(text || '').trim();
-        if(!text) return;
-        const key = stripForCompare(text);
+        const sent = String(sentence || '').trim();
+        const key = stripForCompare(text) || stripForCompare(sent);
         if(!key) return;
-        const existing = gapBank.words.find(w => stripForCompare(w.text) === key);
+        const existing = gapBank.items.find(it => stripForCompare(it.text) === key || (it.sentence && stripForCompare(it.sentence) === key));
         const nowTime = getLocalDateTime();
         if(existing){
             existing.count = (existing.count || 0) + 1;
@@ -13028,39 +13036,14 @@ ${searchRule}
             if(existing.occurrences.length > 30) existing.occurrences.shift();
             if(!existing.note && note) existing.note = String(note).slice(0, 120);
             if(!existing.translation && translation) existing.translation = String(translation).slice(0, 200);
-            if(!existing.sentence && sentence) existing.sentence = String(sentence).slice(0, 120);
+            if(!existing.sentence && sent) existing.sentence = sent.slice(0, 120);
+            if(!existing.correct && correct) existing.correct = String(correct).slice(0, 120);
             if(existing.acquired){ existing.acquired = false; existing.correctUseCount = 0; existing.usedSentences = []; existing.acquiredDate = ''; }
             saveGapBank(); renderGapBankUI();
             return;
         }
-        gapBank.words.unshift({ text, source: String(source || ''), note: String(note || '').slice(0, 120), translation: String(translation || '').slice(0, 200), sentence: String(sentence || '').slice(0, 120), count: 1, date: getLocalDate(), lastDate: getLocalDate(), lastTime: nowTime, occurrences: [{ date: nowTime, source: String(source || ''), note: String(note || '').slice(0, 80) }] });
-        if(gapBank.words.length > 80) gapBank.words.pop();
-        saveGapBank(); renderGapBankUI();
-    }
-    function recordGapPattern(text, sentence, source, note){
-        sentence = String(sentence || '').trim();
-        text = String(text || '').trim();
-        if(gapHanzi(sentence).length < 4) return;
-        const key = stripForCompare(text) || stripForCompare(sentence);
-        if(!key) return;
-        const existing = gapBank.patterns.find(p => (stripForCompare(p.text) === key) || (stripForCompare(p.sentence) === key));
-        const nowTime = getLocalDateTime();
-        if(existing){
-            existing.count = (existing.count || 0) + 1;
-            existing.lastDate = getLocalDate();
-            existing.lastTime = nowTime;
-            existing.occurrences = existing.occurrences || [];
-            existing.occurrences.push({ date: nowTime, source: String(source || ''), note: String(note || '').slice(0, 80) });
-            if(existing.occurrences.length > 30) existing.occurrences.shift();
-            if(!existing.note && note) existing.note = String(note).slice(0, 120);
-            if(!existing.text && text) existing.text = text;
-            if(!existing.sentence && sentence) existing.sentence = sentence;
-            if(existing.acquired){ existing.acquired = false; existing.correctUseCount = 0; existing.usedSentences = []; existing.acquiredDate = ''; }
-            saveGapBank(); renderGapBankUI();
-            return;
-        }
-        gapBank.patterns.unshift({ text, sentence, source: String(source || ''), note: String(note || '').slice(0, 120), count: 1, date: getLocalDate(), lastDate: getLocalDate(), lastTime: nowTime, occurrences: [{ date: nowTime, source: String(source || ''), note: String(note || '').slice(0, 80) }] });
-        if(gapBank.patterns.length > 40) gapBank.patterns.pop();
+        gapBank.items.unshift({ text, correct: String(correct || '').slice(0, 120), sentence: sent.slice(0, 120), source: String(source || ''), note: String(note || '').slice(0, 120), translation: String(translation || '').slice(0, 200), count: 1, date: getLocalDate(), lastDate: getLocalDate(), lastTime: nowTime, occurrences: [{ date: nowTime, source: String(source || ''), note: String(note || '').slice(0, 80) }] });
+        if(gapBank.items.length > 120) gapBank.items.pop();
         saveGapBank(); renderGapBankUI();
     }
     function extractGapWordFromCorrection(original, corrected){
@@ -13076,6 +13059,28 @@ ${searchRule}
         if(hanzi.length >= 1 && hanzi.length <= 8 && !/[，。！？；、,.!?;]/.test(cSpan)) return hanzi;
         if(hanzi.length <= 10){
             const parts = cSpan.split(/[，。！？；、,.!?;]+/);
+            let best = '';
+            for(const part of parts){
+                const hz = gapHanzi(part);
+                if(hz && hz.length >= 1 && hz.length <= 8 && hz.length > best.length) best = hz;
+            }
+            if(best) return best;
+        }
+        return '';
+    }
+    function extractGapWordFromOriginal(original, corrected){
+        const o = String(original || '').trim(), c = String(corrected || '').trim();
+        if(!o || !c || o === c) return '';
+        let s = 0;
+        while(s < o.length && s < c.length && o[s] === c[s]) s++;
+        let eO = o.length - 1, eC = c.length - 1;
+        while(eO >= s && eC >= s && o[eO] === c[eC]){ eO--; eC--; }
+        const oSpan = o.slice(s, eO + 1);
+        const hanzi = gapHanzi(oSpan);
+        if(!hanzi) return '';
+        if(hanzi.length >= 1 && hanzi.length <= 8 && !/[，。！？；、,.!?;]/.test(oSpan)) return hanzi;
+        if(hanzi.length <= 10){
+            const parts = oSpan.split(/[，。！？；、,.!?;]+/);
             let best = '';
             for(const part of parts){
                 const hz = gapHanzi(part);
@@ -13117,39 +13122,36 @@ ${searchRule}
         const original = String(m.original || '').trim();
         const note = String(m.note || '').slice(0, 120);
         if(!original && !corrected) return;
-        // 缺口词/缺口语法统一记录「改正后的句子」；词类额外记录「错误词/字」作为练习目标。
-        // 语法类：记录改正后的句子 + 语法框架（框架从改正句/差异中提取，作为生成时沿用的结构）
+        // 句子/语法级错误：text=错误句子，correct=语法框架，sentence=改正后的句子
         if(GAP_PATTERN_TYPES.includes(type)){
             if(corrected && gapHanzi(corrected).length >= 4){
                 const frame = (m.pattern && String(m.pattern).trim()) || detectFramePattern(corrected) || detectXuciInDiff(original, corrected);
-                recordGapPattern(frame, corrected, '纠错', note + (type ? '（' + type + '）' : ''));
+                recordGapItem(original, frame, corrected, '纠错', note + (type ? '（' + type + '）' : ''));
             } else if(type === '虚词错误' && corrected){
                 const xc = detectXuciInDiff(original, corrected);
-                recordGapPattern(xc, corrected, '纠错', note + (type ? '（' + type + '）' : ''));
+                recordGapItem(original, xc, corrected, '纠错', note + (type ? '（' + type + '）' : ''));
             }
             return;
         }
-        // 词类：先找出学生写错的那个词/字（取改正后的正确形式），连同改正后的句子一起记录
+        // 词级错误：text=错误的词/字，correct=正确的词/字，sentence=改正后的句子
+        let correctWord = '';
         if(type === '离合词错误' && corrected){
             const sep = (typeof SEPARABLE_WORDS !== 'undefined') ? SEPARABLE_WORDS : new Set(['见面','帮忙','生气','洗澡','睡觉','毕业','结婚','聊天','散步','游泳','跑步','跳舞','唱歌','上课','上班','开会','握手','道歉','担心','放心','注意','考试']);
-            for(const wd of sep){ if(corrected.includes(wd)){ recordGapWord(wd, '纠错', note, '', corrected); return; } }
+            for(const wd of sep){ if(corrected.includes(wd)){ correctWord = wd; break; } }
+        }
+        if(!correctWord && corrected) correctWord = extractGapWordFromCorrection(original, corrected);
+        if(correctWord){
+            const wrongWord = (original && corrected) ? extractGapWordFromOriginal(original, corrected) : '';
+            recordGapItem(wrongWord || correctWord, correctWord, corrected, '纠错', note);
+            return;
         }
         if(corrected){
-            const w = extractGapWordFromCorrection(original, corrected);
-            if(w){ recordGapWord(w, '纠错', note, '', corrected); return; }
-        }
-        if(GAP_WORD_TYPES.includes(type)){
-            if(corrected){
-                const hz = gapHanzi(corrected);
-                if(hz.length >= 1 && hz.length <= 6) recordGapWord(hz, '纠错', note, '', corrected);
-            } else {
-                const hz = gapHanzi(original);
-                if(hz.length >= 1 && hz.length <= 6) recordGapWord(hz, '纠错', note, '', original);
-            }
-        } else if(corrected){
             const hz = gapHanzi(corrected);
-            if(hz.length <= 6) recordGapWord(hz, '纠错', note, '', corrected);
-            else if(hz.length >= 4) recordGapPattern('', corrected, '纠错', note);
+            if(hz.length >= 1 && hz.length <= 6) recordGapItem(hz, hz, corrected, '纠错', note);
+            else if(hz.length >= 4) recordGapItem(original, '', corrected, '纠错', note);
+        } else {
+            const hz = gapHanzi(original);
+            if(hz.length >= 1 && hz.length <= 6) recordGapItem(hz, hz, original, '纠错', note);
         }
     }
     function recordGapFromDictationWrong(ref, user){
@@ -13158,14 +13160,22 @@ ${searchRule}
         const hz = gapHanzi(ref);
         if(!hz) return;
         const note = '听写错误：' + String(user || '').slice(0, 60);
-        if(hz.length <= 6) recordGapWord(hz, '听写', note, '', ref);
-        else recordGapPattern('', ref, '听写', note);
+        recordGapItem(hz, hz, ref, '听写', note, '');
     }
-    function gapActiveWords(){ return gapBank.words.filter(w => !w.acquired); }
-    function gapActivePatterns(){ return gapBank.patterns.filter(p => !p.acquired); }
+    function gapActiveItems(){ return gapBank.items.filter(it => !it.acquired); }
+    function gapItemMatches(entry, text){
+        const s = String(text || '');
+        if(!s) return false;
+        const c = String(entry.correct || '');
+        if(c && c.length <= 12 && !c.includes('...') && s.indexOf(c) !== -1) return true;
+        if(c && gapGrammarMatches({ text: c }, s)) return true;
+        const t = String(entry.text || '');
+        if(t && t.length <= 12 && s.indexOf(t) !== -1) return true;
+        return false;
+    }
     function gapGrammarMatches(entry, text){
         const s = String(text || '');
-        const t = String((entry && entry.text) || '');
+        const t = String((entry && (entry.correct || entry.text)) || '');
         if(!s || !t) return false;
         if(t.includes('…') || t.includes('...')){
             const parts = t.split(/…|\.{3}/).map(x => String(x).trim()).filter(Boolean);
@@ -13177,11 +13187,10 @@ ${searchRule}
         if(/^把/.test(t)) return s.indexOf('把') !== -1;
         if(/^被/.test(t)) return s.indexOf('被') !== -1;
         if(/^比/.test(t)) return s.indexOf('比') !== -1;
+        if(t.length <= 12) return s.indexOf(t) !== -1;
         return false;
     }
-    function recordGapCorrectUse(type, key, sentence, source){
-        const arr = type === 'word' ? gapBank.words : gapBank.patterns;
-        const entry = arr.find(w => stripForCompare(w.text || w.sentence) === stripForCompare(key));
+    function recordGapCorrectUse(entry, sentence, source){
         if(!entry || entry.acquired) return;
         const sent = String(sentence || '').trim();
         const sentKey = stripForCompare(sent);
@@ -13207,60 +13216,40 @@ ${searchRule}
     function renderGapBankUI(){
         const el = document.getElementById('gapBankList');
         const badge = document.getElementById('gapCountBadge');
-        const activeW = gapActiveWords().length, activeP = gapActivePatterns().length;
-        if(badge) badge.textContent = gapBank.words.length + '词(' + activeW + '未习得)/' + gapBank.patterns.length + '语法(' + activeP + '未习得)';
+        const active = gapActiveItems().length;
+        if(badge) badge.textContent = gapBank.items.length + '条(' + active + '未习得)';
         if(!el) return;
-        if(gapBank.words.length === 0 && gapBank.patterns.length === 0){
+        if(gapBank.items.length === 0){
             el.innerHTML = '<div class="empty-detail">' + t('gap.empty') + '</div>';
             return;
         }
         let html = '';
-        const words = [...gapBank.words].sort(gapSort);
-        const patterns = [...gapBank.patterns].sort(gapSort);
-        if(words.length){
-            html += '<div class="gap-bank-sub">🔤 ' + t('gap.words') + '（' + words.length + '）</div>';
-            for(let i = 0; i < words.length; i++){
-                const w = words[i];
-                const acquiredBadge = w.acquired ? '<span class="gap-meta" style="color:#2e7d32;font-weight:700;">' + t('gap.acquired_label') + (w.acquiredTime || w.acquiredDate ? ' · ' + escapeHtml(w.acquiredTime || w.acquiredDate) : '') + '</span>' : '<span class="gap-meta" style="color:#e67e22;font-weight:700;">' + t('gap.active_label') + '</span>';
-                const wUseTimes = (w.usedSentences && w.usedSentences.length) ? '<div class="gap-meta">' + t('gap.use_times_label') + '：' + w.usedSentences.map(u => escapeHtml((u.time || u.date || '')) + '(' + escapeHtml(u.source || '') + ')').join('；') + '</div>' : '';
-                html += '<div class="gap-item"><div class="gap-item-row"><span class="gap-text">' + escapeHtml(w.text) + '</span>'
-                    + (w.translation ? '<span class="gap-tr" title="母语翻译">🌐 ' + escapeHtml(w.translation) + '</span>' : '')
-                    + '<button class="gap-del" onclick="window._removeGapItem(\'word\',' + i + ')">✕</button></div>'
-                    + acquiredBadge
-                    + (w.sentence ? '<div class="gap-meta">📝 ' + t('gap.word_sentence') + '：' + escapeHtml(w.sentence) + '</div>' : '')
-                    + (w.source ? '<div class="gap-meta">' + escapeHtml(w.source) + ' · ' + t('gap.first') + escapeHtml(w.date || '') + (w.lastTime ? ' · ' + t('gap.last') + escapeHtml(w.lastTime) : '') + (w.count > 1 ? ' · ' + t('gap.occur_x').replace('{n}', w.count) : '') + (w.correctUseCount ? ' · ' + t('gap.correct_uses').replace('{n}', w.correctUseCount) : '') + '</div>' : '')
-                    + wUseTimes
-                    + (w.note ? '<div class="gap-note">💡 ' + escapeHtml(w.note) + '</div>' : '')
-                    + '</div>';
-            }
-        }
-        if(patterns.length){
-            html += '<div class="gap-bank-sub">🧩 ' + t('gap.patterns') + '（' + patterns.length + '）</div>';
-            for(let i = 0; i < patterns.length; i++){
-                const p = patterns[i];
-                const acquiredBadge = p.acquired ? '<span class="gap-meta" style="color:#2e7d32;font-weight:700;">' + t('gap.acquired_label') + (p.acquiredTime || p.acquiredDate ? ' · ' + escapeHtml(p.acquiredTime || p.acquiredDate) : '') + '</span>' : '<span class="gap-meta" style="color:#e67e22;font-weight:700;">' + t('gap.active_label') + '</span>';
-                const pUseTimes = (p.usedSentences && p.usedSentences.length) ? '<div class="gap-meta">' + t('gap.use_times_label') + '：' + p.usedSentences.map(u => escapeHtml((u.time || u.date || '')) + '(' + escapeHtml(u.source || '') + ')').join('；') + '</div>' : '';
-                html += '<div class="gap-item"><div class="gap-item-row"><span class="gap-text">' + escapeHtml(p.text || p.sentence) + '</span>'
-                    + '<button class="gap-del" onclick="window._removeGapItem(\'pattern\',' + i + ')">✕</button></div>'
-                    + acquiredBadge
-                    + (p.sentence ? '<div class="gap-meta">📝 ' + t('gap.word_sentence') + '：' + escapeHtml(p.sentence) + '</div>' : '')
-                    + (p.source ? '<div class="gap-meta">' + escapeHtml(p.source) + ' · ' + t('gap.first') + escapeHtml(p.date || '') + (p.lastTime ? ' · ' + t('gap.last') + escapeHtml(p.lastTime) : '') + (p.count > 1 ? ' · ' + t('gap.occur_x').replace('{n}', p.count) : '') + (p.correctUseCount ? ' · ' + t('gap.correct_uses').replace('{n}', p.correctUseCount) : '') + '</div>' : '')
-                    + pUseTimes
-                    + (p.note ? '<div class="gap-note">💡 ' + escapeHtml(p.note) + '</div>' : '')
-                    + '</div>';
-            }
+        const items = [...gapBank.items].sort(gapSort);
+        for(let i = 0; i < items.length; i++){
+            const w = items[i];
+            const acquiredBadge = w.acquired ? '<span class="gap-meta" style="color:#2e7d32;font-weight:700;">' + t('gap.acquired_label') + (w.acquiredTime || w.acquiredDate ? ' · ' + escapeHtml(w.acquiredTime || w.acquiredDate) : '') + '</span>' : '<span class="gap-meta" style="color:#e67e22;font-weight:700;">' + t('gap.active_label') + '</span>';
+            const wUseTimes = (w.usedSentences && w.usedSentences.length) ? '<div class="gap-meta">' + t('gap.use_times_label') + '：' + w.usedSentences.map(u => escapeHtml((u.time || u.date || '')) + '(' + escapeHtml(u.source || '') + ')').join('；') + '</div>' : '';
+            html += '<div class="gap-item"><div class="gap-item-row"><span class="gap-text">' + escapeHtml(w.text) + '</span>'
+                + (w.correct && w.correct !== w.text ? '<span class="gap-meta" style="color:#27ae60;font-weight:700;" title="正确形式">✅ ' + escapeHtml(w.correct) + '</span>' : '')
+                + (w.translation ? '<span class="gap-tr" title="母语翻译">🌐 ' + escapeHtml(w.translation) + '</span>' : '')
+                + '<button class="gap-del" onclick="window._removeGapItem(' + i + ')">✕</button></div>'
+                + acquiredBadge
+                + (w.sentence ? '<div class="gap-meta">📝 ' + t('gap.word_sentence') + '：' + escapeHtml(w.sentence) + '</div>' : '')
+                + (w.source ? '<div class="gap-meta">' + escapeHtml(w.source) + ' · ' + t('gap.first') + escapeHtml(w.date || '') + (w.lastTime ? ' · ' + t('gap.last') + escapeHtml(w.lastTime) : '') + (w.count > 1 ? ' · ' + t('gap.occur_x').replace('{n}', w.count) : '') + (w.correctUseCount ? ' · ' + t('gap.correct_uses').replace('{n}', w.correctUseCount) : '') + '</div>' : '')
+                + wUseTimes
+                + (w.note ? '<div class="gap-note">💡 ' + escapeHtml(w.note) + '</div>' : '')
+                + '</div>';
         }
         html += '<div style="margin-top:8px;display:flex;justify-content:flex-end;"><button onclick="window._clearGapBank()" style="font-size:0.7rem;border:1px solid #f5c6cb;background:#fff;color:#c0392b;border-radius:10px;padding:2px 10px;cursor:pointer;">' + t('gap.clear') + '</button></div>';
         el.innerHTML = html;
         try{ if(typeof renderCandidates === 'function') renderCandidates(); }catch(e){}
     }
-    window._removeGapItem = function(type, idx){
-        const arr = type === 'word' ? gapBank.words : gapBank.patterns;
-        if(arr && arr[idx] != null){ arr.splice(idx, 1); saveGapBank(); renderGapBankUI(); }
+    window._removeGapItem = function(idx){
+        if(gapBank.items && gapBank.items[idx] != null){ gapBank.items.splice(idx, 1); saveGapBank(); renderGapBankUI(); }
     };
     window._clearGapBank = function(){
         if(!confirm(t('gap.clear_confirm'))) return;
-        gapBank = { words: [], patterns: [] };
+        gapBank = { items: [] };
         saveGapBank(); renderGapBankUI(); showToast(t('gap.cleared'));
     };
     window._correctionStore = window._correctionStore || {};
@@ -13279,27 +13268,20 @@ ${searchRule}
         if(typeof renderZmsExplainInto === 'function') renderZmsExplainInto(box, item.chinese, prepend);
         else box.innerHTML = t('zms.analysis_fail');
     };
-    function gapPromptRules(maxWords, maxPatterns){
-        const words = gapActiveWords().slice(0, maxWords || 10);
-        const patterns = gapActivePatterns().slice(0, maxPatterns || 5);
+    function gapPromptRules(maxItems, _unused){
+        const items = gapActiveItems().slice(0, maxItems || 12);
         let s = '';
-        if(words.length){
-            s += '【缺口词/短语 - 必须覆盖，且必须沿用原句的结构】以下是学生出错过的词/短语，每个都附有它出现的原句（已改正）。生成新句子时必须写成「缺口词/短语 + 原句结构框架 + 换话题的其他成分」：保留该词/短语、沿用原句结构框架，只替换话题和其他成分，不能照抄原句；并且该词/短语在新句子中的意思必须与原句里的意思完全一致（特别注意多义词/多音词，禁止换成该词的其他意思）。';
-            s += words.map(w => '「' + w.text + '」（原句：' + (w.sentence || w.text) + '）').join('、') + '。写完后逐词自检，缺少任何一个就重写。\n';
-        }
-        if(patterns.length){
-            s += '【缺口语法 - 必须包含同语法句子】以下是学生不会的语法格式/框架，每个都附有它出现的原句（已改正）。请在正文中写出至少' + Math.min(2, patterns.length) + '个使用相同语法的新句子（句型相同、内容不同，不能照抄原句）：';
-            s += patterns.map(p => '「' + (p.text || p.sentence) + '」' + (p.sentence ? '（原句：' + p.sentence + '）' : '')).join('；') + '。\n';
+        if(items.length){
+            s += '【错误库（错误的词/句子）- 必须覆盖，且必须沿用改正后句子的结构】以下是学生出错过的词或句子，每条都附有「错误的词/句子」和「改正后的句子」。生成新句子时必须写成「正确形式 + 改正后句子的结构框架 + 换话题的其他成分」：使用正确的形式、沿用改正后句子的结构框架，只替换话题和其他成分，不能照抄；并且该词/句子的正确形式在新句子中的意思必须与改正后句子里想表达的意思完全一致（特别注意多义词/多音词，禁止换成该词的其他意思）。';
+            s += items.map(it => '「' + it.text + '」' + (it.correct && it.correct !== it.text ? '（正确：' + it.correct + '）' : '') + '（改正后的句子：' + (it.sentence || it.text) + '）').join('、') + '。写完后逐条自检，缺少任何一个就重写。\n';
         }
         return s;
     }
     function gapChatGuide(){
-        const words = gapActiveWords().slice(0, 6);
-        const patterns = gapActivePatterns().slice(0, 3);
-        if(!words.length && !patterns.length) return '';
-        let s = '【缺口词/短语/语法 - 动态运用】学生在以下内容上有缺口，聊天时围绕话题自然、不着痕迹地用上它们（每次选1-2个即可，不要硬塞）。使用时必须沿用所记录原句的句型，只替换其他成分；缺口词/短语还要保持它在原句里的意思不变（防止多义词换义）：\n';
-        if(words.length) s += '缺口词/短语：' + words.map(w => '「' + w.text + '」（原句：' + (w.sentence || w.text) + '）').join('；') + '\n';
-        if(patterns.length) s += '缺口语法（用同语法说新句子，内容不同）：' + patterns.map(p => '「' + (p.text || p.sentence) + '」' + (p.sentence ? '（原句：' + p.sentence + '）' : '')).join('；') + '\n';
+        const items = gapActiveItems().slice(0, 8);
+        if(!items.length) return '';
+        let s = '【错误库（错误的词/句子）- 动态运用】学生在以下词/句子上出过错，聊天时围绕话题自然、不着痕迹地用上它们的正确形式（每次选1-2个即可，不要硬塞）。使用时必须沿用所记录改正后句子的句型，只替换其他成分，并保持该词/句子在改正后句子里的意思不变（防止多义词换义）：\n';
+        s += items.map(it => '「' + it.text + '」' + (it.correct && it.correct !== it.text ? '（正确：' + it.correct + '）' : '') + '（改正后的句子：' + (it.sentence || it.text) + '）').join('；') + '\n';
         return s;
     }
     // 测试题库
@@ -13638,7 +13620,7 @@ function saveFullState(){ if(!currentUser) return; const entries=Array.from(used
     function refreshAll(){ grammarList=buildFullGrammarList(); renderLevelProgress(); updateGrammarDisplayByLevel(parseInt(grammarViewLevel.value)); renderTrackList(); renderVocabLevelProgress(); renderVocabLibrary(parseInt(document.getElementById('vocabViewLevel')?.value)||1); renderVocabTrackList(); renderFavoriteBook(); renderQueriedBook(); saveFullState(); }
     function renderLevelProgress(){ const totalByLevel=new Map(), usedByLevel=new Map(); for(let i=1;i<=5;i++){ totalByLevel.set(i,0); usedByLevel.set(i,0); } grammarList.forEach(g=>{ totalByLevel.set(g.level, totalByLevel.get(g.level)+1); }); for(let [pattern,entry] of usedMap.entries()){ const lv=grammarList.find(g=>g.pattern===pattern)?.level||entry.level; usedByLevel.set(lv, usedByLevel.get(lv)+1); } let html=''; for(let lv=1;lv<=5;lv++){ const total=totalByLevel.get(lv)||0, used=usedByLevel.get(lv)||0; const percent=total===0?0:(used/total*100).toFixed(1); html+=`<div class="level-row" data-level="${lv}"><span>HSK ${lv}</span><div class="progress-bar-bg"><div class="progress-bar-fill" style="width:${percent}%;"></div></div><span>${used}/${total}</span></div>`; } levelProgressDiv.innerHTML=html; levelProgressDiv.querySelectorAll('.level-row').forEach(row=>row.addEventListener('click',()=>openGrammarDetailModal(parseInt(row.dataset.level)))); }
     function updateGrammarDisplayByLevel(level){ const patterns=LEVEL_MAP[level]; if(!patterns){ grammarLibraryList.innerHTML='<div>'+t('status.no_grammar')+'</div>'; return; } const oldScroll=grammarLibraryList.querySelector('.grammar-list-scroll'); const savedScrollTop=oldScroll?oldScroll.scrollTop:0; let html=`<div class="grammar-list-scroll">`; for(let pattern of patterns){ const entry=usedMap.get(pattern); const count=entry?entry.count:0; const pCount=entry?(entry.practiceCount||0):0; const acc=accuracyFor(entry); let status=''; if(count>0) status=`<span class="mastered-tag" style="background:#e3f2fd;">`+t('status.using')+`</span>`; else status=`<span class="not-mastered-tag">`+t('status.unused')+`</span>`; let example=SPECIFIC_EXAMPLE_MAP.get(pattern)||''; if(!example&&entry){ const exs=entry.examples||[]; const pexs=entry.practiceExamples||[]; if(exs.length) example=exs[exs.length-1].sentence||''; else if(pexs.length) example=pexs[pexs.length-1].sentence||''; } let titleAttr=example?` title="${escapeHtml(example)}"`:''; html+=`<div class="grammar-list-item" data-pattern="${escapeHtml(pattern)}" data-level="${level}"${titleAttr}><span class="grammar-pattern">${escapeHtml(pattern.length>55?pattern.slice(0,52)+'…':pattern)}</span>${status}</div>`; } html+=`</div>`; grammarLibraryList.innerHTML=html; const newScroll=grammarLibraryList.querySelector('.grammar-list-scroll'); if(newScroll) newScroll.scrollTop=savedScrollTop; document.querySelectorAll('#grammarLibraryList .grammar-list-item').forEach(el=>el.addEventListener('click',()=>{ const p=el.dataset.pattern; const lv=parseInt(el.dataset.level)||1; if(!p) return; window._learnMode=false; window._reviewMode=false; window._currentReviewItem=null; window._pendingLearnWord=null; window._practiceFinished=false; window._dictationMode=false; window._selfPractice=false; currentPracticeGrammar={pattern:p, level:lv}; currentPracticeVocab=null; generateAndShowPractice(p, lv, true); })); }
-    function renderTrackList(){ const chat=[], practice=[], writing=[]; const gapWords = new Set(gapBank.words.map(w=>stripForCompare(w.text))); for(let [pat,entry] of usedMap.entries()){ if(gapWords.has(stripForCompare(pat))) continue; const cCnt=entry.chatCount||0, wCnt=entry.writingCount||0, pCnt=entry.practiceCount||0; if(cCnt>0) chat.push({pattern:pat, level:entry.level, count:cCnt}); if(pCnt>0) practice.push({pattern:pat, level:entry.level, count:pCnt}); if(wCnt>0) writing.push({pattern:pat, level:entry.level, count:wCnt}); } const sorter=(a,b)=>a.level-b.level; chat.sort(sorter); practice.sort(sorter); writing.sort(sorter); const renderCat=(elId, items, isGrammar)=>{const el=document.getElementById(elId);if(!el)return;if(items.length===0){el.innerHTML='';return;}let h='';for(let it of items){const lvLabel=isGrammar?(it.level?'HSK'+it.level:'📖'):vocabLevelLabel(it.level);const name=isGrammar?it.pattern:it.word;const useTimes=it.count||0, pracTimes=it.practiceCount||0;let acquiredBadge='';if(isGrammar){const ge=usedMap.get(name);if(isAcquired(ge))acquiredBadge=' <span class="acquired-badge" style="font-size:0.68rem;padding:1px 6px;border-radius:10px;">'+t('status.acquired')+'</span>';}else{const ve=vocabUsedMap.get(name);if(isVocabAcquired(ve))acquiredBadge=' <span class="acquired-badge" style="font-size:0.68rem;padding:1px 6px;border-radius:10px;">'+t('status.acquired')+'</span>';}let timesHtml=''; if(useTimes>0&&pracTimes===0) timesHtml=acquiredBadge+' <span style="font-size:0.72rem;color:#2e7d32;">'+t('track.usage_count')+': '+useTimes+'</span>'; else if(pracTimes>0&&useTimes===0) timesHtml=acquiredBadge+' <span style="font-size:0.72rem;color:#1565c0;">'+t('track.practice_count')+': '+pracTimes+'</span>'; else if(useTimes>0&&pracTimes>0) timesHtml=acquiredBadge+' <span style="font-size:0.72rem;color:#2e7d32;">'+t('track.usage_count')+': '+useTimes+'</span> <span style="font-size:0.72rem;color:#1565c0;">'+t('track.practice_count')+': '+pracTimes+'</span>';h+='<div class="track-item" data-key="'+escapeHtml(name)+'" data-level="'+it.level+'"><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="'+escapeHtml(name)+'">'+lvLabel+' '+escapeHtml(String(name).length>40?String(name).slice(0,37)+'…':name)+'</span><span style="flex-shrink:0;min-width:55px;text-align:right;">'+timesHtml+'</span></div>';}el.innerHTML=h;el.querySelectorAll('.track-item').forEach(e=>e.addEventListener('click',()=>{const k=e.dataset.key;const entry=isGrammar?usedMap.get(k):vocabUsedMap.get(k);if(entry){if(isGrammar){const e2=usedMap.get(k); const items2=[{pattern:k, level:e2.level, count:e2.count, correctCount:e2.correctCount||0, practiceCount:e2.practiceCount||0, examples:e2.examples, practiceExamples:e2.practiceExamples||[]}]; document.getElementById('modalTitle').textContent='📖 语法点明细'; renderGrammarDetailModal(items2); modal.style.display='block';document.body.style.overflow='hidden';}else{const its=[{word:k,level:entry.level,count:entry.count,practiceCount:entry.practiceCount||0,examples:entry.examples,practiceExamples:entry.practiceExamples||[]}];document.getElementById('modalTitle').textContent=t('modal.vocab_detail');renderVocabDetailModal(its);modal.style.display='block';document.body.style.overflow='hidden';}}}));}; renderCat('grammarUsedOnlyList',chat,true); renderCat('grammarPracticeOnlyList',practice,true); renderCat('grammarBothList',writing,true); const readPat = gapBank.patterns.filter(p => String(p.source||'').includes('阅读')).map(p => ({pattern: (p.text||p.sentence), level: 0, count: p.count||1})); renderCat('grammarReadingList',readPat,true); }
+    function renderTrackList(){ const chat=[], practice=[], writing=[]; const gapWords = new Set(gapBank.items.map(it=>stripForCompare(it.correct || it.text))); for(let [pat,entry] of usedMap.entries()){ if(gapWords.has(stripForCompare(pat))) continue; const cCnt=entry.chatCount||0, wCnt=entry.writingCount||0, pCnt=entry.practiceCount||0; if(cCnt>0) chat.push({pattern:pat, level:entry.level, count:cCnt}); if(pCnt>0) practice.push({pattern:pat, level:entry.level, count:pCnt}); if(wCnt>0) writing.push({pattern:pat, level:entry.level, count:wCnt}); } const sorter=(a,b)=>a.level-b.level; chat.sort(sorter); practice.sort(sorter); writing.sort(sorter); const renderCat=(elId, items, isGrammar)=>{const el=document.getElementById(elId);if(!el)return;if(items.length===0){el.innerHTML='';return;}let h='';for(let it of items){const lvLabel=isGrammar?(it.level?'HSK'+it.level:'📖'):vocabLevelLabel(it.level);const name=isGrammar?it.pattern:it.word;const useTimes=it.count||0, pracTimes=it.practiceCount||0;let acquiredBadge='';if(isGrammar){const ge=usedMap.get(name);if(isAcquired(ge))acquiredBadge=' <span class="acquired-badge" style="font-size:0.68rem;padding:1px 6px;border-radius:10px;">'+t('status.acquired')+'</span>';}else{const ve=vocabUsedMap.get(name);if(isVocabAcquired(ve))acquiredBadge=' <span class="acquired-badge" style="font-size:0.68rem;padding:1px 6px;border-radius:10px;">'+t('status.acquired')+'</span>';}let timesHtml=''; if(useTimes>0&&pracTimes===0) timesHtml=acquiredBadge+' <span style="font-size:0.72rem;color:#2e7d32;">'+t('track.usage_count')+': '+useTimes+'</span>'; else if(pracTimes>0&&useTimes===0) timesHtml=acquiredBadge+' <span style="font-size:0.72rem;color:#1565c0;">'+t('track.practice_count')+': '+pracTimes+'</span>'; else if(useTimes>0&&pracTimes>0) timesHtml=acquiredBadge+' <span style="font-size:0.72rem;color:#2e7d32;">'+t('track.usage_count')+': '+useTimes+'</span> <span style="font-size:0.72rem;color:#1565c0;">'+t('track.practice_count')+': '+pracTimes+'</span>';h+='<div class="track-item" data-key="'+escapeHtml(name)+'" data-level="'+it.level+'"><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="'+escapeHtml(name)+'">'+lvLabel+' '+escapeHtml(String(name).length>40?String(name).slice(0,37)+'…':name)+'</span><span style="flex-shrink:0;min-width:55px;text-align:right;">'+timesHtml+'</span></div>';}el.innerHTML=h;el.querySelectorAll('.track-item').forEach(e=>e.addEventListener('click',()=>{const k=e.dataset.key;const entry=isGrammar?usedMap.get(k):vocabUsedMap.get(k);if(entry){if(isGrammar){const e2=usedMap.get(k); const items2=[{pattern:k, level:e2.level, count:e2.count, correctCount:e2.correctCount||0, practiceCount:e2.practiceCount||0, examples:e2.examples, practiceExamples:e2.practiceExamples||[]}]; document.getElementById('modalTitle').textContent='📖 语法点明细'; renderGrammarDetailModal(items2); modal.style.display='block';document.body.style.overflow='hidden';}else{const its=[{word:k,level:entry.level,count:entry.count,practiceCount:entry.practiceCount||0,examples:entry.examples,practiceExamples:entry.practiceExamples||[]}];document.getElementById('modalTitle').textContent=t('modal.vocab_detail');renderVocabDetailModal(its);modal.style.display='block';document.body.style.overflow='hidden';}}}));}; renderCat('grammarUsedOnlyList',chat,true); renderCat('grammarPracticeOnlyList',practice,true); renderCat('grammarBothList',writing,true); const readPat = gapBank.items.filter(it => String(it.source||'').includes('阅读')).map(it => ({pattern: (it.correct||it.text||it.sentence), level: 0, count: it.count||1})); renderCat('grammarReadingList',readPat,true); }
     function openGrammarDetailModalWithEntry(pattern, entry){ currentDetailLevel=null; const items=[{pattern, level:entry.level, count:entry.count, correctCount:entry.correctCount||0, practiceCount:entry.practiceCount||0, examples:entry.examples}]; const title=document.getElementById('modalTitle'); if(title) title.textContent=t('modal.grammar_detail'); renderGrammarDetailModal(items); modal.style.display='block'; document.body.style.overflow='hidden'; }
     function openGrammarDetailModal(level=null){ currentDetailLevel=level; const items=[]; for(let [pattern,entry] of usedMap.entries()) if((level===null||entry.level===level)&&!isAcquired(entry)) items.push({pattern, level:entry.level, count:entry.count, correctCount:entry.correctCount||0, practiceCount:entry.practiceCount||0, examples:entry.examples}); items.sort((a,b)=>a.level-b.level); const title=document.getElementById('modalTitle'); if(title) title.textContent=t('modal.grammar_detail'); renderGrammarDetailModal(items); modal.style.display='block'; document.body.style.overflow='hidden'; }
     function renderGrammarDetailModal(items){
@@ -14544,10 +14526,10 @@ uncertain 表示你是否读不懂这个句子/分句、无法可靠推断学生
     function renderVocabLevelProgress(){ const el=document.getElementById('vocabLevelProgress'); if(!el) return; let html=''; const levels=[1,2,3,4,5,6]; const levelLabels={1:t('vocab.hsk_prefix')+'1'+t('vocab.vocab_suffix'),2:t('vocab.hsk_prefix')+'2'+t('vocab.vocab_suffix'),3:t('vocab.hsk_prefix')+'3'+t('vocab.vocab_suffix'),4:t('vocab.hsk_prefix')+'4'+t('vocab.vocab_suffix'),5:t('vocab.lexue3')+t('vocab.vocab_suffix'),6:t('vocab.lexue5')+t('vocab.vocab_suffix')}; for(let lv of levels){ const vocab=VOCAB_LEVEL_MAP[lv]; if(!vocab) continue; const total=vocab.length; let used=0; for(let v of vocab){ const entry=vocabUsedMap.get(v.w); if(entry&&entry.count>0) used++; } const percent=total===0?0:(used/total*100).toFixed(1); html+='<div class="level-row" style="cursor:pointer;" data-vlevel="'+lv+'"><span>'+(levelLabels[lv]||(t('vocab.hsk_prefix')+lv+t('vocab.vocab_suffix')))+'</span><div class="progress-bar-bg"><div class="progress-bar-fill" style="width:'+percent+'%;background:#1565c0;"></div></div><span>'+used+'/'+total+'</span></div>'; } el.innerHTML=html; el.querySelectorAll('.level-row').forEach(row=>row.addEventListener('click',()=>openVocabDetailModal(parseInt(row.dataset.vlevel)))); }
     function openVocabDetailModal(level=null){ const items=[]; const levelWords=level?new Set((VOCAB_LEVEL_MAP[level]||[]).map(v=>v.w)):null; for(let [word,entry] of vocabUsedMap.entries()){ if(entry.count>0&&(level===null||(levelWords&&levelWords.has(word)))) items.push({word, level:level||entry.level, count:entry.count, correctCount:entry.correctCount||0, practiceCount:entry.practiceCount||0, examples:entry.examples, practiceExamples:entry.practiceExamples||[]}); } items.sort((a,b)=>a.level-b.level); const title=document.getElementById('modalTitle'); const levelLabel=vocabLevelLabel(level); if(title) title.textContent=t('modal.vocab_detail')+(level?' ('+levelLabel+')':''); renderVocabDetailModal(items); modal.style.display='block'; document.body.style.overflow='hidden'; }
     function renderVocabLibrary(level){ const words=VOCAB_LEVEL_MAP[level]; const vocabLibEl=document.getElementById('vocabLibraryList'); if(!words){ vocabLibEl.innerHTML='<div class="empty-detail">'+t('status.no_vocab')+'</div>'; return; } const oldScroll=vocabLibEl.querySelector('.grammar-list-scroll'); const savedScrollTop=oldScroll?oldScroll.scrollTop:0; let html='<div class="grammar-list-scroll">'; for(let v of words){ const entry=vocabUsedMap.get(v.w); const cnt=entry?entry.count:0; const pCnt=entry?(entry.practiceCount||0):0; let status=''; if(cnt>0) status='<span class="mastered-tag" style="background:#e3f2fd;">'+t('status.using')+'</span>'; else status='<span class="not-mastered-tag">'+t('status.unused')+'</span>'; html+='<div class="grammar-list-item" data-vocab="'+escapeHtml(v.w)+'" data-level="'+v.l+'" title="'+vocabHoverTitle(v)+'"><span class="grammar-pattern">'+escapeHtml(v.w)+' <small style="color:#94a3b8;">'+escapeHtml(v.p)+'</small></span>'+status+'</div>'; } html+='</div>'; vocabLibEl.innerHTML=html; const newScroll=vocabLibEl.querySelector('.grammar-list-scroll'); if(newScroll) newScroll.scrollTop=savedScrollTop; document.querySelectorAll('#vocabLibraryList .grammar-list-item').forEach(el=>{ el.addEventListener('click',()=>{ const w=el.dataset.vocab; const lv=parseInt(el.dataset.level)||1; if(!w) return; window._learnMode=false; window._reviewMode=false; window._currentReviewItem=null; window._pendingLearnWord=null; window._practiceFinished=false; window._dictationMode=false; window._selfPractice=false; currentPracticeVocab={word:w, level:lv}; currentPracticeGrammar=null; generateVocabPractice(w, lv); }); }); }
-    function renderVocabTrackList(){ const chat=[], practice=[], writing=[]; const gapWords = new Set(gapBank.words.map(w=>stripForCompare(w.text))); const copiedSet = new Set(); const _cm = buildCopiedFromAiMap(chatHistory||[]); if(_cm && _cm.forEach){ _cm.forEach((info)=>{ if(info && info.phrase) copiedSet.add(stripForCompare(info.phrase)); }); } for(let [word,entry] of vocabUsedMap.entries()){ if(gapWords.has(stripForCompare(word))) continue; const cCnt=entry.chatCount||0, wCnt=entry.writingCount||0, pCnt=entry.practiceCount||0; const aiRep = entry.examples && entry.examples.some(ex=>{ const key = stripForCompare(ex.sentence); for(const p of copiedSet){ if(key.includes(p)) return true; } return false; }); if(cCnt>0) chat.push({word, level:entry.level, count:cCnt, aiRep}); if(pCnt>0) practice.push({word, level:entry.level, count:pCnt}); if(wCnt>0) writing.push({word, level:entry.level, count:wCnt}); } const sorter=(a,b)=>a.level-b.level; chat.sort(sorter); practice.sort(sorter); writing.sort(sorter); const renderCat=(elId, items, isChat)=>{const el=document.getElementById(elId);if(!el)return;if(items.length===0){el.innerHTML='';return;}let h='';for(let it of items){const lvLabel=vocabLevelLabel(it.level);const vEntry2=vocabUsedMap.get(it.word);const acquiredBadge=isVocabAcquired(vEntry2)?' <span class="acquired-badge" style="font-size:0.68rem;padding:1px 6px;border-radius:10px;">'+t('status.acquired')+'</span>':'';const repBadge=(isChat&&it.aiRep)?' <span class="acquired-badge" style="font-size:0.68rem;background:#fdecea;color:#c0392b;border:1px solid #f5c6cb;padding:1px 6px;border-radius:10px;">'+t('track.ai_repeat')+'</span>':'';h+='<div class="track-item" data-key="'+escapeHtml(it.word)+'" data-level="'+it.level+'"><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+lvLabel+' '+escapeHtml(it.word)+repBadge+'</span><span style="flex-shrink:0;min-width:55px;text-align:right;">'+acquiredBadge+' <span style="font-size:0.72rem;color:#2e7d32;">'+t('track.usage_count')+': '+it.count+'</span></span></div>';}el.innerHTML=h;el.querySelectorAll('.track-item').forEach(e=>e.addEventListener('click',()=>{const k=e.dataset.key;const entry=vocabUsedMap.get(k);if(entry){const its=[{word:k,level:entry.level,count:entry.count,practiceCount:entry.practiceCount||0,examples:entry.examples,practiceExamples:entry.practiceExamples||[]}];document.getElementById('modalTitle').textContent=t('modal.vocab_detail');renderVocabDetailModal(its);modal.style.display='block';document.body.style.overflow='hidden';}}));}; renderCat('vocabUsedOnlyList',chat,true); renderCat('vocabPracticeOnlyList',practice,false); renderCat('vocabBothList',writing,false); renderReadingTrackLists(); }
+    function renderVocabTrackList(){ const chat=[], practice=[], writing=[]; const gapWords = new Set(gapBank.items.map(it=>stripForCompare(it.correct || it.text))); const copiedSet = new Set(); const _cm = buildCopiedFromAiMap(chatHistory||[]); if(_cm && _cm.forEach){ _cm.forEach((info)=>{ if(info && info.phrase) copiedSet.add(stripForCompare(info.phrase)); }); } for(let [word,entry] of vocabUsedMap.entries()){ if(gapWords.has(stripForCompare(word))) continue; const cCnt=entry.chatCount||0, wCnt=entry.writingCount||0, pCnt=entry.practiceCount||0; const aiRep = entry.examples && entry.examples.some(ex=>{ const key = stripForCompare(ex.sentence); for(const p of copiedSet){ if(key.includes(p)) return true; } return false; }); if(cCnt>0) chat.push({word, level:entry.level, count:cCnt, aiRep}); if(pCnt>0) practice.push({word, level:entry.level, count:pCnt}); if(wCnt>0) writing.push({word, level:entry.level, count:wCnt}); } const sorter=(a,b)=>a.level-b.level; chat.sort(sorter); practice.sort(sorter); writing.sort(sorter); const renderCat=(elId, items, isChat)=>{const el=document.getElementById(elId);if(!el)return;if(items.length===0){el.innerHTML='';return;}let h='';for(let it of items){const lvLabel=vocabLevelLabel(it.level);const vEntry2=vocabUsedMap.get(it.word);const acquiredBadge=isVocabAcquired(vEntry2)?' <span class="acquired-badge" style="font-size:0.68rem;padding:1px 6px;border-radius:10px;">'+t('status.acquired')+'</span>':'';const repBadge=(isChat&&it.aiRep)?' <span class="acquired-badge" style="font-size:0.68rem;background:#fdecea;color:#c0392b;border:1px solid #f5c6cb;padding:1px 6px;border-radius:10px;">'+t('track.ai_repeat')+'</span>':'';h+='<div class="track-item" data-key="'+escapeHtml(it.word)+'" data-level="'+it.level+'"><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+lvLabel+' '+escapeHtml(it.word)+repBadge+'</span><span style="flex-shrink:0;min-width:55px;text-align:right;">'+acquiredBadge+' <span style="font-size:0.72rem;color:#2e7d32;">'+t('track.usage_count')+': '+it.count+'</span></span></div>';}el.innerHTML=h;el.querySelectorAll('.track-item').forEach(e=>e.addEventListener('click',()=>{const k=e.dataset.key;const entry=vocabUsedMap.get(k);if(entry){const its=[{word:k,level:entry.level,count:entry.count,practiceCount:entry.practiceCount||0,examples:entry.examples,practiceExamples:entry.practiceExamples||[]}];document.getElementById('modalTitle').textContent=t('modal.vocab_detail');renderVocabDetailModal(its);modal.style.display='block';document.body.style.overflow='hidden';}}));}; renderCat('vocabUsedOnlyList',chat,true); renderCat('vocabPracticeOnlyList',practice,false); renderCat('vocabBothList',writing,false); renderReadingTrackLists(); }
     function renderReadingTrackLists(){
         // 「阅读出现词语」合并：不懂的词（纲内+超纲） + 知道的词，错误的词已在错误库中，不在此处重复显示
-        const gapWords = new Set(gapBank.words.map(w => stripForCompare(w.text)));
+        const gapWords = new Set(gapBank.items.map(it => stripForCompare(it.correct || it.text)));
         const mk = (word, o) => ({ word, level: (o && o.level) || vocabLevelOfWord(word) || 0, count: (o && o.count) || 0 });
         const unknownIn = Object.entries(readingTrack.unknownIn || {}).map(([w, o]) => mk(w, o));
         const knownIn = Object.entries(readingTrack.knownIn || {}).map(([w, o]) => mk(w, o));
@@ -14643,7 +14625,7 @@ uncertain 表示你是否读不懂这个句子/分句、无法可靠推断学生
         return map;
     }
     function downloadUnifiedReport(){ let rpt='=== 📚 完整学习报告 ===\n'+new Date().toLocaleString()+'\n\n'; rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n✏️ 作文批改（最终提交文本 + 修改过程）\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(writingEssays.length===0){ rpt+='(暂无作文批改记录)\n\n'; } else { writingEssays.forEach((we,i)=>{ rpt+='📌 作文 '+(i+1)+'（'+formatDate(we.date)+'，最终得分 '+(we.score||'--')+'）\n--- 最终提交文本 ---\n'+(we.original||'')+'\n'; if(we.revisions&&we.revisions.length>0){ rpt+='--- 修改过程 ---\n'; we.revisions.forEach((rv,k)=>{ rpt+='修改'+(k+1)+'（'+formatDate(rv.date)+'，得分 '+(rv.score||'--')+'）\n'+(rv.text||'')+'\n'; }); } rpt+='\n'; }); } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n📝 第一部分：全部聊天记录\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; const _chatMsgs = dedupeChatHistory(chatHistory || []); if(_chatMsgs.length===0){ rpt+='(暂无聊天记录)\n'; } else { const _copiedMap=buildCopiedFromAiMap(_chatMsgs); for(let msg of _chatMsgs){ const roleLabel=msg.role==='user'?'🧑 用户':'🤖 AI'; const timeStr=msg.time?new Date(msg.time).toLocaleString():''; rpt+=roleLabel+' ['+timeStr+']\n'+msg.content+'\n'; const _cp=_copiedMap.get(msg); if(_cp) rpt+='  ⚠️ 注：此句与前面AI说过的「'+_cp.phrase+'」相同/相似，可能不是学生自己生成。\n'; rpt+='\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n📐 第二部分：语法追踪\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; const gc=()=>{const u=[],p=[],b=[];for(let[pat,entry]of usedMap.entries()){const c=entry.count||0,pc=entry.practiceCount||0;if(c>0&&pc===0)u.push({pat,lv:entry.level,c,pc,ex:entry.examples,ts:entry.practiceTimestamps||[]});else if(pc>0&&c===0)p.push({pat,lv:entry.level,c,pc,ts:entry.practiceTimestamps||[]});else if(c>0&&pc>0)b.push({pat,lv:entry.level,c,pc,ex:entry.examples,ts:entry.practiceTimestamps||[]});}return{u,p,b};};const gu=gc();[gu.u,gu.p,gu.b].forEach(a=>a.sort((x,y)=>x.lv-y.lv));rpt+='=== 仅用过（未练） ===\n';if(gu.u.length===0)rpt+='(无)\n';for(let it of gu.u){rpt+='HSK'+it.lv+' '+it.pat+': 使用'+it.c+'次\n';for(let ex of it.ex){const s=ex.feedback===true?'✓':ex.feedback===false?'✗':'√';rpt+='  '+s+' '+ex.sentence+' ['+(ex.date||'')+']\n';}rpt+='\n';}rpt+='=== 仅练过（未用） ===\n';if(gu.p.length===0)rpt+='(无)\n';for(let it of gu.p){rpt+='HSK'+it.lv+' '+it.pat+': 练习'+it.pc+'次';for(let t of it.ts)rpt+=' ['+t+']';rpt+='\n\n';}rpt+='=== 练过+用过 ===\n';if(gu.b.length===0)rpt+='(无)\n';for(let it of gu.b){rpt+='HSK'+it.lv+' '+it.pat+': 使用'+it.c+'次 练习'+it.pc+'次\n';for(let ex of it.ex){const s=ex.feedback===true?'✓':ex.feedback===false?'✗':'√';rpt+='  '+s+' '+ex.sentence+' ['+(ex.date||'')+']\n';}for(let t of it.ts)rpt+='  [练] '+t+'\n';rpt+='\n';}if(usedMap.size===0)rpt+='(暂无语法记录)\n'; rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n📖 第三部分：词汇追踪\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; const vc=()=>{const u=[],p=[],b=[];for(let[word,entry]of vocabUsedMap.entries()){const c=entry.count||0,pc=entry.practiceCount||0;if(c>0&&pc===0)u.push({word,lv:entry.level,c,pc,ex:entry.examples,ts:entry.practiceTimestamps||[]});else if(pc>0&&c===0)p.push({word,lv:entry.level,c,pc,ts:entry.practiceTimestamps||[]});else if(c>0&&pc>0)b.push({word,lv:entry.level,c,pc,ex:entry.examples,ts:entry.practiceTimestamps||[]});}return{u,p,b};};const vu=vc();[vu.u,vu.p,vu.b].forEach(a=>a.sort((x,y)=>x.lv-y.lv));rpt+='=== 仅用过（未练） ===\n';if(vu.u.length===0)rpt+='(无)\n';for(let it of vu.u){rpt+=vocabLevelLabel(it.lv)+' '+it.word+': 使用'+it.c+'次\n';for(let ex of it.ex)rpt+='  '+formatDate(ex.date)+' '+ex.sentence+'\n';rpt+='\n';}rpt+='=== 仅练过（未用） ===\n';if(vu.p.length===0)rpt+='(无)\n';for(let it of vu.p){rpt+=vocabLevelLabel(it.lv)+' '+it.word+': 练习'+it.pc+'次';for(let t of it.ts)rpt+=' ['+t+']';rpt+='\n\n';}rpt+='=== 练过+用过 ===\n';if(vu.b.length===0)rpt+='(无)\n';for(let it of vu.b){rpt+=vocabLevelLabel(it.lv)+' '+it.word+': 使用'+it.c+'次 练习'+it.pc+'次\n';for(let ex of it.ex)rpt+='  '+formatDate(ex.date)+' '+ex.sentence+'\n';for(let t of it.ts)rpt+='  [练] '+t+'\n';rpt+='\n';}if(vocabUsedMap.size===0)rpt+='(暂无词汇记录)\n'; rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n🔍 第四部分：查询过的词或句子\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(queriedItems.length===0){ rpt+='(暂无查询记录)\n'; } else { for(let i=0;i<queriedItems.length;i++){ const item=queriedItems[i]; const icon=item.type==='sentence'?'📝 句子':'🔤 词语'; rpt+=icon+' '+item.text+'\n  🌐 '+(item.translation||'')+'\n  📅 '+formatDate(item.date?item.date.slice(0,10):'')+'\n\n'; } }
-rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n🎯 缺口库（缺口词/短语 + 缺口语法，全部来源）\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(gapBank.words.length===0&&gapBank.patterns.length===0){ rpt+='(暂无缺口记录)\n'; } else { const _gw=[...gapBank.words].sort(gapSort); const _gp=[...gapBank.patterns].sort(gapSort); if(_gw.length){ rpt+='=== 缺口词/短语（未习得优先，按频次） ===\n'; for(const w of _gw){ rpt+=(w.acquired?'✅已习得':'🔴未习得')+' '+w.text+'｜出现'+(w.count||1)+'次｜来源：'+(w.source||'')+'\n'; if(w.sentence) rpt+='  原句：'+w.sentence+'\n'; if(w.translation) rpt+='  母语翻译：'+w.translation+'\n'; if(w.correctUseCount) rpt+='  正确使用：'+w.correctUseCount+'/3\n'; if(w.occurrences&&w.occurrences.length) rpt+='  出现时间：'+w.occurrences.map(o=>o.date).join('、')+'\n'; if(w.usedSentences&&w.usedSentences.length) rpt+='  使用句子（时间）：'+w.usedSentences.map(u=>u.sentence+'('+u.source+' '+(u.time||u.date||'')+')').join('；')+'\n'; rpt+='\n'; } } if(_gp.length){ rpt+='=== 缺口语法 ===\n'; for(const p of _gp){ rpt+=(p.acquired?'✅已习得':'🔴未习得')+' '+(p.text||p.sentence)+'｜出现'+(p.count||1)+'次｜来源：'+(p.source||'')+'\n'; if(p.sentence) rpt+='  原句：'+p.sentence+'\n'; if(p.correctUseCount) rpt+='  正确使用：'+p.correctUseCount+'/3\n'; if(p.occurrences&&p.occurrences.length) rpt+='  出现时间：'+p.occurrences.map(o=>o.date).join('、')+'\n'; if(p.usedSentences&&p.usedSentences.length) rpt+='  使用句子（时间）：'+p.usedSentences.map(u=>u.sentence+'('+u.source+' '+(u.time||u.date||'')+')').join('；')+'\n'; rpt+='\n'; } } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n💭 第七部分：今日错句反思记录\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; const _today2=getLocalDate(); const _rr=(window._reflectionResults||[]).filter(r => !r.date || String(r.date).slice(0,10) === _today2); if(_rr.length===0){ rpt+='(暂无今日反思记录)\n'; } else { for(const r of _rr){ rpt+='['+(r.mode||'')+'] '+(r.text||'')+'\n'; if(r.user) rpt+='  ✏️ 你写的：'+r.user+'\n'; if(r.note) rpt+='  📌 '+(r.note||'')+'\n'; if(r.native) rpt+='  🌐 母语表达：'+r.native+'\n'; if(r.reason) rpt+='  💭 哪里不明白：'+r.reason+'\n'; else rpt+='  💭 反思：（跳过）\n'; rpt+='  📅 '+(r.date||'')+'\n\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n⭐ 第五部分：收藏句子\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(favoriteSentences.length===0){ rpt+='(暂无收藏)\n'; } else { for(let item of favoriteSentences){ rpt+='🇨🇳 '+item.chinese+'\n🌐 '+(item.translation||'')+'\n📅 '+(item.date||'')+'\n\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n💬 「怎么说」尝试记录\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(zmsRecords.length===0){ rpt+='(暂无尝试记录)\n'; } else { for(var zi=0; zi<zmsRecords.length; zi++){ var zr=zmsRecords[zi]; rpt+='🌐 母语：'+zr.original+'\n  ✏️ 你的尝试：'+zr.attempt+'\n  ✅ 参考答案：'+zr.reference+'\n  📅 '+(zr.date||'')+'\n\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n📰 阅读历史\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(readingHistory.length===0){ rpt+='(暂无阅读记录)\n'; } else { readingHistory.forEach((r,i)=>{ rpt+='📌 '+(r.title||('HSK'+r.level))+' [HSK'+r.level+']\n'; rpt+='📅 '+(r.date||'')+' · 主题：'+(r.topic||'')+'\n'; if(r.background) rpt+='背景：'+r.background+'\n'; if(r.sourceUrl) rpt+='🔗 '+r.sourceUrl+'\n'; rpt+='--- 正文 ---\n'+(r.content||'')+'\n\n'; }); } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n📖 阅读词汇追踪（完成阅读后按等级累加）\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; const rtk2=readingTrack||{unknownIn:{},knownIn:{},unknownOut:{}}; const rIn1=Object.entries(rtk2.unknownIn||{}).map(([w,o])=>({word:w,level:o.level||vocabLevelOfWord(w)||0,count:o.count||0})).sort((a,b)=>a.level-b.level); const rIn2=Object.entries(rtk2.knownIn||{}).map(([w,o])=>({word:w,level:o.level||vocabLevelOfWord(w)||0,count:o.count||0})).sort((a,b)=>a.level-b.level); const rOut=Object.entries(rtk2.unknownOut||{}).map(([t,o])=>({text:t,type:o.type||'phrase',count:o.count||0})).sort((a,b)=>b.count-a.count); const rCat2=(arr)=>{ if(arr.length===0){ rpt+='(无)\n'; return; } for(const it of arr){ if(it.out){ const ico=it.type==='sentence'?'📝 句子(超纲)':(it.type==='phrase'?'🔗 短语(超纲)':'🔤 词语(超纲)'); rpt+=ico+' '+it.text+'：累计出现 '+it.count+' 次\n'; } else { rpt+=vocabLevelLabel(it.level)+' '+it.text+'：累计出现 '+it.count+' 次\n'; } } }; const rUnknown=[...rIn1.map(it=>({text:it.word,level:it.level,count:it.count,out:false})),...rOut.map(it=>({text:it.text,level:0,count:it.count,out:true,type:it.type}))].sort((a,b)=>(a.out?1:0)-(b.out?1:0)||b.count-a.count); rpt+='=== ① 不懂的词 ===\n'; rCat2(rUnknown); rpt+='\n'; rpt+='=== ② 知道的词 ===\n'; if(rIn2.length===0){ rpt+='(无)\n'; } else { for(const it of rIn2){ rpt+=vocabLevelLabel(it.level)+' '+it.word+'：累计出现 '+it.count+' 次\n'; } } rpt+='\n'; const ok = downloadTextFile(rpt, 'HSK_Learning_Report_' + getLocalDate() + '.txt'); showToast(ok ? t('toast.download_started') : t('toast.download_failed')); }
+rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n🎯 错误库（错误的词/句子，全部来源）\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(gapBank.items.length===0){ rpt+='(暂无错误记录)\n'; } else { const _gi=[...gapBank.items].sort(gapSort); for(const it of _gi){ rpt+=(it.acquired?'✅已习得':'🔴未习得')+' '+it.text+'｜出现'+(it.count||1)+'次｜来源：'+(it.source||'')+'\n'; if(it.correct && it.correct!==it.text) rpt+='  正确：'+it.correct+'\n'; if(it.sentence) rpt+='  改正后的句子：'+it.sentence+'\n'; if(it.translation) rpt+='  母语翻译：'+it.translation+'\n'; if(it.correctUseCount) rpt+='  正确使用：'+it.correctUseCount+'/3\n'; if(it.occurrences&&it.occurrences.length) rpt+='  出现时间：'+it.occurrences.map(o=>o.date).join('、')+'\n'; if(it.usedSentences&&it.usedSentences.length) rpt+='  使用句子（时间）：'+it.usedSentences.map(u=>u.sentence+'('+u.source+' '+(u.time||u.date||'')+')').join('；')+'\n'; rpt+='\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n💭 第七部分：今日错句反思记录\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; const _today2=getLocalDate(); const _rr=(window._reflectionResults||[]).filter(r => !r.date || String(r.date).slice(0,10) === _today2); if(_rr.length===0){ rpt+='(暂无今日反思记录)\n'; } else { for(const r of _rr){ rpt+='['+(r.mode||'')+'] '+(r.text||'')+'\n'; if(r.user) rpt+='  ✏️ 你写的：'+r.user+'\n'; if(r.note) rpt+='  📌 '+(r.note||'')+'\n'; if(r.native) rpt+='  🌐 母语表达：'+r.native+'\n'; if(r.reason) rpt+='  💭 哪里不明白：'+r.reason+'\n'; else rpt+='  💭 反思：（跳过）\n'; rpt+='  📅 '+(r.date||'')+'\n\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n⭐ 第五部分：收藏句子\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(favoriteSentences.length===0){ rpt+='(暂无收藏)\n'; } else { for(let item of favoriteSentences){ rpt+='🇨🇳 '+item.chinese+'\n🌐 '+(item.translation||'')+'\n📅 '+(item.date||'')+'\n\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n💬 「怎么说」尝试记录\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(zmsRecords.length===0){ rpt+='(暂无尝试记录)\n'; } else { for(var zi=0; zi<zmsRecords.length; zi++){ var zr=zmsRecords[zi]; rpt+='🌐 母语：'+zr.original+'\n  ✏️ 你的尝试：'+zr.attempt+'\n  ✅ 参考答案：'+zr.reference+'\n  📅 '+(zr.date||'')+'\n\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n📰 阅读历史\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(readingHistory.length===0){ rpt+='(暂无阅读记录)\n'; } else { readingHistory.forEach((r,i)=>{ rpt+='📌 '+(r.title||('HSK'+r.level))+' [HSK'+r.level+']\n'; rpt+='📅 '+(r.date||'')+' · 主题：'+(r.topic||'')+'\n'; if(r.background) rpt+='背景：'+r.background+'\n'; if(r.sourceUrl) rpt+='🔗 '+r.sourceUrl+'\n'; rpt+='--- 正文 ---\n'+(r.content||'')+'\n\n'; }); } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n📖 阅读词汇追踪（完成阅读后按等级累加）\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; const rtk2=readingTrack||{unknownIn:{},knownIn:{},unknownOut:{}}; const rIn1=Object.entries(rtk2.unknownIn||{}).map(([w,o])=>({word:w,level:o.level||vocabLevelOfWord(w)||0,count:o.count||0})).sort((a,b)=>a.level-b.level); const rIn2=Object.entries(rtk2.knownIn||{}).map(([w,o])=>({word:w,level:o.level||vocabLevelOfWord(w)||0,count:o.count||0})).sort((a,b)=>a.level-b.level); const rOut=Object.entries(rtk2.unknownOut||{}).map(([t,o])=>({text:t,type:o.type||'phrase',count:o.count||0})).sort((a,b)=>b.count-a.count); const rCat2=(arr)=>{ if(arr.length===0){ rpt+='(无)\n'; return; } for(const it of arr){ if(it.out){ const ico=it.type==='sentence'?'📝 句子(超纲)':(it.type==='phrase'?'🔗 短语(超纲)':'🔤 词语(超纲)'); rpt+=ico+' '+it.text+'：累计出现 '+it.count+' 次\n'; } else { rpt+=vocabLevelLabel(it.level)+' '+it.text+'：累计出现 '+it.count+' 次\n'; } } }; const rUnknown=[...rIn1.map(it=>({text:it.word,level:it.level,count:it.count,out:false})),...rOut.map(it=>({text:it.text,level:0,count:it.count,out:true,type:it.type}))].sort((a,b)=>(a.out?1:0)-(b.out?1:0)||b.count-a.count); rpt+='=== ① 不懂的词 ===\n'; rCat2(rUnknown); rpt+='\n'; rpt+='=== ② 知道的词 ===\n'; if(rIn2.length===0){ rpt+='(无)\n'; } else { for(const it of rIn2){ rpt+=vocabLevelLabel(it.level)+' '+it.word+'：累计出现 '+it.count+' 次\n'; } } rpt+='\n'; const ok = downloadTextFile(rpt, 'HSK_Learning_Report_' + getLocalDate() + '.txt'); showToast(ok ? t('toast.download_started') : t('toast.download_failed')); }
 
 async function handleEndConversation(){ if(chatAbortController){ chatAbortController.abort(); chatAbortController=null; } if(window._chatMeaningPending){ window._chatMeaningPending = null; const _mp = document.getElementById("chatMeaningPromptMsg"); if(_mp) _mp.remove(); } if(currentSessionClauses.length===0&&sessionUserMessages.length===0){ const _zmsOnly = (window._zmsWrongAttempts || []).slice(); if(!_zmsOnly.length){ addAssistantMessage(t('analysis.no_sentences')); return; } window._zmsWrongAttempts = []; setTimeout(function(){ startReflection(_zmsOnly); }, 300); return; } const filteredClauses=currentSessionClauses.filter(c=>!isQueriedSentence(c)); const savedClauses=[...filteredClauses]; if(filteredClauses.length===0){ const _zmsOnly2=(window._zmsWrongAttempts||[]).slice(); window._zmsWrongAttempts=[]; if(_zmsOnly2.length){ setTimeout(function(){ startReflection(_zmsOnly2); },300); } else { addAssistantMessage(t('analysis.no_sentences')); } currentSessionClauses=[]; sessionUserMessages=[]; return; } addAssistantMessage(t('analysis.analyzing_prefix')+filteredClauses.length+'...'); try{ const analysis=await analyzeGrammarBatch(filteredClauses); if(analysis) mergeAnalysisResults(analysis, 'chat'); addAssistantMessage(t('analysis.grammar_done')); }catch(e){ addAssistantMessage(t('analysis.grammar_timeout')); } addAssistantMessage(t('analysis.vocab_analyzing')); try{ const vocabAnalysis=await analyzeVocabBatch(savedClauses); if(vocabAnalysis){ mergeVocabResultsFiltered(vocabAnalysis, 'chat'); } const matchCount=vocabAnalysis?vocabAnalysis.reduce((sum,item)=>sum+Object.keys(item.wordCounts||{}).length,0):0; addAssistantMessage(t('analysis.vocab_done')+' 匹配到 '+matchCount+' 个词'); }catch(e){ console.log('Vocab error:',e); addAssistantMessage(t('analysis.vocab_timeout')); } renderVocabLevelProgress(); renderVocabTrackList(); const _userHanzi = sessionUserMessages.map(u => stripForCompare(u)); const _chatReflect = []; for(const it of (window._chatSessionMistakes || [])){ const key = stripForCompare(it.user || ''); const txt = stripForCompare(it.text || ''); if(!key) continue; if(!_userHanzi.some(u => u.includes(key))) continue; const dupIdx = _chatReflect.findIndex(x => stripForCompare(x.user || '') === key && stripForCompare(x.text || '') === txt); if(dupIdx === -1) _chatReflect.push(it); } window._chatSessionMistakes = []; const _zmsReflect = (window._zmsWrongAttempts || []).slice(); window._zmsWrongAttempts = []; for(const it of _zmsReflect){ if(it && it.user && it.text) _chatReflect.push(it); } if(_chatReflect.length) setTimeout(function(){ startReflection(_chatReflect); },600); currentSessionClauses=[]; sessionUserMessages=[]; }
     // 把AI回复中复述的学生原句替换为系统纠正后的句子，保证「哦，你是说……」后面的内容与纠错块完全一致
@@ -14782,8 +14764,7 @@ async function handleEndConversation(){ if(chatAbortController){ chatAbortContro
                 for(const _m of _lh){ filtered.push(_m); }
             }
             if(filtered.length === 0){
-                for(const w of gapActiveWords()){ if(text.includes(w.text)) recordGapCorrectUse('word', w.text, text, 'chat'); }
-                for(const p of gapActivePatterns()){ if(gapGrammarMatches(p, text)) recordGapCorrectUse('pattern', p.text || p.sentence, text, 'chat'); }
+                for(const it of gapActiveItems()){ if(gapItemMatches(it, text)) recordGapCorrectUse(it, text, 'chat'); }
             }
             const _shallow = filtered.filter(m => isShallowMistakeNote(m.note));
             if(_shallow.length > 0){
@@ -15521,7 +15502,7 @@ async function generateAndShowPractice(grammarPattern, grammarLevel, forceNew=fa
             window._zmsWrongAttempts = window._zmsWrongAttempts || [];
             window._zmsWrongAttempts.push({ mode:'怎么说', text: chinese, user: st.attempt, note: '🌐 '+original, date: getLocalDate() });
         }
-        recordGapWord(chinese, '怎么说', '怎么说查询：' + original, (opt && opt.meaning) || '', chinese);
+        recordGapItem(chinese, chinese, chinese, '怎么说', '怎么说查询：' + original, (opt && opt.meaning) || '');
         renderZmsResult(mode, original, attempt, chinese, (opt && opt.pinyin) || '');
     }
     async function zmsDisambDoneWithMeaning(mode, original, meaning, targetLang){
@@ -15621,8 +15602,8 @@ async function generateAndShowPractice(grammarPattern, grammarLevel, forceNew=fa
             addQueriedItem(chinese, zmsQueryType(st.original, chinese), st.original, attemptSaved);
             const hz = gapHanzi(chinese);
             if(hz){
-                if(hz.length <= 6 && !/[，。！？；、,.!?;]/.test(chinese)) recordGapWord(hz, '怎么说', '怎么说查询：' + st.original, st.original, chinese);
-                else recordGapPattern('', chinese, '怎么说', '怎么说查询：' + st.original);
+                if(hz.length <= 6 && !/[，。！？；、,.!?;]/.test(chinese)) recordGapItem(hz, hz, chinese, '怎么说', '怎么说查询：' + st.original, st.original);
+                else recordGapItem(chinese, '', chinese, '怎么说', '怎么说查询：' + st.original, '');
             }
             renderZmsResult(mode, st.original, attemptSaved, chinese, r.pinyin || '');
         }catch(e){
@@ -16152,16 +16133,19 @@ async function generateAndShowPractice(grammarPattern, grammarLevel, forceNew=fa
     function startGapPractice(){
         const lvSel = document.getElementById('gapPracticeLevelSelect');
         const lv = parseInt((lvSel && lvSel.value) || aiLevelSelect.value) || 3;
-        const activeWords = gapActiveWords().sort(gapSort);
-        const activePatterns = gapActivePatterns().sort(gapSort);
-        if(activeWords.length === 0 && activePatterns.length === 0){
+        const activeItems = gapActiveItems().sort(gapSort);
+        if(activeItems.length === 0){
             showToast(t('gap.all_acquired'));
             return;
         }
         const items = [];
-        // 层次性复习：未习得优先，频次高的先练，再按最近出现时间
-        for(const w of activeWords.slice(0, 12)) items.push({ w: w.text, lvl: lv, type: 'gap-word', sentence: w.sentence || w.text });
-        for(const p of activePatterns.slice(0, 6)) items.push({ w: p.text || p.sentence, lvl: lv, type: 'gap-pattern', sentence: p.sentence || '' });
+        // 统一错误库练习：短词/字走词练习，长句/结构走句子练习
+        for(const it of activeItems.slice(0, 12)){
+            const correct = it.correct || it.text;
+            const sentence = it.sentence || it.text;
+            if(correct && correct.length <= 6 && correct.indexOf('...') === -1) items.push({ w: correct, lvl: lv, type: 'gap-word', sentence: sentence });
+            else items.push({ w: it.text || sentence, lvl: lv, type: 'gap-pattern', sentence: sentence });
+        }
         window._reviewMode = false; window._currentReviewItem = null; window._reviewQueue = null; window._selfPractice = false;
         window._learnQueue = shuffleArray(items);
         window._learnTotal = items.length;
@@ -16402,8 +16386,8 @@ async function generateAndShowPractice(grammarPattern, grammarLevel, forceNew=fa
         window._practiceMistakes = [];
         for(const m of mistakes){
             const hz = gapHanzi(m.ref || '');
-            if(hz.length <= 6) recordGapWord(hz, m.mode || '读打', '练习错误：' + String(m.user || '').slice(0, 60), '', m.ref);
-            else recordGapPattern('', m.ref, m.mode || '读打', '练习错误：' + String(m.user || '').slice(0, 60));
+            if(hz.length <= 6) recordGapItem(hz, hz, m.ref, m.mode || '读打', '练习错误：' + String(m.user || '').slice(0, 60), '');
+            else recordGapItem(m.ref, '', m.ref, m.mode || '读打', '练习错误：' + String(m.user || '').slice(0, 60), '');
         }
         startReflection(mistakes.map(function(m){
             return { mode: m.mode, text: m.ref, user: m.user, note: '你的句子和标准答案不一样' };
