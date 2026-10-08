@@ -762,6 +762,9 @@
                     <option value="Russian">俄语 Русский</option>
                     <option value="Italian">意大利语 Italiano</option>
                     <option value="Thai">泰语 ภาษาไทย</option>
+                    <option value="Vietnamese">越南语 Tiếng Việt</option>
+                    <option value="Indonesian">印度尼西亚语 Bahasa Indonesia</option>
+                    <option value="Slovak">斯洛伐克语 Slovenčina</option>
                 </select>
             </div>
             <div class="stat-title"><span>📚 API 设置</span><span class="level-badge">🔑</span></div>
@@ -10597,7 +10600,7 @@ ${searchRule}
     let writingSession = null; // { firstText, lastText, lastScore, lastFeedback, lastHints, count, history, lastResult, lastHtml }
     let writingState = 'idle'; // idle | submitting | graded | ended
     const WRITING_MIN_CHARS = { 1: 20, 2: 40, 3: 80, 4: 120, 5: 160 };
-    const WRITING_LANG_NAMES = { 'Chinese':'中文', 'English':'英语', 'Japanese':'日语', 'Korean':'韩语', 'French':'法语', 'German':'德语', 'Spanish':'西班牙语', 'Russian':'俄语', 'Italian':'意大利语', 'Thai':'泰语' };
+    const WRITING_LANG_NAMES = { 'Chinese':'中文', 'English':'英语', 'Japanese':'日语', 'Korean':'韩语', 'French':'法语', 'German':'德语', 'Spanish':'西班牙语', 'Russian':'俄语', 'Italian':'意大利语', 'Thai':'泰语', 'Vietnamese':'越南语', 'Indonesian':'印度尼西亚语', 'Slovak':'斯洛伐克语' };
     const writingResultCache = new Map();
     function writingCacheKey(level, lang, text) { return level + '|' + lang + '|' + text; }
 
@@ -12278,7 +12281,7 @@ uncertain 表示你是否读不懂这个句子/分句、无法可靠推断学生
         const apiKey = apiKeyInput.value.trim();
         if(!apiKey || !items || items.length === 0) return null;
         const targetLang = targetLangSelect ? targetLangSelect.value : 'English';
-        const langNames = { 'Chinese':'中文', 'English':'英语', 'Japanese':'日语', 'Korean':'韩语', 'French':'法语', 'German':'德语', 'Spanish':'西班牙语', 'Russian':'俄语', 'Italian':'意大利语', 'Thai':'泰语' };
+        const langNames = { 'Chinese':'中文', 'English':'英语', 'Japanese':'日语', 'Korean':'韩语', 'French':'法语', 'German':'德语', 'Spanish':'西班牙语', 'Russian':'俄语', 'Italian':'意大利语', 'Thai':'泰语', 'Vietnamese':'越南语', 'Indonesian':'印度尼西亚语', 'Slovak':'斯洛伐克语' };
         const langName = langNames[targetLang] || targetLang;
         let listText = '';
         for(const it of items){ listText += '「' + it.original + '」 → 正确：「' + it.corrected + '」\n'; }
