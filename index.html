@@ -14248,24 +14248,28 @@ ${searchRule}
             ctx = '学生刚写完一篇作文（已提交批改）。\n作文：\n' + text.slice(0, 1200) + '\n最近得分：' + (writingSession.lastScore || '');
         }
         switchMode('chat');
+        // 记住话题背景，之后聊天 AI 会一直围绕这个话题，并且一次只问一个问题
+        window._chatTopicContext = (kind === 'reading')
+            ? ('学生刚读完一篇短文。标题：' + (currentReading.title || '') + '；主题：' + (currentReading.topic || '') + '；内容：' + String(currentReading.content || '').slice(0, 1000))
+            : ('学生刚写完一篇作文。作文：' + String((writingSession && writingSession.lastText) || '').slice(0, 1000));
         addAssistantMessage(t('mode_chat.preparing').replace('{kind}', kind === 'reading' ? t('reading.kind_name') : t('writing.kind_name')), false);
         const targetLang = targetLangSelect.value;
         const level = parseInt(aiLevelSelect.value) || 3;
         const country = nativeCountryZh(targetLang);
         try{
-            const prompt = '你是一位 HSK 汉语教师。请根据下面的材料，出3个讨论问题（简单中文，HSK' + level + '级水平）。问题要：①和材料内容相关；②和学生母语国家（' + country + '）的文化挂钩，做跨文化对比；③能引发表达和讨论。\n\n【材料】\n' + ctx + '\n\n输出JSON：{"questions":["问题1","问题2","问题3"]}\n只输出 JSON。';
+            const prompt = '你是一位 HSK 汉语教师。请根据下面的材料，出1个讨论问题（简单中文，HSK' + level + '级水平）。问题要：①和材料内容相关；②和学生母语国家（' + country + '）的文化挂钩，做跨文化对比；③能引发表达和讨论。只输出1个问题，不要输出多个。\n\n【材料】\n' + ctx + '\n\n输出JSON：{"question":"问题"}\n只输出 JSON。';
             const resp = await fetch(API_BASE, { method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey}, body: JSON.stringify({ model:'deepseek-v4-flash', thinking:{ type:'disabled' }, max_tokens:1024, messages:[{ role:'user', content:prompt }], temperature:0.8, response_format:{ type:'json_object' } }) });
             const data = await resp.json();
             if(data.error) throw new Error(data.error.message || 'API error');
             let c = data.choices && data.choices[0] && data.choices[0].message ? data.choices[0].message.content : '';
             c = c.replace(/```json/g,'').replace(/```/g,'').trim();
             const r = safeJsonParse(c);
-            const qs = (Array.isArray(r && r.questions) ? r.questions : []).filter(q => q).slice(0, 3);
+            const qs = (Array.isArray(r && r.questions) ? r.questions : (r && r.question ? [r.question] : [])).filter(q => q).slice(0, 1);
             if(!qs.length) throw new Error('empty');
-            const raw = '💬 我们来聊聊' + (kind === 'reading' ? '这篇文章' : '你的作文') + '吧：\n' + qs.map((q, i) => (i + 1) + '. ' + q).join('\n') + '\n（你可以回答，也可以问我问题）';
+            const raw = qs[0];
             addAssistantMessage(raw.replace(/\n/g, '<br>'), true, raw);
         }catch(e){
-            addAssistantMessage('💬 ' + (kind === 'reading' ? '这篇文章' : '你的作文') + '很有意思！你觉得怎么样？你的国家也有类似的事情吗？', false);
+            addAssistantMessage((kind === 'reading' ? '这篇文章' : '你的作文') + '很有意思！你觉得怎么样？', false);
         }
     }
 
@@ -15692,15 +15696,15 @@ function saveFullState(){ if(!currentUser) return; const entries=Array.from(used
         const diffGuide = level===1 ? "句子极短（每句3-6字），只能使用HSK1最基础词汇（我、你、他、是、有、去、来、吃、喝、好、大、小、喜欢等），只回复1句话，不要用任何关联词和复杂语法" : level===2 ? "句子短（每句5-9字），使用HSK1-2基础词汇，简单主谓/主谓宾，可带简单状语，回复1-2句" : level===3 ? "句子中等（每句7-14字），使用HSK3及以下词汇，可含趋向补语、结果补语、把字句，回复2-3句" : level===4 ? "句子中等偏长（每句10-18字），使用HSK4及以下词汇，可含较复杂补语和关联词，回复3-4句" : "句子正常（每句12-22字），使用HSK5及以下词汇，表达可以丰富自然，可有一定句法复杂度，回复3-5句";
         const reasonNames = {total:'总字数', sentences:'句数', clausesPerSentence:'每句小句数', clause:'单个小句长度'};
         const enforce = prevCheck ? `\n【长度强制修正 - 现在必须执行】你刚才的回复超过HSK${level}级长度限制（超限项：${reasonNames[prevCheck.reason]||prevCheck.reason}，当前值：${prevCheck.count}）。现在重新回复用户刚才那条消息，内容可以精简，但必须满足：每个小句（逗号前的一段）不超过${limPlain.maxChars}个汉字，每句最多${limPlain.maxClausesPerSentence}个小句，全段最多${limPlain.maxSentences}句，全文总字数不超过${limPlain.maxTotalChars}个汉字。宁可少说，不可超长。` : '';
-        let corrCtx = '';
         const _validMistakes = (mistakes || []).filter(m => m && m.original && m.corrected && stripForCompare(m.original) !== stripForCompare(m.corrected) && stripForCompare(m.corrected).replace(/[吧吗呢啊呀哦嘛咯喽哟]+$/, '') !== stripForCompare(m.original));
-        if(_validMistakes.length > 0){
-            corrCtx = '\n【系统纠错结果】\n系统已先分析学生这句话，发现以下偏误：\n';
-            for(const m of _validMistakes){ corrCtx += '- 「' + m.original + '」应为「' + m.corrected + '」（' + (m.type || '') + '）\n'; }
-            corrCtx += '回复时先自然地说「哦，你是说……」并接上正确说法（只改错误部分），再继续回应学生；不要说「你是想问」。你「哦，你是说……」后面的正确说法必须与上面每条「应为……」完全一致：数字/日期/时间/数量词原样保留，其余字词一字不动，禁止省略或改写。';
-        } else {
-            corrCtx = '\n【系统纠错结果】\n（本次无纠错结果）\n';
-        }
+        const corrCtx = (_validMistakes.length > 0)
+            ? '\n【系统纠错结果】\n系统已先分析学生这句话，发现以下偏误：\n'
+                + _validMistakes.map(m => '- 「' + m.original + '」应为「' + m.corrected + '」（' + (m.type || '') + '）').join('\n')
+                + '\n回复时先自然地说「哦，你是说……」并接上正确说法（只改错误部分），再继续回应学生；不要说「你是想问」。你「哦，你是说……」后面的正确说法必须与上面每条「应为……」完全一致：数字/日期/时间/数量词原样保留，其余字词一字不动，禁止省略或改写。'
+            : '\n【系统纠错结果】\n（本次无纠错结果）\n';
+        const topicCtx = window._chatTopicContext
+            ? '\n【当前话题背景】' + String(window._chatTopicContext).slice(0, 1200) + '\n请始终围绕这个话题和学生聊天，不要跑题；提问时一次只问一个问题，等学生回答后再继续问下一个，不要一次列出多个问题。'
+            : '';
         const system = `你是HSK${level}级中文对话伙伴。像一个真实的朋友一样自然交流，用符合HSK${level}级的中文。
 【难度控制 - 最高优先级，必须严格遵守】严格匹配HSK${level}级水平，词语难度与句子长度如下：${diffGuide}。你现在是 HSK${level} 级，切换等级后，用词难度、句子长度、语法复杂度必须立刻明显改变。只能使用 HSK${level} 级及以下的词汇和语法。不要超过。每个小句（逗号前的一段）不超过${limPlain.maxChars}个汉字，每句最多${limPlain.maxClausesPerSentence}个小句，全段最多${limPlain.maxSentences}句，全文总字数不超过${limPlain.maxTotalChars}个汉字。宁可短，不可长。
 ${gapChatGuide()}
@@ -15723,7 +15727,7 @@ ${gapChatGuide()}
 (b) 全段不超过${limPlain.maxSentences}句？
 (c) 全文总字数不超过${limPlain.maxTotalChars}个汉字？
 (d) 用词是否在HSK${level}级范围内？
-只要有一项不符合，就删掉多余内容，缩短后再回复。` + enforce + corrCtx;
+只要有一项不符合，就删掉多余内容，缩短后再回复。` + topicCtx + enforce + corrCtx;
         const messages = [{role:'system', content:system}, ...chatHistory];
         try{
             const resp = await fetch(API_BASE, {method:'POST', headers:{'Content-Type':'application/json', 'Authorization':'Bearer '+apiKey}, body: JSON.stringify({model:'deepseek-v4-pro', thinking:{type:'disabled'}, max_tokens:512, messages, temperature:0.4}), signal});
@@ -16907,7 +16911,11 @@ renderVocabLevelProgress(); renderVocabTrackList(); const _userHanzi = sessionUs
                 if(!m.note || isVagueMistakeNote(m.note) || hasNonsenseSelfCorrection(m.note) || /^(missing|extra|缺少|多余|不足|余分|fehlt|überflüssig|falta|sobra|пропущено|лишнее|ขาด|เกิน|manca|in più)/i.test(String(m.note||'').trim()) || (_lang !== 'Chinese' && /[\u4e00-\u9fff]/.test(String(m.note)))) m.note = describeMistakeReason(m.original, m.corrected);
             }
             const batch = filterMistakes(mistakes).filter(m => /[\u4e00-\u9fff]/.test(m.original || ''));
-            const reply = await chatWithContext(text, signal, 0, null, batch);
+            let reply = await chatWithContext(text, signal, 0, null, batch);
+            if(!reply && batch.length > 0){
+                // 纠错上下文导致回复失败时，退回正常聊天再试一次，避免直接显示「回复失败」
+                try{ reply = await chatWithContext(text, signal, 0, null, []); }catch(e){ reply = null; }
+            }
             const cleanReplyRaw = reply ? alignReplyWithCorrections(stripInlineCorrectionBlock(reply.raw), batch) : '';
             let filtered;
             if(opts.confirmed){
