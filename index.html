@@ -19684,6 +19684,8 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
     // 新四维：音 / 形 / 义 / 用。A-B 对了 → A 和 B 各记对1次。
     function recordFourDim(word, dims, ok){
         if(!word) return;
+        // 练习模式（学习/复习/自主练习）不计入四维统计
+        if(window._learnMode || window._reviewMode || window._selfPractice) return;
         for(const d of (dims || [])) recordVocabDim(word, d, ok);
         if(ok && (dims || []).length){
             window._dimUpdates = window._dimUpdates || [];
