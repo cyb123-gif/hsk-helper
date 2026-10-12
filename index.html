@@ -665,7 +665,7 @@
             </div>
             <div id="wZenmeshuoResult" class="zenmeshuo-result" style="margin:0 12px;"></div>
             <div id="writingStatusBar" class="writing-status-bar" data-state="idle">✍️ 写作进行中：请在上方输入作文，然后点「提交批改」</div>
-            <div class="writing-flow-hint"><span id="writingFlowHint">流程：① 输入作文 → ② 提交批改 → ③ 修改后再提交（可选） → ④ 结束写作</span><span id="writingLengthHint" style="margin-left:12px;font-weight:700;color:#1e2b5e;font-size:0.8rem;"></span><label style="margin-left:auto;font-size:0.8rem;color:#475569;display:flex;align-items:center;gap:6px;">📏 目标字数<input type="number" id="writingTargetChars" min="10" max="2000" step="5" placeholder="默认" style="width:76px;padding:4px 8px;border-radius:12px;border:1.5px solid #d0dae8;font-size:0.8rem;"></label></div>
+            <div class="writing-flow-hint"><span id="writingFlowHint">流程：① 输入作文 → ② 提交批改 → ③ 修改后再提交（可选） → ④ 结束写作</span><span id="writingLengthHint" style="margin-left:12px;font-weight:700;color:#1e2b5e;font-size:0.8rem;"></span><label style="margin-left:auto;font-size:0.8rem;color:#475569;display:flex;align-items:center;gap:6px;"><span id="writingTargetCharsLabel">📏 目标字数</span><input type="number" id="writingTargetChars" min="10" max="2000" step="5" placeholder="默认" style="width:76px;padding:4px 8px;border-radius:12px;border:1.5px solid #d0dae8;font-size:0.8rem;"></label></div>
             <div id="sentenceArea" class="sentence-area" style="display:none;"></div>
             <textarea class="writing-textarea" id="writingTextarea" placeholder="请在此输入你的中文作文..."></textarea>
             <div class="writing-results" id="writingResults"></div>
@@ -10789,6 +10789,12 @@ const HSK2_VOCAB = [
 
     const I18N_NEW6 = {
         'Chinese': {
+            'writing.target_chars':'📏 目标字数',
+            'writing.target_chars_ph':'默认',
+            'dim.ok':'对',
+            'dim.bad':'错',
+            'dim.total':'共',
+            'dim.all_lit':'🎉 {word} 音/形/义/用 全部点亮！',
             'dim.yin':'🔊 音',
             'dim.xing':'✍️ 形',
             'dim.yi':'📖 义',
@@ -10831,6 +10837,12 @@ const HSK2_VOCAB = [
             'dim.free_use':'自由运用', 'dim.restricted_use':'限制运用', 'track.out_vocab':'超纲词'
         },
         'English': {
+            'writing.target_chars':'📏 Target chars',
+            'writing.target_chars_ph':'Default',
+            'dim.ok':'✓',
+            'dim.bad':'✗',
+            'dim.total':'Σ',
+            'dim.all_lit':'🎉 {word} Sound/Form/Meaning/Use all lit!',
             'dim.yin':'🔊 Sound',
             'dim.xing':'✍️ Form',
             'dim.yi':'📖 Meaning',
@@ -10873,6 +10885,12 @@ const HSK2_VOCAB = [
             'dim.free_use':'Free Use', 'dim.restricted_use':'Restricted Use', 'track.out_vocab':'Out-of-Level'
         },
         'Japanese': {
+            'writing.target_chars':'📏 目標文字数',
+            'writing.target_chars_ph':'既定',
+            'dim.ok':'正',
+            'dim.bad':'誤',
+            'dim.total':'計',
+            'dim.all_lit':'🎉 {word} 音/形/義/用 全部点灯！',
             'dim.yin':'🔊 音',
             'dim.xing':'✍️ 形',
             'dim.yi':'📖 義',
@@ -10913,6 +10931,12 @@ const HSK2_VOCAB = [
             'dim.free_use':'自由運用', 'dim.restricted_use':'制限運用'
         },
         'Korean': {
+            'writing.target_chars':'📏 목표 글자 수',
+            'writing.target_chars_ph':'기본',
+            'dim.ok':'정',
+            'dim.bad':'오',
+            'dim.total':'계',
+            'dim.all_lit':'🎉 {word} 음/형/의/용 모두 달성!',
             'dim.yin':'🔊 음',
             'dim.xing':'✍️ 형',
             'dim.yi':'📖 의',
@@ -10953,6 +10977,12 @@ const HSK2_VOCAB = [
             'dim.free_use':'자유 운용', 'dim.restricted_use':'제한 운용'
         },
         'French': {
+            'writing.target_chars':'📏 Caractères cible',
+            'writing.target_chars_ph':'Défaut',
+            'dim.ok':'✓',
+            'dim.bad':'✗',
+            'dim.total':'Σ',
+            'dim.all_lit':'🎉 {word} Son/Forme/Sens/Usage allumés !',
             'dim.yin':'🔊 Son',
             'dim.xing':'✍️ Forme',
             'dim.yi':'📖 Sens',
@@ -10993,6 +11023,12 @@ const HSK2_VOCAB = [
             'dim.free_use':'Usage libre', 'dim.restricted_use':'Usage restreint'
         },
         'German': {
+            'writing.target_chars':'📏 Zielzeichen',
+            'writing.target_chars_ph':'Standard',
+            'dim.ok':'✓',
+            'dim.bad':'✗',
+            'dim.total':'Σ',
+            'dim.all_lit':'🎉 {word} Laut/Form/Bedeutung/Gebrauch leuchten!',
             'dim.yin':'🔊 Laut',
             'dim.xing':'✍️ Form',
             'dim.yi':'📖 Bedeutung',
@@ -11033,6 +11069,12 @@ const HSK2_VOCAB = [
             'dim.free_use':'Freie Anwendung', 'dim.restricted_use':'Eingeschränkte Anwendung'
         },
         'Spanish': {
+            'writing.target_chars':'📏 Caracteres objetivo',
+            'writing.target_chars_ph':'Predet.',
+            'dim.ok':'✓',
+            'dim.bad':'✗',
+            'dim.total':'Σ',
+            'dim.all_lit':'🎉 {word} Sonido/Forma/Significado/Uso ¡encendidos!',
             'dim.yin':'🔊 Sonido',
             'dim.xing':'✍️ Forma',
             'dim.yi':'📖 Significado',
@@ -11073,6 +11115,12 @@ const HSK2_VOCAB = [
             'dim.free_use':'Uso libre', 'dim.restricted_use':'Uso restringido'
         },
         'Russian': {
+            'writing.target_chars':'📏 Целевые знаки',
+            'writing.target_chars_ph':'Станд.',
+            'dim.ok':'✓',
+            'dim.bad':'✗',
+            'dim.total':'Σ',
+            'dim.all_lit':'🎉 {word} Звук/Форма/Значение/Употребление горят!',
             'dim.yin':'🔊 Звук',
             'dim.xing':'✍️ Форма',
             'dim.yi':'📖 Значение',
@@ -11113,6 +11161,12 @@ const HSK2_VOCAB = [
             'dim.free_use':'Свободное использование', 'dim.restricted_use':'Ограниченное использование'
         },
         'Thai': {
+            'writing.target_chars':'📏 จำนวนอักษรเป้าหมาย',
+            'writing.target_chars_ph':'ค่าเริ่มต้น',
+            'dim.ok':'ถูก',
+            'dim.bad':'ผิด',
+            'dim.total':'รวม',
+            'dim.all_lit':'🎉 {word} เสียง/รูป/ความหมาย/การใช้ ครบแล้ว!',
             'dim.yin':'🔊 เสียง',
             'dim.xing':'✍️ รูป',
             'dim.yi':'📖 ความหมาย',
@@ -11153,6 +11207,12 @@ const HSK2_VOCAB = [
             'dim.free_use':'ใช้อย่างอิสระ', 'dim.restricted_use':'ใช้แบบจำกัด'
         },
         'Italian': {
+            'writing.target_chars':'📏 Caratteri target',
+            'writing.target_chars_ph':'Default',
+            'dim.ok':'✓',
+            'dim.bad':'✗',
+            'dim.total':'Σ',
+            'dim.all_lit':'🎉 {word} Suono/Forma/Senso/Uso accesi!',
             'dim.yin':'🔊 Suono',
             'dim.xing':'✍️ Forma',
             'dim.yi':'📖 Significato',
@@ -11193,6 +11253,12 @@ const HSK2_VOCAB = [
             'dim.free_use':'Uso libero', 'dim.restricted_use':'Uso limitato'
         },
         'Vietnamese': {
+            'writing.target_chars':'📏 Số chữ mục tiêu',
+            'writing.target_chars_ph':'Mặc định',
+            'dim.ok':'✓',
+            'dim.bad':'✗',
+            'dim.total':'Σ',
+            'dim.all_lit':'🎉 {word} Âm/Hình/Nghĩa/Dùng đã sáng đèn!',
             'dim.yin':'🔊 Âm',
             'dim.xing':'✍️ Hình',
             'dim.yi':'📖 Nghĩa',
@@ -11233,6 +11299,12 @@ const HSK2_VOCAB = [
             'dim.free_use':'Dùng tự do', 'dim.restricted_use':'Dùng hạn chế'
         },
         'Indonesian': {
+            'writing.target_chars':'📏 Target karakter',
+            'writing.target_chars_ph':'Bawaan',
+            'dim.ok':'✓',
+            'dim.bad':'✗',
+            'dim.total':'Σ',
+            'dim.all_lit':'🎉 {word} Bunyi/Bentuk/Makna/Pakai menyala!',
             'dim.yin':'🔊 Bunyi',
             'dim.xing':'✍️ Bentuk',
             'dim.yi':'📖 Makna',
@@ -11273,6 +11345,12 @@ const HSK2_VOCAB = [
             'dim.free_use':'Penggunaan bebas', 'dim.restricted_use':'Penggunaan terbatas'
         },
         'Slovak': {
+            'writing.target_chars':'📏 Cieľové znaky',
+            'writing.target_chars_ph':'Predvolené',
+            'dim.ok':'✓',
+            'dim.bad':'✗',
+            'dim.total':'Σ',
+            'dim.all_lit':'🎉 {word} Zvuk/Tvar/Význam/Použitie svieti!',
             'dim.yin':'🔊 Zvuk',
             'dim.xing':'✍️ Tvar',
             'dim.yi':'📖 Význam',
@@ -11492,6 +11570,8 @@ const HSK2_VOCAB = [
         if (typeof updateVoiceHint === 'function') updateVoiceHint();
         // 刷新写作状态栏与流程提示
         const wfh = document.getElementById('writingFlowHint'); if(wfh) wfh.textContent = t('writing.flow_hint');
+        const wtcl = document.getElementById('writingTargetCharsLabel'); if(wtcl) wtcl.textContent = t('writing.target_chars');
+        const wtc2 = document.getElementById('writingTargetChars'); if(wtc2) wtc2.placeholder = t('writing.target_chars_ph');
         if (typeof updateWritingStatus === 'function') updateWritingStatus(writingState || 'idle');
         // 写作结果正在显示 → 自动用新语言重新分析（含已结束的作文，只重批不改状态）
         const wResults = document.getElementById('writingResults');
@@ -16523,13 +16603,13 @@ uncertain 表示你是否读不懂这个句子/分句、无法可靠推断学生
         const e = dimOf(w, dim);
         const ok = e.c || 0, total = e.t || 0, bad = Math.max(0, total - ok);
         const cls = total > 0 ? (ok / total >= 0.8 ? 'ok' : 'weak') : '';
-        return '<span class="wordlab-dim ' + cls + '">' + label + ' 对' + ok + '/错' + bad + '/共' + total + '</span>';
+        return '<span class="wordlab-dim ' + cls + '">' + label + ' ' + t('dim.ok') + ok + '/' + t('dim.bad') + bad + '/' + t('dim.total') + total + '</span>';
     };
     const useBadge = (w) => {
         const ue = dimOf(w, '用');
         const ok = ue.c || 0, total = ue.t || 0, bad = Math.max(0, total - ok);
         const cls = total > 0 ? (ok / total >= 0.5 ? 'ok' : 'weak') : '';
-        return '<span class="wordlab-dim ' + cls + '">' + t('dim.yong') + ' 对' + ok + '/错' + bad + '/共' + total + '</span>';
+        return '<span class="wordlab-dim ' + cls + '">' + t('dim.yong') + ' ' + t('dim.ok') + ok + '/' + t('dim.bad') + bad + '/' + t('dim.total') + total + '</span>';
     };
     const wordHtml = (w) => {
         return '<div class="track-item" data-key="' + escapeHtml(w) + '">' +
@@ -19703,7 +19783,7 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
         const key = 'celebrated_' + currentUser + '_' + word;
         if(localStorage.getItem(key)) return;
         localStorage.setItem(key, '1');
-        try{ showToast('🎉 ' + word + ' 音/形/义/用 全部点亮！'); }catch(e){}
+        try{ showToast(t('dim.all_lit').replace('{word}', word)); }catch(e){}
         try{ launchFireworks(); }catch(e){}
     }
     function launchFireworks(){
@@ -19798,9 +19878,9 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
             cls = (used > 0 || rUsed > 0) ? 'ok' : '';
             return '<span class="wordlab-dim ' + cls + '" title="' + escapeHtml(t('dim.free_use')) + '：聊天/写作/口语中使用 ' + used + ' 次；' + escapeHtml(t('dim.restricted_use')) + '：造句中使用 ' + rUsed + ' 次">' + txt + '</span>';
         }
-        txt = label + ' 对' + (e.c || 0) + '/错' + Math.max(0, (e.t || 0) - (e.c || 0)) + '/共' + (e.t || 0);
+        txt = label + ' ' + t('dim.ok') + (e.c || 0) + '/' + t('dim.bad') + Math.max(0, (e.t || 0) - (e.c || 0)) + '/' + t('dim.total') + (e.t || 0);
         cls = (e.t > 0) ? ((e.c / e.t >= 0.8) ? 'ok' : 'weak') : '';
-        return '<span class="wordlab-dim ' + cls + '" title="对 ' + (e.c || 0) + ' 次，错 ' + Math.max(0, (e.t || 0) - (e.c || 0)) + ' 次，共 ' + (e.t || 0) + ' 次">' + txt + '</span>';
+        return '<span class="wordlab-dim ' + cls + '" title="' + t('dim.ok') + ' ' + (e.c || 0) + ' · ' + t('dim.bad') + ' ' + Math.max(0, (e.t || 0) - (e.c || 0)) + ' · ' + t('dim.total') + ' ' + (e.t || 0) + '">' + txt + '</span>';
     }
     function wlProgressLineHtml(word){
         const d = vocabDimMap[word] || {};
@@ -19808,7 +19888,7 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
         const xing = d['形'] || { c:0, t:0 };
         const yi = d['义'] || { c:0, t:0 };
         const yong = d['用'] || { c:0, t:0 };
-        const pc = (e) => '对' + (e.c || 0) + '/错' + Math.max(0, (e.t || 0) - (e.c || 0)) + '/共' + (e.t || 0);
+        const pc = (e) => t('dim.ok') + (e.c || 0) + '/' + t('dim.bad') + Math.max(0, (e.t || 0) - (e.c || 0)) + '/' + t('dim.total') + (e.t || 0);
         return '<div style="font-size:0.78rem;color:#64748b;margin-bottom:6px;">📊 掌握：' + t('dim.yin') + ' ' + pc(yin) + ' · ' + t('dim.xing') + ' ' + pc(xing) + ' · ' + t('dim.yi') + ' ' + pc(yi) + ' · ' + t('dim.yong') + ' ' + pc(yong) + '</div>';
     }
     function wlMasteryHtml(word){
