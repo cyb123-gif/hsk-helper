@@ -299,8 +299,82 @@ function handleNewsSearchProxy(req, res) {
     });
 }
 
+// 图片搜索代理（Bing 图片搜索，无需 API Key，国内可访问）
+function handleImageSearchProxy(req, res) {
+    let query = '';
+    const qIndex = req.url.indexOf('?');
+    if (qIndex >= 0) query = req.url.slice(qIndex + 1);
+    const params = new URLSearchParams(query);
+    const q = (params.get('q') || '').trim();
+    if (!q) {
+        res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ error: '缺少 q 参数' }));
+        return;
+    }
+    const searchPath = '/images/search?q=' + encodeURIComponent(q) + '&form=HDRSC2';
+    const options = {
+        hostname: 'www.bing.com',
+        port: 443,
+        path: searchPath,
+        method: 'GET',
+        headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0 Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            'Accept-Language': 'zh-CN,zh;q=0.9'
+        },
+        timeout: 20000
+    };
+    const proxyReq = https.get(options, (proxyRes) => {
+        if (proxyRes.statusCode !== 200) {
+            res.writeHead(502, { 'Content-Type': 'application/json; charset=utf-8' });
+            res.end(JSON.stringify({ error: '图片搜索上游返回 ' + proxyRes.statusCode }));
+            return;
+        }
+        let body = '';
+        proxyRes.setEncoding('utf8');
+        proxyRes.on('data', chunk => { body += chunk; });
+        proxyRes.on('end', () => {
+            const urls = [];
+            // Bing 图片结果里 murl 属性保存原图地址
+            const re = /murl&quot;:&quot;(.*?)&quot;/g;
+            let m;
+            while ((m = re.exec(body)) !== null && urls.length < 8) {
+                const u = m[1].replace(/\\u002f/g, '/').replace(/\\\//g, '/').replace(/&amp;/g, '&');
+                if (/^https?:\/\//i.test(u) && !urls.includes(u)) urls.push(u);
+            }
+            if (!urls.length) {
+                // 兼容 Bing 返回纯 URL 属性的情况
+                const re2 = /murl&quot;:(&quot;)?(.*?)(&quot;)?,/g;
+                while ((m = re2.exec(body)) !== null && urls.length < 8) {
+                    let u = m[2].replace(/\\u002f/g, '/').replace(/\\\//g, '/').replace(/&amp;/g, '&');
+                    if (u.startsWith('http')) u = u.replace(/^"/, '');
+                    if (/^https?:\/\//i.test(u) && !urls.includes(u)) urls.push(u);
+                }
+            }
+            res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+            res.end(JSON.stringify({ url: urls[0] || '', urls }));
+        });
+    });
+    proxyReq.on('error', (err) => {
+        console.error('[ImageSearch] 请求失败:', err.message);
+        res.writeHead(502, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ error: '图片搜索失败: ' + err.message }));
+    });
+    proxyReq.on('timeout', () => {
+        proxyReq.destroy();
+        res.writeHead(504, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ error: '图片搜索超时' }));
+    });
+}
+
 // ========== HTTP 服务器 ==========
 const server = http.createServer((req, res) => {
+    // 图片搜索代理
+    if (req.url.startsWith('/search-image?')) {
+        handleImageSearchProxy(req, res);
+        return;
+    }
+
     // 新闻搜索代理
     if (req.url.startsWith('/search-news?')) {
         handleNewsSearchProxy(req, res);
