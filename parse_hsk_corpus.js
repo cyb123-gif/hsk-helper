@@ -31,6 +31,9 @@ function topList(map, limit, minFreq) {
         .slice(0, limit);
 }
 
+const chunks = new Map(); // 语块：学生块→正确块
+const frames = new Map(); // 框架：前文|缺词|后文
+
 for (const d of data) {
     let raw = d.raw || '';
 
@@ -59,18 +62,75 @@ for (const d of data) {
             const ch = raw[j - 1];
             if (isHan(ch)) { right = ch + right; cnt++; j--; } else break;
         }
-        if (right && wrong !== right) add(cuoci, wrong + '→' + right, 1);
+        if (right && wrong !== right) {
+            add(cuoci, wrong + '→' + right, 1);
+            // 语块：右侧搭配（错词+后文 vs 正词+后文）
+            let post = '';
+            for (let k = cm.index + cm[0].length; k < raw.length && post.length < 2; k++) {
+                const ch = raw[k];
+                if (isHan(ch)) post += ch; else break;
+            }
+            if (post.length >= 1) {
+                const sChunk = wrong + post, cChunk = right + post;
+                if (/^[\u4e00-\u9fff]{2,6}$/.test(sChunk) && /^[\u4e00-\u9fff]{2,6}$/.test(cChunk) && sChunk !== cChunk) add(chunks, sChunk + '→' + cChunk, 1);
+            }
+            // 语块：左侧搭配（前文+错词 vs 前文+正词；前文要排除正词本身）
+            let pre = '';
+            for (let k = cm.index - right.length - 1; k >= 0 && pre.length < 2; k--) {
+                const ch = raw[k];
+                if (isHan(ch)) pre = ch + pre; else break;
+            }
+            if (pre.length >= 1) {
+                const sChunk = pre + wrong, cChunk = pre + right;
+                if (/^[\u4e00-\u9fff]{2,6}$/.test(sChunk) && /^[\u4e00-\u9fff]{2,6}$/.test(cChunk) && sChunk !== cChunk) add(chunks, sChunk + '→' + cChunk, 1);
+            }
+        }
     }
 
     // 4) 缺词 {CQ X}
     const cqRe = /\{CQ([^}]{1,12})\}/g;
     let qm;
-    while ((qm = cqRe.exec(raw))) { if (/^[\u4e00-\u9fff]{1,6}$/.test(qm[1])) add(cq, qm[1], 1); }
+    while ((qm = cqRe.exec(raw))) {
+        const x = qm[1];
+        if (!/^[\u4e00-\u9fff]{1,6}$/.test(x)) continue;
+        add(cq, x, 1);
+        // 框架：前2字 | 缺词 | 后2字
+        let pre = '';
+        for (let k = qm.index - 1; k >= 0 && pre.length < 2; k--) {
+            const ch = raw[k];
+            if (isHan(ch)) pre = ch + pre; else break;
+        }
+        let post = '';
+        for (let k = qm.index + qm[0].length; k < raw.length && post.length < 2; k++) {
+            const ch = raw[k];
+            if (isHan(ch)) post += ch; else break;
+        }
+        if (pre.length >= 1) add(frames, pre + '|' + x + '|' + post, 1);
+    }
 
     // 5) 多词 {CD X}
     const cdRe = /\{CD([^}]{1,12})\}/g;
     let dm;
-    while ((dm = cdRe.exec(raw))) { if (/^[\u4e00-\u9fff]{1,6}$/.test(dm[1])) add(cd, dm[1], 1); }
+    while ((dm = cdRe.exec(raw))) {
+        const x = dm[1];
+        if (!/^[\u4e00-\u9fff]{1,6}$/.test(x)) continue;
+        add(cd, x, 1);
+        // 语块：删词（前文+多词+后文 vs 前文+后文）
+        let pre = '';
+        for (let k = dm.index - 1; k >= 0 && pre.length < 2; k--) {
+            const ch = raw[k];
+            if (isHan(ch)) pre = ch + pre; else break;
+        }
+        let post = '';
+        for (let k = dm.index + dm[0].length; k < raw.length && post.length < 2; k++) {
+            const ch = raw[k];
+            if (isHan(ch)) post += ch; else break;
+        }
+        if (pre.length >= 1 && post.length >= 1) {
+            const sChunk = pre + x + post, cChunk = pre + post;
+            if (/^[\u4e00-\u9fff]{3,8}$/.test(sChunk) && /^[\u4e00-\u9fff]{2,6}$/.test(cChunk) && sChunk !== cChunk) add(chunks, sChunk + '→' + cChunk, 1);
+        }
+    }
 
     // 6) 句式 {CJ...}
     const cjRe = /\{CJ[^}]{0,20}\}/g;
@@ -84,6 +144,8 @@ const fantiList = topList(fanti, 4000, 1).map(x => [x.k.split('→')[0], x.k.spl
 const cqList = topList(cq, 600, 3).map(x => [x.k, x.v]);
 const cdList = topList(cd, 600, 3).map(x => [x.k, x.v]);
 const cjList = topList(cj, 200, 5).map(x => [x.k, x.v]);
+const chunkList = topList(chunks, 12000, 2).map(x => [x.k.split('→')[0], x.k.split('→')[1], x.v]);
+const frameList = topList(frames, 3000, 3).map(x => [x.k.split('|')[0], x.k.split('|')[1], x.k.split('|')[2], x.v]);
 
 const out = {
     biezi: bieziList,
@@ -91,7 +153,9 @@ const out = {
     fanti: fantiList,
     cq: cqList,
     cd: cdList,
-    cj: cjList
+    cj: cjList,
+    chunks: chunkList,
+    frames: frameList
 };
 
 const js = '// Auto-generated from HSK Dynamic Composition Corpus (11,337 essays). Do not edit by hand.\n' +

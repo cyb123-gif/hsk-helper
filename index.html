@@ -16315,6 +16315,26 @@ ${dictHints ? '\n【HSK语料库高频错误提示 - 逐条检查当前句子，
                 hints.push('- 「' + wrong + '」在HSK语料中常被误写，正确常为「' + right + '」（出现' + freq + '次）');
             }
         }
+        // 语块提示：多字语块命中，信息更精确
+        for(const item of (dict.chunks || [])){
+            if(hints.length >= 16) break;
+            const wrong = item[0], right = item[1], freq = item[2];
+            if(!wrong || wrong.length < 3 || freq < 5) continue;
+            if(text.includes(wrong) && !seen.has(wrong)){
+                seen.add(wrong);
+                hints.push('- 「' + wrong + '」在HSK语料中常说/写作「' + right + '」（出现' + freq + '次）');
+            }
+        }
+        // 框架提示：缺词框架（前文+缺词），命中前文且缺词未出现时提示
+        for(const item of (dict.frames || [])){
+            if(hints.length >= 20) break;
+            const pre = item[0], x = item[1], post = item[2], freq = item[3];
+            if(!pre || !x || freq < 8 || x.length !== 1) continue;
+            if(text.includes(pre) && !text.includes(pre + x) && !seen.has('f:' + pre + x)){
+                seen.add('f:' + pre + x);
+                hints.push('- 语料中「' + pre + '」后面常缺「' + x + '」（出现' + freq + '次），请检查本句是否漏了「' + x + '」');
+            }
+        }
         return hints.length ? hints.join('\n') : '';
     }
     // 繁体→简体：语料库标注的繁简对应，确定性纠正
