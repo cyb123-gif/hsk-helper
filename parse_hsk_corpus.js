@@ -48,18 +48,18 @@ for (const d of data) {
     });
     raw = raw.replace(/\[B[^\]]*\]/g, '');
 
-    // 3) 错词 {CC}/{CC2 X}：括号内是正确词，错误词在标记前
+    // 3) 错词 {CC}/{CC2 X}：正文是改对的词，括号内是学生写错的词 → 错词=括号内，正词=标记前等长汉字
     const ccRe = /\{CC\d?([^}]{1,12})\}/g;
     let cm;
     while ((cm = ccRe.exec(raw))) {
-        const right = cm[1];
-        if (!right || !/^[\u4e00-\u9fff]{1,4}$/.test(right)) continue;
-        let j = cm.index, cnt = 0, wrong = '';
-        while (j > 0 && cnt < right.length) {
+        const wrong = cm[1];
+        if (!wrong || !/^[\u4e00-\u9fff]{1,4}$/.test(wrong)) continue;
+        let j = cm.index, cnt = 0, right = '';
+        while (j > 0 && cnt < wrong.length) {
             const ch = raw[j - 1];
-            if (isHan(ch)) { wrong = ch + wrong; cnt++; j--; } else break;
+            if (isHan(ch)) { right = ch + right; cnt++; j--; } else break;
         }
-        if (wrong && wrong !== right) add(cuoci, wrong + '→' + right, 1);
+        if (right && wrong !== right) add(cuoci, wrong + '→' + right, 1);
     }
 
     // 4) 缺词 {CQ X}
