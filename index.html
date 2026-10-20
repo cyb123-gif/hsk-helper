@@ -107,6 +107,8 @@
         .mistake-corrected { color: #27ae60; }
         .diff-del { color: #c0392b; text-decoration: line-through; background: #fdecea; border-radius: 3px; padding: 0 1px; }
         .diff-ins { color: #27ae60; font-weight: 700; background: #e8f5e9; border-radius: 3px; padding: 0 1px; }
+        .chat-correction-block { margin-top: 8px; }
+        .chat-correction-block .diff-del { color: #94a3b8; background: #f1f5f9; }
         .how-say-btns { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
         .how-say-btns button { font-size: 0.72rem; padding: 4px 10px; border-radius: 14px; border: 1px solid #d0d8e4; background: #f8fafc; cursor: pointer; transition: 0.15s; white-space: nowrap; }
         .how-say-btns button:hover { background: #eef2ff; border-color: #1e2b5e; }
@@ -613,6 +615,7 @@
             <button class="mode-tab" data-mode="sentence" id="modeTabSentence">✍️ 造句模式</button>
             <button class="mode-tab" data-mode="dictation" id="modeTabDictation">🎧 听写模式</button>
             <button class="mode-tab" data-mode="wordlab" id="modeTabWordLab">📚 练习模式</button>
+            <button class="mode-tab" data-mode="mcq" id="modeTabMcq">🎯 音形义选择</button>
         </div>
         <div class="chat-messages-wrapper" id="chatMessagesWrapper">
         <div class="chat-messages" id="chatMessages">
@@ -906,6 +909,28 @@
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+        <div class="wordlab-panel" id="mcqPanel">
+            <div class="wordlab-scroll">
+                <div class="card learn-card" id="mcqSetupCard">
+                    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;border-radius:24px 24px 0 0;margin:-22px -20px 0;padding:12px 20px 8px;">
+                        <span style="font-size:0.82rem;color:#475569;font-weight:600;white-space:nowrap;">🎯 音形义选择题：</span>
+                        <label style="font-size:0.82rem;color:#475569;white-space:nowrap;">HSK 等级：</label>
+                        <select id="wordlabLevelSelect" style="padding:4px 8px;border-radius:12px;border:1.5px solid #d0dae8;font-size:0.82rem;background:white;">
+                            <option value="1">HSK 1</option>
+                            <option value="2">HSK 2</option>
+                            <option value="3" selected>HSK 3</option>
+                            <option value="4">HSK 4</option>
+                        </select>
+                        <button class="wlp-btn" id="wordlabStartBtn" style="margin:0;">🚀 开始练习</button>
+                        <span id="wordlabProgress" style="margin-left:auto;font-size:0.82rem;color:#64748b;"></span>
+                    </div>
+                    <div style="font-size:0.78rem;color:#94a3b8;padding:4px 0 0;">10 个词一组，共 30 道选择题（🎧 听音选义 / 🎧 听音选字 / 👀 看词选义），全部打乱顺序。答错的题稍后自动重练，全部结束后集中回顾错词（词性、释义、例句）</div>
+                </div>
+            </div>
+            <div class="wordlab-practice-area" id="wordlabPracticeArea">
+                <div class="wlp-box"><div style="padding:30px 0;color:#64748b;">选择 HSK 等级，点「🚀 开始练习」</div></div>
             </div>
         </div>
     </div>
@@ -10833,11 +10858,12 @@ const HSK2_VOCAB = [
             'reflection2.option_c':'C. 看不懂，不理解',
             'reflection2.option_d':'D. 会用，失误打错了',
             'reflection.q_why_wrong':'🤔 为什么会用错？想一想，写下来：',
+            'reflection.q_why_couldnt_say':'🤔 这句话为什么不会说？想一想，写下来：',
             'reflection.q_meaning':'🌐 正确句子的意思，用你的母语怎么说？',
             'reflection.grammar_point':'📐 语法（AI改动的语法/句式）',
             'reflection.translation_label':'🌐 母语翻译',
             'reflection.need_why':'请先写下为什么会用错', 'reflection.need_meaning':'请用母语写下正确句子的意思',
-            'reflection.why_placeholder':'写下来：为什么会用错（可以用母语写）', 'reflection.meaning_placeholder':'用你的母语写：正确句子的意思',
+            'reflection.why_placeholder':'写下来：为什么会用错（可以用母语写）', 'reflection.why_couldnt_placeholder':'写下来：为什么不会说/没想到这个说法（可以用母语写）', 'reflection.meaning_placeholder':'用你的母语写：正确句子的意思',
             'reflection.save_next':'保存并下一个 →',
             'reflection.reason_a':'A. 想用但怕用错（回避）', 'reflection.reason_b':'B. 想用但是用错了', 'reflection.reason_c':'C. 看不懂，不理解', 'reflection.reason_d':'D. 会用，失误打错了',
             'dim.free_use':'自由运用', 'dim.restricted_use':'限制运用', 'track.out_vocab':'超纲词'
@@ -10887,11 +10913,12 @@ const HSK2_VOCAB = [
             'reflection2.option_c':'C. Couldn\'t understand it',
             'reflection2.option_d':'D. I know how to use it; I just typed it wrong by mistake',
             'reflection.q_why_wrong':'🤔 Why did you use it wrong? Think and write it down:',
+            'reflection.q_why_couldnt_say':'🤔 Why couldn\'t you say this sentence? Think and write it down:',
             'reflection.q_meaning':'🌐 What does the correct sentence mean in your native language?',
             'reflection.grammar_point':'📐 Grammar (the part AI corrected)',
             'reflection.translation_label':'🌐 Translation',
             'reflection.need_why':'Please write why you used it wrong', 'reflection.need_meaning':'Please write the meaning of the correct sentence in your native language',
-            'reflection.why_placeholder':'Write: why did you use it wrong? (you may write in your native language)', 'reflection.meaning_placeholder':'Write in your native language: what the correct sentence means',
+            'reflection.why_placeholder':'Write: why did you use it wrong? (you may write in your native language)', 'reflection.why_couldnt_placeholder':'Write: why couldn\'t you say / think of this expression? (you may write in your native language)', 'reflection.meaning_placeholder':'Write in your native language: what the correct sentence means',
             'reflection.save_next':'Save & Next →',
             'reflection.reason_a':'A. Afraid of using it wrong (avoidance)', 'reflection.reason_b':'B. Wanted to use it, but used it wrong', 'reflection.reason_c':'C. Couldn\'t understand it', 'reflection.reason_d':'D. Knew it, but typed wrong',
             'dim.free_use':'Free Use', 'dim.restricted_use':'Restricted Use', 'track.out_vocab':'Out-of-Level'
@@ -10940,6 +10967,7 @@ const HSK2_VOCAB = [
             'reflection2.option_c':'C. 意味がわからなかった',
             'reflection2.option_d':'D. 使い方はわかるが、打ち間違えた',
             'reflection.q_why_wrong':'🤔 なぜ間違えましたか？考えて書いてください：',
+            'reflection.q_why_couldnt_say':'🤔 この文はなぜ言えなかった？考えて書いてください：',
             'reflection.q_meaning':'🌐 正しい文の意味を母語でどう言いますか？',
             'reflection.grammar_point':'📐 文法（AIが直した箇所）',
             'reflection.translation_label':'🌐 母語訳',
@@ -10992,6 +11020,7 @@ const HSK2_VOCAB = [
             'reflection2.option_c':'C. 이해하지 못했다',
             'reflection2.option_d':'D. 알지만 실수로 잘못 쳤다',
             'reflection.q_why_wrong':'🤔 왜 틀렸나요? 생각해서 쓰세요:',
+            'reflection.q_why_couldnt_say':'🤔 이 문장을 왜 말하지 못했나요? 생각해서 쓰세요:',
             'reflection.q_meaning':'🌐 올바른 문장의 뜻을 모국어로 어떻게 말하나요?',
             'reflection.grammar_point':'📐 문법 (AI가 고친 부분)',
             'reflection.translation_label':'🌐 번역',
@@ -11044,6 +11073,7 @@ const HSK2_VOCAB = [
             'reflection2.option_c':'C. Ne comprenait pas',
             'reflection2.option_d':'D. Sait l\'utiliser, faute de frappe',
             'reflection.q_why_wrong':'🤔 Pourquoi avez-vous fait l\'erreur ? Écrivez :',
+            'reflection.q_why_couldnt_say':'🤔 Pourquoi n\'avez-vous pas su dire cette phrase ? Écrivez :',
             'reflection.q_meaning':'🌐 Que signifie la phrase correcte dans votre langue ?',
             'reflection.grammar_point':'📐 Grammaire (partie corrigée par l\'IA)',
             'reflection.translation_label':'🌐 Traduction',
@@ -11096,6 +11126,7 @@ const HSK2_VOCAB = [
             'reflection2.option_c':'C. Nicht verstanden',
             'reflection2.option_d':'D. Kann es, nur vertippt',
             'reflection.q_why_wrong':'🤔 Warum war es falsch? Schreiben Sie:',
+            'reflection.q_why_couldnt_say':'🤔 Warum konntest du diesen Satz nicht sagen? Schreiben Sie:',
             'reflection.q_meaning':'🌐 Was bedeutet der richtige Satz in Ihrer Sprache?',
             'reflection.grammar_point':'📐 Grammatik (von KI korrigierter Teil)',
             'reflection.translation_label':'🌐 Übersetzung',
@@ -11148,6 +11179,7 @@ const HSK2_VOCAB = [
             'reflection2.option_c':'C. No lo entendía',
             'reflection2.option_d':'D. Sé usarlo, me equivoqué al escribir',
             'reflection.q_why_wrong':'🤔 ¿Por qué te equivocaste? Escríbelo:',
+            'reflection.q_why_couldnt_say':'🤔 ¿Por qué no pudiste decir esta frase? Escríbelo:',
             'reflection.q_meaning':'🌐 ¿Qué significa la oración correcta en tu idioma?',
             'reflection.grammar_point':'📐 Gramática (parte corregida por la IA)',
             'reflection.translation_label':'🌐 Traducción',
@@ -11200,6 +11232,7 @@ const HSK2_VOCAB = [
             'reflection2.option_c':'C. Не понял',
             'reflection2.option_d':'D. Умею, просто опечатался',
             'reflection.q_why_wrong':'🤔 Почему ошибся? Напишите:',
+            'reflection.q_why_couldnt_say':'🤔 Почему не смог сказать эту фразу? Напишите:',
             'reflection.q_meaning':'🌐 Что значит правильное предложение на вашем языке?',
             'reflection.grammar_point':'📐 Грамматика (исправленная ИИ часть)',
             'reflection.translation_label':'🌐 Перевод',
@@ -11252,6 +11285,7 @@ const HSK2_VOCAB = [
             'reflection2.option_c':'C. ดูไม่เข้าใจ',
             'reflection2.option_d':'D. ใช้เป็นแต่พิมพ์ผิด',
             'reflection.q_why_wrong':'🤔 ทำไมถึงใช้ผิด? คิดแล้วเขียน:',
+            'reflection.q_why_couldnt_say':'🤔 ทำไมถึงพูดประโยคนี้ไม่ได้? คิดแล้วเขียน:',
             'reflection.q_meaning':'🌐 ประโยคที่ถูกต้องหมายความว่าอะไรในภาษาของคุณ?',
             'reflection.grammar_point':'📐 ไวยากรณ์ (ส่วนที่ AI แก้)',
             'reflection.translation_label':'🌐 คำแปล',
@@ -11304,6 +11338,7 @@ const HSK2_VOCAB = [
             'reflection2.option_c':'C. Non lo capivo',
             'reflection2.option_d':'D. Lo so usare, ho solo digitato male',
             'reflection.q_why_wrong':'🤔 Perché hai sbagliato? Scrivi:',
+            'reflection.q_why_couldnt_say':'🤔 Perché non sei riuscito a dire questa frase? Scrivi:',
             'reflection.q_meaning':'🌐 Cosa significa la frase corretta nella tua lingua?',
             'reflection.grammar_point':'📐 Grammatica (parte corretta dall\'IA)',
             'reflection.translation_label':'🌐 Traduzione',
@@ -11356,6 +11391,7 @@ const HSK2_VOCAB = [
             'reflection2.option_c':'C. Không hiểu',
             'reflection2.option_d':'D. Biết dùng, chỉ gõ nhầm',
             'reflection.q_why_wrong':'🤔 Vì sao bạn dùng sai? Viết ra:',
+            'reflection.q_why_couldnt_say':'🤔 Vì sao bạn không nói được câu này? Viết ra:',
             'reflection.q_meaning':'🌐 Câu đúng có nghĩa gì trong tiếng mẹ đẻ của bạn?',
             'reflection.grammar_point':'📐 Ngữ pháp (phần AI sửa)',
             'reflection.translation_label':'🌐 Bản dịch',
@@ -11408,6 +11444,7 @@ const HSK2_VOCAB = [
             'reflection2.option_c':'C. Tidak mengerti',
             'reflection2.option_d':'D. Bisa pakai, hanya salah ketik',
             'reflection.q_why_wrong':'🤔 Kenapa salah? Tuliskan:',
+            'reflection.q_why_couldnt_say':'🤔 Kenapa tidak bisa mengucapkan kalimat ini? Tuliskan:',
             'reflection.q_meaning':'🌐 Apa arti kalimat yang benar dalam bahasa ibumu?',
             'reflection.grammar_point':'📐 Tata bahasa (bagian yang dikoreksi AI)',
             'reflection.translation_label':'🌐 Terjemahan',
@@ -11460,6 +11497,7 @@ const HSK2_VOCAB = [
             'reflection2.option_c':'C. Nerozumel som',
             'reflection2.option_d':'D. Viem to použiť, len som sa preklepol',
             'reflection.q_why_wrong':'🤔 Prečo to bolo zle? Napíšte:',
+            'reflection.q_why_couldnt_say':'🤔 Prečo si túto vetu nevedel povedať? Napíšte:',
             'reflection.q_meaning':'🌐 Čo znamená správna veta vo vašom jazyku?',
             'reflection.grammar_point':'📐 Gramatika (časť opravená AI)',
             'reflection.translation_label':'🌐 Preklad',
@@ -11751,6 +11789,7 @@ const HSK2_VOCAB = [
         const learnPanel = document.getElementById('learnPanel');
         const dictationPanel = document.getElementById('dictationPanel');
         const wordlabPanel = document.getElementById('wordlabPanel');
+        const mcqPanel = document.getElementById('mcqPanel');
         const sentencePanel = document.getElementById('sentencePanel');
         chatTab.classList.remove('active'); writingTab.classList.remove('active');
         if (readingTab) readingTab.classList.remove('active');
@@ -11759,6 +11798,8 @@ const HSK2_VOCAB = [
         if (dictationTab) dictationTab.classList.remove('active');
         const wordlabTab = document.getElementById('modeTabWordLab');
         if (wordlabTab) wordlabTab.classList.remove('active');
+        const mcqTab = document.getElementById('modeTabMcq');
+        if (mcqTab) mcqTab.classList.remove('active');
         if (sentenceTab) sentenceTab.classList.remove('active');
         wrapper.classList.add('hidden');
         if (inputArea) inputArea.classList.add('hidden');
@@ -11767,6 +11808,7 @@ const HSK2_VOCAB = [
         if (learnPanel) learnPanel.classList.remove('active');
         if (dictationPanel) dictationPanel.classList.remove('active');
         if (wordlabPanel) wordlabPanel.classList.remove('active');
+        if (mcqPanel) mcqPanel.classList.remove('active');
         if (sentencePanel) sentencePanel.classList.remove('active');
         if (mode === 'chat') {
             chatTab.classList.add('active');
@@ -11801,6 +11843,10 @@ const HSK2_VOCAB = [
             if (wordlabTab) wordlabTab.classList.add('active');
             if (wordlabPanel) wordlabPanel.classList.add('active');
             renderLearnTasks();
+        } else if (mode === 'mcq') {
+            if (mcqTab) mcqTab.classList.add('active');
+            if (mcqPanel) mcqPanel.classList.add('active');
+            renderWordLab();
         }
     }
     document.getElementById('modeTabChat').onclick = () => switchMode('chat');
@@ -11813,6 +11859,8 @@ const HSK2_VOCAB = [
     if (modeDictationTabEl) modeDictationTabEl.onclick = () => switchMode('dictation');
     const modeSentenceTabEl = document.getElementById('modeTabSentence');
     if (modeSentenceTabEl) modeSentenceTabEl.onclick = () => switchMode('sentence');
+    const modeMcqTabEl = document.getElementById('modeTabMcq');
+    if (modeMcqTabEl) modeMcqTabEl.onclick = () => switchMode('mcq');
 
     // ==================== 听写模式（上传MP3 + 逐句文本） ====================
     let dictationState = { file: null, audioBuffer: null, audioCtx: null, lines: [], segments: [], currentIdx: 0, results: [], totalChars: 0, correctChars: 0, active: false };
@@ -14497,7 +14545,7 @@ ${searchRule}
     function buildWritingPrompt(text, level, min, charCount, targetLang, session, isRevision) {
         const langName = WRITING_LANG_NAMES[targetLang] || targetLang;
         const lengthRule = '【字数要求】当前 HSK' + level + ' 水平，本次作文要求至少 ' + min + ' 个汉字。学生本次写了 ' + charCount + ' 个汉字。' + (charCount < min ? '字数不达标，必须判为不及格（59分及以下），并在 overall 中明确提示需要扩充到至少 ' + min + ' 字。' : '字数达标。');
-        const heuristic = '【直接改正 - 必须遵守】1. 针对每个错误，只输出有错误的分句（按逗号/分句切分，不要输出整个复句）。2. 每个 hint 输出 original（错误分句，中文原文）和 corrected（AI 直接改好的正确分句），直接给出改正后的句子，不要让学生自己再改。3. 评价要具体、可操作、多鼓励。4. 每个评价字段内用"\\n"分行。5. 【语言要求】所有反馈文字（discourse、syntax、semantic、characters、overall、hints 中每个 issue）必须全部用' + langName + '（' + targetLang + '）撰写，禁止使用中文，只有引用学生错误原文（original）和正确句子（corrected）时才可以保留中文。6. hints 中每个错误必须输出 type 字段，从固定中文错误类型（' + MISTAKE_TYPE_LIST.join('、') + '）中选一个，不要翻译、不要自创。7. corrected 必须与 original 不同：如果原句没有错误，就不要输出这个 hint；标点符号不算错；「的」可加可不加不算错；「的话」已表条件时「如果」可加可不加；承前省略主语不算错。8. 只改真正错误的部分，其余一字不动；数字/日期/时间/数量词原样保留；一个分句里有多个错误要全部改正。9. 常见错误必须纠正：「越来越+形容词（不能说越来越增加）」、「全称范围主语+都」（所以所有的地方人都很多→所以所有的地方人都很多，缺「都」）、「有点儿+形容词」（气温低一点了→气温有点低）、「经常性情况不用了」（下雨时常常鞋湿了→下雨时常常鞋会湿）、「离开某地」（出中国→离开中国）、「没关系」（带伞了所以没问题了→带伞了所以没关系）、「马上+就」（马上雨停了→雨马上就停了）。';
+        const heuristic = '【直接改正 - 必须遵守】1. 针对每个错误，只输出有错误的分句（按逗号/分句切分，不要输出整个复句）。2. 每个 hint 输出 original（错误分句，中文原文）和 corrected（AI 直接改好的正确分句），直接给出改正后的句子，不要让学生自己再改。3. 评价要具体、可操作、多鼓励。4. 每个评价字段内用"\\n"分行。5. 【语言要求】所有反馈文字（discourse、syntax、semantic、characters、overall、hints 中每个 issue）必须全部用' + langName + '（' + targetLang + '）撰写，禁止使用中文，只有引用学生错误原文（original）和正确句子（corrected）时才可以保留中文。6. hints 中每个错误必须输出 type 字段，从固定中文错误类型（' + MISTAKE_TYPE_LIST.join('、') + '）中选一个，不要翻译、不要自创。7. corrected 必须与 original 不同：如果原句没有错误，就不要输出这个 hint；标点符号不算错；「的」可加可不加不算错；「的话」已表条件时「如果」可加可不加；承前省略主语不算错。8. 只改真正错误的部分，其余一字不动；数字/日期/时间/数量词原样保留；一个分句里有多个错误要全部改正。9. 常见错误必须纠正：「越来越+形容词（不能说越来越增加）」、「全称范围主语+都」（所有的地方人很多→所有的地方人都很多，缺「都」）、「有点儿+形容词」（气温低一点了→气温有点低）、「经常性情况不用了」（下雨时常常鞋湿了→下雨时常常鞋会湿）、「离开某地」（出中国→离开中国）、「没关系」（带伞了所以没问题了→带伞了所以没关系）、「马上+就」（马上雨停了→雨马上就停了）、「近义词辨析」（垃圾扔掉的方法很难→垃圾的处理方式很复杂：表示事情步骤多、麻烦用「复杂」，「难」多指能力不够；「扔掉的方法」宜说「处理方式/处理方法」）、「把字句+放置处所」（把吸垃圾放在塑料袋→把湿垃圾放在塑料袋里：「吸」是「湿」的错别字；「放」表示使某物处于某处时要用「在+处所」，容器后要加「里」）、「处所表达」（每天在垃圾桶的地方有一个阿姨→每天垃圾桶那里有一个阿姨）、「味道搭配」（味道很好吃→味道很好：「味道」不能说好吃/难吃，只能说好/不好，好吃形容食物本身）、「空间与环境」（餐馆里又宽又干净→餐馆里又宽敞又安静）、「规则与习俗」（我不知道这样的规则→我不知道这样的习俗/规定）、「找工作」（我得找打工→我得找工作：「打工」不能作「找」的宾语）、「睡不着觉」（不能睡觉→睡不着觉）、「开始+在+地方」（向印度开始旅行→开始在印度旅行）、「比较句不用满」（比以前满自信→比以前自信）、「退辞→辞职」（他退辞公司以后→他从公司辞职以后）、「关于+名词+的事」（我问同事关于上海的特产→我问同事关于上海的特产的事）、「土特产」（上海的土产→上海的土特产）、「特别+形容词」（特别的好东西→特别好的东西）、「时量补语后置」（还要几天烦恼→还要烦恼几天）、「告诉+人+有」（她告诉我，五香豆…→她告诉我有五香豆…）。';
         const jsonFmt = '输出JSON格式：{"score":整数0-100,"length_chars":' + charCount + ',"length_ok":' + (charCount >= min) + ',"discourse":"' + langName + '语篇结构评价","syntax":"' + langName + '句法语法评价","semantic":"' + langName + '词汇语义评价","characters":"' + langName + '汉字书写评价","overall":"' + langName + '总体评价","hints":[{"original":"错误分句(中文)","corrected":"AI直接改好的正确分句(中文)","type":"固定中文错误类型","issue":"' + langName + '简短说明"}]}';
         if (!isRevision) {
             return '你是一位资深中文写作教师。请批改以下学生作文，并用' + langName + '（' + targetLang + '）撰写全部反馈。\n\n【学生当前水平】HSK' + level + '\n' + lengthRule + '\n\n【评分规则】1. 长度达标是及格前提，字数不足时总分≤59。2. 字数达标后，评分核心是"正确性"和"地道性"（语法、用词、是否自然），不要因为内容简单而压分。3. 分数档位：90-100优秀，80-89良好，70-79一般，60-69需努力，60以下错误很多。4. 评分要稳定一致：同一篇作文、同样的问题应给出相同分数，不要出现随机波动。\n\n【学生作文】\n' + text + '\n\n' + heuristic + '\n\n' + jsonFmt + '\n只用JSON回复。';
@@ -15671,7 +15719,7 @@ function saveFullState(){ if(!currentUser) return; const entries=Array.from(used
         if(!clean || !/[\u4e00-\u9fff]/.test(clean)) return;
         addFavorite(clean, '');
     };
-    function addQueriedItem(text, type, translation, originalQuery){ if(queriedItems.some(q=>q.text===text)) return; queriedItems.unshift({text, type, date:new Date().toISOString(), translation:translation||'', originalQuery:originalQuery||''}); if(queriedItems.length>200) queriedItems.pop(); saveFullState(); renderQueriedBook(); }
+    function addQueriedItem(text, type, translation, originalQuery){ const key = stripForCompare(text); if(!key) return; if(queriedItems.some(q=>q && q.text && stripForCompare(q.text)===key)) return; queriedItems.unshift({text, type, date:new Date().toISOString(), translation:translation||'', originalQuery:originalQuery||''}); if(queriedItems.length>200) queriedItems.pop(); saveFullState(); renderQueriedBook(); }
     function isQueriedSentence(sentence){ const s=stripForCompare(sentence); if(!s) return false; return queriedItems.some(q=>{ if(q.type!=='sentence') return false; const t=stripForCompare(q.text); if(t===s) return true; if(s.length>=4 && t.includes(s)) return true; if(t.length>=4 && s.includes(t)) return true; return false; }); }
     function isQueriedWord(word){ return queriedItems.some(q=>q.type==='word'&&q.text===word); }
     window._removeQueried=function(idx){ queriedItems.splice(idx,1); saveFullState(); renderQueriedBook(); };
@@ -15781,9 +15829,9 @@ function saveFullState(){ if(!currentUser) return; const entries=Array.from(used
         const _validMistakes = (mistakes || []).filter(m => m && m.original && m.corrected && stripForCompare(m.original) !== stripForCompare(m.corrected) && stripForCompare(m.corrected).replace(/[吧吗呢啊呀哦嘛咯喽哟]+$/, '') !== stripForCompare(m.original));
         const corrCtx = (_validMistakes.length > 0)
             ? '\n【系统纠错结果】\n系统已先分析学生这句话，发现以下偏误：\n'
-                + _validMistakes.map(m => '- 「' + m.original + '」应为「' + m.corrected + '」（' + (m.type || '') + '）').join('\n')
-                + '\n回复时先自然地说「哦，你是说……」并接上正确说法（只改错误部分），再继续回应学生；不要说「你是想问」。你「哦，你是说……」后面的正确说法必须与上面每条「应为……」完全一致：数字/日期/时间/数量词原样保留，其余字词一字不动，禁止省略或改写。'
-            : '\n【系统纠错结果】\n（本次无纠错结果）\n';
+                + _validMistakes.map(m => '- 学生原句：「' + m.original + '」 → 正确句子：「' + m.corrected + '」（' + (m.type || '') + '）').join('\n')
+                + '\n回复时先用「哦，你是说……」+ 改正后的完整句子确认学生意思，然后再自然继续回应；「哦，你是说……」后面的句子必须逐字使用上面每条「正确句子」的完整句子，一个字都不许增、删、换，禁止省略主语等正确成分，禁止只截取片段（如学生说「我为了打工去的」，必须说「哦，你是说我去工作了」，不能说「去工作」）。如果某条「正确句子」和学生原句完全一样，就不要为它使用「哦，你是说……」。不要说「你是想问」。'
+            : '\n【系统纠错结果】\n（本次无纠错结果）\n学生这句话没有偏误。绝对不要使用「哦，你是说……」「你是想说……」等确认句式，也绝对不要重复学生的话；直接自然回应学生说的内容或问题，不要先复述原句再说新话。';
         const topicCtx = window._chatTopicContext
             ? '\n【当前话题背景】' + String(window._chatTopicContext).slice(0, 1200) + '\n请始终围绕这个话题和学生聊天，不要跑题；提问时一次只问一个问题，等学生回答后再继续问下一个，不要一次列出多个问题。'
             : '';
@@ -15802,8 +15850,11 @@ ${gapChatGuide()}
 - 不要每次都以问题结尾——有时分享完自然结束就好
 - 绝不要假装自己是人类去编造生活经历（如散步、吃饭、去了某地等）
 【纠错规则】
-系统已经先分析并纠正学生句子的偏误（结果见下方「系统纠错结果」），纠错块会在你的回复之后自动显示。你不需要在回复中使用 ❌/✅/💡/✏️ 或「订正/纠错」格式纠错，也绝不要输出这些符号和标签——你输出只会造成重复。
-你需要做的：根据「系统纠错结果」自然回应——只有「系统纠错结果」中明确列出「应为……」且与「原句」不同时，才先用「哦，你是说……」+ 正确说法来确认学生的意思（如学生问“我见面他”，回答“哦，你是说你想跟他见面，对吗？”），然后再继续回应；没有纠错结果、或「应为……」与原句完全相同时，绝对不要使用「哦，你是说……」，正常回应即可。「哦，你是说……」后面的正确说法必须逐字使用【系统纠错结果】中对应的「应为……」句子，一个字都不许增、删、换（例如系统纠错结果是「本来我想五点半去，但是我订了七点半」，你就必须这样说，不能把「但是」写成「但」，也不能把「订了」写成「订成了」）。只改错误部分、其余字词一字不动，禁止改写句式、禁止删掉原句中正确的成分、禁止省略或改写数字/日期/时间/数量词（如「11月」不能写成「月」）、不要长篇解释语法、不要整句照抄学生原句、不要说「你是想问」。学生讲述自己以前说错的话或引用别人说的话时（如「我当时说『我见面他』」「其实我应该说我订错了」），转述内容不是错误，不要纠正、不要重述，正常回应即可。
+系统已经先分析并纠正学生句子的偏误（结果见下方「系统纠错结果」），纠错块会在你的回复之后自动显示（里面是学生的原句和更好的说法）。你不需要在回复中使用 ❌/✅/💡/✏️ 或「订正/纠错」格式纠错，也绝不要输出这些符号和标签——你输出只会造成重复。
+你需要做的：
+- 如果「系统纠错结果」中列出了「正确句子」且与学生原句不同：先用「哦，你是说……」+ 改正后的完整句子来确认学生的意思（例如学生说「我见面他」，你回答「哦，你是说你想跟他见面，对吗？」），然后再继续回应。「哦，你是说……」后面的句子必须逐字使用「系统纠错结果」里对应的「正确句子」完整句子，一个字都不许增、删、换，禁止省略主语等正确成分、禁止只截取片段（如学生说「我为了打工去的」，必须说「哦，你是说我去工作了」，不能说「去工作」），禁止省略或改写数字/日期/时间/数量词。如果「正确句子」和学生原句完全一样，就不要使用「哦，你是说……」。
+- 如果「系统纠错结果」是「（本次无纠错结果）」，说明学生这句话没有偏误：绝对不要使用「哦，你是说……」「你是想说……」等确认句式，也绝对不要重复学生的话；直接自然回应学生说的内容或问题，正常往下聊，不要先复述原句再说新话。
+学生讲述自己以前说错的话或引用别人说的话时（如「我当时说『我见面他』」「其实我应该说我订错了」），转述内容不是错误，不要纠正、不要重述，正常回应即可。
 【输出前自检 - 每次回复前必须执行】
 (a) 每个小句（逗号前的一段）不超过${limPlain.maxChars}个汉字？
 (b) 全段不超过${limPlain.maxSentences}句？
@@ -15995,6 +16046,8 @@ try{ const resp=await fetch(API_BASE,{method:'POST',headers:{'Content-Type':'app
 6. 数字、日期、时间、数量词必须原样保留在 corrected 中，只改真正错误的部分；绝不能因为改动语序或用词而把数字/日期丢掉（如「11月初期」→「11月初」，不能变成「月初期」或「月初」丢数字）。
 7. 复句中只改有错误的分句，其余分句一字不动。例：「本来我想去五点半，但是我订了七点半」→「本来我想五点半去，但是我订了七点半」（只改前半句语序，后半句完全保留，不得把「但是」改成「但」，不得把「订了」改成「订成了」）。
 8. 一个字的小错误（虚词、代词、方位词等）也必须纠正，不能因为改动小就漏报。例：「为了我和朋友一起去吃饭」→「为了和朋友一起去吃饭」（「为了」表目的时后面直接接「和+人+动作」；或说「我为了和朋友一起去吃饭」），不得漏报。
+9. 聊天是口语：改正后的句子必须符合日常口语/通用语体，不要改成书面语或翻译腔。表示「替/给某人做某事」时用「给+人+做」（如「给我做馄饨」），不用「为+人+做」。
+10. 禁止删除主语和正确成分：原句出现的主语（我/你/他/她/我们等）必须保留，不能只截取谓语片段当 corrected；要结合对话上下文给出完整自然的说法。例：「我为了打工去的」不能改成「去打工」。
 
 【重点排查】逐项检查这些常见偏误类型：
 ① 错别字（同音/近音混用，如再/在、的/得/地、配/陪）
@@ -16021,6 +16074,25 @@ try{ const resp=await fetch(API_BASE,{method:'POST',headers:{'Content-Type':'app
 ㉒ 双宾语「送给+人+物」：「送/给/借/教/告诉」等带双宾语时，「了」放在动词后或句末，不能放在「给」后且缺人。例：「昨天我朋友送给了很多月饼」→「昨天我朋友送给我了很多月饼」（补出「我」，「了」移到「给我」后）。
 ㉓ 副词「尤其」：表示「特别、更加」时放在主语之后、谓语之前。例：「尤其我喜欢鲜肉月饼」→「我尤其喜欢鲜肉月饼」。
 ㉔ 「吃不下」和「吃不完」：胃里饱/不舒服用「吃不下」；数量太多、有剩余用「吃不完」。例：「因为我一个人，所以吃不下」→「因为我一个人，所以吃不完」（一个人吃不了那么多，会有剩余）。
+
+【常见偏误类 - 按类归纳，不是就事论事】
+- 建筑类动词：建房子/花园/楼/公园/学校/医院/桥用「建」，不用「造」（造船、造纸等固定搭配除外）。例：「造了花园」→「建了花园」。
+- 「看起来」后接名词性成分用「看起来是」。例：「看起来，水管的施工」→「看起来是水管施工」。
+- 「对+人+，」后面要加「来说」。例：「对日本人，那…」→「对日本人来说，这…」。
+- 指代当前正在谈论的事情用「这」，不用「那」。
+- 场所/环境让人放松说「很让人放松」，不说「地方很放松」。例：「商场很放松」→「商场很让人放松」。
+- 「为了」表目的要接完整动作；「为了+V1，V2去了」应合并为「去+V1+和+V2+了」。例：「为了买衣服，吃饭去了」→「去买衣服和吃饭了」。
+- 和制汉语按汉语习惯改：工事→施工、退辞→辞职、下天→明天。
+- 连动句/多个动词连用时，「了」放在最后一个动作后（句末），不能放在前一个动词后。例：「继续了坐地铁」→「继续坐地铁了」。
+- 陈述已经发生/完成的事情，句末要用「了」。例：「今天白花时间」→「今天白花时间了」。
+- 「在+地方」中间不能再加「有」。例：「在有一个地铁站」→「在一个地铁站」。
+- 前后句意思紧密、表示顺承时用逗号连接，不用句号。例：「……下地铁了。然后……」→「……下地铁了，然后……」。
+- 表示程度略高用「有点+形容词」，不用「形容词+一点」。例：「可能累一点」→「可能有点累」。
+- 「关于+名词短语」作问/说/告诉的内容且位于句末时，后面加「的事」。例：「我问同事关于上海的特产」→「我问同事关于上海的特产的事」。
+- 送人地方特色食品更常说「土特产」。例：「上海的土产」→「上海的土特产」。
+- 副词「特别」修饰形容词时，中间不加「的」。例：「特别的好东西」→「特别好的东西」。
+- 时量补语放在谓语后：「还要+时间段+动词/形容词」→「还要+动词/形容词+时间段」。例：「我还要几天烦恼」→「我还要烦恼几天」。
+- 「告诉+人+，」后面直接列举名词时，要加「有」。例：「她告诉我，五香豆，梨膏糖…」→「她告诉我有五香豆，梨膏糖…」。
 
 【note 要求】
 1. note 用${targetLang}具体指出：哪个字/词/结构错了、应改成什么、属于哪类错误（别字/错词/离合词/缺词/多词/语序/搭配）。禁止空话套话（如“语序或表达的问题”“corrected based on the AI reply”）。
@@ -16061,6 +16133,28 @@ uncertain 表示你是否读不懂这个句子/分句、无法可靠推断学生
 - "最近早上的气温有点冷"→"最近早上的气温有点低"（"气温"只配高/低；"冷/热"用于"天气"）
 - "最近不能早起"→"最近没办法早起"（"不能"多表示不允许；客观条件做不到用"没办法"）
 - "果然先喝啤酒"→"当然先喝啤酒"（"果然"表示和预料的一样；表示"当然、肯定"用"当然"）
+- "反而明天来的病人很多"→"反而明天来的病人会很多"（保留"反而"，只补出"会"；绝不要把"反而"改成"但是"）
+- "但是他们的表情好像开心"→"但是他们的表情很开心"（"好像"后的状态要完整，这里要用"很+形容词"）
+- "我想快一点吃"→"我想快一点吃到"（结果补语"到"表示动作达成，不能只说"快一点吃"）
+- "另外后天我朋友为我做馄饨"→"另外后天我朋友给我做馄饨"（口语聊天里"为+人+做"改用"给+人+做"更自然）
+- "我感觉责任感"→"我感觉有责任教好学生"（对话上下文是老师对学生：缺动词，要结合上下文补出完整意思，不要只补成"我感觉有责任感"）
+- "有时候有这样的一天"→"有时候有这样的时候"（"这样的时候"指某种情况；"有一天"指某一天，这里不能用）
+- "那样的时候"→"这样的时候"（指代当前正在说的情况用"这样"）
+- "不过今天已经没有做事"→"不过今天没做什么事"（"没做什么事"是口语惯用说法，不要说"没有做事"）
+- "我为了打工去的"→"我去工作了"（上文问「顺利吗？」时，回答要说明去做了什么；必须保留主语「我」，不要只输出「去打工」；「为了……去的」句式改为「去+V+了」）
+- "我第一次做了所以做得不太好"→"我第一次做，所以做得不太好"（「第一次+V」叙述经历，动词后不用「了」）
+- "每天在垃圾桶的地方有一个阿姨"→"每天垃圾桶那里有一个阿姨"（「在垃圾桶的地方」不自然，处所应说「垃圾桶那里」）
+- "餐馆里又宽又干净"→"餐馆里又宽敞又安静"（空间用「宽敞」，环境不吵用「安静」）
+- "味道很好吃"→"味道很好"（「味道」不能说好吃/难吃，只能说好/不好；「好吃」形容食物本身）
+- "我不知道这样的规则"→"我不知道这样的习俗"（生活习惯/民族禁忌用「习俗/规定」，「规则」多指游戏/比赛规则）
+- "我得找打工"→"我得找工作"（「打工」不能作「找」的宾语，应说「找工作」）
+- "总之我要找什么打工"→"总之我要找工作"（同上，「找什么打工」应说「找工作」）
+- "我下天要工作，但是他们很吵闹，所以我不能睡觉"→"我明天要工作，但是他们很吵闹，所以我睡不着觉"（「下天」是错字，应为「明天」；因环境吵睡不着用「睡不着觉」）
+- "第二天我很困受不了"→无错，返回[]（「很+形容词+受不了」口语可接受，不要纠错）
+- "向印度开始旅行"→"开始在印度旅行"（语序：「开始+在+地方+动作」）
+- "他的表情比以前满自信"→"他的表情比以前自信"（比较句「比以前」后不用「满」）
+- "我听他说的话，我哦觉得自己想做的事最好做"→"听了他的话，我觉得自己想做的事最好就去做"（「我听他说的话」→「听了他的话」；「我哦」多了「哦」；「最好做」→「最好就去做」）
+- "他退辞公司以后"→"他从公司辞职以后"（「退辞」不是正确的词，离开公司应说「从公司辞职」）
 这类短语/词语性错误也必须纠正，不要漏报。\n\n输出JSON数组：[{"original":"学生原文(片段)","corrected":"改正后(必须与original不同)","uncertain":true或false,"type":"错误类型（必须从上述固定中文类型中选一个）","pattern":"如果这个错误涉及语法格式/框式结构（可以填充其他内容的格式），写出该格式本身（如：要是...就...、越...越...、把字句、被字句、一边...一边...；不涉及就写空字符串）","note":"错误原因（用${targetLang}，具体说明，禁止空话）"}]。无错误返回[]。`; try{ const resp=await fetch(API_BASE,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${apiKey}`}, body:JSON.stringify({model:'deepseek-v4-pro',thinking:{type:'disabled'}, max_tokens:4096, messages:[{role:'system',content:prompt},{role:'user',content:((contextMessages?('【对话上下文】（仅用于理解学生当前句子的意思，不要纠错上下文内容）\n'+contextMessages+'\n\n'):'') + (aiReplyRaw ? ('学生句子: '+JSON.stringify(userMessages)+'\n\nAI对话伙伴的自然回复（仅供参考，可能已包含正确说法）:\n'+String(aiReplyRaw)) : ('学生句子: '+JSON.stringify(userMessages))))}], temperature:0.1, response_format:{type:'json_object'}})}); const data=await resp.json(); if(data.error) throw new Error(data.error.message||"API error"); if(!data.choices||!data.choices[0]||!data.choices[0].message) throw new Error("API error"); let content=data.choices[0].message.content; content=content.replace(/```json/g,'').replace(/```/g,'').trim(); let parsed=null; try{ parsed=JSON.parse(content); }catch(e){ const arrM=content.match(/\[[\s\S]*\]/); const objM=content.match(/\{[\s\S]*\}/); const cand=arrM?arrM[0]:(objM?objM[0]:''); if(cand){ try{ parsed=JSON.parse(cand); }catch(e2){ parsed=null; } } } let arr=[]; if(Array.isArray(parsed)) arr=parsed; else if(parsed&&Array.isArray(parsed.mistakes)) arr=parsed.mistakes; else if(parsed&&Array.isArray(parsed.results)) arr=parsed.results; else if(parsed&&Array.isArray(parsed.errors)) arr=parsed.errors; else if(parsed&&typeof parsed.original==='string'&&typeof parsed.corrected==='string') arr=[parsed]; return arr; }catch(e){ return []; } }
     function isPunctuationOnlyDiff(a,b){var p='，。、！？；：…—·《》〈〉（）【】,.!?;:()[]{}<> ';var s=function(x){return (x||'').split('').filter(function(c){return p.indexOf(c)<0;}).join('');};return s(a)===s(b);}
     function filterMistakes(mistakes){ if(!mistakes||!mistakes.length) return []; const out=[]; for(const m of mistakes){ if(!m||!m.original||!m.corrected) continue; if(m.original===m.corrected) continue; if(isPunctuationOnlyDiff(m.original,m.corrected)) continue; const _fo=stripForCompare(m.original); const _fc=stripForCompare(m.corrected); if(_fo===_fc) continue; if(_fc.replace(/[吧吗呢啊呀哦嘛咯喽哟]+$/,'')===_fo) continue; if(out.some(x=>x.original===m.original&&x.corrected===m.corrected)) continue; out.push(m); } return out; }
@@ -16159,7 +16253,7 @@ uncertain 表示你是否读不懂这个句子/分句、无法可靠推断学生
         const prompt = '你是HSK中文教师。学生用中文写了一句可能有误的话，并且用' + targetLang + '（母语）解释了他真正想表达的意思。请根据「学生想表达的意思」和「学生原句」，给出最合适的最小改动正确句。\n' +
             '要求：\n' +
             '1. 只改学生原句中真正错误、不自然的字词和语序，其余一字不动；数字/日期/时间/数量词原样保留；句式（陈述/疑问/祈使）保持。\n' +
-            '2. 学生原句和母语意思不一致时，以母语意思为准，但尽量保留原句结构和用词，只做最小改动；如果学生的原句其实已经能表达这个意思，就返回[]。\n' +
+            '2. 学生原句和母语意思不一致时，以母语意思为准；在用户原句的基础上改：小错误只做最小改动，如果原句结构无法准确表达意思，允许换一种更自然的说法（大改/换说法），目的是改正准确、符合用户原意；如果学生的原句其实已经能表达这个意思，就返回[]。\n' +
             '3. 标点符号不算错；「的」可加可不加不算错；「的话」已表条件时「如果」可加可不加；承前省略主语不算错。\n' +
             '4. 学生消息里有多个句子/分句时，每个有错误的句子/分句单独输出一条记录，全部错误都要改到，不能漏。\n' +
             '5. 语气词（啊、呀、嘛、呢、吧、吗）用错、重复或位置不对也要纠正。\n' +
@@ -16326,6 +16420,164 @@ uncertain 表示你是否读不懂这个句子/分句、无法可靠推断学生
             const right = subj + '也可以尝尝';
             out.push({ original: t, corrected: right, type: '词语错误', note: '「值得吃」一般用来评价食物（如“这家店值得吃”）；对某人推荐食物时应说「' + right + '」。' });
         }
+        // 「第一次+V+了+所以/但是/可是」：叙述第一次做某事的经历，动词后不用「了」
+        const firstTime = t.match(/第一次([^，。！？!?]{1,8}?)，?了(所以|但是|可是)/);
+        if(firstTime){
+            const right = t.replace(/第一次([^，。！？!?]{1,8}?)，?了(所以|但是|可是)/, '第一次$1，$2');
+            out.push({ original: t, corrected: right, type: '多词', note: '「第一次+V」叙述第一次做某事的经历，动词后不用「了」。应说：' + right + '。' });
+        }
+        // 「在垃圾桶的地方」：处所表达不自然，应说「垃圾桶那里」
+        const tong = t.match(/在(垃圾桶|垃圾箱|垃圾站)的地方/);
+        if(tong){
+            const right = t.replace(/在(垃圾桶|垃圾箱|垃圾站)的地方/g, '$1那里');
+            out.push({ original: t, corrected: right, type: '词语错误', note: '「在垃圾桶的地方」不自然，表示“垃圾桶所在的地方”应说「垃圾桶那里」。应说：' + right + '。' });
+        }
+        // 「味道+好吃/难吃」：味道只能说好/不好，好吃用于食物本身
+        const weidao = t.match(/味道(很|都|非常|特别|挺|真|不|还|也|那么|这么)?(好吃|难吃)/);
+        if(weidao){
+            const adv = weidao[1] || '';
+            const adj = weidao[2] === '好吃' ? '好' : '不好';
+            const right = t.replace(weidao[0], '味道' + adv + adj);
+            out.push({ original: t, corrected: right, type: '搭配不当', note: '「味道」不能说「好吃/难吃」，应说「味道好/不好」；「好吃」用来形容食物本身。应说：' + right + '。' });
+        }
+        // 「又宽又干净」形容餐馆：应说「又宽敞又安静」
+        if(t.includes('又宽又干净')){
+            const right = t.replace(/又宽又干净/g, '又宽敞又安静');
+            out.push({ original: t, corrected: right, type: '词语错误', note: '形容餐馆/房间空间应用「宽敞」，环境不吵闹应用「安静」：「又宽又干净」应说「又宽敞又安静」。' });
+        }
+        // 「这样的规则」指生活习惯/民族禁忌时：应说「习俗/规定」
+        const guize = t.match(/这样的规则/);
+        if(guize){
+            const right = t.replace(guize[0], '这样的习俗');
+            out.push({ original: t, corrected: right, type: '词语错误', note: '生活习惯、民族禁忌等用「习俗」或「规定」；「规则」多指游戏、比赛、书面规则。应说：' + right + '。' });
+        }
+        // 「找打工/找什么打工」：「打工」不能作「找」的宾语，应说「找工作」
+        const zhaoDagong = t.match(/(找|想找|得找|要找到?)(什么)?打工/);
+        if(zhaoDagong){
+            const right = t.replace(/(找|想找|得找|要找到?)(什么)?打工/g, '$1工作');
+            out.push({ original: t, corrected: right, type: '搭配不当', note: '「打工」不能作「找」的宾语，找工作/打工应说「找工作」；不能说「找打工」。应说：' + right + '。' });
+        }
+        // 「不能睡觉」：表示因为环境/条件睡不着时，应说「睡不着觉」
+        if(t.includes('不能睡觉')){
+            const right = t.replace(/不能睡觉/g, '睡不着觉');
+            out.push({ original: t, corrected: right, type: '词语错误', note: '表示因为环境、身体等原因睡不着时，应说「睡不着觉」，不用「不能睡觉」。应说：' + right + '。' });
+        }
+        // 「向+地方+开始+动作」：应说「开始+在+地方+动作」
+        const xiangStart = t.match(/向([^，。！？!?]{1,12}?)开始(旅行|旅游|工作|学习|生活|上班)/);
+        if(xiangStart){
+            const right = t.replace(xiangStart[0], '开始在' + xiangStart[1] + xiangStart[2]);
+            out.push({ original: t, corrected: right, type: '语序错误', note: '「向+地方+开始+动作」语序不对，应说「开始+在+地方+动作」。应说：' + right + '。' });
+        }
+        // 「比以前满+形容词」：比较句中不用「满」，直接用形容词或「更+形容词」
+        if(/比以前满/.test(t)){
+            const right = t.replace(/比以前满/g, '比以前');
+            out.push({ original: t, corrected: right, type: '多词', note: '比较句「比以前」后面不用「满」，直接用形容词或「更+形容词」。应说：' + right + '。' });
+        }
+        // 「我哦」：多打了「哦」
+        if(t.includes('我哦')){
+            const right = t.replace(/我哦/g, '我');
+            out.push({ original: t, corrected: right, type: '多字', note: '「我哦」多了一个「哦」，应为「我」。' });
+        }
+        // 「退辞」：不是正确的词；「退辞公司」应说「从公司辞职」
+        const tuiCi = t.match(/退辞(公司|学校|大学|工作|单位|俱乐部)/);
+        if(tuiCi){
+            const right = t.replace(/退辞(公司|学校|大学|工作|单位|俱乐部)/g, '从$1辞职');
+            out.push({ original: t, corrected: right, type: '词语错误', note: '「退辞」不是正确的词；离开公司/单位应说「从…辞职」。应说：' + right + '。' });
+        } else if(t.includes('退辞')){
+            const right = t.replace(/退辞/g, '辞职');
+            out.push({ original: t, corrected: right, type: '词语错误', note: '「退辞」不是正确的词，应为「辞职」。' });
+        }
+        // 「下天」：错别字，应为「明天」
+        if(t.includes('下天')){
+            const right = t.replace(/下天/g, '明天');
+            out.push({ original: t, corrected: right, type: '错字', note: '「下天」应为「明天」。' });
+        }
+        // 类：和制汉语「工事」→「施工」
+        if(t.includes('工事')){
+            const right = t.replace(/工事/g, '施工');
+            out.push({ original: t, corrected: right, type: '词语错误', note: '「工事」是日语说法，汉语说「施工」。应说：' + right + '。' });
+        }
+        // 类：建造建筑/设施用「建」不用「造」（造船、造纸等固定搭配除外）
+        const zaoJian = t.match(/造(了)?(花园|房子|楼|公园|学校|医院|桥|车站|机场|体育馆|图书馆|博物馆|商场|超市|工厂)/);
+        if(zaoJian){
+            const right = t.replace(/造(了)?(花园|房子|楼|公园|学校|医院|桥|车站|机场|体育馆|图书馆|博物馆|商场|超市|工厂)/g, '建$1$2');
+            out.push({ original: t, corrected: right, type: '词语错误', note: '建造建筑、设施用「建」不用「造」（造船、造纸等固定搭配除外）。应说：' + right + '。' });
+        }
+        // 类：「看起来，」后接名词性成分时用「看起来是」
+        if(/看起来[，,]/.test(t)){
+            const right = t.replace(/看起来[，,]\s*/g, '看起来是');
+            out.push({ original: t, corrected: right, type: '缺词', note: '「看起来」后接名词性成分时，应说「看起来是」。应说：' + right + '。' });
+        }
+        // 类：「对+人+，那/这」→「对+人+来说，这」；指代当前谈论的事用「这」
+        const duiRenNa = t.match(/对(日本人|中国人|外国人|韩国人|美国人|法国人|德国人|俄罗斯人|泰国人|意大利人|越南人|印尼人|我|你|他|她|我们|你们|他们|她们|大家|朋友|孩子|学生|老师|家人|父母|同事|同学)([，,]\s*)?(那|这)/);
+        if(duiRenNa){
+            const right = t.replace(duiRenNa[0], '对' + duiRenNa[1] + '来说，这');
+            out.push({ original: t, corrected: right, type: '缺词、词语错误', note: '「对+人」后面一般加「来说」；指代当前正在谈论的事情用「这」，不用「那」。应说：' + right + '。' });
+        }
+        // 类：场所/环境让人感到放松 → 「很让人放松」
+        const fangsong = t.match(/(商场|公园|咖啡馆|咖啡厅|餐厅|饭店|店|地方|城市|房间|教室|学校|办公室|家|超市|图书馆|博物馆)很放松/);
+        if(fangsong){
+            const right = t.replace(fangsong[0], fangsong[1] + '很让人放松');
+            out.push({ original: t, corrected: right, type: '成分残缺', note: '「放松」一般形容人的感觉；场所让人放松应说「很让人放松」。应说：' + right + '。' });
+        }
+        // 类：「为了+V1，V2去了」目的和动作被拆开 → 合并为「去+V1+和+V2+了」
+        const weileQu2 = t.match(/为了([^，。！？!?]{1,12}?)[，,]\s*([^，。！？!?]{1,12}?)(去了?[。！？!?]?)$/);
+        if(weileQu2){
+            const right = t.replace(weileQu2[0], '去' + weileQu2[1] + '和' + weileQu2[2] + '了');
+            out.push({ original: t, corrected: right, type: '句式杂糅', note: '「为了」表目的要接完整动作；两个动作并列应说「去+V1+和+V2+了」。应说：' + right + '。' });
+        }
+        // 类：连动句/多动词连用，「了」放在最后一个动作后（句末），不放在前一个动词后
+        const lianDong = t.match(/(继续|开始|去|来|回|进|出|上|下|走|跑)(了)(坐|吃|喝|看|听|说|写|读|走|跑|买|卖|做|学|玩|工作|学习|上班|回家|睡觉|洗澡|等|找)/);
+        if(lianDong){
+            let right = t.replace(/(继续|开始|去|来|回|进|出|上|下|走|跑)了(坐|吃|喝|看|听|说|写|读|走|跑|买|卖|做|学|玩|工作|学习|上班|回家|睡觉|洗澡|等|找)/g, '$1$2');
+            if(!/了[。！？!?]?$/.test(right)) right = right.replace(/[。！？!?]*$/, '了');
+            out.push({ original: t, corrected: right, type: '语序错误', note: '连动句两个动作连用时，「了」放在最后一个动作后（句末），不能放在前一个动词后。应说：' + right + '。' });
+        }
+        // 类：陈述已经发生/完成的事，句末要加「了」
+        const baiHua = t.match(/^(今天|昨天|刚才|刚刚)(白|白白)(花|费|浪费)时间[。！？!?]?$/);
+        if(baiHua){
+            const right = t.replace(/[。！？!?]+$/, '') + '了';
+            out.push({ original: t, corrected: right, type: '缺词', note: '陈述已经发生/完成的事情，句末要用「了」。应说：' + right + '。' });
+        }
+        // 类：「在有一个+地方」→「在一个+地方」；顺承关系「。然后」→「，然后」
+        if(t.includes('在有一个') || /[。]\s*然后/.test(t)){
+            const right = t.replace(/在有一个/g, '在一个').replace(/[。]\s*然后/g, '，然后');
+            out.push({ original: t, corrected: right, type: '多词', note: '「在+地方」中间不加「有」；前后句意思紧密（顺承）时用逗号连接，不用句号。应说：' + right + '。' });
+        }
+        // 类：「可能+形容词+一点」→「可能+有点+形容词」
+        const kenengDian = t.match(/(可能|好像|似乎|也许)(累|冷|热|饿|渴|困|忙|紧张|开心|高兴|难过|生气|舒服|放松)一点/);
+        if(kenengDian){
+            const right = t.replace(kenengDian[0], kenengDian[1] + '有点' + kenengDian[2]);
+            out.push({ original: t, corrected: right, type: '词语错误', note: '表示程度略高用「有点+形容词」，不用「形容词+一点」。应说：' + right + '。' });
+        }
+        // 类：「土产」口语送人时更常说「土特产」
+        if(t.includes('土产') && !t.includes('土特产')){
+            const right = t.replace(/土产/g, '土特产');
+            out.push({ original: t, corrected: right, type: '词语错误', note: '送人地方特色食品更常说「土特产」。应说：' + right + '。' });
+        }
+        // 类：副词「特别」修饰形容词时中间不加「的」：「特别的+形容词」→「特别+形容词+的」（的移到形容词后修饰名词）
+        const tebieDe = t.match(/特别的(好|多|少|大|小|漂亮|好吃|有意思|便宜|贵|难|容易|累|忙|开心|高兴|可爱)/);
+        if(tebieDe){
+            const right = t.replace(/特别的(好|多|少|大|小|漂亮|好吃|有意思|便宜|贵|难|容易|累|忙|开心|高兴|可爱)/g, '特别$1的');
+            out.push({ original: t, corrected: right, type: '多词', note: '副词「特别」修饰形容词时，中间不加「的」；「的」放在形容词后修饰名词。应说：' + right + '。' });
+        }
+        // 类：时量补语放在谓语后：「还要+时间段+动词/形容词」→「还要+动词/形容词+时间段」
+        const haiYao = t.match(/还要(几天|两三天|三四天|三天|两天|一天|几个月|几年|一段时间|好久|很久|半天|一会儿)(烦恼|担心|忙|等|工作|学习|休息|考虑|想)/);
+        if(haiYao){
+            const right = t.replace(haiYao[0], '还要' + haiYao[2] + haiYao[1]);
+            out.push({ original: t, corrected: right, type: '语序错误', note: '时量补语放在谓语后：「还要+动词/形容词+时间段」。应说：' + right + '。' });
+        }
+        // 类：「告诉+人+，+名词列举」缺「有」→「告诉+人+有+列举」
+        const gaoSuLie = t.match(/告诉(我|你|他|她|我们|你们|他们|她们)[，,]([^，。！？!?]{1,12}?)[，,]([^，。！？!?]{1,12}?)[，,]/);
+        if(gaoSuLie){
+            const right = t.replace(gaoSuLie[0], '告诉' + gaoSuLie[1] + '有' + gaoSuLie[2] + '，' + gaoSuLie[3] + '，');
+            out.push({ original: t, corrected: right, type: '缺词', note: '「告诉+人+，」后面直接列举名词时，要加「有」。应说：' + right + '。' });
+        }
+        // 类：「关于+名词短语」作问/说/告诉的内容且位于句末时，后面加「的事」
+        if(/关于[^，。！？!?]{1,12}?的特产[。！？!?]?$/.test(t) && !/的事[。！？!?]?$/.test(t)){
+            const right = t.replace(/[。！？!?]+$/, '') + '的事';
+            out.push({ original: t, corrected: right, type: '缺词', note: '「关于+名词」作问/说/告诉的内容时，后面一般要加「的事」。应说：' + right + '。' });
+        }
         return out;
     }
     function dedupeMistakesByOriginal(mistakes){ if(!mistakes||!mistakes.length) return []; const out=[]; for(const m of mistakes){ const o=String(m.original||'').trim(); const c=String(m.corrected||'').trim(); if(!o||!c) continue; const ok=stripForCompare(o); const dupIdx=out.findIndex(x=>{ const xo=String(x.original||'').trim(); const xk=stripForCompare(xo); const xc=String(x.corrected||'').trim(); if(xk===ok) return true; if(xc===c) return true; const oOverlap=xk.includes(ok)||ok.includes(xk); const cOverlap=xc.includes(c)||c.includes(xc); if(oOverlap && Math.min(xk.length, ok.length) >= 2) return true; return oOverlap&&cOverlap; }); if(dupIdx===-1){ out.push(m); continue; } const prev=out[dupIdx]; const xo=String(prev.original||'').trim(); const xc=String(prev.corrected||'').trim(); if(ok.length > stripForCompare(xo).length) prev.original = o; const _mo=stripForCompare(prev.original); const _mc=stripForCompare(prev.corrected); const _nc=stripForCompare(c); const _prevSim=(_mo&&_mc)?(charLcsLen(_mo,_mc)/Math.max(_mo.length,_mc.length)):0; const _newSim=(_mo&&_nc)?(charLcsLen(_mo,_nc)/Math.max(_mo.length,_nc.length)):0; if(_newSim>_prevSim+0.05 || (Math.abs(_newSim-_prevSim)<=0.05 && _nc.length<_mc.length)) prev.corrected = c; if(m.uncertain === true || String(m.uncertain) === 'true' || m.uncertain === 1) prev.uncertain = true; if(!prev.note && m.note) prev.note = m.note; else if(prev.note && m.note && String(prev.note).trim() !== String(m.note).trim()) prev.note = String(prev.note).trim() + '；' + String(m.note).trim(); const prevType = normalizeMistakeType(prev.type); const mType = normalizeMistakeType(m.type) || inferMistakeType(m); if(prevType && mType && !String(prev.type).includes(mType)) prev.type = prevType + '、' + mType; else if(!prevType && mType) prev.type = mType; out[dupIdx] = prev; } return out; }
@@ -16491,16 +16743,19 @@ uncertain 表示你是否读不懂这个句子/分句、无法可靠推断学生
         }
         if(subWord.length) parts.push(R.subWord + subWord.map(s => '「' + s.from + '」 → 「' + s.to + '」').join(', '));
         if(subGrammar.length) parts.push(R.subGrammar + subGrammar.map(s => '「' + s.from + '」 → 「' + s.to + '」').join(', '));
-        let _specific = false;
+        const coveredIns = [], coveredDels = [];
         if(lang === 'Chinese'){
-            if(ins.includes('是')){ parts.push('「是」是判断动词，表示身份、国籍、时间、特征等，结构是「主语+是+名词」。正确例句：' + c); _specific = true; }
-            else if(ins.includes('了')){ parts.push('「了」是动态助词，表示动作完成或情况变化，要紧跟在动词后（V+了）。正确例句：' + c); _specific = true; }
-            else if(ins.includes('过')){ parts.push('「过」是动态助词，表示过去的经历，要紧跟在动词后（V+过）。正确例句：' + c); _specific = true; }
-            else if(ins.includes('着')){ parts.push('「着」是动态助词，表示动作或状态的持续，要紧跟在动词后（V+着）。正确例句：' + c); _specific = true; }
-            else if(ins.includes('的') || ins.includes('地') || ins.includes('得')){ parts.push('「的/地/得」用法：「的」后接名词、「地」后接动词、「得」后接补语。正确例句：' + c); _specific = true; }
-            else if(dels.includes('了')){ parts.push('这里不需要「了」：表示经常性动作、未完成或状态持续时不用「了」。正确例句：' + c); _specific = true; }
+            if(ins.includes('是')){ parts.push('「是」是判断动词，表示身份、国籍、时间、特征等，结构是「主语+是+名词」。正确例句：' + c); coveredIns.push('是'); }
+            else if(ins.includes('了')){ parts.push('「了」是动态助词，表示动作完成或情况变化，要紧跟在动词后（V+了）。正确例句：' + c); coveredIns.push('了'); }
+            else if(ins.includes('过')){ parts.push('「过」是动态助词，表示过去的经历，要紧跟在动词后（V+过）。正确例句：' + c); coveredIns.push('过'); }
+            else if(ins.includes('着')){ parts.push('「着」是动态助词，表示动作或状态的持续，要紧跟在动词后（V+着）。正确例句：' + c); coveredIns.push('着'); }
+            else if(ins.includes('的') || ins.includes('地') || ins.includes('得')){ parts.push('「的/地/得」用法：「的」后接名词、「地」后接动词、「得」后接补语。正确例句：' + c); for(const _gc of ['的','地','得']) if(ins.includes(_gc)) coveredIns.push(_gc); }
+            else if(dels.includes('了')){ parts.push('这里不需要「了」：表示经常性动作、未完成或状态持续时不用「了」。正确例句：' + c); coveredDels.push('了'); }
         }
-        if((ins.length || dels.length) && !_specific) parts.push(R.usage.replace(/\{c\}/g, c));
+        const remDels = dels.filter(ch => !coveredDels.includes(ch));
+        const remIns = ins.filter(ch => !coveredIns.includes(ch));
+        if(remDels.length) parts.push(R.extra + remDels.map(ch => '「' + ch + '」').join('、'));
+        if(remIns.length) parts.push(R.miss + remIns.map(ch => '「' + ch + '」').join('、'));
         if(!parts.length) parts.push(R.order);
         return parts.join('；');
     }
@@ -16902,7 +17157,7 @@ async function handleEndConversation(){ if(chatAbortController){ chatAbortContro
         }
     }
 }catch(e){}
-renderVocabLevelProgress(); renderVocabTrackList(); const _userHanzi = sessionUserMessages.map(u => stripForCompare(u)); const _chatReflect = []; for(const it of (window._chatSessionMistakes || [])){ const key = stripForCompare(it.user || ''); const txt = stripForCompare(it.text || ''); if(!key) continue; if(!_userHanzi.some(u => u.includes(key))) continue; const dupIdx = _chatReflect.findIndex(x => stripForCompare(x.user || '') === key && stripForCompare(x.text || '') === txt); if(dupIdx === -1) _chatReflect.push(it); } window._chatSessionMistakes = []; const _zmsReflect = (window._zmsWrongAttempts || []).slice(); window._zmsWrongAttempts = []; for(const it of _zmsReflect){ if(it && it.user && it.text) _chatReflect.push(it); } if(_chatReflect.length) setTimeout(function(){ startReflection(_chatReflect); },600); currentSessionClauses=[]; sessionUserMessages=[]; }
+renderVocabLevelProgress(); renderVocabTrackList(); const _userHanzi = sessionUserMessages.map(u => stripForCompare(u)); const _chatReflect = []; for(const it of (window._chatSessionMistakes || [])){ const key = stripForCompare(it.user || ''); const txt = stripForCompare(it.text || ''); if(!key) continue; if(!_userHanzi.some(u => u.includes(key))) continue; const dupIdx = _chatReflect.findIndex(x => stripForCompare(x.user || '') === key && stripForCompare(x.text || '') === txt); if(dupIdx === -1) _chatReflect.push(it); } window._chatSessionMistakes = []; const _zmsReflect = (window._zmsWrongAttempts || []).slice(); window._zmsWrongAttempts = []; for(const it of _zmsReflect){ if(it && it.text) _chatReflect.push(it); } if(_chatReflect.length) setTimeout(function(){ startReflection(_chatReflect); },600); currentSessionClauses=[]; sessionUserMessages=[]; }
     // 把AI回复中复述的学生原句替换为系统纠正后的句子，保证「哦，你是说……」后面的内容与纠错块完全一致
     function alignReplyWithCorrections(replyRaw, mistakes){
         let r = String(replyRaw || '');
@@ -17055,18 +17310,10 @@ renderVocabLevelProgress(); renderVocabTrackList(); const _userHanzi = sessionUs
             if(filtered.length === 0){
                 for(const it of gapActiveItems()){ if(gapItemMatches(it, text)) recordGapCorrectUse(it, text, 'chat'); }
             }
-            const _shallow = filtered.filter(m => isShallowMistakeNote(m.note));
-            if(_shallow.length > 0){
-                try{
-                    const _explained = await explainMistakeUsages(_shallow);
-                    if(_explained && _explained.length > 0){
-                        for(const _ex of _explained){
-                            if(!_ex || !_ex.note) continue;
-                            const _target = _shallow.find(x => String(x.original||'').trim() === String(_ex.original||'').trim() && String(x.corrected||'').trim() === String(_ex.corrected||'').trim());
-                            if(_target) _target.note = _ex.note;
-                        }
-                    }
-                }catch(_ee){}
+            // 解释必须和改正的部分一致：统一用本地 diff 逐字生成说明，保证网页显示、错句本、报告完全一致
+            for(const m of filtered){
+                const _loc = describeMistakeReason(m.original, m.corrected);
+                if(_loc) m.note = _loc;
             }
             window._chatSessionMistakes = window._chatSessionMistakes || [];
             for(const m of filtered){
@@ -17089,7 +17336,7 @@ renderVocabLevelProgress(); renderVocabTrackList(); const _userHanzi = sessionUs
                     const _msgToken = 'm'+Date.now()+'_'+Math.random().toString(36).slice(2,6);
                     for(const m of filtered){
                         const _typeLabel = mistakeTypeLabel(m.type) || normalizeMistakeType(m.type) || String(m.type||'').trim();
-                        rawLines.push('❌ '+t('reflection.your')+'：'+m.original);
+                        rawLines.push('📝 '+t('reflection.your')+'：'+m.original);
                         rawLines.push('✅ '+t('reflection.correct')+'：'+m.corrected);
                         if(_typeLabel) rawLines.push('🏷 类型：'+_typeLabel);
                         const _typeBadge = _typeLabel ? ' <span class="mistake-type-badge">🏷 '+escapeHtml(_typeLabel)+'</span>' : '';
@@ -17098,9 +17345,9 @@ renderVocabLevelProgress(); renderVocabTrackList(); const _userHanzi = sessionUs
                         window._correctionStore[_cid] = { chinese:m.corrected, note:m.note };
                         const _explainBtn = ' <button class="corr-explain-btn" onclick="window._toggleCorrectionExplain(\''+_cid+'\')">'+escapeHtml(t('corr.explain'))+'</button><div class="corr-explain-box" id="'+_cid+'_box"></div>';
                         const _dh = diffHighlightHtml(m.original, m.corrected);
-                        htmlParts.push('<b style="color:#c0392b">❌ '+escapeHtml(t('reflection.your'))+'：'+_dh.origHtml+'</b><br><b style="color:#27ae60">✅ '+escapeHtml(t('reflection.correct'))+'：'+_dh.corrHtml+'</b>'+_typeBadge+_explainBtn);
+                        htmlParts.push('<b style="color:#64748b">📝 '+escapeHtml(t('reflection.your'))+'：'+_dh.origHtml+'</b><br><b style="color:#27ae60">✅ '+escapeHtml(t('reflection.correct'))+'：'+_dh.corrHtml+'</b>'+_typeBadge+_explainBtn);
                     }
-                    html += '<br><br>' + t('chat.correction') + htmlParts.join('<br>');
+                    html += '<br><br><div class="chat-correction-block">' + t('chat.correction') + htmlParts.join('<br>') + '</div>';
                     raw += '\n' + t('chat.correction') + '\n' + rawLines.join('\n');
                     const last = chatHistory[chatHistory.length-1];
                     if(last && last.role === 'assistant'){ last.content = raw; saveChatHistory(); }
@@ -17113,7 +17360,7 @@ renderVocabLevelProgress(); renderVocabTrackList(); const _userHanzi = sessionUs
                 const _errDetail = (window._lastChatError && String(window._lastChatError) !== 'API error') ? '（' + escapeHtml(String(window._lastChatError)) + '）' : '';
                 let _fallbackHtml = t('analysis.reply_fail') + _errDetail;
                 if(filtered.length){
-                    const _corrLines = filtered.map(m => '❌ ' + escapeHtml(m.original) + ' → ✅ ' + escapeHtml(m.corrected) + (m.note ? '<br>💡 ' + escapeHtml(String(m.note)).split('\\n').join('<br>').split('\n').join('<br>') : '')).join('<br>');
+                    const _corrLines = filtered.map(m => '📝 ' + escapeHtml(m.original) + ' → ✅ ' + escapeHtml(m.corrected) + (m.note ? '<br>💡 ' + escapeHtml(String(m.note)).split('\\n').join('<br>').split('\n').join('<br>') : '')).join('<br>');
                     _fallbackHtml += '<br><br>' + t('chat.correction') + _corrLines;
                 }
                 addAssistantMessage(_fallbackHtml, true, _fallbackHtml.replace(/<br>/g, '\n'));
@@ -17146,6 +17393,16 @@ renderVocabLevelProgress(); renderVocabTrackList(); const _userHanzi = sessionUs
             if(m){
                 const x = m[1];
                 out.push({ original: t, corrected: x + '味', type: '词语错误', note: '回答「什么味道/口味」时，口味种类要用「' + x + '味」；「' + x + '的味道」指的是某样东西尝起来的味道。' });
+            }
+        }
+        // 前面 AI 问「顺利吗/怎么样」等，学生答「为了……去的」：应说明去做了什么，且保留主语
+        if(/顺利吗|怎么样|如何|还好吗/.test(ctx)){
+            const m = t.match(/^(我|你|他|她|我们|你们|他们|她们)?为了(打工|工作|上班|上学|买东西|吃饭|见朋友|看病|办事|旅行|玩)去的[。！？!?]?$/);
+            if(m){
+                const subj = m[1] || '我';
+                const act = m[2] === '打工' ? '工作' : m[2];
+                const right = subj + '去' + act + '了';
+                out.push({ original: t, corrected: right, type: '句式杂糅', note: '回答「顺利吗？」这类问题时，直接说明去做了什么：「' + right + '」；「为了……去的」在这里不自然，而且不能丢掉主语只说「去' + act + '」。' });
             }
         }
         return out;
@@ -17183,66 +17440,57 @@ renderVocabLevelProgress(); renderVocabTrackList(); const _userHanzi = sessionUs
             const old = document.getElementById('chatCorrectionConfirmMsg');
             if(old) old.remove();
             const correctedCn = mistakes.map(m => m.corrected).join('；');
-            const originals = mistakes.map(m => m.original).join('；');
-            const notesHtml = mistakes.filter(m => m && m.note).map(m => '<div style="font-size:0.82rem;color:#b45309;margin:2px 0;">💡 ' + escapeHtml(String(m.note)).split('\n').join('<br>') + '</div>').join('');
             const div = document.createElement('div');
             div.className = 'message assistant-message';
             div.id = 'chatCorrectionConfirmMsg';
             const btnStyle = 'padding:7px 16px;border-radius:14px;border:none;cursor:pointer;font-weight:700;font-size:0.85rem;';
-            div.innerHTML = '<div class="bubble assistant-bubble" style="border-left:4px solid #1e2b5e;">'
-                + '<div style="font-weight:700;color:#1e2b5e;margin-bottom:6px;">' + escapeHtml(t('chat.confirm_title')) + '</div>'
-                + '<div style="font-size:0.85rem;color:#94a3b8;margin-bottom:6px;">❌ ' + escapeHtml(originals) + '</div>'
-                + '<div style="font-size:1rem;color:#27ae60;font-weight:700;margin-bottom:8px;">' + escapeHtml(correctedCn) + '</div>'
-                + notesHtml
-                + '<div id="chatCorrectionNative" style="color:#475569;font-size:0.9rem;margin-bottom:10px;">⏳ ' + escapeHtml(t('chat.translating')) + '</div>'
-                + '<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:8px;">'
-                + '<button id="chatCorrectionYesBtn" style="' + btnStyle + 'background:#27ae60;color:#fff;">' + escapeHtml(t('chat.confirm_yes')) + '</button>'
-                + '<button id="chatCorrectionNoBtn" style="' + btnStyle + 'background:#e67e22;color:#fff;">' + escapeHtml(t('chat.confirm_no')) + '</button>'
+            // 先让用户用母语说明想表达的意思，再根据意思改正；觉得系统初步改正正确可以直接确认
+            div.innerHTML = '<div class="bubble assistant-bubble" style="border-left:4px solid #e67e22;">'
+                + '<div style="font-weight:700;color:#1e2b5e;margin-bottom:6px;">✅ ' + escapeHtml(t('chat.confirm_title')) + '</div>'
+                + '<div style="font-size:1rem;color:#27ae60;font-weight:700;margin-bottom:6px;">' + escapeHtml(correctedCn) + '</div>'
+                + '<div style="font-weight:700;color:#1e2b5e;margin-bottom:6px;">🌐 ' + escapeHtml(t('chat.meaning_prompt')) + '</div>'
+                + '<textarea id="chatCorrectionNativeInput" placeholder="' + escapeHtml(t('chat.meaning_placeholder')) + '" style="width:100%;min-height:64px;border:1.5px solid #e67e22;border-radius:12px;padding:10px;font-size:0.95rem;font-family:inherit;box-sizing:border-box;margin-bottom:8px;"></textarea>'
+                + '<div style="display:flex;gap:8px;justify-content:flex-end;">'
+                + '<button id="chatCorrectionYesBtn" style="' + btnStyle + 'background:#fff;color:#64748b;border:1.5px solid #d0dae8;">' + escapeHtml(t('chat.confirm_yes')) + '</button>'
+                + '<button id="chatCorrectionNativeOkBtn" style="' + btnStyle + 'background:#e67e22;color:#fff;">' + escapeHtml(t('chat.meaning_confirm')) + '</button>'
                 + '</div></div><div class="timestamp">' + new Date().toLocaleTimeString() + '</div>';
             chatMessages.appendChild(div);
             chatMessages.scrollTop = chatMessages.scrollHeight;
-            const nativeEl = document.getElementById('chatCorrectionNative');
+            const input = document.getElementById('chatCorrectionNativeInput');
             const yesBtn = document.getElementById('chatCorrectionYesBtn');
-            const noBtn = document.getElementById('chatCorrectionNoBtn');
-            (async function(){
-                try{
-                    const tr = await translateZhToNative(correctedCn);
-                    if(nativeEl) nativeEl.textContent = '🌐 ' + tr;
-                }catch(e){ if(nativeEl) nativeEl.textContent = ''; }
-            })();
-            yesBtn.onclick = async function(){
-                window._chatCorrectionPending = null;
-                div.innerHTML = '<div class="bubble assistant-bubble" style="border-left:4px solid #27ae60;">✅ ' + escapeHtml(correctedCn) + '</div><div class="timestamp">' + new Date().toLocaleTimeString() + '</div>';
-                await finishChatCorrectionFlow(text, mistakes, '', { confirmed: true });
+            const okBtn = document.getElementById('chatCorrectionNativeOkBtn');
+            const showFinal = async function(finalMistakes, nativeNote){
+                const finalCn = finalMistakes.map(m => m.corrected).join('；');
+                div.innerHTML = '<div class="bubble assistant-bubble" style="border-left:4px solid #27ae60;">' + (nativeNote ? '🌐 ' + escapeHtml(t('chat.meaning_title')) + '：' + escapeHtml(nativeNote) + '<br>' : '') + '✅ ' + escapeHtml(finalCn) + '</div><div class="timestamp">' + new Date().toLocaleTimeString() + '</div>';
+                await finishChatCorrectionFlow(text, finalMistakes, '', { confirmed: true, nativeNote: nativeNote || '' });
                 resolve();
             };
-            noBtn.onclick = function(){
-                window._chatCorrectionPending = { text: text, mistakes: mistakes };
-                div.innerHTML = '<div class="bubble assistant-bubble" style="border-left:4px solid #e67e22;">'
-                    + '<div style="font-weight:700;color:#1e2b5e;margin-bottom:6px;">🌐 ' + escapeHtml(t('chat.meaning_prompt')) + '</div>'
-                    + '<textarea id="chatCorrectionNativeInput" placeholder="' + escapeHtml(t('chat.meaning_placeholder')) + '" style="width:100%;min-height:64px;border:1.5px solid #e67e22;border-radius:12px;padding:10px;font-size:0.95rem;font-family:inherit;box-sizing:border-box;margin-bottom:8px;"></textarea>'
-                    + '<div style="display:flex;gap:8px;justify-content:flex-end;">'
-                    + '<button id="chatCorrectionNativeOkBtn" style="' + btnStyle + 'background:#e67e22;color:#fff;">' + escapeHtml(t('chat.meaning_confirm')) + '</button>'
-                    + '</div></div><div class="timestamp">' + new Date().toLocaleTimeString() + '</div>';
-                const input = document.getElementById('chatCorrectionNativeInput');
-                const okBtn = document.getElementById('chatCorrectionNativeOkBtn');
-                const submit = async function(){
-                    const native = input.value.trim();
-                    if(!native){ showToast(t('reflection.need_native')); return; }
-                    okBtn.disabled = true; okBtn.textContent = '⏳ ...';
+            const submit = async function(){
+                const native = input.value.trim();
+                if(!native){ showToast(t('reflection.need_native')); return; }
+                okBtn.disabled = true; okBtn.textContent = '⏳ ...';
+                let refined = null;
+                try{ refined = await refineMistakesWithMeaning(text, native, mistakes); }catch(e){ refined = null; }
+                let finalMistakes;
+                if(Array.isArray(refined)){
+                    // 根据母语意思重新改正；如果 AI 认为原句已经能表达意思（返回[]），沿用系统初步改正
+                    finalMistakes = refined.length > 0 ? refined : mistakes;
+                } else {
                     let chinese = '';
                     try{ chinese = await translateNativeToChinese(native); }catch(e){ chinese = ''; }
                     if(!chinese){ okBtn.disabled = false; okBtn.textContent = escapeHtml(t('chat.meaning_confirm')); showToast(t('zms.analysis_fail')); return; }
-                    const newMistakes = [{ original: text, corrected: chinese, type: '表达', note: '按你的母语意思改写', uncertain: false }];
-                    window._chatCorrectionPending = null;
-                    div.innerHTML = '<div class="bubble assistant-bubble" style="border-left:4px solid #27ae60;">🌐 ' + escapeHtml(t('chat.meaning_title')) + '：' + escapeHtml(native) + '<br>✅ ' + escapeHtml(chinese) + '</div><div class="timestamp">' + new Date().toLocaleTimeString() + '</div>';
-                    await finishChatCorrectionFlow(text, newMistakes, '', { confirmed: true, nativeNote: native });
-                    resolve();
-                };
-                okBtn.onclick = submit;
-                input.addEventListener('keypress', function(e){ if(e.key === 'Enter' && !e.isComposing && e.keyCode !== 229){ e.preventDefault(); submit(); } });
-                input.focus();
+                    finalMistakes = [{ original: text, corrected: chinese, type: '表达', note: '按你的母语意思改写', uncertain: false }];
+                }
+                window._chatCorrectionPending = null;
+                await showFinal(finalMistakes, native);
             };
+            okBtn.onclick = submit;
+            input.addEventListener('keypress', function(e){ if(e.key === 'Enter' && !e.isComposing && e.keyCode !== 229){ e.preventDefault(); submit(); } });
+            yesBtn.onclick = async function(){
+                window._chatCorrectionPending = null;
+                await showFinal(mistakes, '');
+            };
+            input.focus();
         });
     }
 
@@ -17281,6 +17529,12 @@ renderVocabLevelProgress(); renderVocabTrackList(); const _userHanzi = sessionUs
             let preFiltered = dedupeMistakesByOriginal(filterMistakes(mistakes).filter(m => !isFalseCorrection(m.original, m.corrected)));
             // 外语片段不纠错
             preFiltered = preFiltered.filter(m => /[\u4e00-\u9fff]/.test(m.original || ''));
+            // 记录必须和聊天原文一致：原句必须是学生消息的一部分，防止报告里出现聊天中没有的句子（如「第第二天」）
+            const _userKey = stripForCompare(text);
+            preFiltered = preFiltered.filter(m => {
+                const _ok = stripForCompare(m.original || '');
+                return _ok && _userKey.includes(_ok);
+            });
             // 本地规则优先：已知偏误模式用本地规则覆盖/补充 AI 结果，保证这几种错误不会改错或漏报
             const _lh = localMistakeHeuristics(text);
             const _ch = contextMistakeHeuristics(text, buildChatContextForCorrection());
@@ -18276,7 +18530,7 @@ async function generateAndShowPractice(grammarPattern, grammarLevel, forceNew=fa
     function zmsInput(mode){ return document.getElementById(mode === 'writing' ? 'wZenmeshuoInput' : 'zenmeshuoInput'); }
     function zmsResult(mode){ return document.getElementById(mode === 'writing' ? 'wZenmeshuoResult' : 'zenmeshuoResult'); }
     function buildZmsReferencePrompt(original, targetLang, ctx, ctxLabel){
-        return '请结合下面的' + ctxLabel + '，先判断说话对象、场合与正式程度，再利用前因后果判断待翻译句中多义词、模糊词在当下语境的确切含义，从而选定最准确的词语。将下面这句' + targetLang + '翻译成中文。请只给出【唯一一个】最恰当、最自然、用词最准确的标准中文表达（不要提供多个候选，不要做任何解释）。同时提供拼音（每个汉字的拼音用空格分开，如：wǒ shì xué shēng，绝不要连写）。输出JSON：{\"chinese\":\"中文翻译\",\"pinyin\":\"空格分隔的逐字拼音\"}。\n\n【' + ctxLabel + '】\n' + (ctx || '（暂无上下文，请给出最通用、中性的表达）') + '\n\n【待翻译句子】\n' + original;
+        return '请结合下面的' + ctxLabel + '，先判断说话对象、场合与正式程度，再利用前因后果判断待翻译句中多义词、模糊词在当下语境的确切含义，从而选定最准确的词语。除非上下文明确是正式场合，否则一律使用日常口语/通用语体，避免书面语、敬语翻译腔（如不要译成「唯一的慰藉」这类书面表达）。将下面这句' + targetLang + '翻译成中文。请只给出【唯一一个】最恰当、最自然、用词最准确的标准中文表达（不要提供多个候选，不要做任何解释）。同时提供拼音（每个汉字的拼音用空格分开，如：wǒ shì xué shēng，绝不要连写）。输出JSON：{\"chinese\":\"中文翻译\",\"pinyin\":\"空格分隔的逐字拼音\"}。\n\n【' + ctxLabel + '】\n' + (ctx || '（暂无上下文，请给出最通用、中性的表达）') + '\n\n【待翻译句子】\n' + original;
     }
     function zmsStart(mode){
         const input = zmsInput(mode);
@@ -18290,7 +18544,8 @@ async function generateAndShowPractice(grammarPattern, grammarLevel, forceNew=fa
         const ctx = mode === 'writing' ? buildZmsWritingContext() : buildZmsChatContext();
         const ctxLabel = mode === 'writing' ? '作文内容' : '对话上下文';
         zmsAttemptState[mode] = { original: text, targetLang: targetLang, ctx: ctx, ctxLabel: ctxLabel, wordQuery: false, attempt: '' };
-        renderZmsAttempt(mode);
+        // 不再让学生先尝试：直接生成参考答案，结束对话时统一反思「为什么不会说」
+        zmsFetchReference(mode, '', true);
     }
     function isWordLikeQuery(text){
         const s = String(text || '').trim();
@@ -18442,6 +18697,17 @@ async function generateAndShowPractice(grammarPattern, grammarLevel, forceNew=fa
             zmsFetchReference(mode, '', true);
         }
     }
+    async function askPinyinForText(text){
+        const apiKey = apiKeyInput.value.trim();
+        if(!apiKey || !text) return '';
+        try{
+            const resp = await fetch(API_BASE, { method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey}, body: JSON.stringify({ model:'deepseek-v4-flash', thinking:{ type:'disabled' }, max_tokens:2048, messages:[{ role:'user', content:'请给下面的中文内容标注拼音，每个汉字的拼音用空格分开（如：wǒ shì xué shēng），只输出拼音文本，不要输出任何其他内容：\n' + text }], temperature:0 }) });
+            const data = await resp.json();
+            if(data.error) return '';
+            if(!data.choices || !data.choices[0] || !data.choices[0].message) return '';
+            return String(data.choices[0].message.content || '').trim();
+        }catch(e){ return ''; }
+    }
     async function zmsFetchReference(mode, attempt, skipped){
         const res = zmsResult(mode);
         const st = zmsAttemptState[mode];
@@ -18452,20 +18718,39 @@ async function generateAndShowPractice(grammarPattern, grammarLevel, forceNew=fa
         }
         const apiKey = apiKeyInput.value.trim();
         try{
-            const resp = await fetch(API_BASE, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + apiKey }, body: JSON.stringify({ model: 'deepseek-v4-flash', thinking: { type: 'disabled' }, max_tokens: 4096, messages: [{ role: 'user', content: buildZmsReferencePrompt(st.original, st.targetLang, st.ctx, st.ctxLabel) }], temperature: 0.3, response_format: { type: 'json_object' } }) });
-            const data = await resp.json();
-            if(data.error) throw new Error(data.error.message || 'API error');
-            if(!data.choices || !data.choices[0] || !data.choices[0].message) throw new Error('API error');
-            let c = data.choices[0].message.content;
-            c = c.replace(new RegExp(String.fromCharCode(96, 96, 96) + 'json', 'g'), '').replace(new RegExp(String.fromCharCode(96, 96, 96), 'g'), '').trim();
-            const r = safeJsonParse(c);
-            const chinese = r.chinese;
+            let chinese = '';
+            let pinyin = '';
+            if(skipped){
+                const resp = await fetch(API_BASE, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + apiKey }, body: JSON.stringify({ model: 'deepseek-v4-flash', thinking: { type: 'disabled' }, max_tokens: 4096, messages: [{ role: 'user', content: buildZmsReferencePrompt(st.original, st.targetLang, st.ctx, st.ctxLabel) }], temperature: 0.3, response_format: { type: 'json_object' } }) });
+                const data = await resp.json();
+                if(data.error) throw new Error(data.error.message || 'API error');
+                if(!data.choices || !data.choices[0] || !data.choices[0].message) throw new Error('API error');
+                let c = data.choices[0].message.content;
+                c = c.replace(new RegExp(String.fromCharCode(96, 96, 96) + 'json', 'g'), '').replace(new RegExp(String.fromCharCode(96, 96, 96), 'g'), '').trim();
+                const r = safeJsonParse(c);
+                chinese = r.chinese;
+                pinyin = r.pinyin || '';
+            } else {
+                // 学生写了尝试：只纠正尝试句作为唯一答案，不再另外生成一句参考答案（避免同时出现两种表达方式）
+                chinese = attempt;
+                const mistakes = await analyzeMistakesBatch([attempt], '', null);
+                const valid = filterMistakes(mistakes || []);
+                if(valid.length === 1 && valid[0].corrected){
+                    chinese = valid[0].corrected;
+                } else {
+                    for(const m of valid){
+                        if(m.corrected && chinese.includes(m.original)) chinese = chinese.replace(m.original, m.corrected);
+                    }
+                }
+                pinyin = await askPinyinForText(chinese);
+            }
             zmsCurrentChinese = chinese;
             const attemptSaved = skipped ? t('zms.skipped') : attempt;
-            addZmsRecord(st.original, attemptSaved, chinese, r.pinyin || '', mode);
-            if(!skipped && stripForCompare(attempt) !== stripForCompare(chinese)){
+            addZmsRecord(st.original, attemptSaved, chinese, pinyin, mode);
+            // 结束对话时反思：怎么说查询一律记录（直接给答案时 user 为空，反思时问「为什么不会说」；写作模式不并入聊天反思）
+            if(mode === 'chat'){
                 window._zmsWrongAttempts = window._zmsWrongAttempts || [];
-                window._zmsWrongAttempts.push({ mode:'怎么说', text: chinese, user: attempt, note: '🌐 '+st.original, date: getLocalDate() });
+                window._zmsWrongAttempts.push({ mode:'怎么说', text: chinese, user: skipped ? '' : attempt, native: st.original, date: getLocalDate() });
             }
             addQueriedItem(chinese, zmsQueryType(st.original, chinese), st.original, attemptSaved);
             const hz = gapHanzi(chinese);
@@ -18473,7 +18758,7 @@ async function generateAndShowPractice(grammarPattern, grammarLevel, forceNew=fa
                 if(hz.length <= 6 && !/[，。！？；、,.!?;]/.test(chinese)) recordGapItem(hz, hz, chinese, '怎么说', '怎么说查询：' + st.original, st.original);
                 else recordGapItem(chinese, '', chinese, '怎么说', '怎么说查询：' + st.original, '');
             }
-            renderZmsResult(mode, st.original, attemptSaved, chinese, r.pinyin || '');
+            renderZmsResult(mode, st.original, attemptSaved, chinese, pinyin);
         }catch(e){
             const box = res.querySelector('.zms-chinese');
             if(box) box.textContent = t('zms.analysis_fail');
@@ -19465,6 +19750,7 @@ async function generateAndShowPractice(grammarPattern, grammarLevel, forceNew=fa
         }
         const it = q[idx];
         const isReading = it.mode === '阅读';
+        const isZms = it.mode === '怎么说';
         const total = q.length;
         const prevState = (window._reflectionReasons || [])[idx] || { choice:'', why:'', meaning:'', native: it.native || '', grammar: it.grammar || '' };
         let ov = document.getElementById('reflectionOverlay');
@@ -19474,47 +19760,53 @@ async function generateAndShowPractice(grammarPattern, grammarLevel, forceNew=fa
             ov.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;';
             document.body.appendChild(ov);
         }
-        const title = isReading ? t('reflection.question_reading') : t('reflection.question');
+        const title = isReading ? t('reflection.q_confusion') : (isZms ? t('reflection.q_why_couldnt_say') : t('reflection.q_why_wrong'));
         let sentenceHtml = '';
         if (isReading) {
             sentenceHtml = '<div style="background:#fef3e2;border:1px solid #f0c040;border-radius:12px;padding:10px 12px;font-size:0.95rem;margin-bottom:10px;">📖 ' + escapeHtml(it.text) + '</div>';
         } else {
-            if (it.user) sentenceHtml += '<div style="background:#fdecea;border:1px solid #e74c3c;border-radius:12px;padding:10px 12px;font-size:0.95rem;margin-bottom:6px;">❌ ' + escapeHtml(t('reflection.your')) + '：' + escapeHtml(it.user) + '</div>';
+            if (it.user) sentenceHtml += '<div style="background:#f1f5f9;border:1px solid #cbd5e1;border-radius:12px;padding:10px 12px;font-size:0.95rem;margin-bottom:6px;">📝 ' + escapeHtml(t('reflection.your')) + '：' + escapeHtml(it.user) + '</div>';
             if (it.text) sentenceHtml += '<div style="background:#eafaf1;border:1px solid #27ae60;border-radius:12px;padding:10px 12px;font-size:0.95rem;margin-bottom:6px;">✅ ' + escapeHtml(t('reflection.correct')) + '：' + escapeHtml(it.text) + '</div>';
-            if (it.native) sentenceHtml += '<div style="background:#eef7ff;border:1px solid #bcd7f0;border-radius:12px;padding:10px 12px;font-size:0.9rem;margin-bottom:6px;">' + escapeHtml(t('reflection.translation_label')) + '：' + escapeHtml(it.native) + '</div>';
             if (it.grammar) sentenceHtml += '<div style="background:#f3e8ff;border:1px solid #d8c4f0;border-radius:12px;padding:10px 12px;font-size:0.88rem;margin-bottom:10px;">' + escapeHtml(t('reflection.grammar_point')) + '：' + escapeHtml(it.grammar) + '</div>';
         }
         const btnStyle = 'display:block;width:100%;text-align:left;padding:12px 14px;border-radius:14px;border:1.5px solid #d0dae8;background:#f8fafc;cursor:pointer;font-size:0.95rem;font-weight:600;color:#1e2b5e;margin:0 0 8px;';
+        const writePh = isReading ? t('reflection.confusion_placeholder') : (isZms ? (t('reflection.why_couldnt_placeholder') || t('reflection.why_placeholder')) : t('reflection.why_placeholder'));
+        const choiceHtml = '<div id="reflectionWriteArea">' +
+            '<textarea id="reflectionWhy" placeholder="' + escapeHtml(writePh) + '" style="width:100%;min-height:80px;border:1.5px solid #d0dae8;border-radius:12px;padding:10px;font-size:0.9rem;font-family:inherit;box-sizing:border-box;margin-bottom:12px;">' + escapeHtml(prevState.why || '') + '</textarea>' +
+            '<div style="text-align:right;"><button id="reflectionWriteSaveBtn" style="padding:8px 18px;border-radius:14px;border:none;background:#1e2b5e;color:#fff;cursor:pointer;font-size:0.85rem;">' + escapeHtml(t('reflection.save_next')) + '</button></div>' +
+            '</div>';
         const prevHtml = idx > 0 ? '<button id="reflectionPrevBtn" style="padding:7px 16px;border-radius:14px;border:1px solid #d0dae8;background:#f8fafc;cursor:pointer;font-size:0.85rem;">' + escapeHtml(t('reflection.prev')) + '</button>' : '';
         ov.innerHTML = '<div style="background:#fff;border-radius:20px;max-width:580px;width:100%;padding:22px;box-shadow:0 10px 40px rgba(0,0,0,0.25);font-family:inherit;max-height:90vh;overflow:auto;">' +
             '<div style="font-weight:700;font-size:1rem;color:#1e2b5e;margin-bottom:10px;">💭 ' + escapeHtml(title) + '（' + (idx + 1) + '/' + total + '）</div>' +
             sentenceHtml +
-            '<div id="reflectionChoiceArea">' +
-            '<button class="reflection-opt" data-choice="A" style="' + btnStyle + '">' + escapeHtml(t('reflection2.option_a')) + '</button>' +
-            '<button class="reflection-opt" data-choice="B" style="' + btnStyle + '">' + escapeHtml(t('reflection2.option_b')) + '</button>' +
-            '<button class="reflection-opt" data-choice="C" style="' + btnStyle + '">' + escapeHtml(t('reflection2.option_c')) + '</button>' +
-            '<button class="reflection-opt" data-choice="D" style="' + btnStyle + 'margin:0;\">' + escapeHtml(t('reflection2.option_d')) + '</button>' +
-            '</div>' +
-            '<div id="reflectionBDetail" style="display:none;margin-top:12px;"></div>' +
+            choiceHtml +
             '<div style="display:flex;gap:10px;justify-content:space-between;margin-top:12px;">' +
             '<div>' + prevHtml + '</div>' +
             '</div></div>';
         ov.querySelectorAll('.reflection-opt').forEach(function(b){
             b.onclick = function(){ handleReflectionChoice(b.dataset.choice, it); };
         });
+        const whyTa = document.getElementById('reflectionWhy');
+        const writeSaveBtn = document.getElementById('reflectionWriteSaveBtn');
+        if(writeSaveBtn){
+            if(whyTa) whyTa.focus();
+            writeSaveBtn.onclick = function(){
+                const why = whyTa ? whyTa.value.trim() : '';
+                if(!why){ showToast(t('reflection.need_why')); return; }
+                const reasons = window._reflectionReasons || [];
+                reasons[idx] = reasons[idx] || {};
+                reasons[idx].choice = isReading ? '' : 'B';
+                if(!isReading) reasons[idx].noChoiceLabel = true;
+                reasons[idx].why = why;
+                advanceReflection();
+            };
+        }
         const prevBtn = document.getElementById('reflectionPrevBtn');
         if(prevBtn) prevBtn.onclick = function(){
             reflectionCurrentState();
             window._reflectionIndex = Math.max(0, idx - 1);
             showReflectionPrompt();
         };
-        // 若没有母语翻译，异步补翻译后重渲染
-        if(!isReading && !it.native && it.text){
-            ensureReflectionNative(it).then(function(){
-                const curIdx = window._reflectionIndex || 0;
-                if(curIdx === idx && document.getElementById('reflectionOverlay')) showReflectionPrompt();
-            });
-        }
     }
     function handleReflectionChoice(choice, it){
         const idx = window._reflectionIndex || 0;
@@ -19570,8 +19862,14 @@ async function generateAndShowPractice(grammarPattern, grammarLevel, forceNew=fa
             const it = q[i];
             const r = reasons[i] || { choice:'', why:'', meaning:'', native: it.native || '' };
             let reasonText = '';
-            if(r.choice === 'B'){
-                reasonText = reflectionReasonLabel('B') + '｜为什么用错（词语/语法/语序）：' + (r.why || '') + '｜正确句子的意思：' + (r.meaning || '');
+            if(it.mode === '阅读' && r.why){
+                reasonText = '哪里不明白：' + r.why;
+            } else if(it.mode === '怎么说' && r.why){
+                reasonText = '为什么不会说：' + r.why;
+                if(r.meaning) reasonText += '｜正确句子的意思：' + r.meaning;
+            } else if(r.choice === 'B'){
+                reasonText = (r.noChoiceLabel ? '' : reflectionReasonLabel('B') + '｜') + '为什么用错（词语/语法/语序）：' + (r.why || '');
+                if(r.meaning) reasonText += '｜正确句子的意思：' + r.meaning;
             } else if(r.choice){
                 reasonText = reflectionReasonLabel(r.choice);
             }
@@ -19581,9 +19879,9 @@ async function generateAndShowPractice(grammarPattern, grammarLevel, forceNew=fa
                 user: it.user || '',
                 note: it.note || '',
                 grammar: it.grammar || '',
-                reasonType: r.choice === 'B' ? '反思-B' : '反思',
+                reasonType: (r.choice === 'B' && !r.noChoiceLabel) ? '反思-B' : '反思',
                 reason: reasonText,
-                native: (r.choice === 'B' && r.meaning) ? r.meaning : (it.native || r.native || ''),
+                native: '',
                 date: getLocalDate()
             });
         }
@@ -19970,18 +20268,36 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
         }catch(e){ return ''; }
     }
 
-    // ========== 词语练习模块（自动流程：每词完成听+看，做错稍后再出现，翻面看例句） ==========
+    // ========== 词语练习模块（每词完成听音选义/听音选字/看词选义，答错集中到结束后回顾） ==========
     let wlSession = null;
+    let wlAdvanceTimer = null;
     function wordlabEl(id){ return document.getElementById(id); }
     function wordlabLevel(){ const s = wordlabEl('wordlabLevelSelect'); return s ? (parseInt(s.value) || 3) : 3; }
     function buildWlMeaningOptions(correct, lvl){
+        const normCorrect = String(correct || '').trim().toLowerCase();
         const all = [];
+        const confusing = [];
         for(let lv = 1; lv <= 4; lv++){
-            (VOCAB_LEVEL_MAP[lv] || []).forEach(function(x){ if(wlIsFunctionWord(x)) return; const m = String(x.m || '').trim(); if(m && m.toLowerCase() !== correct.toLowerCase()) all.push(m); });
+            (VOCAB_LEVEL_MAP[lv] || []).forEach(function(x){
+                if(wlIsFunctionWord(x)) return;
+                const m = String(x.m || '').trim();
+                const nm = m.toLowerCase();
+                if(!m || nm === normCorrect) return;
+                if(nm.includes(normCorrect) || normCorrect.includes(nm)){ confusing.push(m); }
+                else { all.push(m); }
+            });
         }
         shuffleArray(all);
+        shuffleArray(confusing);
         const dist = [];
-        for(const m of all){ if(!dist.some(function(d){ return d.toLowerCase() === m.toLowerCase(); })) dist.push(m); if(dist.length >= 3) break; }
+        for(const m of all){
+            if(!dist.some(function(d){ return d.toLowerCase() === m.toLowerCase(); })) dist.push(m);
+            if(dist.length >= 3) break;
+        }
+        for(const m of confusing){
+            if(dist.length >= 3) break;
+            if(!dist.some(function(d){ return d.toLowerCase() === m.toLowerCase(); })) dist.push(m);
+        }
         return shuffleArray([correct].concat(dist));
     }
     function wlDimBadge(key, label, e, word){
@@ -20028,7 +20344,32 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
         const all = (VOCAB_LEVEL_MAP[lvl] || []).map(function(v){ return v.w; });
         shuffleArray(all);
         const words = all.slice(0, 10);
-        wlSession = { lvl: lvl, wordQueue: words, groupTotal: words.length, wrongQueue: [], current: null };
+        // 10 个词 × 3 个维度 = 30 道选择题，全部打乱顺序，避免同一词连续出现
+        const questions = [];
+        words.forEach(function(word){
+            questions.push({ word: word, lvl: lvl, dim: '音义' });
+            questions.push({ word: word, lvl: lvl, dim: '音形' });
+            questions.push({ word: word, lvl: lvl, dim: '形义' });
+        });
+        shuffleArray(questions);
+        // 贪心调整：尽量避免同一词的题相邻，减少练习效应
+        for(let i = 1; i < questions.length; i++){
+            if(questions[i].word === questions[i - 1].word){
+                let swapIdx = -1;
+                for(let j = i + 1; j < questions.length; j++){
+                    if(questions[j].word !== questions[i].word && questions[j].word !== questions[i - 1].word){
+                        swapIdx = j;
+                        break;
+                    }
+                }
+                if(swapIdx > 0){
+                    const tmp = questions[i];
+                    questions[i] = questions[swapIdx];
+                    questions[swapIdx] = tmp;
+                }
+            }
+        }
+        wlSession = { lvl: lvl, questionQueue: questions, questionTotal: questions.length, groupTotal: words.length, wrongQueue: [], wrongWords: [], current: null };
         nextWordLabWord();
     }
     window._wlRestart = function(){ startWordLab(); };
@@ -20036,36 +20377,31 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
         if(!wlSession) return;
         while(wlSession.wrongQueue.length){
             const it = wlSession.wrongQueue.shift();
-            wlSession.current = { word: it.word, lvl: it.lvl, dims:[it.dim], dimIdx:0, isWrongRetry:true, answered:false, hadWrong:false };
+            wlSession.current = { word: it.word, lvl: it.lvl, dim: it.dim, isWrongRetry:true, answered:false, hadWrong:false };
             renderWlCurrent();
             return;
         }
-        if(!wlSession.wordQueue.length){
-            const area = wordlabEl('wordlabPracticeArea');
-            const total = (VOCAB_LEVEL_MAP[wlSession.lvl] || []).length;
-            if(area) area.innerHTML = '<div class="wlp-box"><div style="font-size:1.1rem;font-weight:700;color:#27ae60;">🎉 本组练习完成！</div><div style="color:#64748b;margin:8px 0;">HSK' + wlSession.lvl + ' · 本组 ' + (wlSession.groupTotal || 10) + ' 个词</div><button class="wlp-btn" onclick="window._wlRestart()">🔄 再来一组</button></div>';
-            const pg = wordlabEl('wordlabProgress');
-            if(pg) pg.textContent = '✅ 完成';
-            wlSession = null;
+        if(!wlSession.questionQueue.length){
+            finishWordLab();
             return;
         }
-        const word = wlSession.wordQueue.shift();
-        wlSession.current = { word: word, lvl: wlSession.lvl, dims:['音义','音形','形义'], dimIdx:0, isWrongRetry:false, answered:false, hadWrong:false };
+        const q = wlSession.questionQueue.shift();
+        wlSession.current = { word: q.word, lvl: q.lvl, dim: q.dim, isWrongRetry:false, answered:false, hadWrong:false };
         renderWlCurrent();
     }
     window._wlNextWord = function(){ nextWordLabWord(); };
     function wlProgressText(){
         if(!wlSession) return '';
-        const total = wlSession.groupTotal || wlSession.wordQueue.length;
-        const done = total - wlSession.wordQueue.length;
-        return '已练 ' + done + '/' + total + ' 个词' + (wlSession.wrongQueue.length ? ' · 待重练 ' + wlSession.wrongQueue.length : '');
+        const total = wlSession.questionTotal || wlSession.questionQueue.length;
+        const done = total - wlSession.questionQueue.length;
+        return '已做 ' + done + '/' + total + ' 题' + (wlSession.wrongQueue.length ? ' · 待重练 ' + wlSession.wrongQueue.length : '');
     }
     function renderWlCurrent(){
         const cur = wlSession && wlSession.current;
         if(!cur){ renderWlIdle(); return; }
         const pg = wordlabEl('wordlabProgress');
         if(pg) pg.textContent = wlProgressText();
-        const dim = cur.dims[cur.dimIdx];
+        const dim = cur.dim;
         if(dim === '音形') renderWlHanziMCQ(cur.word, cur.lvl, cur.isWrongRetry);
         else if(dim === '音义') renderWlMeaningMCQ(cur.word, cur.lvl, dim, cur.isWrongRetry);
         else if(dim === '形义') renderWlMeaningMCQ(cur.word, cur.lvl, dim, cur.isWrongRetry);
@@ -20075,25 +20411,80 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
         const cur = wlSession && wlSession.current;
         if(!cur || cur.answered) return;
         cur.answered = true;
-        const dim = cur.dims[cur.dimIdx];
-        if(cur && dim) recordVocabDim(cur.word, dim, ok);
+        const dim = cur.dim;
+        if(cur && dim){
+            // 旧维度「音形/音义/形义」映射到当前四维「音/形/义」：听音选字记「形」，听音选义/看词选义记「义」
+            const NEW_DIM_MAP = { '音形':'形', '音义':'义', '形义':'义' };
+            recordVocabDim(cur.word, NEW_DIM_MAP[dim] || dim, ok);
+        }
         if(!ok && cur){
             cur.hadWrong = true;
             wlSession.wrongQueue.push({ word: cur.word, lvl: cur.lvl, dim: dim });
+            if(!wlSession.wrongWords.some(function(x){ return x.word === cur.word && x.lvl === cur.lvl; })){
+                wlSession.wrongWords.push({ word: cur.word, lvl: cur.lvl });
+            }
         }
         const fb = document.getElementById('wlFeedback');
-        if(fb){ fb.className = 'wlp-feedback ' + (ok ? 'ok' : 'bad'); fb.innerHTML = (ok ? '✅ 正确！' : '❌ 错误，正确答案：' + escapeHtml(correct || '')); }
-        setTimeout(function(){ wlAdvanceDim(); }, 1200);
+        if(fb){
+            fb.className = 'wlp-feedback ' + (ok ? 'ok' : 'bad');
+            fb.innerHTML = ok ? '✅ 正确！' : '❌ 错误 <button class="wlp-btn secondary" style="margin:0 0 0 10px;padding:6px 14px;font-size:0.8rem;" onclick="window._wlNextDimNow()">下一个 →</button>';
+        }
+        wlAdvanceTimer = setTimeout(function(){ wlAdvanceTimer = null; wlAdvanceDim(); }, ok ? 800 : 4000);
     }
+    window._wlNextDimNow = function(){
+        if(wlAdvanceTimer){ clearTimeout(wlAdvanceTimer); wlAdvanceTimer = null; }
+        wlAdvanceDim();
+    };
     function wlAdvanceDim(){
         if(!wlSession || !wlSession.current) return;
         const cur = wlSession.current;
-        cur.dimIdx++;
+        if(!cur.answered) return;
         cur.answered = false;
-        if(cur.dimIdx < cur.dims.length){ renderWlCurrent(); return; }
-        if(cur.isWrongRetry){ nextWordLabWord(); return; }
-        if(cur.hadWrong){ renderWlFlipCard(cur.word, cur.lvl); }
-        else { nextWordLabWord(); }
+        nextWordLabWord();
+    }
+    function finishWordLab(){
+        if(!wlSession) return;
+        const area = wordlabEl('wordlabPracticeArea');
+        const pg = wordlabEl('wordlabProgress');
+        const wrongWords = (wlSession.wrongWords || []).slice();
+        const lvl = wlSession.lvl;
+        const groupTotal = wlSession.groupTotal || 10;
+        wlSession = null;
+        if(pg) pg.textContent = wrongWords.length ? ('✅ 完成 · 错题 ' + wrongWords.length + ' 个') : '✅ 完成';
+        if(wrongWords.length){
+            renderWlReviewList(wrongWords, lvl, groupTotal);
+        } else if(area){
+            area.innerHTML = '<div class="wlp-box"><div style="font-size:1.1rem;font-weight:700;color:#27ae60;">🎉 本组练习完成！</div><div style="color:#64748b;margin:8px 0;">HSK' + lvl + ' · 本组 ' + groupTotal + ' 个词</div><button class="wlp-btn" onclick="window._wlRestart()">🔄 再来一组</button></div>';
+        }
+    }
+    function renderWlReviewList(wrongWords, lvl, groupTotal){
+        const area = wordlabEl('wordlabPracticeArea');
+        if(!area) return;
+        let html = '<div class="wlp-box"><div style="font-size:1.15rem;font-weight:800;color:#e67e22;">📖 错题回顾</div><div style="color:#64748b;margin:6px 0;">HSK' + lvl + ' · 本组 ' + groupTotal + ' 个词 · 答错 ' + wrongWords.length + ' 个，一起复习：</div>';
+        wrongWords.forEach(function(item, idx){
+            const v = (VOCAB_LEVEL_MAP[item.lvl] || []).find(function(x){ return x.w === item.word; });
+            const pos = v ? v.p : '';
+            const meaning = v ? v.m : '';
+            html += '<div style="text-align:left;background:#fffaf3;border:1px solid #f0d9b5;border-radius:14px;padding:12px 14px;margin:10px 0;">' +
+                '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;"><span style="font-size:1.2rem;font-weight:800;color:#1e2b5e;">' + escapeHtml(item.word) + '</span>' +
+                '<span style="font-size:0.75rem;color:#94a3b8;">' + escapeHtml(pos || '') + '</span>' +
+                '<button class="wlp-btn secondary" style="margin:0;padding:6px 14px;font-size:0.8rem;" onclick="window._wlSpeak(\'' + item.word + '\')">🔊 播放</button></div>' +
+                '<div style="font-size:0.85rem;color:#475569;margin:6px 0;">英文解释：<b>' + escapeHtml(meaning || '—') + '</b></div>' +
+                '<div id="wlReviewEx_' + idx + '" style="font-size:0.85rem;color:#94a3b8;">⏳ 正在准备例句...</div></div>';
+        });
+        html += '<button class="wlp-btn" onclick="window._wlRestart()">🔄 再来一组</button></div>';
+        area.innerHTML = html;
+        wrongWords.forEach(function(item, idx){ loadWlReviewExample(item, idx); });
+    }
+    async function loadWlReviewExample(item, idx){
+        const box = document.getElementById('wlReviewEx_' + idx);
+        if(!box) return;
+        const ex = await getWordExamples(item.word, item.lvl);
+        if(ex && ex.length){
+            box.innerHTML = ex.map(function(s){ return '<div style="text-align:left;background:#fff;border:1px solid #e9eef4;border-radius:10px;padding:8px 10px;margin:6px 0;font-size:0.88rem;">🇨🇳 ' + escapeHtml(s.cn || s) + (s.en ? '<div style="color:#64748b;font-size:0.8rem;">🌐 ' + escapeHtml(s.en) + '</div>' : '') + '</div>'; }).join('');
+        } else {
+            box.innerHTML = '<div style="color:#94a3b8;">例句生成失败，可点击「🔊 播放」朗读词语</div>';
+        }
     }
     async function renderWlFlipCard(word, lvl){
         const area = wordlabEl('wordlabPracticeArea');
@@ -20169,7 +20560,7 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
     }
     function checkWlMeaning(i){
         const cur = wlSession && wlSession.current;
-        if(!cur) return;
+        if(!cur || cur.answered) return;
         const correct = window._wlMeaningCorrect || '';
         const area = wordlabEl('wordlabPracticeArea');
         area.querySelectorAll('.wlp-opt').forEach(function(b){
@@ -20523,7 +20914,9 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
     document.addEventListener('keydown', function(e){
         if(e.isComposing || e.keyCode === 229 || e.key === 'Process') return;
         const panel = document.getElementById('wordlabPanel');
-        if(!panel || !panel.classList.contains('active')) return;
+        const mcqPanelKb = document.getElementById('mcqPanel');
+        const panelActive = (panel && panel.classList.contains('active')) || (mcqPanelKb && mcqPanelKb.classList.contains('active'));
+        if(!panelActive) return;
         if(e.key !== '1') return;
         const tag = (e.target && e.target.tagName) || '';
         if(tag === 'INPUT' || tag === 'TEXTAREA') return;
