@@ -1059,6 +1059,7 @@
 </div>
 
 
+<script src="hsk_error_dict.js"></script>
 <script>
 const HSK1_VOCAB = [
   {w:"爱",p:"动词",m:"love",e:"我爱吃水果。",l:1},
@@ -14547,8 +14548,10 @@ ${searchRule}
         const lengthRule = '【字数要求】当前 HSK' + level + ' 水平，本次作文要求至少 ' + min + ' 个汉字。学生本次写了 ' + charCount + ' 个汉字。' + (charCount < min ? '字数不达标，必须判为不及格（59分及以下），并在 overall 中明确提示需要扩充到至少 ' + min + ' 字。' : '字数达标。');
         const heuristic = '【直接改正 - 必须遵守】1. 针对每个错误，只输出有错误的分句（按逗号/分句切分，不要输出整个复句）。2. 每个 hint 输出 original（错误分句，中文原文）和 corrected（AI 直接改好的正确分句），直接给出改正后的句子，不要让学生自己再改。3. 评价要具体、可操作、多鼓励。4. 每个评价字段内用"\\n"分行。5. 【语言要求】所有反馈文字（discourse、syntax、semantic、characters、overall、hints 中每个 issue）必须全部用' + langName + '（' + targetLang + '）撰写，禁止使用中文，只有引用学生错误原文（original）和正确句子（corrected）时才可以保留中文。6. hints 中每个错误必须输出 type 字段，从固定中文错误类型（' + MISTAKE_TYPE_LIST.join('、') + '）中选一个，不要翻译、不要自创。7. corrected 必须与 original 不同：如果原句没有错误，就不要输出这个 hint；标点符号不算错；「的」可加可不加不算错；「的话」已表条件时「如果」可加可不加；承前省略主语不算错。8. 只改真正错误的部分，其余一字不动；数字/日期/时间/数量词原样保留；一个分句里有多个错误要全部改正。9. 常见错误必须纠正：「越来越+形容词（不能说越来越增加）」、「全称范围主语+都」（所有的地方人很多→所有的地方人都很多，缺「都」）、「有点儿+形容词」（气温低一点了→气温有点低）、「经常性情况不用了」（下雨时常常鞋湿了→下雨时常常鞋会湿）、「离开某地」（出中国→离开中国）、「没关系」（带伞了所以没问题了→带伞了所以没关系）、「马上+就」（马上雨停了→雨马上就停了）、「近义词辨析」（垃圾扔掉的方法很难→垃圾的处理方式很复杂：表示事情步骤多、麻烦用「复杂」，「难」多指能力不够；「扔掉的方法」宜说「处理方式/处理方法」）、「把字句+放置处所」（把吸垃圾放在塑料袋→把湿垃圾放在塑料袋里：「吸」是「湿」的错别字；「放」表示使某物处于某处时要用「在+处所」，容器后要加「里」）、「处所表达」（每天在垃圾桶的地方有一个阿姨→每天垃圾桶那里有一个阿姨）、「味道搭配」（味道很好吃→味道很好：「味道」不能说好吃/难吃，只能说好/不好，好吃形容食物本身）、「空间与环境」（餐馆里又宽又干净→餐馆里又宽敞又安静）、「规则与习俗」（我不知道这样的规则→我不知道这样的习俗/规定）、「找工作」（我得找打工→我得找工作：「打工」不能作「找」的宾语）、「睡不着觉」（不能睡觉→睡不着觉）、「开始+在+地方」（向印度开始旅行→开始在印度旅行）、「比较句不用满」（比以前满自信→比以前自信）、「退辞→辞职」（他退辞公司以后→他从公司辞职以后）、「关于+名词+的事」（我问同事关于上海的特产→我问同事关于上海的特产的事）、「土特产」（上海的土产→上海的土特产）、「特别+形容词」（特别的好东西→特别好的东西）、「时量补语后置」（还要几天烦恼→还要烦恼几天）、「告诉+人+有」（她告诉我，五香豆…→她告诉我有五香豆…）。';
         const jsonFmt = '输出JSON格式：{"score":整数0-100,"length_chars":' + charCount + ',"length_ok":' + (charCount >= min) + ',"discourse":"' + langName + '语篇结构评价","syntax":"' + langName + '句法语法评价","semantic":"' + langName + '词汇语义评价","characters":"' + langName + '汉字书写评价","overall":"' + langName + '总体评价","hints":[{"original":"错误分句(中文)","corrected":"AI直接改好的正确分句(中文)","type":"固定中文错误类型","issue":"' + langName + '简短说明"}]}';
+        const dictHints = buildHskDictHints(text);
+        const dictHintText = dictHints ? '\n【HSK语料库高频错误提示 - 逐条检查作文，确实属于这些误用就纠正，不属于不要报】\n' + dictHints : '';
         if (!isRevision) {
-            return '你是一位资深中文写作教师。请批改以下学生作文，并用' + langName + '（' + targetLang + '）撰写全部反馈。\n\n【学生当前水平】HSK' + level + '\n' + lengthRule + '\n\n【评分规则】1. 长度达标是及格前提，字数不足时总分≤59。2. 字数达标后，评分核心是"正确性"和"地道性"（语法、用词、是否自然），不要因为内容简单而压分。3. 分数档位：90-100优秀，80-89良好，70-79一般，60-69需努力，60以下错误很多。4. 评分要稳定一致：同一篇作文、同样的问题应给出相同分数，不要出现随机波动。\n\n【学生作文】\n' + text + '\n\n' + heuristic + '\n\n' + jsonFmt + '\n只用JSON回复。';
+            return '你是一位资深中文写作教师。请批改以下学生作文，并用' + langName + '（' + targetLang + '）撰写全部反馈。\n\n【学生当前水平】HSK' + level + '\n' + lengthRule + '\n\n【评分规则】1. 长度达标是及格前提，字数不足时总分≤59。2. 字数达标后，评分核心是"正确性"和"地道性"（语法、用词、是否自然），不要因为内容简单而压分。3. 分数档位：90-100优秀，80-89良好，70-79一般，60-69需努力，60以下错误很多。4. 评分要稳定一致：同一篇作文、同样的问题应给出相同分数，不要出现随机波动。\n\n【学生作文】\n' + text + '\n\n' + heuristic + dictHintText + '\n\n' + jsonFmt + '\n只用JSON回复。';
         }
         const prevHints = (session.lastHints && session.lastHints.length > 0)
             ? session.lastHints.map((h, i) => {
@@ -14557,7 +14560,7 @@ ${searchRule}
                 return (i + 1) + '. ' + (orig ? '原文「' + orig + '」：' : '') + issue;
             }).join('\n')
             : '（无）';
-        return '你是一位资深中文写作教师。学生根据你上次的启发式反馈修改后再次提交，请继续用' + langName + '（' + targetLang + '）批改。\n\n【学生当前水平】HSK' + level + '\n' + lengthRule + '\n\n【首次提交原文】\n' + (session.firstText || '') + '\n\n【上次提交文本】\n' + (session.lastText || '') + '\n\n【上次得分】' + (session.lastScore != null ? session.lastScore : '--') + '\n\n【上次反馈（总体评价）】\n' + (session.lastFeedback || '（无）') + '\n\n【上次给出的启发式提示（逐条检查是否已改正）】\n' + prevHints + '\n\n【本次提交文本】\n' + text + '\n\n【评分规则】\n1. 对比上次提交：上次启发式提示中指出的错误，本次已改正 → 分数相应提升；未修改或改错 → 分数保持不变或降低；出现新错误 → 扣分。\n2. 长度不达标时总分≤59。\n3. 分数档位：90-100优秀，80-89良好，70-79一般，60-69需努力，60以下错误很多。\n4. 在 overall 中先说明：哪些上次问题已改正、哪些还没改，再给出进一步建议。\n5. 评分要稳定一致：同样的修改情况应给出相同分数。\n\n' + heuristic + '\n\n' + jsonFmt + '\n只用JSON回复。';
+        return '你是一位资深中文写作教师。学生根据你上次的启发式反馈修改后再次提交，请继续用' + langName + '（' + targetLang + '）批改。\n\n【学生当前水平】HSK' + level + '\n' + lengthRule + '\n\n【首次提交原文】\n' + (session.firstText || '') + '\n\n【上次提交文本】\n' + (session.lastText || '') + '\n\n【上次得分】' + (session.lastScore != null ? session.lastScore : '--') + '\n\n【上次反馈（总体评价）】\n' + (session.lastFeedback || '（无）') + '\n\n【上次给出的启发式提示（逐条检查是否已改正）】\n' + prevHints + '\n\n【本次提交文本】\n' + text + '\n\n【评分规则】\n1. 对比上次提交：上次启发式提示中指出的错误，本次已改正 → 分数相应提升；未修改或改错 → 分数保持不变或降低；出现新错误 → 扣分。\n2. 长度不达标时总分≤59。\n3. 分数档位：90-100优秀，80-89良好，70-79一般，60-69需努力，60以下错误很多。\n4. 在 overall 中先说明：哪些上次问题已改正、哪些还没改，再给出进一步建议。\n5. 评分要稳定一致：同样的修改情况应给出相同分数。\n\n' + heuristic + dictHintText + '\n\n' + jsonFmt + '\n只用JSON回复。';
     }
 
     async function runWritingAnalysis(text) {
@@ -16010,7 +16013,7 @@ N=名词, V=动词, Adj=形容词, Adv=副词, Prep=介词, Pron=代词(同Prono
 输出JSON：{"results":[{"sentence":"句子","matches":[{"pattern":"语法格式","level":等级}]}]}
 没有匹配的句子也要包含，matches为空数组。只输出纯JSON，不要任何解释文字。`;
 
-try{ const resp=await fetch(API_BASE,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${apiKey}`}, body:JSON.stringify({model:'deepseek-v4-pro',thinking:{type:'disabled'}, max_tokens:4096, messages:[{role:'system',content:prompt},{role:'user',content:blocksText}], temperature:0.1, response_format:{type:'json_object'}})}); const data=await resp.json(); if(data.error) throw new Error(data.error.message||"API error"); if(!data.choices||!data.choices[0]||!data.choices[0].message) throw new Error("API error"); let content=data.choices[0].message.content; content=content.replace(/```json/g,'').replace(/```/g,'').trim(); const parsed=JSON.parse(content); return parsed.results||parsed.matches||parsed||[]; }catch(e){ return null; } }async function analyzeMistakesBatch(userMessages, aiReplyRaw, contextMessages){ const apiKey=apiKeyInput.value.trim(); if(!apiKey||userMessages.length===0) return []; const targetLang = targetLangSelect ? targetLangSelect.value : 'English'; const prompt=`你是HSK中文教师兼严格的阅卷老师。请逐词逐句分析学生句子的偏误（error analysis）：先判断是否有真实偏误，再给出最小改动的改正和具体原因。纠错准确率是第一要求：有错必报（包括一个字的小错），无错不报；拿不准（两种说法母语者都常说）就不要报。\n\n【逐项检查清单 - 必须逐项过一遍】\n1. 词语意义和词性：单字词、双字词、短语的意思是否用对。\n2. 词语搭配：动宾搭配（如“庆祝节日”不能说“祝节日”）、定中搭配、数量词位置（如“一整天”不能说“整一天”）、介词搭配。\n3. 离合词：见面、帮忙、生气、洗澡等不能直接带宾语。\n4. 虚词：的/地/得/了/着/过/把/被/关于/对于/因为/所以等用对没有。\n5. 语序：时间、地点、方式状语的位置，数量词位置。\n6. 框式结构：要是...就...、虽然...但是...、越...越...等框架完整不完整。\n7. 成分残缺/多余、句式杂糅、关联词错误。\n每类都要检查，确有此类的错误就报告。
+try{ const resp=await fetch(API_BASE,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${apiKey}`}, body:JSON.stringify({model:'deepseek-v4-pro',thinking:{type:'disabled'}, max_tokens:4096, messages:[{role:'system',content:prompt},{role:'user',content:blocksText}], temperature:0.1, response_format:{type:'json_object'}})}); const data=await resp.json(); if(data.error) throw new Error(data.error.message||"API error"); if(!data.choices||!data.choices[0]||!data.choices[0].message) throw new Error("API error"); let content=data.choices[0].message.content; content=content.replace(/```json/g,'').replace(/```/g,'').trim(); const parsed=JSON.parse(content); return parsed.results||parsed.matches||parsed||[]; }catch(e){ return null; } }async function analyzeMistakesBatch(userMessages, aiReplyRaw, contextMessages){ const apiKey=apiKeyInput.value.trim(); if(!apiKey||userMessages.length===0) return []; const targetLang = targetLangSelect ? targetLangSelect.value : 'English'; const dictHints = buildHskDictHints((userMessages || []).join(' ')); const prompt=`你是HSK中文教师兼严格的阅卷老师。请逐词逐句分析学生句子的偏误（error analysis）：先判断是否有真实偏误，再给出最小改动的改正和具体原因。纠错准确率是第一要求：有错必报（包括一个字的小错），无错不报；拿不准（两种说法母语者都常说）就不要报。\n\n【逐项检查清单 - 必须逐项过一遍】\n1. 词语意义和词性：单字词、双字词、短语的意思是否用对。\n2. 词语搭配：动宾搭配（如“庆祝节日”不能说“祝节日”）、定中搭配、数量词位置（如“一整天”不能说“整一天”）、介词搭配。\n3. 离合词：见面、帮忙、生气、洗澡等不能直接带宾语。\n4. 虚词：的/地/得/了/着/过/把/被/关于/对于/因为/所以等用对没有。\n5. 语序：时间、地点、方式状语的位置，数量词位置。\n6. 框式结构：要是...就...、虽然...但是...、越...越...等框架完整不完整。\n7. 成分残缺/多余、句式杂糅、关联词错误。\n每类都要检查，确有此类的错误就报告。
 
 【近义词辨析 - 特别注意】
 - 幸亏：后面必须接一个完整句子（有动词），如「幸亏你来了」；后面接人/事时用「多亏（了）」，如「多亏了朋友家人」。
@@ -16155,7 +16158,7 @@ uncertain 表示你是否读不懂这个句子/分句、无法可靠推断学生
 - "他的表情比以前满自信"→"他的表情比以前自信"（比较句「比以前」后不用「满」）
 - "我听他说的话，我哦觉得自己想做的事最好做"→"听了他的话，我觉得自己想做的事最好就去做"（「我听他说的话」→「听了他的话」；「我哦」多了「哦」；「最好做」→「最好就去做」）
 - "他退辞公司以后"→"他从公司辞职以后"（「退辞」不是正确的词，离开公司应说「从公司辞职」）
-这类短语/词语性错误也必须纠正，不要漏报。\n\n输出JSON数组：[{"original":"学生原文(片段)","corrected":"改正后(必须与original不同)","uncertain":true或false,"type":"错误类型（必须从上述固定中文类型中选一个）","pattern":"如果这个错误涉及语法格式/框式结构（可以填充其他内容的格式），写出该格式本身（如：要是...就...、越...越...、把字句、被字句、一边...一边...；不涉及就写空字符串）","note":"错误原因（用${targetLang}，具体说明，禁止空话）"}]。无错误返回[]。`; try{ const resp=await fetch(API_BASE,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${apiKey}`}, body:JSON.stringify({model:'deepseek-v4-pro',thinking:{type:'disabled'}, max_tokens:4096, messages:[{role:'system',content:prompt},{role:'user',content:((contextMessages?('【对话上下文】（仅用于理解学生当前句子的意思，不要纠错上下文内容）\n'+contextMessages+'\n\n'):'') + (aiReplyRaw ? ('学生句子: '+JSON.stringify(userMessages)+'\n\nAI对话伙伴的自然回复（仅供参考，可能已包含正确说法）:\n'+String(aiReplyRaw)) : ('学生句子: '+JSON.stringify(userMessages))))}], temperature:0.1, response_format:{type:'json_object'}})}); const data=await resp.json(); if(data.error) throw new Error(data.error.message||"API error"); if(!data.choices||!data.choices[0]||!data.choices[0].message) throw new Error("API error"); let content=data.choices[0].message.content; content=content.replace(/```json/g,'').replace(/```/g,'').trim(); let parsed=null; try{ parsed=JSON.parse(content); }catch(e){ const arrM=content.match(/\[[\s\S]*\]/); const objM=content.match(/\{[\s\S]*\}/); const cand=arrM?arrM[0]:(objM?objM[0]:''); if(cand){ try{ parsed=JSON.parse(cand); }catch(e2){ parsed=null; } } } let arr=[]; if(Array.isArray(parsed)) arr=parsed; else if(parsed&&Array.isArray(parsed.mistakes)) arr=parsed.mistakes; else if(parsed&&Array.isArray(parsed.results)) arr=parsed.results; else if(parsed&&Array.isArray(parsed.errors)) arr=parsed.errors; else if(parsed&&typeof parsed.original==='string'&&typeof parsed.corrected==='string') arr=[parsed]; return arr; }catch(e){ return []; } }
+${dictHints ? '\n【HSK语料库高频错误提示 - 逐条检查当前句子，确实属于这些误用就纠正，不属于不要报】\n' + dictHints : ''}这类短语/词语性错误也必须纠正，不要漏报。\n\n输出JSON数组：[{"original":"学生原文(片段)","corrected":"改正后(必须与original不同)","uncertain":true或false,"type":"错误类型（必须从上述固定中文类型中选一个）","pattern":"如果这个错误涉及语法格式/框式结构（可以填充其他内容的格式），写出该格式本身（如：要是...就...、越...越...、把字句、被字句、一边...一边...；不涉及就写空字符串）","note":"错误原因（用${targetLang}，具体说明，禁止空话）"}]。无错误返回[]。`; try{ const resp=await fetch(API_BASE,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${apiKey}`}, body:JSON.stringify({model:'deepseek-v4-pro',thinking:{type:'disabled'}, max_tokens:4096, messages:[{role:'system',content:prompt},{role:'user',content:((contextMessages?('【对话上下文】（仅用于理解学生当前句子的意思，不要纠错上下文内容）\n'+contextMessages+'\n\n'):'') + (aiReplyRaw ? ('学生句子: '+JSON.stringify(userMessages)+'\n\nAI对话伙伴的自然回复（仅供参考，可能已包含正确说法）:\n'+String(aiReplyRaw)) : ('学生句子: '+JSON.stringify(userMessages))))}], temperature:0.1, response_format:{type:'json_object'}})}); const data=await resp.json(); if(data.error) throw new Error(data.error.message||"API error"); if(!data.choices||!data.choices[0]||!data.choices[0].message) throw new Error("API error"); let content=data.choices[0].message.content; content=content.replace(/```json/g,'').replace(/```/g,'').trim(); let parsed=null; try{ parsed=JSON.parse(content); }catch(e){ const arrM=content.match(/\[[\s\S]*\]/); const objM=content.match(/\{[\s\S]*\}/); const cand=arrM?arrM[0]:(objM?objM[0]:''); if(cand){ try{ parsed=JSON.parse(cand); }catch(e2){ parsed=null; } } } let arr=[]; if(Array.isArray(parsed)) arr=parsed; else if(parsed&&Array.isArray(parsed.mistakes)) arr=parsed.mistakes; else if(parsed&&Array.isArray(parsed.results)) arr=parsed.results; else if(parsed&&Array.isArray(parsed.errors)) arr=parsed.errors; else if(parsed&&typeof parsed.original==='string'&&typeof parsed.corrected==='string') arr=[parsed]; return arr; }catch(e){ return []; } }
     function isPunctuationOnlyDiff(a,b){var p='，。、！？；：…—·《》〈〉（）【】,.!?;:()[]{}<> ';var s=function(x){return (x||'').split('').filter(function(c){return p.indexOf(c)<0;}).join('');};return s(a)===s(b);}
     function filterMistakes(mistakes){ if(!mistakes||!mistakes.length) return []; const out=[]; for(const m of mistakes){ if(!m||!m.original||!m.corrected) continue; if(m.original===m.corrected) continue; if(isPunctuationOnlyDiff(m.original,m.corrected)) continue; const _fo=stripForCompare(m.original); const _fc=stripForCompare(m.corrected); if(_fo===_fc) continue; if(_fc.replace(/[吧吗呢啊呀哦嘛咯喽哟]+$/,'')===_fo) continue; if(out.some(x=>x.original===m.original&&x.corrected===m.corrected)) continue; out.push(m); } return out; }
     function charLcsLen(a,b){ const n=a.length,m=b.length; const dp=Array.from({length:n+1},()=>new Array(m+1).fill(0)); for(let i=n-1;i>=0;i--) for(let j=m-1;j>=0;j--) dp[i][j]=a[i]===b[j]?dp[i+1][j+1]+1:Math.max(dp[i+1][j],dp[i][j+1]); return dp[0][0]; }
@@ -16286,6 +16289,50 @@ uncertain 表示你是否读不懂这个句子/分句、无法可靠推断学生
             else if(parsed && typeof parsed.original === 'string' && typeof parsed.corrected === 'string') arr = [parsed];
             return arr.filter(m => m && m.original && m.corrected);
         }catch(e){ return null; }
+    }
+    function getHskErrorDict(){ return (typeof window.HSK_ERROR_DICT !== 'undefined') ? window.HSK_ERROR_DICT : null; }
+    const HSK_DICT_BIEZI_STOP = new Set('的了在是我他她它你们有和就不都还也很这那到对从向等会要能想可没被把跟与');
+    // 根据 HSK 语料库错误词典生成提示：命中当前句子的高频误用，交给 AI 判断是否纠错
+    function buildHskDictHints(text){
+        const dict = getHskErrorDict();
+        if(!dict || !text) return '';
+        const hints = [], seen = new Set();
+        for(const item of (dict.cuoci || [])){
+            if(hints.length >= 8) break;
+            const wrong = item[0], right = item[1], freq = item[2];
+            if(!wrong || wrong.length < 2 || freq < 15) continue;
+            if(text.includes(wrong) && !seen.has(wrong)){
+                seen.add(wrong);
+                hints.push('- 「' + wrong + '」在HSK语料中常被误用，正确常为「' + right + '」（出现' + freq + '次）');
+            }
+        }
+        for(const item of (dict.biezi || [])){
+            if(hints.length >= 6) break;
+            const wrong = item[0], right = item[1], freq = item[2];
+            if(!wrong || wrong.length !== 1 || freq < 30 || HSK_DICT_BIEZI_STOP.has(wrong)) continue;
+            if(text.includes(wrong) && !seen.has(wrong)){
+                seen.add(wrong);
+                hints.push('- 「' + wrong + '」在HSK语料中常被误写，正确常为「' + right + '」（出现' + freq + '次）');
+            }
+        }
+        return hints.length ? hints.join('\n') : '';
+    }
+    // 繁体→简体：语料库标注的繁简对应，确定性纠正
+    function applyHskFanti(text){
+        const dict = getHskErrorDict();
+        if(!dict || !dict.fanti || !dict.fanti.length || !text) return null;
+        let out = text, changed = false;
+        const found = [];
+        for(const item of dict.fanti){
+            const trad = item[0], simp = item[1];
+            if(out.includes(trad)){
+                out = out.split(trad).join(simp);
+                changed = true;
+                found.push(trad + '→' + simp);
+                if(found.length >= 8) break;
+            }
+        }
+        return changed ? { corrected: out, found } : null;
     }
     function localMistakeHeuristics(text){
         const out = [];
@@ -16577,6 +16624,11 @@ uncertain 表示你是否读不懂这个句子/分句、无法可靠推断学生
         if(/关于[^，。！？!?]{1,12}?的特产[。！？!?]?$/.test(t) && !/的事[。！？!?]?$/.test(t)){
             const right = t.replace(/[。！？!?]+$/, '') + '的事';
             out.push({ original: t, corrected: right, type: '缺词', note: '「关于+名词」作问/说/告诉的内容时，后面一般要加「的事」。应说：' + right + '。' });
+        }
+        // 词典：繁体→简体，确定性纠正（来自 HSK 语料库繁简标注）
+        const fantiFix = applyHskFanti(t);
+        if(fantiFix){
+            out.push({ original: t, corrected: fantiFix.corrected, type: '错字', note: '使用了繁体字，应写简体：' + fantiFix.found.join('、') + '。应说：' + fantiFix.corrected + '。' });
         }
         return out;
     }
