@@ -615,7 +615,7 @@
             <button class="mode-tab" data-mode="sentence" id="modeTabSentence">✍️ 造句模式</button>
             <button class="mode-tab" data-mode="dictation" id="modeTabDictation">🎧 听写模式</button>
             <button class="mode-tab" data-mode="wordlab" id="modeTabWordLab">📚 练习模式</button>
-            <button class="mode-tab" data-mode="mcq" id="modeTabMcq">🎯 音形义选择</button>
+            <button class="mode-tab" data-mode="mcq" id="modeTabMcq">🎯 词语练习</button>
         </div>
         <div class="chat-messages-wrapper" id="chatMessagesWrapper">
         <div class="chat-messages" id="chatMessages">
@@ -7808,7 +7808,7 @@ const HSK2_VOCAB = [
     // 音形义选择模块多语种
     const I18N_NEW7 = {
         'Chinese': {
-            'mcq.title':'🎯 音形义选择题：', 'mcq.level':'HSK 等级：', 'mcq.start':'🚀 开始练习',
+            'mcq.title':'🎯 词语练习：', 'mcq.tab':'🎯 词语练习', 'mcq.level':'HSK 等级：', 'mcq.start':'🚀 开始练习',
             'mcq.desc':'10 个词一组，共 30 道选择题（🎧 听音选义 / 🎧 听音选字 / 👀 看词选义），全部打乱顺序。答错的题稍后自动重练，全部结束后集中回顾错词（词性、释义、例句）',
             'mcq.prompt':'选择 HSK 等级，点「🚀 开始练习」',
             'mcq.progress':'已做 {done}/{total} 题', 'mcq.pending_retry':' · 待重练 {n}',
@@ -7826,7 +7826,7 @@ const HSK2_VOCAB = [
             'mcq.pinyin_fail':'拼音选项生成失败，请检查 API Key', 'mcq.no_meaning':'（该词暂无释义）', 'mcq.mastery':'📊 掌握：'
         },
         'English': {
-            'mcq.title':'🎯 Sound-Shape-Meaning Quiz:', 'mcq.level':'HSK Level:', 'mcq.start':'🚀 Start',
+            'mcq.title':'🎯 Word Practice:', 'mcq.tab':'🎯 Word Practice', 'mcq.level':'HSK Level:', 'mcq.start':'🚀 Start',
             'mcq.desc':'10 words per group, 30 multiple-choice questions (🎧 listen-meaning / 🎧 listen-character / 👀 see-meaning), all shuffled. Wrong answers are retried automatically; at the end review all missed words (POS, meaning, examples).',
             'mcq.prompt':'Choose an HSK level and tap「🚀 Start」',
             'mcq.progress':'Done {done}/{total}', 'mcq.pending_retry':' · to retry {n}',
@@ -7844,7 +7844,7 @@ const HSK2_VOCAB = [
             'mcq.pinyin_fail':'Failed to generate pinyin options. Please check your API Key', 'mcq.no_meaning':'(no meaning available)', 'mcq.mastery':'📊 Mastery:'
         },
         'Japanese': {
-            'mcq.title':'🎯 音形義クイズ：', 'mcq.level':'HSK レベル：', 'mcq.start':'🚀 練習開始',
+            'mcq.title':'🎯 単語練習：', 'mcq.tab':'🎯 単語練習', 'mcq.level':'HSK レベル：', 'mcq.start':'🚀 練習開始',
             'mcq.desc':'10語1グループ、全30問の選択問題（🎧 音を聞いて意味 / 🎧 音を聞いて漢字 / 👀 見て意味）。順番はランダム。間違えた問題は自動でもう一度出題され、最後に間違えた単語をまとめて復習（品詞・意味・例文）。',
             'mcq.prompt':'HSKレベルを選んで「🚀 練習開始」を押してください',
             'mcq.progress':'完了 {done}/{total} 問', 'mcq.pending_retry':' · 再練習 {n}',
@@ -7862,7 +7862,7 @@ const HSK2_VOCAB = [
             'mcq.pinyin_fail':'ピンイン選択肢の生成に失敗しました。API Keyを確認してください', 'mcq.no_meaning':'（意味なし）', 'mcq.mastery':'📊 習得度：'
         },
         'Korean': {
-            'mcq.title':'🎯 음·형·의 퀴즈:', 'mcq.level':'HSK 급수:', 'mcq.start':'🚀 연습 시작',
+            'mcq.title':'🎯 단어 연습:', 'mcq.tab':'🎯 단어 연습', 'mcq.level':'HSK 급수:', 'mcq.start':'🚀 연습 시작',
             'mcq.desc':'단어 10개가 한 그룹, 총 30문제(🎧 듣고 뜻 고르기 / 🎧 듣고 한자 고르기 / 👀 보고 뜻 고르기)가 무작위 순서로 나옵니다. 틀린 문제는 자동으로 다시 풀고, 마지막에 틀린 단어(품사·뜻·예문)를 복습합니다.',
             'mcq.prompt':'HSK 급수를 선택하고「🚀 연습 시작」을 누르세요',
             'mcq.progress':'완료 {done}/{total}문제', 'mcq.pending_retry':' · 재도전 {n}',
@@ -7880,7 +7880,7 @@ const HSK2_VOCAB = [
             'mcq.pinyin_fail':'병음 선택지 생성 실패. API Key를 확인하세요', 'mcq.no_meaning':'（뜻 없음）', 'mcq.mastery':'📊 숙달도:'
         },
         'French': {
-            'mcq.title':'🎯 Quiz son-forme-sens :', 'mcq.level':'Niveau HSK :', 'mcq.start':'🚀 Commencer',
+            'mcq.title':'🎯 Exercice de mots :', 'mcq.tab':'🎯 Exercice de mots', 'mcq.level':'Niveau HSK :', 'mcq.start':'🚀 Commencer',
             'mcq.desc':'10 mots par groupe, 30 questions à choix multiples (🎧 écouter-sens / 🎧 écouter-caractère / 👀 voir-sens), ordre mélangé. Les erreurs sont rejouées automatiquement ; à la fin, révisez les mots manqués (nature, sens, exemples).',
             'mcq.prompt':'Choisissez un niveau HSK et cliquez sur「🚀 Commencer」',
             'mcq.progress':'Fait {done}/{total}', 'mcq.pending_retry':' · à refaire {n}',
@@ -7898,7 +7898,7 @@ const HSK2_VOCAB = [
             'mcq.pinyin_fail':'Échec de la génération du pinyin. Vérifiez votre clé API', 'mcq.no_meaning':'（pas de sens）', 'mcq.mastery':'📊 Maîtrise :'
         },
         'German': {
-            'mcq.title':'🎯 Klang-Form-Bedeutung-Quiz:', 'mcq.level':'HSK-Stufe:', 'mcq.start':'🚀 Start',
+            'mcq.title':'🎯 Worttraining:', 'mcq.tab':'🎯 Worttraining', 'mcq.level':'HSK-Stufe:', 'mcq.start':'🚀 Start',
             'mcq.desc':'10 Wörter pro Gruppe, 30 Multiple-Choice-Fragen (🎧 Hören-Bedeutung / 🎧 Hören-Zeichen / 👀 Sehen-Bedeutung), gemischt. Falsche Antworten werden automatisch wiederholt; am Ende werden alle Fehlerwörter wiederholt (Wortart, Bedeutung, Beispiele).',
             'mcq.prompt':'HSK-Stufe wählen und auf「🚀 Start」tippen',
             'mcq.progress':'Erledigt {done}/{total}', 'mcq.pending_retry':' · zum Wiederholen {n}',
@@ -7916,7 +7916,7 @@ const HSK2_VOCAB = [
             'mcq.pinyin_fail':'Pinyin-Optionen konnten nicht erstellt werden. Bitte API-Key prüfen', 'mcq.no_meaning':'（keine Bedeutung）', 'mcq.mastery':'📊 Beherrschung:'
         },
         'Spanish': {
-            'mcq.title':'🎯 Quiz sonido-forma-significado:', 'mcq.level':'Nivel HSK:', 'mcq.start':'🚀 Empezar',
+            'mcq.title':'🎯 Práctica de palabras:', 'mcq.tab':'🎯 Práctica de palabras', 'mcq.level':'Nivel HSK:', 'mcq.start':'🚀 Empezar',
             'mcq.desc':'10 palabras por grupo, 30 preguntas de opción múltiple (🎧 escuchar-significado / 🎧 escuchar-carácter / 👀 ver-significado), todo mezclado. Las respuestas incorrectas se repiten automáticamente; al final se repasan las palabras falladas (categoría, significado, ejemplos).',
             'mcq.prompt':'Elige un nivel HSK y pulsa「🚀 Empezar」',
             'mcq.progress':'Hecho {done}/{total}', 'mcq.pending_retry':' · por repetir {n}',
@@ -7934,7 +7934,7 @@ const HSK2_VOCAB = [
             'mcq.pinyin_fail':'No se pudieron generar las opciones de pinyin. Revisa tu API Key', 'mcq.no_meaning':'（sin significado）', 'mcq.mastery':'📊 Dominio:'
         },
         'Russian': {
-            'mcq.title':'🎯 Тест звук-форма-значение:', 'mcq.level':'Уровень HSK:', 'mcq.start':'🚀 Начать',
+            'mcq.title':'🎯 Тренировка слов:', 'mcq.tab':'🎯 Тренировка слов', 'mcq.level':'Уровень HSK:', 'mcq.start':'🚀 Начать',
             'mcq.desc':'10 слов в группе, 30 вопросов с выбором ответа (🎧 слушать-значение / 🎧 слушать-иероглиф / 👀 смотреть-значение), порядок перемешан. Ошибки повторяются автоматически; в конце — повтор пропущенных слов (часть речи, значение, примеры).',
             'mcq.prompt':'Выберите уровень HSK и нажмите「🚀 Начать」',
             'mcq.progress':'Сделано {done}/{total}', 'mcq.pending_retry':' · на повтор {n}',
@@ -7952,7 +7952,7 @@ const HSK2_VOCAB = [
             'mcq.pinyin_fail':'Не удалось создать варианты пиньиня. Проверьте API Key', 'mcq.no_meaning':'（значения нет）', 'mcq.mastery':'📊 Освоение:'
         },
         'Thai': {
-            'mcq.title':'🎯 แบบฝึกเสียง-รูป-ความหมาย:', 'mcq.level':'ระดับ HSK:', 'mcq.start':'🚀 เริ่ม',
+            'mcq.title':'🎯 ฝึกคำศัพท์:', 'mcq.tab':'🎯 ฝึกคำศัพท์', 'mcq.level':'ระดับ HSK:', 'mcq.start':'🚀 เริ่ม',
             'mcq.desc':'กลุ่มละ 10 คำ รวม 30 ข้อ (🎧 ฟัง-ความหมาย / 🎧 ฟัง-ตัวอักษร / 👀 ดู-ความหมาย) สลับลำดับทั้งหมด ข้อที่ตอบผิดจะวนกลับมาฝึกใหม่ และท้ายสุดทบทวนคำที่ผิด (ชนิดของคำ ความหมาย ประโยคตัวอย่าง)',
             'mcq.prompt':'เลือกระดับ HSK แล้วกด「🚀 เริ่ม」',
             'mcq.progress':'ทำแล้ว {done}/{total} ข้อ', 'mcq.pending_retry':' · รอฝึกใหม่ {n}',
@@ -7970,7 +7970,7 @@ const HSK2_VOCAB = [
             'mcq.pinyin_fail':'สร้างตัวเลือกพินอินไม่สำเร็จ กรุณาตรวจสอบ API Key', 'mcq.no_meaning':'（ไม่มีความหมาย）', 'mcq.mastery':'📊 ความเชี่ยวชาญ:'
         },
         'Italian': {
-            'mcq.title':'🎯 Quiz suono-forma-significato:', 'mcq.level':'Livello HSK:', 'mcq.start':'🚀 Inizia',
+            'mcq.title':'🎯 Esercizio parole:', 'mcq.tab':'🎯 Esercizio parole', 'mcq.level':'Livello HSK:', 'mcq.start':'🚀 Inizia',
             'mcq.desc':'10 parole per gruppo, 30 domande a scelta multipla (🎧 ascolta-significato / 🎧 ascolta-carattere / 👀 vedi-significato), in ordine casuale. Gli errori vengono ripetuti automaticamente; alla fine ripassi le parole sbagliate (categoria, significato, esempi).',
             'mcq.prompt':'Scegli un livello HSK e premi「🚀 Inizia」',
             'mcq.progress':'Fatto {done}/{total}', 'mcq.pending_retry':' · da ripetere {n}',
@@ -7988,7 +7988,7 @@ const HSK2_VOCAB = [
             'mcq.pinyin_fail':'Impossibile generare le opzioni pinyin. Controlla la API Key', 'mcq.no_meaning':'（nessun significato）', 'mcq.mastery':'📊 Padronanza:'
         },
         'Vietnamese': {
-            'mcq.title':'🎯 Trắc nghiệm âm-hình-nghĩa:', 'mcq.level':'Cấp HSK:', 'mcq.start':'🚀 Bắt đầu',
+            'mcq.title':'🎯 Luyện từ:', 'mcq.tab':'🎯 Luyện từ', 'mcq.level':'Cấp HSK:', 'mcq.start':'🚀 Bắt đầu',
             'mcq.desc':'Mỗi nhóm 10 từ, tổng 30 câu trắc nghiệm (🎧 nghe-nghĩa / 🎧 nghe-chữ / 👀 nhìn-nghĩa), xáo trộn thứ tự. Câu sai sẽ tự động luyện lại; cuối cùng ôn tập các từ sai (từ loại, nghĩa, ví dụ).',
             'mcq.prompt':'Chọn cấp HSK và nhấn「🚀 Bắt đầu」',
             'mcq.progress':'Đã làm {done}/{total} câu', 'mcq.pending_retry':' · chờ luyện lại {n}',
@@ -8006,7 +8006,7 @@ const HSK2_VOCAB = [
             'mcq.pinyin_fail':'Tạo lựa chọn pinyin thất bại. Vui lòng kiểm tra API Key', 'mcq.no_meaning':'（không có nghĩa）', 'mcq.mastery':'📊 Mức độ thành thạo:'
         },
         'Indonesian': {
-            'mcq.title':'🎯 Kuis bunyi-bentuk-makna:', 'mcq.level':'Level HSK:', 'mcq.start':'🚀 Mulai',
+            'mcq.title':'🎯 Latihan kata:', 'mcq.tab':'🎯 Latihan kata', 'mcq.level':'Level HSK:', 'mcq.start':'🚀 Mulai',
             'mcq.desc':'10 kata per grup, 30 soal pilihan ganda (🎧 dengar-makna / 🎧 dengar-hanzi / 👀 lihat-makna), urutan diacak. Jawaban salah otomatis diulang; di akhir, tinjau kata yang salah (kelas kata, makna, contoh).',
             'mcq.prompt':'Pilih level HSK lalu tekan「🚀 Mulai」',
             'mcq.progress':'Selesai {done}/{total} soal', 'mcq.pending_retry':' · untuk diulang {n}',
@@ -8024,7 +8024,7 @@ const HSK2_VOCAB = [
             'mcq.pinyin_fail':'Gagal membuat pilihan pinyin. Periksa API Key Anda', 'mcq.no_meaning':'（tidak ada makna）', 'mcq.mastery':'📊 Penguasaan:'
         },
         'Slovak': {
-            'mcq.title':'🎯 Kvíz zvuk-tvar-význam:', 'mcq.level':'Úroveň HSK:', 'mcq.start':'🚀 Začať',
+            'mcq.title':'🎯 Cvičenie slov:', 'mcq.tab':'🎯 Cvičenie slov', 'mcq.level':'Úroveň HSK:', 'mcq.start':'🚀 Začať',
             'mcq.desc':'10 slov v skupine, 30 otázok s výberom (🎧 počúvaj-význam / 🎧 počúvaj-znak / 👀 pozri-význam), poradie zamiešané. Chybné odpovede sa automaticky opakujú; na konci si zopakuješ chybné slová (slovný druh, význam, príklady).',
             'mcq.prompt':'Vyber úroveň HSK a stlač「🚀 Začať」',
             'mcq.progress':'Hotovo {done}/{total}', 'mcq.pending_retry':' · na zopakovanie {n}',
@@ -11790,7 +11790,9 @@ const HSK2_VOCAB = [
         if (sendBtn) sendBtn.textContent = t('chat.send');
         // 结束对话按钮
         if (endBtn) endBtn.textContent = t('chat.end');
-        // 音形义选择模块
+        // 词语练习模块（原音形义选择）
+        const mcqTabBtn = document.getElementById('modeTabMcq');
+        if (mcqTabBtn) mcqTabBtn.textContent = t('mcq.tab');
         const mcqTitleLabel = document.getElementById('mcqTitleLabel');
         if (mcqTitleLabel) mcqTitleLabel.textContent = t('mcq.title');
         const mcqLevelLabel = document.getElementById('mcqLevelLabel');
@@ -17448,7 +17450,7 @@ ${dictHints ? '\n【HSK语料库高频错误提示 - 逐条检查当前句子，
         return map;
     }
     function downloadUnifiedReport(){ let rpt='=== 📚 完整学习报告 ===\n'+new Date().toLocaleString()+'\n\n'; rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n✏️ 作文批改（最终提交文本 + 修改过程）\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(writingEssays.length===0){ rpt+='(暂无作文批改记录)\n\n'; } else { writingEssays.forEach((we,i)=>{ rpt+='📌 作文 '+(i+1)+'（'+formatDate(we.date)+'，最终得分 '+(we.score||'--')+'）\n--- 最终提交文本 ---\n'+(we.original||'')+'\n'; if(we.revisions&&we.revisions.length>0){ rpt+='--- 修改过程 ---\n'; we.revisions.forEach((rv,k)=>{ rpt+='修改'+(k+1)+'（'+formatDate(rv.date)+'，得分 '+(rv.score||'--')+'）\n'+(rv.text||'')+'\n'; }); } rpt+='\n'; }); } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n📝 第一部分：全部聊天记录\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; const _chatMsgs = dedupeChatHistory(chatHistory || []); if(_chatMsgs.length===0){ rpt+='(暂无聊天记录)\n'; } else { const _copiedMap=buildCopiedFromAiMap(_chatMsgs); for(let msg of _chatMsgs){ const roleLabel=msg.role==='user'?'🧑 用户':'🤖 AI'; const timeStr=msg.time?new Date(msg.time).toLocaleString():''; rpt+=roleLabel+' ['+timeStr+']\n'+msg.content+'\n'; const _cp=_copiedMap.get(msg); if(_cp) rpt+='  ⚠️ 注：此句与前面AI说过的「'+_cp.phrase+'」相同/相似，可能不是学生自己生成。\n'; rpt+='\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n💬 阅读模式讨论记录\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; const _rc=(function(){try{return JSON.parse(localStorage.getItem('HSK_MODE_CHAT_READING_'+currentUser)||'[]')||[];}catch(e){return [];}})(); if(_rc.length===0){ rpt+='(暂无阅读讨论记录)\n'; } else { for(const _c of _rc){ rpt+='📌 '+(_c.date||'')+' '+(_c.title||'')+'\n'; for(const _m of (_c.messages||[])){ rpt+=(_m.role==='user'?'🧑 用户':'🤖 AI')+'：'+_m.content+'\n'; } rpt+='\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n💬 写作模式讨论记录\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; const _wc=(function(){try{return JSON.parse(localStorage.getItem('HSK_MODE_CHAT_WRITING_'+currentUser)||'[]')||[];}catch(e){return [];}})(); if(_wc.length===0){ rpt+='(暂无写作讨论记录)\n'; } else { for(const _c of _wc){ rpt+='📌 '+(_c.date||'')+' '+(_c.title||'')+'\n'; for(const _m of (_c.messages||[])){ rpt+=(_m.role==='user'?'🧑 用户':'🤖 AI')+'：'+_m.content+'\n'; } rpt+='\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n🔍 第二部分：查询过的词或句子\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(queriedItems.length===0){ rpt+='(暂无查询记录)\n'; } else { for(let i=0;i<queriedItems.length;i++){ const item=queriedItems[i]; const icon=item.type==='sentence'?'📝 句子':'🔤 词语'; rpt+=icon+' '+item.text+'\n  🌐 '+(item.translation||'')+'\n  📅 '+formatDate(item.date?item.date.slice(0,10):'')+'\n\n'; } }
-rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n🎯 错误库（错误的词/句子，全部来源）\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(gapBank.items.length===0){ rpt+='(暂无错误记录)\n'; } else { const _gi=[...gapBank.items].sort(gapSort); for(const it of _gi){ rpt+=(it.acquired?'✅已习得':'🔴未习得')+' '+it.text+'｜出现'+(it.count||1)+'次｜来源：'+(it.source||'')+'\n'; if(it.correct && it.correct!==it.text) rpt+='  正确：'+it.correct+'\n'; if(it.sentence) rpt+='  改正后的句子：'+it.sentence+'\n'; if(it.translation) rpt+='  母语翻译：'+it.translation+'\n'; if(it.correctUseCount) rpt+='  正确使用：'+it.correctUseCount+'/3\n'; if(it.occurrences&&it.occurrences.length) rpt+='  出现时间：'+it.occurrences.map(o=>o.date).join('、')+'\n'; if(it.usedSentences&&it.usedSentences.length) rpt+='  使用句子（时间）：'+it.usedSentences.map(u=>u.sentence+'('+u.source+' '+(u.time||u.date||'')+')').join('；')+'\n'; rpt+='\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n💭 第三部分：错句反思记录（全部历史）\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; const _rr=(window._reflectionResults||[]).slice().sort((a,b)=>String(b.date||'').localeCompare(String(a.date||''))); if(_rr.length===0){ rpt+='(暂无反思记录)\n'; } else { for(const r of _rr){ rpt+='['+(r.mode||'')+'] '+(r.text||'')+'\n'; if(r.user) rpt+='  ✏️ 你写的：'+r.user+'\n'; if(r.note) rpt+='  📌 '+(r.note||'')+'\n'; if(r.native) rpt+='  🌐 母语表达：'+r.native+'\n'; rpt+='  💭 反思：'+(r.reason||'（跳过）')+'\\n'; rpt+='  📅 '+(r.date||'')+'\n\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n⭐ 第四部分：收藏句子\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(favoriteSentences.length===0){ rpt+='(暂无收藏)\n'; } else { for(let item of favoriteSentences){ rpt+='🇨🇳 '+item.chinese+'\n🌐 '+(item.translation||'')+'\n📅 '+(item.date||'')+'\n\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n💬 「怎么说」尝试记录\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(zmsRecords.length===0){ rpt+='(暂无尝试记录)\n'; } else { for(var zi=0; zi<zmsRecords.length; zi++){ var zr=zmsRecords[zi]; rpt+='🌐 母语：'+zr.original+'\n  ✏️ 你的尝试：'+zr.attempt+'\n  ✅ 参考答案：'+zr.reference+'\n  📅 '+(zr.date||'')+'\n\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n📰 阅读历史\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(readingHistory.length===0){ rpt+='(暂无阅读记录)\n'; } else { readingHistory.forEach((r,i)=>{ rpt+='📌 '+(r.title||('HSK'+r.level))+' [HSK'+r.level+']\n'; rpt+='📅 '+(r.date||'')+' · 主题：'+(r.topic||'')+'\n'; if(r.background) rpt+='背景：'+r.background+'\n'; if(r.sourceUrl) rpt+='🔗 '+r.sourceUrl+'\n'; rpt+='--- 正文 ---\n'+(r.content||'')+'\n\n'; }); } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n🔤 第五部分：音/形/义/用 四维记录（全部，含出现句子）\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; const _fourWords=Object.keys(vocabDimMap||{}).sort((a,b)=>a.localeCompare(b,'zh')); if(!_fourWords.length){ rpt+='(暂无记录)\n'; } else { const _sentMap={}; for(const _u of (window._dimUpdates||[])){ if(_u && _u.sent){ _sentMap[_u.word]=_sentMap[_u.word]||new Set(); _sentMap[_u.word].add(_u.sent); } } for(const _fw of _fourWords){ const _fd=vocabDimMap[_fw]||{}; const _pc2=(e)=>'对'+(e.c||0)+'/错'+Math.max(0,(e.t||0)-(e.c||0))+'/共'+(e.t||0); rpt+=_fw+'｜音 '+_pc2(_fd['音']||{c:0,t:0})+'｜形 '+_pc2(_fd['形']||{c:0,t:0})+'｜义 '+_pc2(_fd['义']||{c:0,t:0})+'｜用 '+_pc2(_fd['用']||{c:0,t:0})+'\n'; const _sents=_sentMap[_fw]; if(_sents && _sents.size){ rpt+='  出现句子：\n'; const _sa=Array.from(_sents); for(let _si=0;_si<Math.min(_sa.length,10);_si++){ rpt+='   · '+_sa[_si]+'\n'; } } } } rpt+='\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n✨ 第六部分：本次新增（按模式标记，含句子）\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; const _upd=(window._dimUpdates||[]).slice(-200); if(!_upd.length){ rpt+='(暂无新增)\n'; } else { for(const _u of _upd){ rpt+='['+(_u.mode||'未标记')+'] '+_u.word+' → '+_u.dims+' ✅ '+(_u.date||'')+(_u.sent?'｜'+_u.sent:'')+'\n'; } }
+rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n🎯 错误库（错误的词/句子，全部来源）\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(gapBank.items.length===0){ rpt+='(暂无错误记录)\n'; } else { const _gi=[...gapBank.items].sort(gapSort); for(const it of _gi){ rpt+=(it.acquired?'✅已习得':'🔴未习得')+' '+it.text+'｜出现'+(it.count||1)+'次｜来源：'+(it.source||'')+'\n'; if(it.correct && it.correct!==it.text) rpt+='  正确：'+it.correct+'\n'; if(it.sentence) rpt+='  改正后的句子：'+it.sentence+'\n'; if(it.translation) rpt+='  母语翻译：'+it.translation+'\n'; if(it.correctUseCount) rpt+='  正确使用：'+it.correctUseCount+'/3\n'; if(it.occurrences&&it.occurrences.length) rpt+='  出现时间：'+it.occurrences.map(o=>o.date).join('、')+'\n'; if(it.usedSentences&&it.usedSentences.length) rpt+='  使用句子（时间）：'+it.usedSentences.map(u=>u.sentence+'('+u.source+' '+(u.time||u.date||'')+')').join('；')+'\n'; rpt+='\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n💭 第三部分：错句反思记录（全部历史）\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; const _rr=(window._reflectionResults||[]).slice().sort((a,b)=>String(b.date||'').localeCompare(String(a.date||''))); if(_rr.length===0){ rpt+='(暂无反思记录)\n'; } else { for(const r of _rr){ rpt+='['+(r.mode||'')+'] '+(r.text||'')+'\n'; if(r.user) rpt+='  ✏️ 你写的：'+r.user+'\n'; if(r.note) rpt+='  📌 '+(r.note||'')+'\n'; if(r.native) rpt+='  🌐 母语表达：'+r.native+'\n'; rpt+='  💭 反思：'+(r.reason||'（跳过）')+'\\n'; rpt+='  📅 '+(r.date||'')+'\n\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n⭐ 第四部分：收藏句子\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(favoriteSentences.length===0){ rpt+='(暂无收藏)\n'; } else { for(let item of favoriteSentences){ rpt+='🇨🇳 '+item.chinese+'\n🌐 '+(item.translation||'')+'\n📅 '+(item.date||'')+'\n\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n💬 「怎么说」尝试记录\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(zmsRecords.length===0){ rpt+='(暂无尝试记录)\n'; } else { for(var zi=0; zi<zmsRecords.length; zi++){ var zr=zmsRecords[zi]; rpt+='🌐 母语：'+zr.original+'\n  ✏️ 你的尝试：'+zr.attempt+'\n  ✅ 参考答案：'+zr.reference+'\n  📅 '+(zr.date||'')+'\n\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n📰 阅读历史\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(readingHistory.length===0){ rpt+='(暂无阅读记录)\n'; } else { readingHistory.forEach((r,i)=>{ rpt+='📌 '+(r.title||('HSK'+r.level))+' [HSK'+r.level+']\n'; rpt+='📅 '+(r.date||'')+' · 主题：'+(r.topic||'')+'\n'; if(r.background) rpt+='背景：'+r.background+'\n'; if(r.sourceUrl) rpt+='🔗 '+r.sourceUrl+'\n'; rpt+='--- 正文 ---\n'+(r.content||'')+'\n\n'; }); } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n🔤 第五部分：音/形/义/用 四维记录（全部，含出现句子）\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; const _fourWords=Object.keys(vocabDimMap||{}).sort((a,b)=>a.localeCompare(b,'zh')); if(!_fourWords.length){ rpt+='(暂无记录)\n'; } else { const _sentMap={}; for(const _u of (window._dimUpdates||[])){ if(_u && _u.sent){ _sentMap[_u.word]=_sentMap[_u.word]||new Set(); _sentMap[_u.word].add(_u.sent); } } rpt+='| 词语 | 音（对/错/共） | 形（对/错/共） | 义（对/错/共） | 用（对/错/共） | 出现句子（最多10条） |\n|---|---|---|---|---|---|\n'; for(const _fw of _fourWords){ const _fd=vocabDimMap[_fw]||{}; const _pc2=(e)=>'对'+(e.c||0)+'/错'+Math.max(0,(e.t||0)-(e.c||0))+'/共'+(e.t||0); const _sents=_sentMap[_fw]; const _sentStr=_sents&&_sents.size?Array.from(_sents).slice(0,10).map(s=>String(s).replace(/\|/g,'｜').replace(/\r?\n/g,' ')).join('；'):''; rpt+='| '+String(_fw).replace(/\|/g,'｜')+' | '+_pc2(_fd['音']||{c:0,t:0})+' | '+_pc2(_fd['形']||{c:0,t:0})+' | '+_pc2(_fd['义']||{c:0,t:0})+' | '+_pc2(_fd['用']||{c:0,t:0})+' | '+_sentStr+' |\n'; } } rpt+='\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n✨ 第六部分：本次新增（按模式标记，含句子）\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; const _upd=(window._dimUpdates||[]).slice(-200); if(!_upd.length){ rpt+='(暂无新增)\n'; } else { for(const _u of _upd){ rpt+='['+(_u.mode||'未标记')+'] '+_u.word+' → '+_u.dims+' ✅ '+(_u.date||'')+(_u.sent?'｜'+_u.sent:'')+'\n'; } }
 const ok = downloadTextFile(rpt, 'HSK_Learning_Report_' + getLocalDate() + '.txt'); showToast(ok ? t('toast.download_started') : t('toast.download_failed')); }
 
 async function handleEndConversation(){ if(chatAbortController){ chatAbortController.abort(); chatAbortController=null; } if(window._chatMeaningPending){ window._chatMeaningPending = null; const _mp = document.getElementById("chatMeaningPromptMsg"); if(_mp) _mp.remove(); } if(window._chatCorrectionPending){ window._chatCorrectionPending = null; const _cp = document.getElementById("chatCorrectionConfirmMsg"); if(_cp) _cp.remove(); } if(currentSessionClauses.length===0&&sessionUserMessages.length===0){ const _zmsOnly = (window._zmsWrongAttempts || []).slice(); if(!_zmsOnly.length){ addAssistantMessage(t('analysis.no_sentences')); return; } window._zmsWrongAttempts = []; setTimeout(function(){ startReflection(_zmsOnly); }, 300); return; } const filteredClauses=currentSessionClauses.filter(c=>!isQueriedSentence(c)); const savedClauses=[...filteredClauses]; if(filteredClauses.length===0){ const _zmsOnly2=(window._zmsWrongAttempts||[]).slice(); window._zmsWrongAttempts=[]; if(_zmsOnly2.length){ setTimeout(function(){ startReflection(_zmsOnly2); },300); } else { addAssistantMessage(t('analysis.no_sentences')); } currentSessionClauses=[]; sessionUserMessages=[]; return; } addAssistantMessage(t('analysis.analyzing_prefix')+filteredClauses.length+'...'); try{ const analysis=await analyzeGrammarBatch(filteredClauses); if(analysis) mergeAnalysisResults(analysis, 'chat'); addAssistantMessage(t('analysis.grammar_done')); }catch(e){ addAssistantMessage(t('analysis.grammar_timeout')); } addAssistantMessage(t('analysis.vocab_analyzing')); try{ const vocabAnalysis=await analyzeVocabBatch(savedClauses); if(vocabAnalysis){ mergeVocabResultsFiltered(vocabAnalysis, 'chat'); } const matchCount=vocabAnalysis?vocabAnalysis.reduce((sum,item)=>sum+Object.keys(item.wordCounts||{}).length,0):0; addAssistantMessage(t('analysis.vocab_done')+' 匹配到 '+matchCount+' 个词'); }catch(e){ console.log('Vocab error:',e); addAssistantMessage(t('analysis.vocab_timeout')); } try{
