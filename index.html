@@ -915,8 +915,8 @@
             <div class="wordlab-scroll">
                 <div class="card learn-card" id="mcqSetupCard">
                     <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;border-radius:24px 24px 0 0;margin:-22px -20px 0;padding:12px 20px 8px;">
-                        <span style="font-size:0.82rem;color:#475569;font-weight:600;white-space:nowrap;">🎯 音形义选择题：</span>
-                        <label style="font-size:0.82rem;color:#475569;white-space:nowrap;">HSK 等级：</label>
+                        <span id="mcqTitleLabel" style="font-size:0.82rem;color:#475569;font-weight:600;white-space:nowrap;">🎯 音形义选择题：</span>
+                        <label id="mcqLevelLabel" style="font-size:0.82rem;color:#475569;white-space:nowrap;">HSK 等级：</label>
                         <select id="wordlabLevelSelect" style="padding:4px 8px;border-radius:12px;border:1.5px solid #d0dae8;font-size:0.82rem;background:white;">
                             <option value="1">HSK 1</option>
                             <option value="2">HSK 2</option>
@@ -926,11 +926,11 @@
                         <button class="wlp-btn" id="wordlabStartBtn" style="margin:0;">🚀 开始练习</button>
                         <span id="wordlabProgress" style="margin-left:auto;font-size:0.82rem;color:#64748b;"></span>
                     </div>
-                    <div style="font-size:0.78rem;color:#94a3b8;padding:4px 0 0;">10 个词一组，共 30 道选择题（🎧 听音选义 / 🎧 听音选字 / 👀 看词选义），全部打乱顺序。答错的题稍后自动重练，全部结束后集中回顾错词（词性、释义、例句）</div>
+                    <div id="mcqDesc" style="font-size:0.78rem;color:#94a3b8;padding:4px 0 0;">10 个词一组，共 30 道选择题（🎧 听音选义 / 🎧 听音选字 / 👀 看词选义），全部打乱顺序。答错的题稍后自动重练，全部结束后集中回顾错词（词性、释义、例句）</div>
                 </div>
             </div>
             <div class="wordlab-practice-area" id="wordlabPracticeArea">
-                <div class="wlp-box"><div style="padding:30px 0;color:#64748b;">选择 HSK 等级，点「🚀 开始练习」</div></div>
+                <div class="wlp-box"><div id="mcqPrompt" style="padding:30px 0;color:#64748b;">选择 HSK 等级，点「🚀 开始练习」</div></div>
             </div>
         </div>
     </div>
@@ -7805,6 +7805,244 @@ const HSK2_VOCAB = [
         },
     };
 
+    // 音形义选择模块多语种
+    const I18N_NEW7 = {
+        'Chinese': {
+            'mcq.title':'🎯 音形义选择题：', 'mcq.level':'HSK 等级：', 'mcq.start':'🚀 开始练习',
+            'mcq.desc':'10 个词一组，共 30 道选择题（🎧 听音选义 / 🎧 听音选字 / 👀 看词选义），全部打乱顺序。答错的题稍后自动重练，全部结束后集中回顾错词（词性、释义、例句）',
+            'mcq.prompt':'选择 HSK 等级，点「🚀 开始练习」',
+            'mcq.progress':'已做 {done}/{total} 题', 'mcq.pending_retry':' · 待重练 {n}',
+            'mcq.done':'✅ 完成', 'mcq.done_wrong':'✅ 完成 · 错题 {n} 个',
+            'mcq.review_title':'📖 错题回顾', 'mcq.review_summary':'HSK{lvl} · 本组 {total} 个词 · 答错 {wrong} 个，一起复习：',
+            'mcq.again':'🔄 再来一组', 'mcq.all_done':'🎉 本组练习完成！', 'mcq.group_done':'HSK{lvl} · 本组 {total} 个词',
+            'mcq.retry_note':'🔁 这个词刚才有答错的，再复习一下',
+            'mcq.pos':'词性：', 'mcq.en_meaning':'释义：', 'mcq.retry':'🔁 重练 · ',
+            'mcq.listen_char':'🎧 听发音，选择正确的汉字（HSK{lvl}）', 'mcq.listen_meaning':'🎧 听发音，选择正确意思',
+            'mcq.look_meaning':'👀 看词语，选择正确意思', 'mcq.look_pinyin':'👀 看词语，选择正确拼音',
+            'mcq.play':'🔊 播放', 'mcq.dont_know':'🤔 我不认识', 'mcq.next':'下一个 →', 'mcq.next_word':'下一个词 →',
+            'mcq.correct':'✅ 正确！', 'mcq.wrong':'❌ 错误',
+            'mcq.preparing_ex':'⏳ 正在准备例句...', 'mcq.preparing_opts':'⏳ 正在准备选项...',
+            'mcq.ex_fail':'例句生成失败，可点击「🔊 播放」朗读词语', 'mcq.ex_fail_api':'例句生成失败，请检查 API Key',
+            'mcq.pinyin_fail':'拼音选项生成失败，请检查 API Key', 'mcq.no_meaning':'（该词暂无释义）', 'mcq.mastery':'📊 掌握：'
+        },
+        'English': {
+            'mcq.title':'🎯 Sound-Shape-Meaning Quiz:', 'mcq.level':'HSK Level:', 'mcq.start':'🚀 Start',
+            'mcq.desc':'10 words per group, 30 multiple-choice questions (🎧 listen-meaning / 🎧 listen-character / 👀 see-meaning), all shuffled. Wrong answers are retried automatically; at the end review all missed words (POS, meaning, examples).',
+            'mcq.prompt':'Choose an HSK level and tap「🚀 Start」',
+            'mcq.progress':'Done {done}/{total}', 'mcq.pending_retry':' · to retry {n}',
+            'mcq.done':'✅ Done', 'mcq.done_wrong':'✅ Done · {n} missed',
+            'mcq.review_title':'📖 Missed Words Review', 'mcq.review_summary':'HSK{lvl} · {total} words in this group · {wrong} missed, review together:',
+            'mcq.again':'🔄 New Group', 'mcq.all_done':'🎉 Group finished!', 'mcq.group_done':'HSK{lvl} · {total} words in this group',
+            'mcq.retry_note':'🔁 This word was missed just now — review again',
+            'mcq.pos':'POS:', 'mcq.en_meaning':'Meaning:', 'mcq.retry':'🔁 Retry · ',
+            'mcq.listen_char':'🎧 Listen and choose the correct characters (HSK{lvl})', 'mcq.listen_meaning':'🎧 Listen and choose the correct meaning',
+            'mcq.look_meaning':'👀 Look at the word and choose the correct meaning', 'mcq.look_pinyin':'👀 Look at the word and choose the correct pinyin',
+            'mcq.play':'🔊 Play', 'mcq.dont_know':"🤔 I don't know it", 'mcq.next':'Next →', 'mcq.next_word':'Next word →',
+            'mcq.correct':'✅ Correct!', 'mcq.wrong':'❌ Wrong',
+            'mcq.preparing_ex':'⏳ Preparing examples...', 'mcq.preparing_opts':'⏳ Preparing options...',
+            'mcq.ex_fail':'Failed to load examples. Tap「🔊 Play」to hear the word', 'mcq.ex_fail_api':'Failed to generate examples. Please check your API Key',
+            'mcq.pinyin_fail':'Failed to generate pinyin options. Please check your API Key', 'mcq.no_meaning':'(no meaning available)', 'mcq.mastery':'📊 Mastery:'
+        },
+        'Japanese': {
+            'mcq.title':'🎯 音形義クイズ：', 'mcq.level':'HSK レベル：', 'mcq.start':'🚀 練習開始',
+            'mcq.desc':'10語1グループ、全30問の選択問題（🎧 音を聞いて意味 / 🎧 音を聞いて漢字 / 👀 見て意味）。順番はランダム。間違えた問題は自動でもう一度出題され、最後に間違えた単語をまとめて復習（品詞・意味・例文）。',
+            'mcq.prompt':'HSKレベルを選んで「🚀 練習開始」を押してください',
+            'mcq.progress':'完了 {done}/{total} 問', 'mcq.pending_retry':' · 再練習 {n}',
+            'mcq.done':'✅ 完了', 'mcq.done_wrong':'✅ 完了 · 間違い {n} 問',
+            'mcq.review_title':'📖 間違えた単語の復習', 'mcq.review_summary':'HSK{lvl} · このグループ {total} 語 · 間違い {wrong} 語、一緒に復習：',
+            'mcq.again':'🔄 もう一组', 'mcq.all_done':'🎉 このグループの練習が完了！', 'mcq.group_done':'HSK{lvl} · このグループ {total} 語',
+            'mcq.retry_note':'🔁 この単語はさっき間違えたので、もう一度復習しましょう',
+            'mcq.pos':'品詞：', 'mcq.en_meaning':'意味：', 'mcq.retry':'🔁 再練習 · ',
+            'mcq.listen_char':'🎧 音を聞いて、正しい漢字を選んでください（HSK{lvl}）', 'mcq.listen_meaning':'🎧 音を聞いて、正しい意味を選んでください',
+            'mcq.look_meaning':'👀 単語を見て、正しい意味を選んでください', 'mcq.look_pinyin':'👀 単語を見て、正しいピンインを選んでください',
+            'mcq.play':'🔊 再生', 'mcq.dont_know':'🤔 わかりません', 'mcq.next':'次へ →', 'mcq.next_word':'次の単語 →',
+            'mcq.correct':'✅ 正解！', 'mcq.wrong':'❌ 間違い',
+            'mcq.preparing_ex':'⏳ 例文を準備中...', 'mcq.preparing_opts':'⏳ 選択肢を準備中...',
+            'mcq.ex_fail':'例文の読み込みに失敗しました。「🔊 再生」で単語を聞けます', 'mcq.ex_fail_api':'例文の生成に失敗しました。API Keyを確認してください',
+            'mcq.pinyin_fail':'ピンイン選択肢の生成に失敗しました。API Keyを確認してください', 'mcq.no_meaning':'（意味なし）', 'mcq.mastery':'📊 習得度：'
+        },
+        'Korean': {
+            'mcq.title':'🎯 음·형·의 퀴즈:', 'mcq.level':'HSK 급수:', 'mcq.start':'🚀 연습 시작',
+            'mcq.desc':'단어 10개가 한 그룹, 총 30문제(🎧 듣고 뜻 고르기 / 🎧 듣고 한자 고르기 / 👀 보고 뜻 고르기)가 무작위 순서로 나옵니다. 틀린 문제는 자동으로 다시 풀고, 마지막에 틀린 단어(품사·뜻·예문)를 복습합니다.',
+            'mcq.prompt':'HSK 급수를 선택하고「🚀 연습 시작」을 누르세요',
+            'mcq.progress':'완료 {done}/{total}문제', 'mcq.pending_retry':' · 재도전 {n}',
+            'mcq.done':'✅ 완료', 'mcq.done_wrong':'✅ 완료 · 틀린 문제 {n}개',
+            'mcq.review_title':'📖 오답 복습', 'mcq.review_summary':'HSK{lvl} · 이번 그룹 {total}개 단어 · {wrong}개 틀림, 함께 복습:',
+            'mcq.again':'🔄 새 그룹', 'mcq.all_done':'🎉 이번 그룹 연습 완료!', 'mcq.group_done':'HSK{lvl} · 이번 그룹 {total}개 단어',
+            'mcq.retry_note':'🔁 방금 틀린 단어예요. 다시 복습하세요',
+            'mcq.pos':'품사:', 'mcq.en_meaning':'뜻:', 'mcq.retry':'🔁 재도전 · ',
+            'mcq.listen_char':'🎧 발음을 듣고 올바른 한자를 고르세요（HSK{lvl}）', 'mcq.listen_meaning':'🎧 발음을 듣고 올바른 뜻을 고르세요',
+            'mcq.look_meaning':'👀 단어를 보고 올바른 뜻을 고르세요', 'mcq.look_pinyin':'👀 단어를 보고 올바른 병음을 고르세요',
+            'mcq.play':'🔊 재생', 'mcq.dont_know':'🤔 모르겠어요', 'mcq.next':'다음 →', 'mcq.next_word':'다음 단어 →',
+            'mcq.correct':'✅ 정답!', 'mcq.wrong':'❌ 오답',
+            'mcq.preparing_ex':'⏳ 예문 준비 중...', 'mcq.preparing_opts':'⏳ 선택지 준비 중...',
+            'mcq.ex_fail':'예문을 불러오지 못했습니다.「🔊 재생」으로 단어를 들을 수 있어요', 'mcq.ex_fail_api':'예문 생성 실패. API Key를 확인하세요',
+            'mcq.pinyin_fail':'병음 선택지 생성 실패. API Key를 확인하세요', 'mcq.no_meaning':'（뜻 없음）', 'mcq.mastery':'📊 숙달도:'
+        },
+        'French': {
+            'mcq.title':'🎯 Quiz son-forme-sens :', 'mcq.level':'Niveau HSK :', 'mcq.start':'🚀 Commencer',
+            'mcq.desc':'10 mots par groupe, 30 questions à choix multiples (🎧 écouter-sens / 🎧 écouter-caractère / 👀 voir-sens), ordre mélangé. Les erreurs sont rejouées automatiquement ; à la fin, révisez les mots manqués (nature, sens, exemples).',
+            'mcq.prompt':'Choisissez un niveau HSK et cliquez sur「🚀 Commencer」',
+            'mcq.progress':'Fait {done}/{total}', 'mcq.pending_retry':' · à refaire {n}',
+            'mcq.done':'✅ Terminé', 'mcq.done_wrong':'✅ Terminé · {n} erreurs',
+            'mcq.review_title':'📖 Révision des mots manqués', 'mcq.review_summary':'HSK{lvl} · {total} mots dans ce groupe · {wrong} manqués, à réviser :',
+            'mcq.again':'🔄 Nouveau groupe', 'mcq.all_done':'🎉 Groupe terminé !', 'mcq.group_done':'HSK{lvl} · {total} mots dans ce groupe',
+            'mcq.retry_note':'🔁 Ce mot vient d être manqué — révisez-le',
+            'mcq.pos':'Nature :', 'mcq.en_meaning':'Sens :', 'mcq.retry':'🔁 Refaire · ',
+            'mcq.listen_char':'🎧 Écoutez et choisissez les bons caractères (HSK{lvl})', 'mcq.listen_meaning':'🎧 Écoutez et choisissez le bon sens',
+            'mcq.look_meaning':'👀 Regardez le mot et choisissez le bon sens', 'mcq.look_pinyin':'👀 Regardez le mot et choisissez le bon pinyin',
+            'mcq.play':'🔊 Écouter', 'mcq.dont_know':'🤔 Je ne sais pas', 'mcq.next':'Suivant →', 'mcq.next_word':'Mot suivant →',
+            'mcq.correct':'✅ Correct !', 'mcq.wrong':'❌ Erreur',
+            'mcq.preparing_ex':'⏳ Préparation des exemples...', 'mcq.preparing_opts':'⏳ Préparation des options...',
+            'mcq.ex_fail':'Échec du chargement des exemples. Cliquez sur「🔊 Écouter」pour entendre le mot', 'mcq.ex_fail_api':'Échec de la génération des exemples. Vérifiez votre clé API',
+            'mcq.pinyin_fail':'Échec de la génération du pinyin. Vérifiez votre clé API', 'mcq.no_meaning':'（pas de sens）', 'mcq.mastery':'📊 Maîtrise :'
+        },
+        'German': {
+            'mcq.title':'🎯 Klang-Form-Bedeutung-Quiz:', 'mcq.level':'HSK-Stufe:', 'mcq.start':'🚀 Start',
+            'mcq.desc':'10 Wörter pro Gruppe, 30 Multiple-Choice-Fragen (🎧 Hören-Bedeutung / 🎧 Hören-Zeichen / 👀 Sehen-Bedeutung), gemischt. Falsche Antworten werden automatisch wiederholt; am Ende werden alle Fehlerwörter wiederholt (Wortart, Bedeutung, Beispiele).',
+            'mcq.prompt':'HSK-Stufe wählen und auf「🚀 Start」tippen',
+            'mcq.progress':'Erledigt {done}/{total}', 'mcq.pending_retry':' · zum Wiederholen {n}',
+            'mcq.done':'✅ Fertig', 'mcq.done_wrong':'✅ Fertig · {n} Fehler',
+            'mcq.review_title':'📖 Fehlerwörter-Wiederholung', 'mcq.review_summary':'HSK{lvl} · {total} Wörter in dieser Gruppe · {wrong} Fehler, gemeinsam wiederholen:',
+            'mcq.again':'🔄 Neue Gruppe', 'mcq.all_done':'🎉 Gruppe abgeschlossen!', 'mcq.group_done':'HSK{lvl} · {total} Wörter in dieser Gruppe',
+            'mcq.retry_note':'🔁 Dieses Wort war gerade falsch — noch einmal wiederholen',
+            'mcq.pos':'Wortart:', 'mcq.en_meaning':'Bedeutung:', 'mcq.retry':'🔁 Wiederholen · ',
+            'mcq.listen_char':'🎧 Hören und die richtigen Zeichen wählen (HSK{lvl})', 'mcq.listen_meaning':'🎧 Hören und die richtige Bedeutung wählen',
+            'mcq.look_meaning':'👀 Wort ansehen und die richtige Bedeutung wählen', 'mcq.look_pinyin':'👀 Wort ansehen und das richtige Pinyin wählen',
+            'mcq.play':'🔊 Abspielen', 'mcq.dont_know':'🤔 Ich weiß es nicht', 'mcq.next':'Weiter →', 'mcq.next_word':'Nächstes Wort →',
+            'mcq.correct':'✅ Richtig!', 'mcq.wrong':'❌ Falsch',
+            'mcq.preparing_ex':'⏳ Beispiele werden vorbereitet...', 'mcq.preparing_opts':'⏳ Optionen werden vorbereitet...',
+            'mcq.ex_fail':'Beispiele konnten nicht geladen werden. Tippe auf「🔊 Abspielen」, um das Wort zu hören', 'mcq.ex_fail_api':'Beispiele konnten nicht erstellt werden. Bitte API-Key prüfen',
+            'mcq.pinyin_fail':'Pinyin-Optionen konnten nicht erstellt werden. Bitte API-Key prüfen', 'mcq.no_meaning':'（keine Bedeutung）', 'mcq.mastery':'📊 Beherrschung:'
+        },
+        'Spanish': {
+            'mcq.title':'🎯 Quiz sonido-forma-significado:', 'mcq.level':'Nivel HSK:', 'mcq.start':'🚀 Empezar',
+            'mcq.desc':'10 palabras por grupo, 30 preguntas de opción múltiple (🎧 escuchar-significado / 🎧 escuchar-carácter / 👀 ver-significado), todo mezclado. Las respuestas incorrectas se repiten automáticamente; al final se repasan las palabras falladas (categoría, significado, ejemplos).',
+            'mcq.prompt':'Elige un nivel HSK y pulsa「🚀 Empezar」',
+            'mcq.progress':'Hecho {done}/{total}', 'mcq.pending_retry':' · por repetir {n}',
+            'mcq.done':'✅ Terminado', 'mcq.done_wrong':'✅ Terminado · {n} errores',
+            'mcq.review_title':'📖 Repaso de palabras falladas', 'mcq.review_summary':'HSK{lvl} · {total} palabras en este grupo · {wrong} falladas, repasa:',
+            'mcq.again':'🔄 Otro grupo', 'mcq.all_done':'🎉 ¡Grupo terminado!', 'mcq.group_done':'HSK{lvl} · {total} palabras en este grupo',
+            'mcq.retry_note':'🔁 Esta palabra la acabas de fallar, repásala',
+            'mcq.pos':'Categoría:', 'mcq.en_meaning':'Significado:', 'mcq.retry':'🔁 Repetir · ',
+            'mcq.listen_char':'🎧 Escucha y elige los caracteres correctos (HSK{lvl})', 'mcq.listen_meaning':'🎧 Escucha y elige el significado correcto',
+            'mcq.look_meaning':'👀 Mira la palabra y elige el significado correcto', 'mcq.look_pinyin':'👀 Mira la palabra y elige el pinyin correcto',
+            'mcq.play':'🔊 Reproducir', 'mcq.dont_know':'🤔 No lo sé', 'mcq.next':'Siguiente →', 'mcq.next_word':'Siguiente palabra →',
+            'mcq.correct':'✅ ¡Correcto!', 'mcq.wrong':'❌ Incorrecto',
+            'mcq.preparing_ex':'⏳ Preparando ejemplos...', 'mcq.preparing_opts':'⏳ Preparando opciones...',
+            'mcq.ex_fail':'No se pudieron cargar los ejemplos. Pulsa「🔊 Reproducir」para oír la palabra', 'mcq.ex_fail_api':'No se pudieron generar los ejemplos. Revisa tu API Key',
+            'mcq.pinyin_fail':'No se pudieron generar las opciones de pinyin. Revisa tu API Key', 'mcq.no_meaning':'（sin significado）', 'mcq.mastery':'📊 Dominio:'
+        },
+        'Russian': {
+            'mcq.title':'🎯 Тест звук-форма-значение:', 'mcq.level':'Уровень HSK:', 'mcq.start':'🚀 Начать',
+            'mcq.desc':'10 слов в группе, 30 вопросов с выбором ответа (🎧 слушать-значение / 🎧 слушать-иероглиф / 👀 смотреть-значение), порядок перемешан. Ошибки повторяются автоматически; в конце — повтор пропущенных слов (часть речи, значение, примеры).',
+            'mcq.prompt':'Выберите уровень HSK и нажмите「🚀 Начать」',
+            'mcq.progress':'Сделано {done}/{total}', 'mcq.pending_retry':' · на повтор {n}',
+            'mcq.done':'✅ Готово', 'mcq.done_wrong':'✅ Готово · ошибок {n}',
+            'mcq.review_title':'📖 Повтор ошибочных слов', 'mcq.review_summary':'HSK{lvl} · в группе {total} слов · ошибок {wrong}, повторяем:',
+            'mcq.again':'🔄 Новая группа', 'mcq.all_done':'🎉 Группа завершена!', 'mcq.group_done':'HSK{lvl} · в группе {total} слов',
+            'mcq.retry_note':'🔁 Это слово только что было с ошибкой — повторите',
+            'mcq.pos':'Часть речи:', 'mcq.en_meaning':'Значение:', 'mcq.retry':'🔁 Повтор · ',
+            'mcq.listen_char':'🎧 Слушайте и выберите правильные иероглифы (HSK{lvl})', 'mcq.listen_meaning':'🎧 Слушайте и выберите правильное значение',
+            'mcq.look_meaning':'👀 Смотрите на слово и выберите правильное значение', 'mcq.look_pinyin':'👀 Смотрите на слово и выберите правильный пиньинь',
+            'mcq.play':'🔊 Слушать', 'mcq.dont_know':'🤔 Не знаю', 'mcq.next':'Дальше →', 'mcq.next_word':'Следующее слово →',
+            'mcq.correct':'✅ Правильно!', 'mcq.wrong':'❌ Ошибка',
+            'mcq.preparing_ex':'⏳ Готовим примеры...', 'mcq.preparing_opts':'⏳ Готовим варианты...',
+            'mcq.ex_fail':'Не удалось загрузить примеры. Нажмите「🔊 Слушать」, чтобы услышать слово', 'mcq.ex_fail_api':'Не удалось создать примеры. Проверьте API Key',
+            'mcq.pinyin_fail':'Не удалось создать варианты пиньиня. Проверьте API Key', 'mcq.no_meaning':'（значения нет）', 'mcq.mastery':'📊 Освоение:'
+        },
+        'Thai': {
+            'mcq.title':'🎯 แบบฝึกเสียง-รูป-ความหมาย:', 'mcq.level':'ระดับ HSK:', 'mcq.start':'🚀 เริ่ม',
+            'mcq.desc':'กลุ่มละ 10 คำ รวม 30 ข้อ (🎧 ฟัง-ความหมาย / 🎧 ฟัง-ตัวอักษร / 👀 ดู-ความหมาย) สลับลำดับทั้งหมด ข้อที่ตอบผิดจะวนกลับมาฝึกใหม่ และท้ายสุดทบทวนคำที่ผิด (ชนิดของคำ ความหมาย ประโยคตัวอย่าง)',
+            'mcq.prompt':'เลือกระดับ HSK แล้วกด「🚀 เริ่ม」',
+            'mcq.progress':'ทำแล้ว {done}/{total} ข้อ', 'mcq.pending_retry':' · รอฝึกใหม่ {n}',
+            'mcq.done':'✅ เสร็จ', 'mcq.done_wrong':'✅ เสร็จ · ผิด {n} ข้อ',
+            'mcq.review_title':'📖 ทบทวนคำที่ผิด', 'mcq.review_summary':'HSK{lvl} · กลุ่มนี้ {total} คำ · ผิด {wrong} คำ ทบทวนด้วยกัน:',
+            'mcq.again':'🔄 กลุ่มใหม่', 'mcq.all_done':'🎉 ฝึกกลุ่มนี้เสร็จแล้ว!', 'mcq.group_done':'HSK{lvl} · กลุ่มนี้ {total} คำ',
+            'mcq.retry_note':'🔁 คำนี้เพิ่งตอบผิด ทบทวนอีกครั้ง',
+            'mcq.pos':'ชนิดของคำ:', 'mcq.en_meaning':'ความหมาย:', 'mcq.retry':'🔁 ฝึกใหม่ · ',
+            'mcq.listen_char':'🎧 ฟังเสียงแล้วเลือกตัวอักษรที่ถูกต้อง (HSK{lvl})', 'mcq.listen_meaning':'🎧 ฟังเสียงแล้วเลือกความหมายที่ถูกต้อง',
+            'mcq.look_meaning':'👀 ดูคำแล้วเลือกความหมายที่ถูกต้อง', 'mcq.look_pinyin':'👀 ดูคำแล้วเลือกพินอินที่ถูกต้อง',
+            'mcq.play':'🔊 เล่นเสียง', 'mcq.dont_know':'🤔 ไม่รู้จัก', 'mcq.next':'ถัดไป →', 'mcq.next_word':'คำถัดไป →',
+            'mcq.correct':'✅ ถูกต้อง!', 'mcq.wrong':'❌ ผิด',
+            'mcq.preparing_ex':'⏳ กำลังเตรียมประโยคตัวอย่าง...', 'mcq.preparing_opts':'⏳ กำลังเตรียมตัวเลือก...',
+            'mcq.ex_fail':'โหลดประโยคตัวอย่างไม่สำเร็จ กด「🔊 เล่นเสียง」เพื่อฟังคำ', 'mcq.ex_fail_api':'สร้างประโยคตัวอย่างไม่สำเร็จ กรุณาตรวจสอบ API Key',
+            'mcq.pinyin_fail':'สร้างตัวเลือกพินอินไม่สำเร็จ กรุณาตรวจสอบ API Key', 'mcq.no_meaning':'（ไม่มีความหมาย）', 'mcq.mastery':'📊 ความเชี่ยวชาญ:'
+        },
+        'Italian': {
+            'mcq.title':'🎯 Quiz suono-forma-significato:', 'mcq.level':'Livello HSK:', 'mcq.start':'🚀 Inizia',
+            'mcq.desc':'10 parole per gruppo, 30 domande a scelta multipla (🎧 ascolta-significato / 🎧 ascolta-carattere / 👀 vedi-significato), in ordine casuale. Gli errori vengono ripetuti automaticamente; alla fine ripassi le parole sbagliate (categoria, significato, esempi).',
+            'mcq.prompt':'Scegli un livello HSK e premi「🚀 Inizia」',
+            'mcq.progress':'Fatto {done}/{total}', 'mcq.pending_retry':' · da ripetere {n}',
+            'mcq.done':'✅ Fatto', 'mcq.done_wrong':'✅ Fatto · {n} errori',
+            'mcq.review_title':'📖 Ripasso parole sbagliate', 'mcq.review_summary':'HSK{lvl} · {total} parole in questo gruppo · {wrong} sbagliate, ripassa:',
+            'mcq.again':'🔄 Nuovo gruppo', 'mcq.all_done':'🎉 Gruppo completato!', 'mcq.group_done':'HSK{lvl} · {total} parole in questo gruppo',
+            'mcq.retry_note':'🔁 Hai appena sbagliato questa parola, ripassala',
+            'mcq.pos':'Categoria:', 'mcq.en_meaning':'Significato:', 'mcq.retry':'🔁 Ripeti · ',
+            'mcq.listen_char':'🎧 Ascolta e scegli i caratteri corretti (HSK{lvl})', 'mcq.listen_meaning':'🎧 Ascolta e scegli il significato corretto',
+            'mcq.look_meaning':'👀 Guarda la parola e scegli il significato corretto', 'mcq.look_pinyin':'👀 Guarda la parola e scegli il pinyin corretto',
+            'mcq.play':'🔊 Riproduci', 'mcq.dont_know':'🤔 Non lo so', 'mcq.next':'Avanti →', 'mcq.next_word':'Parola successiva →',
+            'mcq.correct':'✅ Corretto!', 'mcq.wrong':'❌ Sbagliato',
+            'mcq.preparing_ex':'⏳ Preparazione esempi...', 'mcq.preparing_opts':'⏳ Preparazione opzioni...',
+            'mcq.ex_fail':'Impossibile caricare gli esempi. Premi「🔊 Riproduci」per ascoltare la parola', 'mcq.ex_fail_api':'Impossibile generare gli esempi. Controlla la API Key',
+            'mcq.pinyin_fail':'Impossibile generare le opzioni pinyin. Controlla la API Key', 'mcq.no_meaning':'（nessun significato）', 'mcq.mastery':'📊 Padronanza:'
+        },
+        'Vietnamese': {
+            'mcq.title':'🎯 Trắc nghiệm âm-hình-nghĩa:', 'mcq.level':'Cấp HSK:', 'mcq.start':'🚀 Bắt đầu',
+            'mcq.desc':'Mỗi nhóm 10 từ, tổng 30 câu trắc nghiệm (🎧 nghe-nghĩa / 🎧 nghe-chữ / 👀 nhìn-nghĩa), xáo trộn thứ tự. Câu sai sẽ tự động luyện lại; cuối cùng ôn tập các từ sai (từ loại, nghĩa, ví dụ).',
+            'mcq.prompt':'Chọn cấp HSK và nhấn「🚀 Bắt đầu」',
+            'mcq.progress':'Đã làm {done}/{total} câu', 'mcq.pending_retry':' · chờ luyện lại {n}',
+            'mcq.done':'✅ Xong', 'mcq.done_wrong':'✅ Xong · sai {n} câu',
+            'mcq.review_title':'📖 Ôn tập từ sai', 'mcq.review_summary':'HSK{lvl} · nhóm này {total} từ · sai {wrong} từ, cùng ôn:',
+            'mcq.again':'🔄 Nhóm mới', 'mcq.all_done':'🎉 Đã hoàn thành nhóm này!', 'mcq.group_done':'HSK{lvl} · nhóm này {total} từ',
+            'mcq.retry_note':'🔁 Từ này vừa trả lời sai, ôn lại nhé',
+            'mcq.pos':'Từ loại:', 'mcq.en_meaning':'Nghĩa:', 'mcq.retry':'🔁 Luyện lại · ',
+            'mcq.listen_char':'🎧 Nghe và chọn chữ đúng (HSK{lvl})', 'mcq.listen_meaning':'🎧 Nghe và chọn nghĩa đúng',
+            'mcq.look_meaning':'👀 Nhìn từ và chọn nghĩa đúng', 'mcq.look_pinyin':'👀 Nhìn từ và chọn pinyin đúng',
+            'mcq.play':'🔊 Phát', 'mcq.dont_know':'🤔 Không biết', 'mcq.next':'Tiếp →', 'mcq.next_word':'Từ tiếp theo →',
+            'mcq.correct':'✅ Đúng!', 'mcq.wrong':'❌ Sai',
+            'mcq.preparing_ex':'⏳ Đang chuẩn bị ví dụ...', 'mcq.preparing_opts':'⏳ Đang chuẩn bị lựa chọn...',
+            'mcq.ex_fail':'Tải ví dụ thất bại. Nhấn「🔊 Phát」để nghe từ', 'mcq.ex_fail_api':'Tạo ví dụ thất bại. Vui lòng kiểm tra API Key',
+            'mcq.pinyin_fail':'Tạo lựa chọn pinyin thất bại. Vui lòng kiểm tra API Key', 'mcq.no_meaning':'（không có nghĩa）', 'mcq.mastery':'📊 Mức độ thành thạo:'
+        },
+        'Indonesian': {
+            'mcq.title':'🎯 Kuis bunyi-bentuk-makna:', 'mcq.level':'Level HSK:', 'mcq.start':'🚀 Mulai',
+            'mcq.desc':'10 kata per grup, 30 soal pilihan ganda (🎧 dengar-makna / 🎧 dengar-hanzi / 👀 lihat-makna), urutan diacak. Jawaban salah otomatis diulang; di akhir, tinjau kata yang salah (kelas kata, makna, contoh).',
+            'mcq.prompt':'Pilih level HSK lalu tekan「🚀 Mulai」',
+            'mcq.progress':'Selesai {done}/{total} soal', 'mcq.pending_retry':' · untuk diulang {n}',
+            'mcq.done':'✅ Selesai', 'mcq.done_wrong':'✅ Selesai · salah {n} soal',
+            'mcq.review_title':'📖 Tinjauan kata salah', 'mcq.review_summary':'HSK{lvl} · grup ini {total} kata · salah {wrong} kata, tinjau bersama:',
+            'mcq.again':'🔄 Grup baru', 'mcq.all_done':'🎉 Latihan grup selesai!', 'mcq.group_done':'HSK{lvl} · grup ini {total} kata',
+            'mcq.retry_note':'🔁 Kata ini barusan salah, tinjau lagi',
+            'mcq.pos':'Kelas kata:', 'mcq.en_meaning':'Makna:', 'mcq.retry':'🔁 Ulangi · ',
+            'mcq.listen_char':'🎧 Dengarkan dan pilih hanzi yang benar (HSK{lvl})', 'mcq.listen_meaning':'🎧 Dengarkan dan pilih makna yang benar',
+            'mcq.look_meaning':'👀 Lihat kata dan pilih makna yang benar', 'mcq.look_pinyin':'👀 Lihat kata dan pilih pinyin yang benar',
+            'mcq.play':'🔊 Putar', 'mcq.dont_know':'🤔 Tidak tahu', 'mcq.next':'Lanjut →', 'mcq.next_word':'Kata berikutnya →',
+            'mcq.correct':'✅ Benar!', 'mcq.wrong':'❌ Salah',
+            'mcq.preparing_ex':'⏳ Menyiapkan contoh...', 'mcq.preparing_opts':'⏳ Menyiapkan pilihan...',
+            'mcq.ex_fail':'Gagal memuat contoh. Tekan「🔊 Putar」untuk mendengar kata', 'mcq.ex_fail_api':'Gagal membuat contoh. Periksa API Key Anda',
+            'mcq.pinyin_fail':'Gagal membuat pilihan pinyin. Periksa API Key Anda', 'mcq.no_meaning':'（tidak ada makna）', 'mcq.mastery':'📊 Penguasaan:'
+        },
+        'Slovak': {
+            'mcq.title':'🎯 Kvíz zvuk-tvar-význam:', 'mcq.level':'Úroveň HSK:', 'mcq.start':'🚀 Začať',
+            'mcq.desc':'10 slov v skupine, 30 otázok s výberom (🎧 počúvaj-význam / 🎧 počúvaj-znak / 👀 pozri-význam), poradie zamiešané. Chybné odpovede sa automaticky opakujú; na konci si zopakuješ chybné slová (slovný druh, význam, príklady).',
+            'mcq.prompt':'Vyber úroveň HSK a stlač「🚀 Začať」',
+            'mcq.progress':'Hotovo {done}/{total}', 'mcq.pending_retry':' · na zopakovanie {n}',
+            'mcq.done':'✅ Hotovo', 'mcq.done_wrong':'✅ Hotovo · chýb {n}',
+            'mcq.review_title':'📖 Opakovanie chybných slov', 'mcq.review_summary':'HSK{lvl} · v skupine {total} slov · chýb {wrong}, zopakujte si:',
+            'mcq.again':'🔄 Nová skupina', 'mcq.all_done':'🎉 Skupina dokončená!', 'mcq.group_done':'HSK{lvl} · v skupine {total} slov',
+            'mcq.retry_note':'🔁 Toto slovo bolo práve chybne, zopakuj si ho',
+            'mcq.pos':'Slovný druh:', 'mcq.en_meaning':'Význam:', 'mcq.retry':'🔁 Opakovať · ',
+            'mcq.listen_char':'🎧 Počúvaj a vyber správne znaky (HSK{lvl})', 'mcq.listen_meaning':'🎧 Počúvaj a vyber správny význam',
+            'mcq.look_meaning':'👀 Pozri sa na slovo a vyber správny význam', 'mcq.look_pinyin':'👀 Pozri sa na slovo a vyber správny pinyin',
+            'mcq.play':'🔊 Prehrať', 'mcq.dont_know':'🤔 Neviem', 'mcq.next':'Ďalej →', 'mcq.next_word':'Ďalšie slovo →',
+            'mcq.correct':'✅ Správne!', 'mcq.wrong':'❌ Chyba',
+            'mcq.preparing_ex':'⏳ Pripravujem príklady...', 'mcq.preparing_opts':'⏳ Pripravujem možnosti...',
+            'mcq.ex_fail':'Nepodarilo sa načítať príklady. Stlač「🔊 Prehrať」a vypočuj si slovo', 'mcq.ex_fail_api':'Nepodarilo sa vygenerovať príklady. Skontroluj API Key',
+            'mcq.pinyin_fail':'Nepodarilo sa vygenerovať možnosti pinyin. Skontroluj API Key', 'mcq.no_meaning':'（bez významu）', 'mcq.mastery':'📊 Ovládanie:'
+        }
+    };
+
     // 中文原文对照表（用于双语显示和回退）
     const ZH = {
         'app.title':'汉语学习助手 | 多语言翻译练习 + 错句本',
@@ -11512,10 +11750,10 @@ const HSK2_VOCAB = [
     function t(key) {
         const lang = targetLangSelect ? targetLangSelect.value : 'English';
         const dict = I18N[lang];
-        const extra = Object.assign({}, I18N_EXTRA['Chinese'] || {}, I18N_EXTRA2['Chinese'] || {}, I18N_EXTRA3['Chinese'] || {}, (typeof I18N_GAP !== 'undefined' && I18N_GAP['Chinese']) || {}, (typeof I18N_NEW !== 'undefined' && I18N_NEW['Chinese']) || {}, (typeof I18N_NEW2 !== 'undefined' && I18N_NEW2['Chinese']) || {}, (typeof I18N_NEW3 !== 'undefined' && I18N_NEW3['Chinese']) || {}, (typeof I18N_NEW4 !== 'undefined' && I18N_NEW4['Chinese']) || {}, (typeof I18N_NEW5 !== 'undefined' && I18N_NEW5['Chinese']) || {}, (typeof I18N_NEW6 !== 'undefined' && I18N_NEW6['Chinese']) || {}, I18N_EXTRA[lang] || {}, I18N_EXTRA2[lang] || {}, I18N_EXTRA3[lang] || {}, (typeof I18N_GAP !== 'undefined' && I18N_GAP[lang]) || {}, (typeof I18N_NEW !== 'undefined' && I18N_NEW[lang]) || {}, (typeof I18N_NEW2 !== 'undefined' && I18N_NEW2[lang]) || {}, (typeof I18N_NEW3 !== 'undefined' && I18N_NEW3[lang]) || {}, (typeof I18N_NEW4 !== 'undefined' && I18N_NEW4[lang]) || {}, (typeof I18N_NEW5 !== 'undefined' && I18N_NEW5[lang]) || {}, (typeof I18N_NEW6 !== 'undefined' && I18N_NEW6[lang]) || {});
+        const extra = Object.assign({}, I18N_EXTRA['Chinese'] || {}, I18N_EXTRA2['Chinese'] || {}, I18N_EXTRA3['Chinese'] || {}, (typeof I18N_GAP !== 'undefined' && I18N_GAP['Chinese']) || {}, (typeof I18N_NEW !== 'undefined' && I18N_NEW['Chinese']) || {}, (typeof I18N_NEW2 !== 'undefined' && I18N_NEW2['Chinese']) || {}, (typeof I18N_NEW3 !== 'undefined' && I18N_NEW3['Chinese']) || {}, (typeof I18N_NEW4 !== 'undefined' && I18N_NEW4['Chinese']) || {}, (typeof I18N_NEW5 !== 'undefined' && I18N_NEW5['Chinese']) || {}, (typeof I18N_NEW6 !== 'undefined' && I18N_NEW6['Chinese']) || {}, (typeof I18N_NEW7 !== 'undefined' && I18N_NEW7['Chinese']) || {}, I18N_EXTRA[lang] || {}, I18N_EXTRA2[lang] || {}, I18N_EXTRA3[lang] || {}, (typeof I18N_GAP !== 'undefined' && I18N_GAP[lang]) || {}, (typeof I18N_NEW !== 'undefined' && I18N_NEW[lang]) || {}, (typeof I18N_NEW2 !== 'undefined' && I18N_NEW2[lang]) || {}, (typeof I18N_NEW3 !== 'undefined' && I18N_NEW3[lang]) || {}, (typeof I18N_NEW4 !== 'undefined' && I18N_NEW4[lang]) || {}, (typeof I18N_NEW5 !== 'undefined' && I18N_NEW5[lang]) || {}, (typeof I18N_NEW6 !== 'undefined' && I18N_NEW6[lang]) || {}, (typeof I18N_NEW7 !== 'undefined' && I18N_NEW7[lang]) || {});
         const voice = I18N_VOICE[lang] || I18N_VOICE['Chinese'] || {};
         const translated = (dict && dict[key]) ? dict[key] : (extra[key] || voice[key] || '');
-        const chinese = (ZH && ZH[key]) ? ZH[key] : ((I18N_EXTRA['Chinese'] && I18N_EXTRA['Chinese'][key]) || (I18N_EXTRA2['Chinese'] && I18N_EXTRA2['Chinese'][key]) || (I18N_EXTRA3['Chinese'] && I18N_EXTRA3['Chinese'][key]) || (typeof I18N_GAP !== 'undefined' && I18N_GAP['Chinese'] && I18N_GAP['Chinese'][key]) || (typeof I18N_NEW !== 'undefined' && I18N_NEW['Chinese'] && I18N_NEW['Chinese'][key]) || (typeof I18N_NEW2 !== 'undefined' && I18N_NEW2['Chinese'] && I18N_NEW2['Chinese'][key]) || (typeof I18N_NEW3 !== 'undefined' && I18N_NEW3['Chinese'] && I18N_NEW3['Chinese'][key]) || (typeof I18N_NEW4 !== 'undefined' && I18N_NEW4['Chinese'] && I18N_NEW4['Chinese'][key]) || (typeof I18N_NEW5 !== 'undefined' && I18N_NEW5['Chinese'] && I18N_NEW5['Chinese'][key]) || (typeof I18N_NEW6 !== 'undefined' && I18N_NEW6['Chinese'] && I18N_NEW6['Chinese'][key]) || (I18N_VOICE['Chinese'] && I18N_VOICE['Chinese'][key]) || '');
+        const chinese = (ZH && ZH[key]) ? ZH[key] : ((I18N_EXTRA['Chinese'] && I18N_EXTRA['Chinese'][key]) || (I18N_EXTRA2['Chinese'] && I18N_EXTRA2['Chinese'][key]) || (I18N_EXTRA3['Chinese'] && I18N_EXTRA3['Chinese'][key]) || (typeof I18N_GAP !== 'undefined' && I18N_GAP['Chinese'] && I18N_GAP['Chinese'][key]) || (typeof I18N_NEW !== 'undefined' && I18N_NEW['Chinese'] && I18N_NEW['Chinese'][key]) || (typeof I18N_NEW2 !== 'undefined' && I18N_NEW2['Chinese'] && I18N_NEW2['Chinese'][key]) || (typeof I18N_NEW3 !== 'undefined' && I18N_NEW3['Chinese'] && I18N_NEW3['Chinese'][key]) || (typeof I18N_NEW4 !== 'undefined' && I18N_NEW4['Chinese'] && I18N_NEW4['Chinese'][key]) || (typeof I18N_NEW5 !== 'undefined' && I18N_NEW5['Chinese'] && I18N_NEW5['Chinese'][key]) || (typeof I18N_NEW6 !== 'undefined' && I18N_NEW6['Chinese'] && I18N_NEW6['Chinese'][key]) || (typeof I18N_NEW7 !== 'undefined' && I18N_NEW7['Chinese'] && I18N_NEW7['Chinese'][key]) || (I18N_VOICE['Chinese'] && I18N_VOICE['Chinese'][key]) || '');
         if (!translated) return chinese || key;
         return translated;
     }
@@ -11552,6 +11790,17 @@ const HSK2_VOCAB = [
         if (sendBtn) sendBtn.textContent = t('chat.send');
         // 结束对话按钮
         if (endBtn) endBtn.textContent = t('chat.end');
+        // 音形义选择模块
+        const mcqTitleLabel = document.getElementById('mcqTitleLabel');
+        if (mcqTitleLabel) mcqTitleLabel.textContent = t('mcq.title');
+        const mcqLevelLabel = document.getElementById('mcqLevelLabel');
+        if (mcqLevelLabel) mcqLevelLabel.textContent = t('mcq.level');
+        const mcqStartBtn = document.getElementById('wordlabStartBtn');
+        if (mcqStartBtn) mcqStartBtn.textContent = t('mcq.start');
+        const mcqDesc = document.getElementById('mcqDesc');
+        if (mcqDesc) mcqDesc.textContent = t('mcq.desc');
+        const mcqPrompt = document.getElementById('mcqPrompt');
+        if (mcqPrompt && !(wlSession && wlSession.current)) mcqPrompt.textContent = t('mcq.prompt');
         // 语音按钮
         if (voiceBtn && !voiceIsRecording) voiceBtn.title = t('chat.voice_title');
         // "怎么说" 区域
@@ -20394,7 +20643,7 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
         const yi = d['义'] || { c:0, t:0 };
         const yong = d['用'] || { c:0, t:0 };
         const pc = (e) => t('dim.ok') + (e.c || 0) + '/' + t('dim.bad') + Math.max(0, (e.t || 0) - (e.c || 0)) + '/' + t('dim.total') + (e.t || 0);
-        return '<div style="font-size:0.78rem;color:#64748b;margin-bottom:6px;">📊 掌握：' + t('dim.yin') + ' ' + pc(yin) + ' · ' + t('dim.xing') + ' ' + pc(xing) + ' · ' + t('dim.yi') + ' ' + pc(yi) + ' · ' + t('dim.yong') + ' ' + pc(yong) + '</div>';
+        return '<div style="font-size:0.78rem;color:#64748b;margin-bottom:6px;">' + t('mcq.mastery') + t('dim.yin') + ' ' + pc(yin) + ' · ' + t('dim.xing') + ' ' + pc(xing) + ' · ' + t('dim.yi') + ' ' + pc(yi) + ' · ' + t('dim.yong') + ' ' + pc(yong) + '</div>';
     }
     function wlMasteryHtml(word){
         const d = vocabDimMap[word] || {};
@@ -20407,7 +20656,7 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
     }
     function renderWlIdle(){
         const area = wordlabEl('wordlabPracticeArea');
-        if(area) area.innerHTML = '<div class="wlp-box"><div style="padding:30px 0;color:#64748b;">选择 HSK 等级，点「🚀 开始练习」</div></div>';
+        if(area) area.innerHTML = '<div class="wlp-box"><div style="padding:30px 0;color:#64748b;">' + t('mcq.prompt') + '</div></div>';
         const pg = wordlabEl('wordlabProgress');
         if(pg) pg.textContent = '';
     }
@@ -20466,7 +20715,7 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
         if(!wlSession) return '';
         const total = wlSession.questionTotal || wlSession.questionQueue.length;
         const done = total - wlSession.questionQueue.length;
-        return '已做 ' + done + '/' + total + ' 题' + (wlSession.wrongQueue.length ? ' · 待重练 ' + wlSession.wrongQueue.length : '');
+        return t('mcq.progress').replace('{done}', done).replace('{total}', total) + (wlSession.wrongQueue.length ? t('mcq.pending_retry').replace('{n}', wlSession.wrongQueue.length) : '');
     }
     function renderWlCurrent(){
         const cur = wlSession && wlSession.current;
@@ -20499,7 +20748,7 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
         const fb = document.getElementById('wlFeedback');
         if(fb){
             fb.className = 'wlp-feedback ' + (ok ? 'ok' : 'bad');
-            fb.innerHTML = ok ? '✅ 正确！' : '❌ 错误 <button class="wlp-btn secondary" style="margin:0 0 0 10px;padding:6px 14px;font-size:0.8rem;" onclick="window._wlNextDimNow()">下一个 →</button>';
+            fb.innerHTML = ok ? t('mcq.correct') : t('mcq.wrong') + ' <button class="wlp-btn secondary" style="margin:0 0 0 10px;padding:6px 14px;font-size:0.8rem;" onclick="window._wlNextDimNow()">' + t('mcq.next') + '</button>';
         }
         wlAdvanceTimer = setTimeout(function(){ wlAdvanceTimer = null; wlAdvanceDim(); }, ok ? 800 : 4000);
     }
@@ -20522,17 +20771,17 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
         const lvl = wlSession.lvl;
         const groupTotal = wlSession.groupTotal || 10;
         wlSession = null;
-        if(pg) pg.textContent = wrongWords.length ? ('✅ 完成 · 错题 ' + wrongWords.length + ' 个') : '✅ 完成';
+        if(pg) pg.textContent = wrongWords.length ? t('mcq.done_wrong').replace('{n}', wrongWords.length) : t('mcq.done');
         if(wrongWords.length){
             renderWlReviewList(wrongWords, lvl, groupTotal);
         } else if(area){
-            area.innerHTML = '<div class="wlp-box"><div style="font-size:1.1rem;font-weight:700;color:#27ae60;">🎉 本组练习完成！</div><div style="color:#64748b;margin:8px 0;">HSK' + lvl + ' · 本组 ' + groupTotal + ' 个词</div><button class="wlp-btn" onclick="window._wlRestart()">🔄 再来一组</button></div>';
+            area.innerHTML = '<div class="wlp-box"><div style="font-size:1.1rem;font-weight:700;color:#27ae60;">' + t('mcq.all_done') + '</div><div style="color:#64748b;margin:8px 0;">' + t('mcq.group_done').replace('{lvl}', lvl).replace('{total}', groupTotal) + '</div><button class="wlp-btn" onclick="window._wlRestart()">' + t('mcq.again') + '</button></div>';
         }
     }
     function renderWlReviewList(wrongWords, lvl, groupTotal){
         const area = wordlabEl('wordlabPracticeArea');
         if(!area) return;
-        let html = '<div class="wlp-box"><div style="font-size:1.15rem;font-weight:800;color:#e67e22;">📖 错题回顾</div><div style="color:#64748b;margin:6px 0;">HSK' + lvl + ' · 本组 ' + groupTotal + ' 个词 · 答错 ' + wrongWords.length + ' 个，一起复习：</div>';
+        let html = '<div class="wlp-box"><div style="font-size:1.15rem;font-weight:800;color:#e67e22;">' + t('mcq.review_title') + '</div><div style="color:#64748b;margin:6px 0;">' + t('mcq.review_summary').replace('{lvl}', lvl).replace('{total}', groupTotal).replace('{wrong}', wrongWords.length) + '</div>';
         wrongWords.forEach(function(item, idx){
             const v = (VOCAB_LEVEL_MAP[item.lvl] || []).find(function(x){ return x.w === item.word; });
             const pos = v ? v.p : '';
@@ -20540,11 +20789,11 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
             html += '<div style="text-align:left;background:#fffaf3;border:1px solid #f0d9b5;border-radius:14px;padding:12px 14px;margin:10px 0;">' +
                 '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;"><span style="font-size:1.2rem;font-weight:800;color:#1e2b5e;">' + escapeHtml(item.word) + '</span>' +
                 '<span style="font-size:0.75rem;color:#94a3b8;">' + escapeHtml(pos || '') + '</span>' +
-                '<button class="wlp-btn secondary" style="margin:0;padding:6px 14px;font-size:0.8rem;" onclick="window._wlSpeak(\'' + item.word + '\')">🔊 播放</button></div>' +
-                '<div style="font-size:0.85rem;color:#475569;margin:6px 0;">英文解释：<b>' + escapeHtml(meaning || '—') + '</b></div>' +
-                '<div id="wlReviewEx_' + idx + '" style="font-size:0.85rem;color:#94a3b8;">⏳ 正在准备例句...</div></div>';
+                '<button class="wlp-btn secondary" style="margin:0;padding:6px 14px;font-size:0.8rem;" onclick="window._wlSpeak(\'' + item.word + '\')">' + t('mcq.play') + '</button></div>' +
+                '<div style="font-size:0.85rem;color:#475569;margin:6px 0;">' + t('mcq.en_meaning') + '<b>' + escapeHtml(meaning || '—') + '</b></div>' +
+                '<div id="wlReviewEx_' + idx + '" style="font-size:0.85rem;color:#94a3b8;">' + t('mcq.preparing_ex') + '</div></div>';
         });
-        html += '<button class="wlp-btn" onclick="window._wlRestart()">🔄 再来一组</button></div>';
+        html += '<button class="wlp-btn" onclick="window._wlRestart()">' + t('mcq.again') + '</button></div>';
         area.innerHTML = html;
         wrongWords.forEach(function(item, idx){ loadWlReviewExample(item, idx); });
     }
@@ -20555,13 +20804,13 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
         if(ex && ex.length){
             box.innerHTML = ex.map(function(s){ return '<div style="text-align:left;background:#fff;border:1px solid #e9eef4;border-radius:10px;padding:8px 10px;margin:6px 0;font-size:0.88rem;">🇨🇳 ' + escapeHtml(s.cn || s) + (s.en ? '<div style="color:#64748b;font-size:0.8rem;">🌐 ' + escapeHtml(s.en) + '</div>' : '') + '</div>'; }).join('');
         } else {
-            box.innerHTML = '<div style="color:#94a3b8;">例句生成失败，可点击「🔊 播放」朗读词语</div>';
+            box.innerHTML = '<div style="color:#94a3b8;">' + t('mcq.ex_fail') + '</div>';
         }
     }
     async function renderWlFlipCard(word, lvl){
         const area = wordlabEl('wordlabPracticeArea');
         const v = (VOCAB_LEVEL_MAP[lvl] || []).find(function(x){ return x.w === word; });
-        area.innerHTML = '<div class="wlp-box"><div class="wlp-word">' + escapeHtml(word) + '</div><div id="wlFlipLoading" style="color:#94a3b8;">⏳ 正在准备例句...</div><div id="wlFlipBody" style="display:none;"></div></div>';
+        area.innerHTML = '<div class="wlp-box"><div class="wlp-word">' + escapeHtml(word) + '</div><div id="wlFlipLoading" style="color:#94a3b8;">' + t('mcq.preparing_ex') + '</div><div id="wlFlipBody" style="display:none;"></div></div>';
         const ex = await getWordExamples(word, lvl);
         const pos = v ? v.p : '';
         const meaning = v ? v.m : '';
@@ -20569,24 +20818,24 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
         if(ex && ex.length){
             exHtml = ex.map(function(s){ return '<div style="text-align:left;background:#f8fafc;border:1px solid #e9eef4;border-radius:10px;padding:8px 10px;margin:6px 0;font-size:0.9rem;">🇨🇳 ' + escapeHtml(s.cn || s) + (s.en ? '<div style="color:#64748b;font-size:0.8rem;">🌐 ' + escapeHtml(s.en) + '</div>' : '') + '</div>'; }).join('');
         } else {
-            exHtml = '<div style="color:#94a3b8;">例句生成失败，请检查 API Key</div>';
+            exHtml = '<div style="color:#94a3b8;">' + t('mcq.ex_fail_api') + '</div>';
         }
         const ld = document.getElementById('wlFlipLoading');
         const body = document.getElementById('wlFlipBody');
         if(ld) ld.style.display = 'none';
         if(body){
             body.style.display = 'block';
-            body.innerHTML = '<div style="margin:4px 0;font-size:0.8rem;color:#e67e22;">🔁 这个词刚才有答错的，再复习一下</div>' +
-                '<div style="margin:6px 0;font-size:0.85rem;color:#475569;">词性：<b>' + escapeHtml(pos || '—') + '</b> · 英文解释：<b>' + escapeHtml(meaning || '—') + '</b></div>' +
+            body.innerHTML = '<div style="margin:4px 0;font-size:0.8rem;color:#e67e22;">' + t('mcq.retry_note') + '</div>' +
+                '<div style="margin:6px 0;font-size:0.85rem;color:#475569;">' + t('mcq.pos') + '<b>' + escapeHtml(pos || '—') + '</b> · ' + t('mcq.en_meaning') + '<b>' + escapeHtml(meaning || '—') + '</b></div>' +
                 exHtml +
-                '<div style="margin-top:12px;"><button class="wlp-btn" onclick="window._wlSpeak(\'' + word + '\')">🔊 播放</button> <button class="wlp-btn" onclick="window._wlNextWord()">下一个词 →</button></div>';
+                '<div style="margin-top:12px;"><button class="wlp-btn" onclick="window._wlSpeak(\'' + word + '\')">' + t('mcq.play') + '</button> <button class="wlp-btn" onclick="window._wlNextWord()">' + t('mcq.next_word') + '</button></div>';
         }
     }
     function renderWlHanziMCQ(word, lvl, isRetry){
         const opts = buildWlHanziOptions(word, lvl);
         const area = wordlabEl('wordlabPracticeArea');
-        let html = '<div class="wlp-box">' + wlProgressLineHtml(word) + '<div style="color:#64748b;">' + (isRetry ? '🔁 重练 · ' : '') + '🎧 听发音，选择正确的汉字（HSK' + lvl + '）</div>' +
-            '<div style="margin:10px 0;"><button class="wlp-btn" onclick="window._wlSpeak(\'' + word + '\')">🔊 播放</button></div>';
+        let html = '<div class="wlp-box">' + wlProgressLineHtml(word) + '<div style="color:#64748b;">' + (isRetry ? t('mcq.retry') : '') + t('mcq.listen_char').replace('{lvl}', lvl) + '</div>' +
+            '<div style="margin:10px 0;"><button class="wlp-btn" onclick="window._wlSpeak(\'' + word + '\')">' + t('mcq.play') + '</button></div>';
         html += opts.map(function(o, i){ return '<button class="wlp-opt" data-i="' + i + '" style="font-size:1.15rem;">' + escapeHtml(o) + '</button>'; }).join('');
         html += wlFeedbackBox() + '</div>';
         area.innerHTML = html;
@@ -20611,21 +20860,21 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
         const area = wordlabEl('wordlabPracticeArea');
         const v = (VOCAB_LEVEL_MAP[lvl] || []).find(function(x){ return x.w === word; });
         if(wlIsFunctionWord(v) && !wordUsageCache[word]){
-            area.innerHTML = '<div class="wlp-box">' + wlProgressLineHtml(word) + '<div style="color:#94a3b8;padding:20px 0;">⏳ 正在准备选项...</div></div>';
+            area.innerHTML = '<div class="wlp-box">' + wlProgressLineHtml(word) + '<div style="color:#94a3b8;padding:20px 0;">' + t('mcq.preparing_opts') + '</div></div>';
         }
         let correct = String(v && v.m || '').trim();
         if(wlIsFunctionWord(v)) correct = await getWordUsageMeaning(word, lvl) || correct;
         window._wlMeaningCorrect = correct;
-        if(!correct){ wlAfterAnswer(false, '（该词暂无释义）', ''); return; }
+        if(!correct){ wlAfterAnswer(false, t('mcq.no_meaning'), ''); return; }
         const opts = buildWlMeaningOptions(correct, lvl);
         let html = '<div class="wlp-box">' + wlProgressLineHtml(word);
         if(dim === '音义'){
-            html += '<div style="color:#64748b;">' + (isRetry ? '🔁 重练 · ' : '') + '🎧 听发音，选择正确意思</div><div style="margin:10px 0;"><button class="wlp-btn" onclick="window._wlSpeak(\'' + word + '\')">🔊 播放</button></div>';
+            html += '<div style="color:#64748b;">' + (isRetry ? t('mcq.retry') : '') + t('mcq.listen_meaning') + '</div><div style="margin:10px 0;"><button class="wlp-btn" onclick="window._wlSpeak(\'' + word + '\')">' + t('mcq.play') + '</button></div>';
         } else {
-            html += '<div style="color:#64748b;">' + (isRetry ? '🔁 重练 · ' : '') + '👀 看词语，选择正确意思</div><div class="wlp-word">' + escapeHtml(word) + '</div>';
+            html += '<div style="color:#64748b;">' + (isRetry ? t('mcq.retry') : '') + t('mcq.look_meaning') + '</div><div class="wlp-word">' + escapeHtml(word) + '</div>';
         }
         html += opts.map(function(o, i){ return '<button class="wlp-opt" data-i="' + i + '">' + escapeHtml(o) + '</button>'; }).join('');
-        html += '<button class="wlp-opt" data-i="-1">🤔 我不认识</button>' + wlFeedbackBox() + '</div>';
+        html += '<button class="wlp-opt" data-i="-1">' + t('mcq.dont_know') + '</button>' + wlFeedbackBox() + '</div>';
         area.innerHTML = html;
         area.querySelectorAll('.wlp-opt').forEach(function(b){ b.onclick = function(){ checkWlMeaning(parseInt(b.dataset.i)); }; });
         if(dim === '音义') speakChinese(word);
@@ -20648,14 +20897,14 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
     }
     async function renderWlXingShengMCQ(word, lvl, isRetry){
         const area = wordlabEl('wordlabPracticeArea');
-        area.innerHTML = '<div class="wlp-box"><div style="color:#64748b;">' + (isRetry ? '🔁 重练 · ' : '') + '👀 看词语，选择正确拼音</div><div class="wlp-word">' + escapeHtml(word) + '</div>' +
-            '<div id="wlPinyinLoading" style="color:#94a3b8;font-size:0.8rem;">⏳ 正在准备选项...</div><div id="wlPinyinOpts"></div>' + wlFeedbackBox() + '</div>';
+        area.innerHTML = '<div class="wlp-box"><div style="color:#64748b;">' + (isRetry ? t('mcq.retry') : '') + t('mcq.look_pinyin') + '</div><div class="wlp-word">' + escapeHtml(word) + '</div>' +
+            '<div id="wlPinyinLoading" style="color:#94a3b8;font-size:0.8rem;">' + t('mcq.preparing_opts') + '</div><div id="wlPinyinOpts"></div>' + wlFeedbackBox() + '</div>';
         const opts = await getWordPinyinOptions(word);
         const ld = document.getElementById('wlPinyinLoading');
         const optBox = document.getElementById('wlPinyinOpts');
         if(ld) ld.style.display = 'none';
         if(!opts || !opts.options || !opts.options.length){
-            if(optBox) optBox.innerHTML = '<div style="color:#e67e22;">拼音选项生成失败，请检查 API Key</div>';
+            if(optBox) optBox.innerHTML = '<div style="color:#e67e22;">' + t('mcq.pinyin_fail') + '</div>';
             return;
         }
         window._wlPinyinCorrect = opts.correct || '';
