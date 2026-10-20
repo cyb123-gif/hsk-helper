@@ -16298,9 +16298,9 @@ ${dictHints ? '\n【HSK语料库高频错误提示 - 逐条检查当前句子，
         if(!dict || !text) return '';
         const hints = [], seen = new Set();
         for(const item of (dict.cuoci || [])){
-            if(hints.length >= 8) break;
+            if(hints.length >= 10) break;
             const wrong = item[0], right = item[1], freq = item[2];
-            if(!wrong || wrong.length < 2 || freq < 15) continue;
+            if(!wrong || wrong.length < 2 || freq < 5) continue;
             if(text.includes(wrong) && !seen.has(wrong)){
                 seen.add(wrong);
                 hints.push('- 「' + wrong + '」在HSK语料中常被误用，正确常为「' + right + '」（出现' + freq + '次）');

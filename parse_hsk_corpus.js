@@ -78,8 +78,8 @@ for (const d of data) {
     while ((jm = cjRe.exec(raw))) { add(cj, jm[0].replace(/[{}]/g, '').slice(0, 10), 1); }
 }
 
-const bieziList = topList(biezi, 2500, 2).map(x => [x.k.split('→')[0], x.k.split('→')[1], x.v]);
-const cuociList = topList(cuoci, 2500, 2).map(x => [x.k.split('→')[0], x.k.split('→')[1], x.v]);
+const bieziList = topList(biezi, 8000, 2).map(x => [x.k.split('→')[0], x.k.split('→')[1], x.v]);
+const cuociList = topList(cuoci, 8000, 2).map(x => [x.k.split('→')[0], x.k.split('→')[1], x.v]);
 const fantiList = topList(fanti, 4000, 1).map(x => [x.k.split('→')[0], x.k.split('→')[1], x.v]);
 const cqList = topList(cq, 600, 3).map(x => [x.k, x.v]);
 const cdList = topList(cd, 600, 3).map(x => [x.k, x.v]);
