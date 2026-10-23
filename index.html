@@ -169,6 +169,15 @@
         /* 纠错中的[怎么说]式解释 */
         .corr-explain-btn { font-size: 0.72rem; padding: 2px 10px; border-radius: 12px; border: 1px solid #e67e22; background: #fff8f0; color: #e67e22; cursor: pointer; margin-left: 6px; }
         .corr-explain-box { display: none; margin-top: 8px; padding: 12px; background: #fef9f0; border: 1.5px solid #f0c78e; border-radius: 12px; font-size: 0.85rem; color: #334155; line-height: 1.6; max-height: 400px; overflow-y: auto; }
+        .corr-not-meaning-btn { font-size: 0.72rem; padding: 2px 10px; border-radius: 12px; border: 1px solid #e67e22; background: #fff8f0; color: #e67e22; cursor: pointer; margin-top: 6px; }
+        .corr-not-meaning-btn:hover { background: #fde8d0; }
+        .corr-item { margin-bottom: 8px; }
+        .corr-inline-tr { font-size: 0.8rem; color: #1565c0; margin-top: 4px; }
+        .corr-inline-note { font-size: 0.8rem; color: #b45309; margin-top: 4px; line-height: 1.5; }
+        .corr-native-area { margin-top: 8px; display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+        .corr-native-area textarea { flex: 1 1 200px; min-width: 200px; border: 1.5px solid #e67e22; border-radius: 12px; padding: 8px 10px; font-size: 0.85rem; font-family: inherit; box-sizing: border-box; outline: none; background: #fff; }
+        .corr-native-area .corr-native-confirm { background: #e67e22; color: #fff; border: none; border-radius: 12px; padding: 7px 14px; font-weight: 700; font-size: 0.82rem; cursor: pointer; white-space: nowrap; }
+        .corr-native-area .corr-native-cancel { background: #fff; color: #94a3b8; border: 1.5px dashed #cbd5e1; border-radius: 12px; padding: 7px 12px; font-size: 0.82rem; cursor: pointer; white-space: nowrap; }
         /* 怎么说词语歧义 */
         .zms-disamb-opts { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
         .zms-disamb-opt { text-align: left; background: #fff; border: 1.5px solid #f0c78e; border-radius: 12px; padding: 8px 12px; cursor: pointer; font-size: 0.9rem; transition: 0.15s; }
@@ -381,6 +390,10 @@
         .reading-selection-bar button { padding: 6px 14px; border-radius: 16px; border: 1px solid #d0d8e4; background: white; cursor: pointer; font-size: 0.82rem; transition: 0.12s; }
         .reading-selection-bar button:hover { background: #eef2ff; border-color: #1e2b5e; }
         .reading-selection-bar button:disabled { opacity: 0.6; cursor: not-allowed; }
+        #readingTransTooltip .reading-tip-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 4px; }
+        #readingTransTooltip .reading-tip-actions button { padding: 4px 12px; border-radius: 14px; border: 1px solid #d0d8e4; background: white; cursor: pointer; font-size: 0.8rem; transition: 0.12s; }
+        #readingTransTooltip .reading-tip-actions button:hover { background: #eef2ff; border-color: #1e2b5e; }
+        #readingTransTooltip .sel-tr-item { font-size: 0.82rem; color: #1e293b; margin: 2px 0; }
         .reading-section-title { font-weight: 700; color: #1e293b; margin: 18px 0 8px; font-size: 0.95rem; }
         .reading-new-words { display: flex; flex-wrap: wrap; gap: 10px; }
         .reading-new-word-card { background: #fff8f0; border: 1.5px solid #f0c78e; border-radius: 14px; padding: 10px 14px; min-width: 160px; flex: 1 1 160px; }
@@ -405,7 +418,7 @@
         .reading-culture-notes { margin-top: 12px; padding: 10px 12px; background: #f6f9fc; border: 1px solid #dbe7f3; border-radius: 12px; font-size: 0.85rem; color: #334155; line-height: 1.6; }
         .reading-culture-notes .rcn-title { font-weight: 700; color: #1e2b5e; margin-bottom: 6px; }
         .reading-culture-notes .rcn-item { margin-bottom: 4px; }
-        .reading-image { display: block; max-width: 100%; max-height: 320px; width: auto; margin: 10px auto; border-radius: 14px; box-shadow: 0 4px 14px rgba(15,23,42,0.12); object-fit: cover; }
+        .reading-image { display: block; width: 100%; max-width: 760px; height: auto; max-height: 430px; aspect-ratio: 16 / 9; object-fit: cover; object-position: center; margin: 12px auto; border-radius: 14px; box-shadow: 0 4px 14px rgba(15,23,42,0.12); }
         .reading-image-fail { margin: 6px 0; padding: 6px 10px; background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 10px; font-size: 0.78rem; color: #94a3b8; text-align: center; }
         /* ===== 阅读/写作模式内嵌讨论聊天 ===== */
         .mode-chat-card { margin: 12px 0; background: #fff; border: 1px solid #e9eef4; border-radius: 16px; padding: 12px; }
@@ -547,6 +560,7 @@
         .sentence-body { flex: 1; overflow-y: auto; padding: 16px; background: #fafbff; }
         .sentence-stage { max-width: 640px; margin: 0 auto; background: white; border: 1px solid #e9eef4; border-radius: 18px; padding: 20px; }
         .sentence-item-word { font-size: 1.8rem; font-weight: 800; color: #1e2b5e; text-align: center; margin: 8px 0; }
+        .sentence-word-meta { text-align: center; color: #64748b; font-size: 0.85rem; margin: -4px 0 6px; min-height: 18px; }
         .sentence-input { width: 100%; padding: 14px 18px; border: 2px solid #e67e22; border-radius: 12px; font-size: 1.1rem; outline: none; margin-bottom: 12px; box-sizing: border-box; }
         .sentence-input:focus { border-color: #7c2d12; }
         .sentence-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
@@ -8043,6 +8057,179 @@ const HSK2_VOCAB = [
         }
     };
 
+    // 隐形纠错 + 反思 A/B 新增文案（2026-10-23）
+    const I18N_NEW8 = {
+        'Chinese': {
+            'reading.dont_understand':'🤔 我不明白',
+            'reflection.title_chat':'🤔 错误反思',
+            'chat.not_meaning':'这不是我想表达的意思',
+            'chat.not_meaning_ph':'用你的母语写下你想表达的意思…',
+            'chat.not_meaning_confirm':'✅ 确认，重新纠正',
+            'chat.not_meaning_cancel':'取消',
+            'reflection.opt_a':'A. 现在明白错的原因',
+            'reflection.opt_b':'B. 不明白为什么错',
+            'reflection.unclear_label':'哪里不明白？',
+            'reflection.unclear_ph':'写一写哪里不明白，可以用母语…',
+            'reflection.need_unclear':'请先写下哪里不明白'
+        },
+        'English': {
+            'reading.dont_understand':'🤔 I don\'t understand',
+            'reflection.title_chat':'🤔 Mistake Reflection',
+            'chat.not_meaning':"That's not what I meant",
+            'chat.not_meaning_ph':'Write what you wanted to say in your language…',
+            'chat.not_meaning_confirm':'✅ Confirm & re-correct',
+            'chat.not_meaning_cancel':'Cancel',
+            'reflection.opt_a':'A. I understand why it was wrong now',
+            'reflection.opt_b':"B. I don't understand why it was wrong",
+            'reflection.unclear_label':"What don't you understand?",
+            'reflection.unclear_ph':"Write what you don't understand (you can use your language)…",
+            'reflection.need_unclear':"Please write what you don't understand first"
+        },
+        'Japanese': {
+            'reading.dont_understand':'🤔 わかりません',
+            'reflection.title_chat':'🤔 間違いの振り返り',
+            'chat.not_meaning':'これは私が言いたい意味ではありません',
+            'chat.not_meaning_ph':'言いたかったことを母語で書いてください…',
+            'chat.not_meaning_confirm':'✅ 確定して再訂正',
+            'chat.not_meaning_cancel':'キャンセル',
+            'reflection.opt_a':'A. 間違えた理由がわかった',
+            'reflection.opt_b':'B. なぜ間違えたかわからない',
+            'reflection.unclear_label':'どこがわからない？',
+            'reflection.unclear_ph':'わからないところを書いて（母語でもOK）…',
+            'reflection.need_unclear':'まず、わからないところを書いてください'
+        },
+        'Korean': {
+            'reading.dont_understand':'🤔 이해가 안 돼요',
+            'reflection.title_chat':'🤔 오답 반성',
+            'chat.not_meaning':'이건 제가 말하려던 뜻이 아니에요',
+            'chat.not_meaning_ph':'하고 싶었던 말을 모국어로 쓰세요…',
+            'chat.not_meaning_confirm':'✅ 확인 후 재교정',
+            'chat.not_meaning_cancel':'취소',
+            'reflection.opt_a':'A. 이제 왜 틀렸는지 알겠어요',
+            'reflection.opt_b':'B. 왜 틀렸는지 모르겠어요',
+            'reflection.unclear_label':'어디가 이해가 안 되나요?',
+            'reflection.unclear_ph':'이해가 안 되는 부분을 쓰세요 (모국어 가능)…',
+            'reflection.need_unclear':'이해가 안 되는 부분을 먼저 쓰세요'
+        },
+        'French': {
+            'reading.dont_understand':'🤔 Je ne comprends pas',
+            'reflection.title_chat':'🤔 Réflexion sur l\'erreur',
+            'chat.not_meaning':"Ce n'est pas ce que je voulais dire",
+            'chat.not_meaning_ph':'Écrivez ce que vous vouliez dire dans votre langue…',
+            'chat.not_meaning_confirm':'✅ Confirmer et re-corriger',
+            'chat.not_meaning_cancel':'Annuler',
+            'reflection.opt_a':"A. Je comprends maintenant pourquoi c'était faux",
+            'reflection.opt_b':"B. Je ne comprends pas pourquoi c'était faux",
+            'reflection.unclear_label':"Qu'est-ce que vous ne comprenez pas ?",
+            'reflection.unclear_ph':"Écrivez ce que vous ne comprenez pas (dans votre langue)…",
+            'reflection.need_unclear':"Écrivez d'abord ce que vous ne comprenez pas"
+        },
+        'German': {
+            'reading.dont_understand':'🤔 Ich verstehe nicht',
+            'reflection.title_chat':'🤔 Fehler-Reflexion',
+            'chat.not_meaning':'Das habe ich nicht gemeint',
+            'chat.not_meaning_ph':'Schreib in deiner Sprache, was du sagen wolltest…',
+            'chat.not_meaning_confirm':'✅ Bestätigen & neu korrigieren',
+            'chat.not_meaning_cancel':'Abbrechen',
+            'reflection.opt_a':'A. Ich verstehe jetzt, warum es falsch war',
+            'reflection.opt_b':'B. Ich verstehe nicht, warum es falsch war',
+            'reflection.unclear_label':'Was verstehst du nicht?',
+            'reflection.unclear_ph':'Schreib, was du nicht verstehst (auch in deiner Sprache)…',
+            'reflection.need_unclear':'Schreib zuerst, was du nicht verstehst'
+        },
+        'Spanish': {
+            'reading.dont_understand':'🤔 No entiendo',
+            'reflection.title_chat':'🤔 Reflexión sobre el error',
+            'chat.not_meaning':'Eso no es lo que quería decir',
+            'chat.not_meaning_ph':'Escribe en tu idioma lo que querías decir…',
+            'chat.not_meaning_confirm':'✅ Confirmar y volver a corregir',
+            'chat.not_meaning_cancel':'Cancelar',
+            'reflection.opt_a':'A. Ahora entiendo por qué estaba mal',
+            'reflection.opt_b':'B. No entiendo por qué estaba mal',
+            'reflection.unclear_label':'¿Qué no entiendes?',
+            'reflection.unclear_ph':'Escribe lo que no entiendes (puede ser en tu idioma)…',
+            'reflection.need_unclear':'Primero escribe lo que no entiendes'
+        },
+        'Russian': {
+            'reading.dont_understand':'🤔 Я не понимаю',
+            'reflection.title_chat':'🤔 Анализ ошибки',
+            'chat.not_meaning':'Я имел(а) в виду не это',
+            'chat.not_meaning_ph':'Напишите на родном языке, что вы хотели сказать…',
+            'chat.not_meaning_confirm':'✅ Подтвердить и исправить заново',
+            'chat.not_meaning_cancel':'Отмена',
+            'reflection.opt_a':'A. Теперь я понимаю, почему ошибся(лась)',
+            'reflection.opt_b':'B. Я не понимаю, почему это ошибка',
+            'reflection.unclear_label':'Что непонятно?',
+            'reflection.unclear_ph':'Напишите, что непонятно (можно на родном языке)…',
+            'reflection.need_unclear':'Сначала напишите, что непонятно'
+        },
+        'Thai': {
+            'reading.dont_understand':'🤔 ฉันไม่เข้าใจ',
+            'reflection.title_chat':'🤔 ทบทวนข้อผิดพลาด',
+            'chat.not_meaning':'นี่ไม่ใช่สิ่งที่ฉันอยากจะพูด',
+            'chat.not_meaning_ph':'เขียนสิ่งที่อยากพูดเป็นภาษาแม่…',
+            'chat.not_meaning_confirm':'✅ ยืนยันและแก้ใหม่',
+            'chat.not_meaning_cancel':'ยกเลิก',
+            'reflection.opt_a':'A. ตอนนี้เข้าใจแล้วว่าทำไมผิด',
+            'reflection.opt_b':'B. ไม่เข้าใจว่าทำไมผิด',
+            'reflection.unclear_label':'ไม่เข้าใจตรงไหน?',
+            'reflection.unclear_ph':'เขียนส่วนที่ไม่เข้าใจ (ใช้ภาษาแม่ได้)…',
+            'reflection.need_unclear':'กรุณาเขียนส่วนที่ไม่เข้าใจก่อน'
+        },
+        'Italian': {
+            'reading.dont_understand':'🤔 Non capisco',
+            'reflection.title_chat':'🤔 Riflessione sull\'errore',
+            'chat.not_meaning':"Non è quello che volevo dire",
+            'chat.not_meaning_ph':'Scrivi nella tua lingua cosa volevi dire…',
+            'chat.not_meaning_confirm':'✅ Conferma e correggi di nuovo',
+            'chat.not_meaning_cancel':'Annulla',
+            'reflection.opt_a':'A. Ora capisco perché era sbagliato',
+            'reflection.opt_b':'B. Non capisco perché era sbagliato',
+            'reflection.unclear_label':'Cosa non capisci?',
+            'reflection.unclear_ph':'Scrivi cosa non capisci (puoi usare la tua lingua)…',
+            'reflection.need_unclear':'Scrivi prima cosa non capisci'
+        },
+        'Vietnamese': {
+            'reading.dont_understand':'🤔 Tôi không hiểu',
+            'reflection.title_chat':'🤔 Suy ngẫm về lỗi sai',
+            'chat.not_meaning':'Đây không phải ý tôi muốn nói',
+            'chat.not_meaning_ph':'Viết điều bạn muốn nói bằng tiếng mẹ đẻ…',
+            'chat.not_meaning_confirm':'✅ Xác nhận và sửa lại',
+            'chat.not_meaning_cancel':'Hủy',
+            'reflection.opt_a':'A. Giờ tôi đã hiểu vì sao sai',
+            'reflection.opt_b':'B. Tôi không hiểu vì sao sai',
+            'reflection.unclear_label':'Bạn không hiểu chỗ nào?',
+            'reflection.unclear_ph':'Viết chỗ bạn không hiểu (có thể dùng tiếng mẹ đẻ)…',
+            'reflection.need_unclear':'Hãy viết chỗ bạn không hiểu trước'
+        },
+        'Indonesian': {
+            'reading.dont_understand':'🤔 Saya tidak mengerti',
+            'reflection.title_chat':'🤔 Refleksi kesalahan',
+            'chat.not_meaning':'Bukan itu maksud saya',
+            'chat.not_meaning_ph':'Tulis maksudmu dalam bahasa ibumu…',
+            'chat.not_meaning_confirm':'✅ Konfirmasi & perbaiki ulang',
+            'chat.not_meaning_cancel':'Batal',
+            'reflection.opt_a':'A. Sekarang saya paham kenapa salah',
+            'reflection.opt_b':'B. Saya tidak paham kenapa salah',
+            'reflection.unclear_label':'Bagian mana yang tidak paham?',
+            'reflection.unclear_ph':'Tulis bagian yang tidak paham (boleh bahasa ibu)…',
+            'reflection.need_unclear':'Tulis dulu bagian yang tidak paham'
+        },
+        'Slovak': {
+            'reading.dont_understand':'🤔 Nerozumiem',
+            'reflection.title_chat':'🤔 Reflexia chyby',
+            'chat.not_meaning':'To som nemyslel/a',
+            'chat.not_meaning_ph':'Napíš v rodnom jazyku, čo si chcel/a povedať…',
+            'chat.not_meaning_confirm':'✅ Potvrdiť a opraviť znova',
+            'chat.not_meaning_cancel':'Zrušiť',
+            'reflection.opt_a':'A. Už chápem, prečo to bolo zle',
+            'reflection.opt_b':'B. Nerozumiem, prečo to bolo zle',
+            'reflection.unclear_label':'Čomu nerozumieš?',
+            'reflection.unclear_ph':'Napíš, čomu nerozumieš (môžeš v rodnom jazyku)…',
+            'reflection.need_unclear':'Najprv napíš, čomu nerozumieš'
+        }
+    };
+
     // 中文原文对照表（用于双语显示和回退）
     const ZH = {
         'app.title':'汉语学习助手 | 多语言翻译练习 + 错句本',
@@ -10805,7 +10992,7 @@ const HSK2_VOCAB = [
             'dict_reflect.quiz_title':'🎯 抽查意思：选出「{word}」的正确翻译', 'dict_reflect.quiz_ok':'✅ 选对了，算听懂', 'dict_reflect.quiz_bad':'❌ 选错了，未掌握意思',
             'practice.finished_auto_next':'✅ 已完成，即将进入下一个', 'practice.correct_round_auto':'✅ 正确！（{done}/{total}）即将换一句',
             'mode.practice':'📚 练习模式',
-            'dict_test.title':'🎧 听打测试', 'dict_test.vocab_level':'📖 词语等级：', 'dict_test.grammar_level':'📐 语法等级：', 'dict_test.rate':'🗣️ 语速', 'dict_test.start':'🎧 直接开始测试', 'dict_test.done':'🎉 听打测试完成', 'dict_test.correct_enter':'✅ 正确！按回车进入下一个', 'dict_test.wrong_enter':'❌ 按回车进入下一个'
+            'dict_test.title':'🎧 听打测试', 'dict_test.vocab_level':'📖 词语等级：', 'dict_test.grammar_level':'📐 语法等级：', 'dict_test.rate':'🗣️ 语速', 'dict_test.start':'🎧 直接开始测试', 'dict_test.done':'🎉 听打测试完成', 'dict_test.done_wrong':'听打测试完成，有 {n} 处错误，继续加油！', 'dict_test.correct_enter':'✅ 正确！按回车进入下一个', 'dict_test.wrong_enter':'❌ 按回车进入下一个'
         },
         'English': {
             'chat.confirm_title':'✅ I think you mean:', 'chat.confirm_yes':"Yes, that's what I mean", 'chat.confirm_no':"No, I'll write it in my language",
@@ -10813,7 +11000,7 @@ const HSK2_VOCAB = [
             'dict_reflect.quiz_title':'🎯 Check meaning: choose the correct translation of 「{word}」', 'dict_reflect.quiz_ok':'✅ Correct — counts as understood', 'dict_reflect.quiz_bad':'❌ Wrong — meaning not mastered',
             'practice.finished_auto_next':'✅ Done! Going to the next one...', 'practice.correct_round_auto':'✅ Correct! ({done}/{total}) New sentence coming up...',
             'mode.practice':'📚 Practice Mode',
-            'dict_test.title':'🎧 Listening Test', 'dict_test.vocab_level':'📖 Vocabulary Level:', 'dict_test.grammar_level':'📐 Grammar Level:', 'dict_test.rate':'🗣️ Speed', 'dict_test.start':'🎧 Start Test', 'dict_test.done':'🎉 Listening test completed', 'dict_test.correct_enter':'✅ Correct! Press Enter for the next one', 'dict_test.wrong_enter':'❌ Press Enter for the next one'
+            'dict_test.title':'🎧 Listening Test', 'dict_test.vocab_level':'📖 Vocabulary Level:', 'dict_test.grammar_level':'📐 Grammar Level:', 'dict_test.rate':'🗣️ Speed', 'dict_test.start':'🎧 Start Test', 'dict_test.done':'🎉 Listening test completed', 'dict_test.done_wrong':'Listening test finished with {n} mistakes. Keep going!', 'dict_test.correct_enter':'✅ Correct! Press Enter for the next one', 'dict_test.wrong_enter':'❌ Press Enter for the next one'
         },
         'Japanese': {
             'chat.confirm_title':'✅ あなたが言いたいのは：', 'chat.confirm_yes':'はい、その意味です', 'chat.confirm_no':'いいえ、母語で書きます',
@@ -10909,17 +11096,19 @@ const HSK2_VOCAB = [
     const I18N_NEW2 = {
         'Chinese': {
             'dict_test.start_vocab':'🎧 词语听打测试', 'dict_test.start_grammar':'🎧 语法听打测试',
-            'reading.title_short':'📰 短文阅读', 'reading.selection_hint':'💡 点击选中词语，拖拽选中句子，然后点「翻译」查看意思',
+            'reading.title_short':'📰 短文阅读', 'reading.selection_hint':'💡 点击词语直接翻译（可多点几个词）；点击句子直接翻译；按住拖动可选中连续词语或句子',
             'reading.culture_notes':'📖 文化注释', 'reading.abc_title':'🤔 这句话/这段话里有不认识的词吗？',
             'reading.abc_a':'A · 每个词语都认识，但是合起来不认识', 'reading.abc_b':'B · 有几个词语不认识', 'reading.abc_c':'C · 误点错了，都认识',
-            'reading.abc_b_pick':'请点击你不认识的词语', 'reading.abc_b_done':'✅ 完成', 'reading.abc_cancel':'取消', 'reading.dim_marked':'已标记为形—义未掌握', 'reading.generating_hint':'⏳ AI 正在写文章，请稍候…'
+            'reading.abc_b_pick':'请点击你不认识的词语', 'reading.abc_b_done':'✅ 完成', 'reading.abc_cancel':'取消', 'reading.abc_c_done':'👍 好的，已取消翻译', 'reading.dim_marked':'已标记为形—义未掌握', 'reading.generating_hint':'⏳ AI 正在写文章，请稍候…',
+            'reading.sent_which_word':'这个句子中哪个词你不明白？', 'reading.sent_note_ph':'关于这个句子，你哪里不明白？（可选）', 'reading.sent_skip':'跳过', 'reading.sent_done':'完成'
         },
         'English': {
             'dict_test.start_vocab':'🎧 Vocabulary Listening Test', 'dict_test.start_grammar':'🎧 Grammar Listening Test',
-            'reading.title_short':'📰 Reading', 'reading.selection_hint':'💡 Click a word to select it, drag to select a sentence, then tap "Translate"',
+            'reading.title_short':'📰 Reading', 'reading.selection_hint':'💡 Click a word to translate it (you can click more words); click a sentence to translate it; hold and drag to select consecutive words or sentences',
             'reading.culture_notes':'📖 Culture Notes', 'reading.abc_title':"🤔 Any words you don't know here?",
             'reading.abc_a':'A · I know every word, but not together', 'reading.abc_b':'B · Some words are new to me', 'reading.abc_c':'C · Mis-tapped, I know them all',
-            'reading.abc_b_pick':"Tap the words you don't know", 'reading.abc_b_done':'✅ Done', 'reading.abc_cancel':'Cancel', 'reading.dim_marked':'Marked as form-meaning not mastered', 'reading.generating_hint':'⏳ AI is writing the article, please wait…'
+            'reading.abc_b_pick':"Tap the words you don't know", 'reading.abc_b_done':'✅ Done', 'reading.abc_cancel':'Cancel', 'reading.dim_marked':'Marked as form-meaning not mastered', 'reading.generating_hint':'⏳ AI is writing the article, please wait…',
+            'reading.sent_which_word':"Which word(s) in this sentence don't you understand?", 'reading.sent_note_ph':"What don't you understand about this sentence? (optional)", 'reading.sent_skip':'Skip', 'reading.sent_done':'Done'
         },
         'Japanese': {
             'dict_test.start_vocab':'🎧 語彙リスニングテスト', 'dict_test.start_grammar':'🎧 文法リスニングテスト',
@@ -11086,7 +11275,7 @@ const HSK2_VOCAB = [
             'sentence.start_vocab':'📖 词语造句', 'sentence.start_grammar':'📐 语法造句',
             'sentence.input_ph':'用「{item}」造一个句子...', 'sentence.grammar_ph':'用语法「{item}」造一个句子...',
             'sentence.submit':'✓ 提交造句', 'sentence.skip':'不会，跳过', 'sentence.next':'⏩ 下一个',
-            'sentence.checking':'⏳ AI 正在批改...', 'sentence.done':'🎉 造句练习完成！',
+            'sentence.checking':'⏳ AI 正在批改...', 'sentence.done':'🎉 造句练习完成！', 'sentence.done_wrong':'造句练习完成，有 {n} 个句子需要订正',
             'sentence.no_text':'请先写句子', 'sentence.need_contains':'句子必须包含「{item}」',
             'sentence.check_fail':'⚠️ 批改失败，请检查 API Key',
             'sentence.grammar_point':'📐 语法（AI改动的语法/句式）', 'sentence.translation':'🌐 母语翻译',
@@ -11141,7 +11330,7 @@ const HSK2_VOCAB = [
             'sentence.start_vocab':'📖 Word Sentence-Making', 'sentence.start_grammar':'📐 Grammar Sentence-Making',
             'sentence.input_ph':'Make a sentence with "{item}"...', 'sentence.grammar_ph':'Make a sentence with the pattern "{item}"...',
             'sentence.submit':'✓ Submit', 'sentence.skip':'Skip', 'sentence.next':'⏩ Next',
-            'sentence.checking':'⏳ AI is checking...', 'sentence.done':'🎉 Sentence-making practice finished!',
+            'sentence.checking':'⏳ AI is checking...', 'sentence.done':'🎉 Sentence-making practice finished!', 'sentence.done_wrong':'Sentence practice finished with {n} sentences to correct',
             'sentence.no_text':'Please write a sentence first', 'sentence.need_contains':'The sentence must contain "{item}"',
             'sentence.check_fail':'⚠️ Checking failed, please check the API Key',
             'sentence.grammar_point':'📐 Grammar (the part AI corrected)', 'sentence.translation':'🌐 Translation',
@@ -11750,10 +11939,10 @@ const HSK2_VOCAB = [
     function t(key) {
         const lang = targetLangSelect ? targetLangSelect.value : 'English';
         const dict = I18N[lang];
-        const extra = Object.assign({}, I18N_EXTRA['Chinese'] || {}, I18N_EXTRA2['Chinese'] || {}, I18N_EXTRA3['Chinese'] || {}, (typeof I18N_GAP !== 'undefined' && I18N_GAP['Chinese']) || {}, (typeof I18N_NEW !== 'undefined' && I18N_NEW['Chinese']) || {}, (typeof I18N_NEW2 !== 'undefined' && I18N_NEW2['Chinese']) || {}, (typeof I18N_NEW3 !== 'undefined' && I18N_NEW3['Chinese']) || {}, (typeof I18N_NEW4 !== 'undefined' && I18N_NEW4['Chinese']) || {}, (typeof I18N_NEW5 !== 'undefined' && I18N_NEW5['Chinese']) || {}, (typeof I18N_NEW6 !== 'undefined' && I18N_NEW6['Chinese']) || {}, (typeof I18N_NEW7 !== 'undefined' && I18N_NEW7['Chinese']) || {}, I18N_EXTRA[lang] || {}, I18N_EXTRA2[lang] || {}, I18N_EXTRA3[lang] || {}, (typeof I18N_GAP !== 'undefined' && I18N_GAP[lang]) || {}, (typeof I18N_NEW !== 'undefined' && I18N_NEW[lang]) || {}, (typeof I18N_NEW2 !== 'undefined' && I18N_NEW2[lang]) || {}, (typeof I18N_NEW3 !== 'undefined' && I18N_NEW3[lang]) || {}, (typeof I18N_NEW4 !== 'undefined' && I18N_NEW4[lang]) || {}, (typeof I18N_NEW5 !== 'undefined' && I18N_NEW5[lang]) || {}, (typeof I18N_NEW6 !== 'undefined' && I18N_NEW6[lang]) || {}, (typeof I18N_NEW7 !== 'undefined' && I18N_NEW7[lang]) || {});
+        const extra = Object.assign({}, I18N_EXTRA['Chinese'] || {}, I18N_EXTRA2['Chinese'] || {}, I18N_EXTRA3['Chinese'] || {}, (typeof I18N_GAP !== 'undefined' && I18N_GAP['Chinese']) || {}, (typeof I18N_NEW !== 'undefined' && I18N_NEW['Chinese']) || {}, (typeof I18N_NEW2 !== 'undefined' && I18N_NEW2['Chinese']) || {}, (typeof I18N_NEW3 !== 'undefined' && I18N_NEW3['Chinese']) || {}, (typeof I18N_NEW4 !== 'undefined' && I18N_NEW4['Chinese']) || {}, (typeof I18N_NEW5 !== 'undefined' && I18N_NEW5['Chinese']) || {}, (typeof I18N_NEW6 !== 'undefined' && I18N_NEW6['Chinese']) || {}, (typeof I18N_NEW7 !== 'undefined' && I18N_NEW7['Chinese']) || {}, (typeof I18N_NEW8 !== 'undefined' && I18N_NEW8['Chinese']) || {}, I18N_EXTRA[lang] || {}, I18N_EXTRA2[lang] || {}, I18N_EXTRA3[lang] || {}, (typeof I18N_GAP !== 'undefined' && I18N_GAP[lang]) || {}, (typeof I18N_NEW !== 'undefined' && I18N_NEW[lang]) || {}, (typeof I18N_NEW2 !== 'undefined' && I18N_NEW2[lang]) || {}, (typeof I18N_NEW3 !== 'undefined' && I18N_NEW3[lang]) || {}, (typeof I18N_NEW4 !== 'undefined' && I18N_NEW4[lang]) || {}, (typeof I18N_NEW5 !== 'undefined' && I18N_NEW5[lang]) || {}, (typeof I18N_NEW6 !== 'undefined' && I18N_NEW6[lang]) || {}, (typeof I18N_NEW7 !== 'undefined' && I18N_NEW7[lang]) || {}, (typeof I18N_NEW8 !== 'undefined' && I18N_NEW8[lang]) || {});
         const voice = I18N_VOICE[lang] || I18N_VOICE['Chinese'] || {};
         const translated = (dict && dict[key]) ? dict[key] : (extra[key] || voice[key] || '');
-        const chinese = (ZH && ZH[key]) ? ZH[key] : ((I18N_EXTRA['Chinese'] && I18N_EXTRA['Chinese'][key]) || (I18N_EXTRA2['Chinese'] && I18N_EXTRA2['Chinese'][key]) || (I18N_EXTRA3['Chinese'] && I18N_EXTRA3['Chinese'][key]) || (typeof I18N_GAP !== 'undefined' && I18N_GAP['Chinese'] && I18N_GAP['Chinese'][key]) || (typeof I18N_NEW !== 'undefined' && I18N_NEW['Chinese'] && I18N_NEW['Chinese'][key]) || (typeof I18N_NEW2 !== 'undefined' && I18N_NEW2['Chinese'] && I18N_NEW2['Chinese'][key]) || (typeof I18N_NEW3 !== 'undefined' && I18N_NEW3['Chinese'] && I18N_NEW3['Chinese'][key]) || (typeof I18N_NEW4 !== 'undefined' && I18N_NEW4['Chinese'] && I18N_NEW4['Chinese'][key]) || (typeof I18N_NEW5 !== 'undefined' && I18N_NEW5['Chinese'] && I18N_NEW5['Chinese'][key]) || (typeof I18N_NEW6 !== 'undefined' && I18N_NEW6['Chinese'] && I18N_NEW6['Chinese'][key]) || (typeof I18N_NEW7 !== 'undefined' && I18N_NEW7['Chinese'] && I18N_NEW7['Chinese'][key]) || (I18N_VOICE['Chinese'] && I18N_VOICE['Chinese'][key]) || '');
+        const chinese = (ZH && ZH[key]) ? ZH[key] : ((I18N_EXTRA['Chinese'] && I18N_EXTRA['Chinese'][key]) || (I18N_EXTRA2['Chinese'] && I18N_EXTRA2['Chinese'][key]) || (I18N_EXTRA3['Chinese'] && I18N_EXTRA3['Chinese'][key]) || (typeof I18N_GAP !== 'undefined' && I18N_GAP['Chinese'] && I18N_GAP['Chinese'][key]) || (typeof I18N_NEW !== 'undefined' && I18N_NEW['Chinese'] && I18N_NEW['Chinese'][key]) || (typeof I18N_NEW2 !== 'undefined' && I18N_NEW2['Chinese'] && I18N_NEW2['Chinese'][key]) || (typeof I18N_NEW3 !== 'undefined' && I18N_NEW3['Chinese'] && I18N_NEW3['Chinese'][key]) || (typeof I18N_NEW4 !== 'undefined' && I18N_NEW4['Chinese'] && I18N_NEW4['Chinese'][key]) || (typeof I18N_NEW5 !== 'undefined' && I18N_NEW5['Chinese'] && I18N_NEW5['Chinese'][key]) || (typeof I18N_NEW6 !== 'undefined' && I18N_NEW6['Chinese'] && I18N_NEW6['Chinese'][key]) || (typeof I18N_NEW7 !== 'undefined' && I18N_NEW7['Chinese'] && I18N_NEW7['Chinese'][key]) || (typeof I18N_NEW8 !== 'undefined' && I18N_NEW8['Chinese'] && I18N_NEW8['Chinese'][key]) || (I18N_VOICE['Chinese'] && I18N_VOICE['Chinese'][key]) || '');
         if (!translated) return chinese || key;
         return translated;
     }
@@ -11899,6 +12088,9 @@ const HSK2_VOCAB = [
         const sgl = document.getElementById('sentenceGrammarLevelLabel'); if(sgl) sgl.textContent = t('sentence.grammar_level');
         const ssv = document.getElementById('startSentenceVocabBtn'); if(ssv) ssv.textContent = t('sentence.start_vocab');
         const ssg = document.getElementById('startSentenceGrammarBtn'); if(ssg) ssg.textContent = t('sentence.start_grammar');
+        // 切换母语后：重新渲染当前造句提示语（输入框占位符等），并让所有「用法」解释框失效，下次点击按新语言重新生成
+        if(window._sentenceState && window._sentenceState.current) renderSentenceStage(window._sentenceState.current);
+        document.querySelectorAll('.corr-explain-box').forEach(function(box){ if(box.dataset.loaded){ delete box.dataset.loaded; box.style.display = 'none'; } });
         // 阅读模式静态标签
         const rpt = document.getElementById('readingPanelTitle'); if(rpt) rpt.textContent = t('reading.title_short');
         const rsub = document.getElementById('readingSubtitle'); if(rsub) rsub.textContent = t('reading.subtitle');
@@ -11906,6 +12098,9 @@ const HSK2_VOCAB = [
         const rmw = document.getElementById('readingModeWordBtn'); if(rmw) rmw.textContent = t('reading.mode_word');
         const rms = document.getElementById('readingModeSentenceBtn'); if(rms) rms.textContent = t('reading.mode_sentence');
         const rbtn = document.getElementById('readingGenerateBtn'); if(rbtn) rbtn.textContent = readingHistory.length > 0 ? t('reading.regenerate') : t('reading.generate');
+        if(readingSelectedItems && readingSelectedItems.length) renderReadingSelectionBar();
+        const _tip2 = document.getElementById('readingTransTooltip');
+        if(_tip2 && _tip2.style.display === 'block' && typeof readingTipAnchor !== 'undefined' && readingTipAnchor) showReadingActionTooltip(readingTipAnchor);
         const rpy = document.getElementById('readingPinyinBtn'); if(rpy) rpy.textContent = readingShowPinyin ? t('reading.pinyin_hide') : t('reading.pinyin');
         const rhist = document.getElementById('readingHistoryTitle'); if(rhist) rhist.textContent = t('reading.history');
         const rempty = document.getElementById('readingEmpty'); if(rempty && !currentReading) rempty.textContent = t('reading.empty');
@@ -12851,6 +13046,7 @@ const HSK2_VOCAB = [
     let readingWordDrag = null;      // 词语/短语拖选状态
     let readingSuppressClick = false;
     let readingSessionUnknowns = []; // 当前这篇标记为“不懂”的条目
+    let readingClickedSentences = []; // 本次阅读中点过的句子（结束阅读时逐个询问）
     let currentReadingAnalyzed = false;
     let readingTrack = { unknownIn: {}, knownIn: {}, unknownOut: {} }; // 阅读词汇追踪累加统计
     function readingHistoryKey(){ return 'HSK_READING_HISTORY_' + currentUser; }
@@ -12886,9 +13082,22 @@ const HSK2_VOCAB = [
         if(added) showToast(t('reading.marked_unknown'));
     }
     window._readingUnknownSel = markReadingSelectionUnknown;
-    function finishReadingAnalysis(){
+    async function finishReadingAnalysis(){
         if(!currentReading){ showToast(t('reading.no_article')); return; }
         if(currentReadingAnalyzed){ showToast(t('reading.analyzed_already')); return; }
+        // 结束阅读：先针对本次点过的句子逐个问「哪个词不懂 / 哪里不明白」
+        const sentenceQuestions = [];
+        for(const sent of readingClickedSentences.slice()){
+            const ans = await askReadingSentenceUnknowns(sent);
+            if(ans && (ans.unknownWords.length || ans.note)) sentenceQuestions.push({ sentence: sent, unknownWords: ans.unknownWords || [], note: ans.note || '' });
+        }
+        readingClickedSentences = [];
+        for(const sq of sentenceQuestions){
+            for(const w of sq.unknownWords){
+                const key = 'word|' + w;
+                if(!readingSessionUnknowns.some(u => (u.type + '|' + u.text) === key)) readingSessionUnknowns.push({ text: w, type: 'word', level: vocabLevelOfWord(w) || 0, sentence: sq.sentence });
+            }
+        }
         const content = String(currentReading.content || '');
         const counts = matchVocabInText(content);
         const unknownInSet = new Set();
@@ -12940,6 +13149,9 @@ const HSK2_VOCAB = [
                 if(!pos || isContentWordPos(pos)) continue;
             }
             reflectionItems.push({ mode: '阅读', text: u.sentence || u.text, note: '你在这篇文章里标了“不懂”' });
+        }
+        for(const sq of sentenceQuestions){
+            if(sq.note) reflectionItems.push({ mode: '阅读', text: sq.sentence, note: '关于这个句子，你的疑问：' + sq.note });
         }
         for(const u of readingSessionUnknowns){
             if(u.type === 'word') recordGapItem(u.text, u.text, u.sentence || u.text, '阅读', '阅读中标了「不懂」', '');
@@ -13047,20 +13259,20 @@ const HSK2_VOCAB = [
     function updateReadingLevelHint(level){ const el=document.getElementById('readingLevelHint'); if(!el) return; const colors={1:'#2e7d32',2:'#ef6c00',3:'#1565c0',4:'#7b1fa2',5:'#c2185b',6:'#00695c'}; let html='<span style="color:#8a7a5a;">颜色标等级：</span>'; for(let i=1;i<=6;i++){ html+='<span style="display:inline-flex;align-items:center;margin-right:6px;"><span style="width:10px;height:10px;border-radius:3px;background:'+colors[i]+';display:inline-block;margin-right:3px;"></span>'+vocabLevelLabel(i)+'</span>'; } html+='<span style="color:#94a3b8;">· 无色=超纲词 · 目标比例：本等级词约85% + 高一级新词约10%，更高级超纲词≤3个</span>'; el.innerHTML=html; }
     // 阅读话题（学生可选自己喜欢的话题，默认当天/前一天新闻）
     const READING_TOPICS = [
-        { v:'football', labelKey:'reading.topic_football', prompt:'主题必须围绕足球：比赛、球员、球队、世界杯、球迷故事等，像真实的体育报道。' },
-        { v:'photography', labelKey:'reading.topic_photography', prompt:'主题必须围绕摄影：拍照技巧、相机/手机摄影、著名照片背后的故事、摄影师故事等。' },
-        { v:'food', labelKey:'reading.topic_food', prompt:'主题必须围绕美食：中国或世界各地的特色菜、小吃、烹饪故事、美食探店等。' },
-        { v:'travel', labelKey:'reading.topic_travel', prompt:'主题必须围绕旅行：旅行目的地、旅途见闻、旅行攻略、人文风景等。' },
-        { v:'tech', labelKey:'reading.topic_tech', prompt:'主题必须围绕科技：人工智能、手机、机器人、航天、互联网新产品等。' },
-        { v:'animals', labelKey:'reading.topic_animals', prompt:'主题必须围绕动物：大熊猫等野生动物、宠物故事、动物保护等。' },
-        { v:'music', labelKey:'reading.topic_music', prompt:'主题必须围绕音乐：歌手、乐器、音乐节、歌曲背后的故事等。' },
-        { v:'movies', labelKey:'reading.topic_movies', prompt:'主题必须围绕电影：热门电影、导演、演员、电影节、经典影片故事等。' },
-        { v:'history', labelKey:'reading.topic_history', prompt:'主题必须围绕历史：中国历史故事、世界历史趣闻、文物考古等。' },
-        { v:'health', labelKey:'reading.topic_health', prompt:'主题必须围绕健康：运动健身、健康饮食、作息习惯、心理健康等。' },
-        { v:'fashion', labelKey:'reading.topic_fashion', prompt:'主题必须围绕时尚：穿搭、设计、潮流趋势、传统服饰等。' },
-        { v:'games', labelKey:'reading.topic_games', prompt:'主题必须围绕游戏：电子竞技、热门游戏、游戏文化、游戏设计等。' },
-        { v:'education', labelKey:'reading.topic_education', prompt:'主题必须围绕教育：学校生活、学习方法、考试、留学等。' },
-        { v:'environment', labelKey:'reading.topic_environment', prompt:'主题必须围绕环保：环境保护、低碳生活、新能源、垃圾分类等。' }
+        { v:'football', labelKey:'reading.topic_football', check:'足球 比赛 球员 球队 世界杯 球迷 教练 球门 进球 球场 冠军', prompt:'主题必须围绕足球：比赛、球员、球队、世界杯、球迷故事等，像真实的体育报道。' },
+        { v:'photography', labelKey:'reading.topic_photography', check:'摄影 拍照 相机 照片 摄影师 镜头 手机', prompt:'主题必须围绕摄影：拍照技巧、相机/手机摄影、著名照片背后的故事、摄影师故事等。' },
+        { v:'food', labelKey:'reading.topic_food', check:'美食 菜 小吃 烹饪 做饭 厨师 餐厅 味道 好吃', prompt:'主题必须围绕美食：中国或世界各地的特色菜、小吃、烹饪故事、美食探店等。' },
+        { v:'travel', labelKey:'reading.topic_travel', check:'旅行 旅游 景点 游客 风景 攻略 出发 飞机 火车 酒店', prompt:'主题必须围绕旅行：旅行目的地、旅途见闻、旅行攻略、人文风景等。' },
+        { v:'tech', labelKey:'reading.topic_tech', check:'科技 人工智能 手机 机器人 航天 互联网 电脑 软件 产品', prompt:'主题必须围绕科技：人工智能、手机、机器人、航天、互联网新产品等。' },
+        { v:'animals', labelKey:'reading.topic_animals', check:'动物 熊猫 狗 猫 鸟 保护 宠物 动物园 野生动物', prompt:'主题必须围绕动物：大熊猫等野生动物、宠物故事、动物保护等。' },
+        { v:'music', labelKey:'reading.topic_music', check:'音乐 歌 歌手 乐器 演唱会 歌曲 乐队 钢琴', prompt:'主题必须围绕音乐：歌手、乐器、音乐节、歌曲背后的故事等。' },
+        { v:'movies', labelKey:'reading.topic_movies', check:'电影 导演 演员 影片 上映 影院 票房 角色 剧情', prompt:'主题必须围绕电影：热门电影、导演、演员、电影节、经典影片故事等。' },
+        { v:'history', labelKey:'reading.topic_history', check:'历史 古代 朝代 皇帝 文物 考古 博物馆 故事 传统', prompt:'主题必须围绕历史：中国历史故事、世界历史趣闻、文物考古等。' },
+        { v:'health', labelKey:'reading.topic_health', check:'健康 运动 健身 饮食 睡眠 作息 心理 身体 医生', prompt:'主题必须围绕健康：运动健身、健康饮食、作息习惯、心理健康等。' },
+        { v:'fashion', labelKey:'reading.topic_fashion', check:'时尚 穿搭 衣服 设计 潮流 服饰 颜色 风格', prompt:'主题必须围绕时尚：穿搭、设计、潮流趋势、传统服饰等。' },
+        { v:'games', labelKey:'reading.topic_games', check:'游戏 玩家 电竞 比赛 角色 手机 电脑 战队 冠军', prompt:'主题必须围绕游戏：电子竞技、热门游戏、游戏文化、游戏设计等。' },
+        { v:'education', labelKey:'reading.topic_education', check:'教育 学校 学习 学生 老师 考试 留学 课程 大学', prompt:'主题必须围绕教育：学校生活、学习方法、考试、留学等。' },
+        { v:'environment', labelKey:'reading.topic_environment', check:'环保 环境 低碳 新能源 垃圾分类 地球 气候 绿色', prompt:'主题必须围绕环保：环境保护、低碳生活、新能源、垃圾分类等。' }
     ];
     function readingTopicKey(){ return 'HSK_READING_TOPIC_' + currentUser; }
     function saveReadingTopic(){ if(!currentUser) return; const sel = document.getElementById('readingTopicSelect'); if(sel) localStorage.setItem(readingTopicKey(), sel.value); }
@@ -13241,13 +13453,14 @@ const HSK2_VOCAB = [
         return fetch(url, ctrl ? { signal: ctrl.signal } : {}).finally(() => { if(timer) clearTimeout(timer); });
     }
     async function fetchReadingImage(keyword){
-        const kw = String(keyword || '').trim();
+        // 只保留英文/数字/空格关键词，避免中文关键词搜出带汉字的图片（显示出来像乱码）
+        const kw = String(keyword || '').replace(/[^A-Za-z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 80);
         if(!kw) return '';
-        // ① 服务器代理：Bing 图片搜索（国内可访问，最稳）
+        // ① 服务器代理：Bing 图片搜索（国内可访问，最稳），优先横向大图、英文市场结果
         const base = readingImageSearchBase();
         if(base){
             try{
-                const resp = await fetchWithTimeout(base + '?q=' + encodeURIComponent(kw), 15000);
+                const resp = await fetchWithTimeout(base + '?q=' + encodeURIComponent(kw) + '&aspect=wide&mkt=en-US', 15000);
                 if(resp.ok){
                     const data = await resp.json();
                     if(data && data.url) return data.url;
@@ -13256,7 +13469,7 @@ const HSK2_VOCAB = [
         }
         // ② Wikimedia Commons 直连
         try{
-            const url = 'https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch=' + encodeURIComponent(kw) + '&gsrlimit=6&gsrnamespace=6&prop=imageinfo&iiprop=url&iiurlwidth=720&format=json&origin=*';
+            const url = 'https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch=' + encodeURIComponent(kw) + '&gsrlimit=6&gsrnamespace=6&prop=imageinfo&iiprop=url&iiurlwidth=1000&format=json&origin=*';
             const resp = await fetchWithTimeout(url, 12000);
             if(resp.ok){
                 const data = await resp.json();
@@ -13285,6 +13498,23 @@ const HSK2_VOCAB = [
             }
         }catch(e){}
         return '';
+    }
+    // 根据刚生成的文章，让 flash 模型给一个与文章内容直接相关的英文图片搜索关键词（避免中文关键词/无关图）
+    async function makeEnglishImageKeyword(reading, forceTitle){
+        const apiKey = apiKeyInput.value.trim();
+        if(!apiKey || !reading) return '';
+        const base = forceTitle
+            ? ('标题：' + String(reading.title || '').slice(0, 60))
+            : ('标题：' + String(reading.title || '').slice(0, 60) + '\n主题：' + String(reading.topic || '').slice(0, 80) + '\n内容开头：' + String(reading.content || '').slice(0, 120));
+        if(!base.replace(/[^0-9A-Za-z\u4e00-\u9fff]/g, '')) return '';
+        try{
+            const resp = await fetch(API_BASE, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + apiKey }, body: JSON.stringify({ model: 'deepseek-v4-flash', thinking: { type: 'disabled' }, max_tokens: 128, messages: [{ role: 'user', content: '根据这篇中文短文，给出一个适合图片搜索的英文关键词（2-4个英文单词，只描述文章主角/场景/物品，不要输出中文、标点、引号或任何解释）：\n' + base }], temperature: 0 }) });
+            const data = await resp.json();
+            if(data.error) return '';
+            const raw = String(data.choices && data.choices[0] && data.choices[0].message ? data.choices[0].message.content : '');
+            const kw = raw.replace(/[^A-Za-z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 60);
+            return /[\u4e00-\u9fff]/.test(kw) ? '' : kw;
+        }catch(e){ return ''; }
     }
     // 用 flash 模型快速翻译阅读字段（标题/背景/主题/文化注释），失败返回原文
     async function translateReadingFieldFast(text){
@@ -13472,7 +13702,7 @@ ${searchRule}
   "newWords": [{"word":"新词","pinyin":"拼音","meaning":"用${targetLang}解释意思","example":"用这个新词造的简单中文例句"}],
   "usedWords": ["短文中实际用到的本等级词汇"],
   "cultureNotes": [{"term":"文章中的中文词","note":"用${targetLang}简单解释"}],
-  "imageKeyword": "用于图片搜索的英文关键词（2-4个词，如 Mid-Autumn Festival mooncake；没有就填空字符串）",
+  "imageKeyword": "必须与本文内容直接相关的英文图片搜索关键词（2-4个英文单词，只描述文章主角/场景/物品，如写中秋节月饼就写 mid autumn festival mooncake，写熊猫就写 giant panda；严禁输出中文或其他语言；不要选需要文字、海报、图表、截图才能表达的词）",
   "topic": "这篇短文的新闻主题（用${targetLang}一句话说明）"
 }
 注意：topic 和 background 字段只写内容本身，不要加 "topic"、"new topic"、"background" 等字样或冒号前缀。`;
@@ -13505,12 +13735,14 @@ ${searchRule}
             // 本等级词 = 正文中实际出现的本等级词（文章里的词就是本等级词，不再单独列在文章下方）
             const contentCounts = matchVocabInText(result.content || '');
             const usedWords = Object.keys(contentCounts).filter(w => levelVocabSet.has(w)).slice(0, 30);
-            // 词汇数量不足、或本等级词+高一级词覆盖比例过低、或自定义话题没扣住时自动重试（最多2次）
+            // 词汇数量不足、或本等级词+高一级词覆盖比例过低、或话题没扣住时自动重试（最多2次）
             const coverage = measureReadingCoverage(result.content || '', mix.level, mix.nextLevel);
-            const topicOk = !customTopic || readingTopicHit(customTopic, (result.title || '') + '\n' + (result.content || ''));
+            const topicCheckSource = customTopic || (topicObj && (topicObj.check || topicObj.labelCn)) || '';
+            const topicOk = topicCheckSource ? readingTopicHit(topicCheckSource, (result.title || '') + '\n' + (result.content || '')) : true;
             const wordsOk = mustWords.length === 0 || mustWords.every(w => String(result.content || '').indexOf(w) !== -1);
             const gapWordsOk = gapWordsArr.length === 0 || gapWordsArr.every(w => String(result.content || '').indexOf(w) !== -1);
-            const maxRetry = (readingUseGapWords && gapWordsArr.length) ? 3 : 2;
+            let maxRetry = (readingUseGapWords && gapWordsArr.length) ? 3 : 2;
+            if (!topicOk) maxRetry = Math.max(maxRetry, 3); // 主题跑题是严重问题，多给一次重写机会
             if (retryCount < maxRetry && (newWords.length < 1 || usedWords.length < 2 || (coverage.total >= (MIN_CHARS[mix.level] || 180) && coverage.ratio < 0.75) || !topicOk || !wordsOk || !gapWordsOk)) {
                 return generateReading(retryCount + 1);
             }
@@ -13546,8 +13778,13 @@ ${searchRule}
             }catch(e){}
             // 免费图源自动配图（记录成功/失败，失败会提示学生）
             try{
-                const imgKeyword = String(result.imageKeyword || '').trim() || String(reading.topic || '') || String(reading.title || '');
-                if(imgKeyword){
+                // 优先用 AI 给的文章相关英文关键词；含中文或为空时，让 flash 模型按文章内容重新生成英文关键词
+                let imgKeyword = String(result.imageKeyword || '').trim();
+                if (!imgKeyword || /[\u4e00-\u9fff]/.test(imgKeyword)) {
+                    imgKeyword = await makeEnglishImageKeyword(reading);
+                }
+                if (!imgKeyword) imgKeyword = await makeEnglishImageKeyword(reading, true);
+                if (imgKeyword) {
                     reading.imageUrl = await fetchReadingImage(imgKeyword);
                     reading.imageStatus = reading.imageUrl ? 'ok' : 'fail';
                 } else {
@@ -13794,7 +14031,12 @@ ${searchRule}
             html += escapeHtml(text.slice(pos, tk.start));
             const content = escapeHtml(text.slice(tk.start, tk.end));
             if (tk.cls === 'punct') {
-                html += '<span class="read-punct">' + content + '</span>';
+                // 数字/字母（如 2026、11、AI）可以像词一样点选/取消并翻译；纯标点不可点选
+                if (/[0-9A-Za-z]/.test(tk.word || '')) {
+                    html += '<span class="read-word plain" data-word="' + escapeHtml(tk.word) + '" data-level="0" title="' + escapeHtml(tk.word) + '">' + content + '</span>';
+                } else {
+                    html += '<span class="read-punct">' + content + '</span>';
+                }
             } else {
                 const lvName = tk.level ? vocabLevelLabel(tk.level) : '';
                 const title = tk.level ? (tk.word + ' · ' + lvName) : tk.word;
@@ -13857,7 +14099,6 @@ ${searchRule}
             html += '<h3>' + escapeHtml(titleText) + '</h3>';
         }
         if (reading.imageUrl) html += '<img class="reading-image" src="' + escapeHtml(reading.imageUrl) + '" alt="" loading="lazy" onerror="this.style.display=\'none\'">';
-        if (!reading.imageUrl && reading.imageStatus === 'fail') html += '<div class="reading-image-fail">🖼️ ' + escapeHtml(t('reading.image_fail_note')) + '</div>';
         const topicText = stripReadingFieldLabel(reading.topicNative || reading.topic);
         const backgroundText = stripReadingFieldLabel(reading.backgroundNative || reading.background);
         if (topicText) html += '<span class="reading-topic">' + t('reading.topic_label') + escapeHtml(topicText) + '</span>';
@@ -13904,6 +14145,7 @@ ${searchRule}
         currentReading = reading;
         if (!isSameArticle) {
             readingSessionUnknowns = [];
+            readingClickedSentences = [];
             currentReadingAnalyzed = false;
             const finishBtn = document.getElementById('readingFinishBtn');
             if (finishBtn) finishBtn.textContent = t('reading.finish_btn');
@@ -13987,7 +14229,7 @@ ${searchRule}
             return escapeHtml(it.text) + lvTag;
         }).join('、');
         bar.innerHTML = '<span class="sel-text">' + t('reading.selected') + selHtml + '</span>' +
-            '<button onclick="window._readingTranslateSel()">' + t('reading.translate') + '</button>' +
+            '<button onclick="window._readingTranslateSel()">' + t('reading.dont_understand') + '</button>' +
             '<button onclick="window._readingSpeakSel()">' + t('reading.speak') + '</button>' +
             '<button onclick="window._readingUnknownSel()">' + t('reading.mark_unknown_btn') + '</button>' +
             '<button onclick="window._readingFavSel()">' + t('reading.fav') + '</button>' +
@@ -14017,6 +14259,9 @@ ${searchRule}
         syncReadingSelected();
         renderReadingSelectionBar();
     }
+    function rememberReadingSentence(sent) {
+        if (sent && readingClickedSentences.indexOf(sent) === -1) readingClickedSentences.push(sent);
+    }
     function selectReadingSentenceRange(sentEls) {
         if (!sentEls || sentEls.length === 0) return;
         document.querySelectorAll('.read-sent.selected, .read-word.selected').forEach(el => el.classList.remove('selected'));
@@ -14026,6 +14271,7 @@ ${searchRule}
             if (!sent) continue;
             el.classList.add('selected');
             readingSelectedItems.push({ text: sent, type: 'sentence', level: 0, sentence: sent });
+            rememberReadingSentence(sent);
         }
         syncReadingSelected();
         renderReadingSelectionBar();
@@ -14037,6 +14283,7 @@ ${searchRule}
         document.querySelectorAll('.read-sent.selected, .read-word.selected').forEach(el => el.classList.remove('selected'));
         clearReadingDragHighlight();
         clearReadingWordHighlight();
+        hideReadingTransTooltip();
         const bar = document.getElementById('readingSelectionBar');
         if (bar) { bar.style.display = 'none'; bar.innerHTML = ''; }
     }
@@ -14123,61 +14370,143 @@ ${searchRule}
             if (cancelBtn) cancelBtn.onclick = function(){ closeReadingChoiceOverlay(); resolve([]); };
         });
     }
-    async function doReadingTranslateItems(items) {
-        const trEl = document.getElementById('readingSelTranslation');
-        const apiKey = apiKeyInput.value.trim();
-        if (!apiKey) { if (trEl) { trEl.textContent = t('reading.no_api_key'); trEl.classList.add('show'); } return; }
-        const targetLang = targetLangSelect.value;
-        if (trEl) { trEl.classList.add('show'); trEl.textContent = t('reading.translating'); trEl.innerHTML = ''; }
-        try {
-            for (const it of items) {
-                let result = '';
-                try { result = await translateReadingTextItem(it.text, targetLang, apiKey); } catch (e) { result = t('reading.translation_fail'); }
-                if (trEl) {
-                    const div = document.createElement('div');
-                    div.className = 'sel-tr-item';
-                    div.innerHTML = '<strong>' + escapeHtml(it.text) + '</strong>：' + escapeHtml(result || '');
-                    trEl.appendChild(div);
-                }
-            }
-        } catch (e) {
-            if (trEl && !trEl.childElementCount) trEl.textContent = t('reading.translation_fail');
+    // 结束阅读时针对点过的句子询问：这个句子中哪个词不懂 + 哪里不明白
+    function askReadingSentenceUnknowns(sentence) {
+        const toks = buildReadingTokens(String(sentence || ''), getReadingLevel());
+        const candidates = [];
+        for (const tk of toks) {
+            if (tk.cls === 'punct' || !tk.word) continue;
+            if (!/[\u4e00-\u9fff]/.test(tk.word)) continue;
+            if (candidates.indexOf(tk.word) === -1) candidates.push(tk.word);
         }
+        return new Promise(resolve => {
+            if (!candidates.length) { resolve({ unknownWords: [], note: '' }); return; }
+            const chosen = new Set();
+            const ov = readingChoiceOverlay(
+                '<div style="font-weight:700;font-size:1rem;color:#1e2b5e;margin-bottom:8px;">' + escapeHtml(t('reading.sent_which_word')) + '</div>' +
+                '<div style="background:#fef3e2;border:1px solid #f0c040;border-radius:12px;padding:10px 12px;font-size:0.95rem;margin-bottom:12px;">📖 ' + escapeHtml(sentence) + '</div>' +
+                '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;">' +
+                candidates.map((w, i) => '<button class="reading-unknown-word" data-i="' + i + '" style="padding:8px 14px;border-radius:14px;border:1.5px solid #e67e22;background:#fff7ed;cursor:pointer;font-size:0.95rem;color:#9a3412;">' + escapeHtml(w) + '</button>').join('') +
+                '</div>' +
+                '<textarea id="readingSentenceNote" placeholder="' + escapeHtml(t('reading.sent_note_ph')) + '" style="width:100%;min-height:64px;border:1.5px solid #d0dae8;border-radius:12px;padding:10px;font-size:0.9rem;font-family:inherit;box-sizing:border-box;margin-bottom:12px;"></textarea>' +
+                '<div style="display:flex;gap:10px;justify-content:flex-end;">' +
+                '<button id="readingSentenceDone" style="padding:8px 18px;border-radius:14px;border:none;cursor:pointer;background:#e67e22;color:#fff;font-weight:700;">' + escapeHtml(t('reading.sent_done')) + '</button>' +
+                '<button id="readingSentenceSkip" style="padding:8px 18px;border-radius:14px;border:1.5px solid #d0dae8;cursor:pointer;background:#fff;color:#475569;">' + escapeHtml(t('reading.sent_skip')) + '</button>' +
+                '</div>'
+            );
+            ov.querySelectorAll('.reading-unknown-word').forEach(b => {
+                b.onclick = function(){
+                    const w = candidates[parseInt(b.dataset.i)];
+                    if (chosen.has(w)) { chosen.delete(w); b.style.background = '#fff7ed'; b.style.borderColor = '#e67e22'; b.style.color = '#9a3412'; }
+                    else { chosen.add(w); b.style.background = '#e67e22'; b.style.color = '#fff'; }
+                };
+            });
+            const doneBtn = document.getElementById('readingSentenceDone');
+            const skipBtn = document.getElementById('readingSentenceSkip');
+            if (doneBtn) doneBtn.onclick = function(){
+                const noteEl = document.getElementById('readingSentenceNote');
+                closeReadingChoiceOverlay();
+                resolve({ unknownWords: Array.from(chosen), note: String(noteEl ? noteEl.value : '').trim() });
+            };
+            if (skipBtn) skipBtn.onclick = function(){ closeReadingChoiceOverlay(); resolve({ unknownWords: [], note: '' }); };
+        });
     }
-    window._readingTranslateSel = async function () {
-        if (!readingSelectedItems.length) return;
-        const items = readingSelectedItems.slice();
-        const singleWord = items.length === 1 && items[0].type === 'word';
-        const allClickedWords = items.length > 1 && items.every(it => it.type === 'word');
-        if (singleWord) {
-            // 形义四维记录统一在「完成阅读」时按是否标「不懂」统计，这里只负责显示翻译
-            await doReadingTranslateItems(items);
-            return;
+    let readingTransTooltip = null;
+    function getReadingTransTooltip() {
+        if (!readingTransTooltip) {
+            readingTransTooltip = document.createElement('div');
+            readingTransTooltip.id = 'readingTransTooltip';
+            readingTransTooltip.style.cssText = 'position:fixed;z-index:10000;max-width:340px;min-width:140px;background:#fff;border:1px solid #e2e8f0;border-radius:12px;box-shadow:0 8px 24px rgba(15,23,42,0.18);padding:8px 10px;font-size:0.85rem;color:#1e2b5e;display:none;line-height:1.5;';
+            document.body.appendChild(readingTransTooltip);
         }
-        if (allClickedWords) {
-            await doReadingTranslateItems(items);
-            return;
+        return readingTransTooltip;
+    }
+    function positionReadingTransTooltip(anchorEl) {
+        const tip = getReadingTransTooltip();
+        if (!anchorEl) return;
+        tip.style.display = 'block';
+        const r = anchorEl.getBoundingClientRect();
+        const w = tip.offsetWidth || 300;
+        let x = r.left;
+        if (x + w > window.innerWidth - 8) x = Math.max(8, window.innerWidth - w - 8);
+        if (x < 8) x = 8;
+        let y = r.bottom + 8;
+        if (y + 140 > window.innerHeight) y = Math.max(8, r.top - 8 - tip.offsetHeight);
+        tip.style.left = x + 'px';
+        tip.style.top = y + 'px';
+    }
+    function hideReadingTransTooltip() {
+        const tip = document.getElementById('readingTransTooltip');
+        if (tip) { tip.style.display = 'none'; tip.innerHTML = ''; }
+    }
+    window._readingTransTooltipClose = hideReadingTransTooltip;
+    let readingTipAnchor = null;
+    function showReadingActionTooltip(anchorEl){
+        readingTipAnchor = anchorEl || null;
+        const tip = getReadingTransTooltip();
+        const selText = readingSelectedItems.map(it => it.text).join('、');
+        tip.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;gap:6px;">'
+            + '<span style="font-weight:700;font-size:0.8rem;color:#1e2b5e;">' + escapeHtml(selText) + '</span>'
+            + '<button onclick="window._readingCloseTip()" style="border:none;background:none;cursor:pointer;font-size:0.9rem;color:#94a3b8;padding:0;">✕</button></div>'
+            + '<div class="reading-tip-actions">'
+            + '<button onclick="window._readingTipTranslate()">' + escapeHtml(t('reading.dont_understand')) + '</button>'
+            + '<button onclick="window._readingSpeakSel()">' + escapeHtml(t('reading.speak')) + '</button>'
+            + '<button onclick="window._readingFavSel()">' + escapeHtml(t('reading.fav')) + '</button>'
+            + '</div>'
+            + '<div id="readingTipTranslation"></div>';
+        positionReadingTransTooltip(anchorEl);
+    }
+    window._readingCloseTip = function(){ hideReadingTransTooltip(); hideReadingSelection(); };
+    async function translateReadingItemsInto(container, items){
+        if(!container) return;
+        const apiKey = apiKeyInput.value.trim();
+        if(!apiKey){ container.innerHTML = '<div style="color:#c0392b;">' + escapeHtml(t('reading.no_api_key')) + '</div>'; return; }
+        const targetLang = targetLangSelect.value;
+        for(const it of items){
+            if(!it || !it.text) continue;
+            const line = document.createElement('div');
+            line.className = 'sel-tr-item';
+            line.innerHTML = '<strong>' + escapeHtml(it.text) + '</strong>：⏳ ' + escapeHtml(t('reading.translating'));
+            container.appendChild(line);
+            let result = '';
+            try{ result = await translateReadingTextItem(it.text, targetLang, apiKey); }catch(e){ result = t('reading.translation_fail'); }
+            line.innerHTML = '<strong>' + escapeHtml(it.text) + '</strong>：' + escapeHtml(result || '');
         }
-        // 拖拽选中的短语/句子（中间没有顿号）→ 先让学生选择原因（母语显示 ABC）
-        const choice = await showReadingAbcDialog();
-        if (choice === 'A') {
-            await doReadingTranslateItems(items);
-        } else if (choice === 'B') {
-            const unknownWords = await pickReadingUnknownWords(items);
-            await doReadingTranslateItems(items);
-        } else {
-            // C · 误点错了，都认识：不翻译、不标记
-        }
+        container.innerHTML += '<div class="reading-tip-actions" style="margin-top:6px;">'
+            + '<button onclick="window._readingSpeakSel()">' + escapeHtml(t('reading.speak')) + '</button>'
+            + '<button onclick="window._readingFavSel()">' + escapeHtml(t('reading.fav')) + '</button>'
+            + '</div>';
+        if(readingTipAnchor) positionReadingTransTooltip(readingTipAnchor);
+    }
+    window._readingTipTranslate = async function(){
+        const box = document.getElementById('readingTipTranslation');
+        if(!box) return;
+        box.innerHTML = '';
+        await translateReadingItemsInto(box, readingSelectedItems.slice());
+    };
+    window._readingTranslateSel = async function(){
+        if(!readingSelectedItems.length) return;
+        const trEl = document.getElementById('readingSelTranslation');
+        if(trEl){ trEl.classList.add('show'); trEl.innerHTML = ''; }
+        await translateReadingItemsInto(trEl, readingSelectedItems.slice());
     };
     function handleReadingPanelClick(e) {
         if (readingSuppressClick) { readingSuppressClick = false; return; }
         const wordEl = e.target.closest('.read-word');
         const chipEl = e.target.closest('.reading-used-chip');
         const rwEl = e.target.closest('.rw-word');
-        if (wordEl && wordEl.dataset.word) toggleReadingWord(wordEl);
-        else if (chipEl && chipEl.dataset.word) selectReadingWordText(chipEl.dataset.word, vocabLevelOfWord(chipEl.dataset.word) || '');
-        else if (rwEl && rwEl.dataset.word) selectReadingWordText(rwEl.dataset.word, vocabLevelOfWord(rwEl.dataset.word) || '');
-        else { const _sentEl = e.target.closest('.read-sent'); if(_sentEl && _sentEl.dataset.sent) toggleSpeakChinese(_sentEl.dataset.sent); }
+        if (wordEl && wordEl.dataset.word) {
+            const wasSelected = wordEl.classList.contains('selected');
+            toggleReadingWord(wordEl);
+            if (!wasSelected) {
+                showReadingActionTooltip(wordEl);
+            } else {
+                hideReadingTransTooltip();
+            }
+        }
+        else if (chipEl && chipEl.dataset.word) { selectReadingWordText(chipEl.dataset.word, vocabLevelOfWord(chipEl.dataset.word) || ''); showReadingActionTooltip(chipEl); }
+        else if (rwEl && rwEl.dataset.word) { selectReadingWordText(rwEl.dataset.word, vocabLevelOfWord(rwEl.dataset.word) || ''); showReadingActionTooltip(rwEl); }
+        else { const _sentEl = e.target.closest('.read-sent'); if(_sentEl && _sentEl.dataset.sent){ selectReadingSentenceRange([_sentEl]); rememberReadingSentence(_sentEl.dataset.sent); showReadingActionTooltip(_sentEl); } }
     }
     function getReadingSentenceEls() {
         const contentEl = document.getElementById('readingContent');
@@ -14216,28 +14545,46 @@ ${searchRule}
         syncReadingSelected();
         renderReadingSelectionBar();
     }
-    function startReadingWordDrag(e) {
-        const wordEl = e.target.closest('.read-word');
-        if (!wordEl || !wordEl.dataset.word) return;
+    function getReadingWordAtPoint(x, y) {
+        const el = document.elementFromPoint(x, y);
+        return el && el.closest ? el.closest('.read-word') : null;
+    }
+    function activateReadingWordDrag() {
+        if (!readingWordDrag) return false;
+        readingWordDrag.active = true;
+        readingWordDrag.moved = true;
+        document.body.classList.add('reading-dragging');
+        // 拖拽一开始就高亮起始词，让学生立刻看到拖选反馈
+        highlightReadingWordRange(readingWordDrag.startIdx, readingWordDrag.startIdx);
+        return true;
+    }
+    function startReadingWordDrag(e, wordEl) {
+        if (!wordEl || !wordEl.dataset.word) return false;
         const words = getReadingWordEls();
         const idx = words.indexOf(wordEl);
-        if (idx === -1) return;
-        readingWordDrag = { active: false, moved: false, startX: e.clientX, startY: e.clientY, startIdx: idx, currentIdx: idx };
-        document.addEventListener('mousemove', onReadingWordMove);
-        document.addEventListener('mouseup', onReadingWordUp);
-        e.preventDefault();
+        if (idx === -1) return false;
+        const isTouch = e.type === 'touchstart';
+        const pt = isTouch ? e.touches[0] : e;
+        readingWordDrag = { pointerType: isTouch ? 'touch' : 'mouse', active: false, moved: false, startX: pt.clientX, startY: pt.clientY, startIdx: idx, currentIdx: idx };
+        if (isTouch) {
+            document.addEventListener('touchmove', onReadingWordTouchMove, { passive: false });
+            document.addEventListener('touchend', onReadingWordTouchEnd);
+            document.addEventListener('touchcancel', onReadingWordTouchCancel);
+        } else {
+            document.addEventListener('mousemove', onReadingWordMove);
+            document.addEventListener('mouseup', onReadingWordUp);
+            e.preventDefault();
+        }
+        return true;
     }
     function onReadingWordMove(e) {
-        if (!readingWordDrag) return;
-        const dx = e.clientX - readingWordDrag.startX, dy = e.clientY - readingWordDrag.startY;
+        if (!readingWordDrag || readingWordDrag.pointerType !== 'mouse') return;
+        const x = e.clientX, y = e.clientY;
         if (!readingWordDrag.active) {
-            if (Math.abs(dx) + Math.abs(dy) < 4) return;
-            readingWordDrag.active = true;
-            readingWordDrag.moved = true;
-            document.body.classList.add('reading-dragging');
+            if (Math.abs(x - readingWordDrag.startX) + Math.abs(y - readingWordDrag.startY) < 4) return;
+            activateReadingWordDrag();
         }
-        const el = document.elementFromPoint(e.clientX, e.clientY);
-        const wEl = el && el.closest ? el.closest('.read-word') : null;
+        const wEl = getReadingWordAtPoint(x, y);
         const words = getReadingWordEls();
         const idx = wEl ? words.indexOf(wEl) : readingWordDrag.currentIdx;
         if (idx !== -1 && idx !== readingWordDrag.currentIdx) {
@@ -14245,9 +14592,37 @@ ${searchRule}
             highlightReadingWordRange(readingWordDrag.startIdx, idx);
         }
     }
-    function onReadingWordUp() {
-        document.removeEventListener('mousemove', onReadingWordMove);
-        document.removeEventListener('mouseup', onReadingWordUp);
+    function onReadingWordTouchMove(e) {
+        if (!readingWordDrag || readingWordDrag.pointerType !== 'touch') return;
+        const t = e.touches[0];
+        const x = t.clientX, y = t.clientY;
+        if (!readingWordDrag.active) {
+            const dx = x - readingWordDrag.startX, dy = y - readingWordDrag.startY;
+            if (Math.abs(dx) + Math.abs(dy) < 10) return;
+            // 纵向滑动让页面滚动，横向拖动才算选词
+            if (Math.abs(dy) > Math.abs(dx)) { cancelReadingWordDrag(); return; }
+            if (!activateReadingWordDrag()) return;
+        }
+        e.preventDefault();
+        const wEl = getReadingWordAtPoint(x, y);
+        const words = getReadingWordEls();
+        const idx = wEl ? words.indexOf(wEl) : readingWordDrag.currentIdx;
+        if (idx !== -1 && idx !== readingWordDrag.currentIdx) {
+            readingWordDrag.currentIdx = idx;
+            highlightReadingWordRange(readingWordDrag.startIdx, idx);
+        }
+    }
+    function finishReadingWordDrag() {
+        if (readingWordDrag) {
+            if (readingWordDrag.pointerType === 'touch') {
+                document.removeEventListener('touchmove', onReadingWordTouchMove);
+                document.removeEventListener('touchend', onReadingWordTouchEnd);
+                document.removeEventListener('touchcancel', onReadingWordTouchCancel);
+            } else {
+                document.removeEventListener('mousemove', onReadingWordMove);
+                document.removeEventListener('mouseup', onReadingWordUp);
+            }
+        }
         document.body.classList.remove('reading-dragging');
         if (!readingWordDrag) return;
         const drag = readingWordDrag;
@@ -14258,7 +14633,7 @@ ${searchRule}
         const a = Math.min(drag.startIdx, drag.currentIdx);
         const b = Math.max(drag.startIdx, drag.currentIdx);
         if (a === b) {
-            selectReadingWordText(words[a].dataset.word, parseInt(words[a].dataset.level) || vocabLevelOfWord(words[a].dataset.word) || '');
+            if (words[a]) selectReadingWordText(words[a].dataset.word, parseInt(words[a].dataset.level) || vocabLevelOfWord(words[a].dataset.word) || '');
             readingSuppressClick = true;
             return;
         }
@@ -14269,11 +14644,31 @@ ${searchRule}
             const text = range.toString();
             if (!text) return;
             selectReadingPhraseRange(words, a, b, text);
+            showReadingActionTooltip(words[a]);
             readingSuppressClick = true;
         } catch (err) {}
     }
+    function onReadingWordUp() { finishReadingWordDrag(); }
+    function onReadingWordTouchEnd() { finishReadingWordDrag(); }
+    function onReadingWordTouchCancel() { cancelReadingWordDrag(); }
+    function cancelReadingWordDrag() {
+        if (!readingWordDrag) return;
+        if (readingWordDrag.pointerType === 'touch') {
+            document.removeEventListener('touchmove', onReadingWordTouchMove);
+            document.removeEventListener('touchend', onReadingWordTouchEnd);
+            document.removeEventListener('touchcancel', onReadingWordTouchCancel);
+        } else {
+            document.removeEventListener('mousemove', onReadingWordMove);
+            document.removeEventListener('mouseup', onReadingWordUp);
+        }
+        clearReadingWordHighlight();
+        document.body.classList.remove('reading-dragging');
+        readingWordDrag = null;
+    }
     function onReadingMouseDown(e) {
         readingSuppressClick = false;
+        const wordEl = e.target.closest('.read-word');
+        if (wordEl && wordEl.dataset.word) { startReadingWordDrag(e, wordEl); return; }
         const sentEl = e.target.closest('.read-sent');
         if (!sentEl || !sentEl.dataset.sent) return;
         e.preventDefault();
@@ -14314,6 +14709,7 @@ ${searchRule}
             const a = Math.min(drag.startIdx, drag.currentIdx);
             const b = Math.max(drag.startIdx, drag.currentIdx);
             selectReadingSentenceRange(sents.slice(a, b + 1));
+            showReadingActionTooltip(sents[a]);
             readingSuppressClick = true;
         } else {
             // 没有拖动：交给 click 事件做词语点选
@@ -14333,6 +14729,8 @@ ${searchRule}
     function onReadingTouchStart(e) {
         readingSuppressClick = false;
         const t = e.touches[0];
+        const wordEl = e.target.closest('.read-word');
+        if (wordEl && wordEl.dataset.word) { startReadingWordDrag(e, wordEl); return; }
         const sentEl = e.target.closest('.read-sent');
         if (!sentEl || !sentEl.dataset.sent) return;
         const sents = getReadingSentenceEls();
@@ -14379,6 +14777,7 @@ ${searchRule}
             const a = Math.min(drag.startIdx, drag.currentIdx);
             const b = Math.max(drag.startIdx, drag.currentIdx);
             selectReadingSentenceRange(sents.slice(a, b + 1));
+            showReadingActionTooltip(sents[a]);
             readingSuppressClick = true;
         } else {
             // 没有拖动：交给 click 事件做词语点选
@@ -14550,7 +14949,8 @@ ${searchRule}
             const reply = (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) ? data.choices[0].message.content.trim() : '';
             msgs.push({ role:'assistant', content: reply || t('analysis.reply_fail'), time: new Date().toISOString() });
         }catch(e){
-            msgs.push({ role:'assistant', content: t('analysis.reply_fail'), time: new Date().toISOString() });
+            const _d = (e && e.message && String(e.message) !== 'API error') ? '（' + e.message + '）' : '';
+            msgs.push({ role:'assistant', content: t('analysis.reply_fail') + _d, time: new Date().toISOString() });
         }
         renderModeChatMessages(kind);
     }
@@ -14845,6 +15245,7 @@ ${searchRule}
             if(!orig || !corr) continue;
             if(orig === corr) continue;
             if(isPunctuationOnlyDiff(orig, corr)) continue;
+            sanitizeChatCorrection(h);
             out.push(h);
         }
         return out;
@@ -15502,6 +15903,11 @@ ${searchRule}
     window._toggleCorrectionExplain = function(id){
         const box = document.getElementById(id + '_box');
         if(!box) return;
+        const curLang = targetLangSelect ? targetLangSelect.value : 'English';
+        if(box.dataset.loaded && box.dataset.loaded !== curLang){
+            delete box.dataset.loaded;
+            box.innerHTML = '';
+        }
         if(box.dataset.loaded){
             box.style.display = box.style.display === 'block' ? 'none' : 'block';
             return;
@@ -15509,7 +15915,7 @@ ${searchRule}
         const item = window._correctionStore[id];
         if(!item || !item.chinese) return;
         box.style.display = 'block';
-        box.dataset.loaded = '1';
+        box.dataset.loaded = curLang;
         const prepend = item.note ? '<div class="zms-sec"><b>' + t('chat.why_wrong') + '</b><div>' + escapeHtml(String(item.note)).split('\\n').join('<br>').split('\n').join('<br>') + '</div></div>' : '';
         if(typeof renderZmsExplainInto === 'function') renderZmsExplainInto(box, item.chinese, prepend);
         else box.innerHTML = t('zms.analysis_fail');
@@ -16015,16 +16421,25 @@ function saveFullState(){ if(!currentUser) return; const entries=Array.from(used
         const base = CHAT_LEN_LIMITS[level] || CHAT_LEN_LIMITS[3];
         return {
             maxChars: base.maxChars,
-            maxClausesPerSentence: base.maxClausesPerSentence,
+            maxClausesPerSentence: isCorrection ? base.maxClausesPerSentence + 1 : base.maxClausesPerSentence,
             maxSentences: isCorrection ? base.maxSentences + 2 : base.maxSentences,
             maxTotalChars: isCorrection ? Math.round(base.maxTotalChars * 1.5) : base.maxTotalChars
         };
     }
+    // 纠错确认句的固定框架（哦，你是说……，对吗？）是系统要求的，不计入 AI 自写长度
+    function stripConfirmationFrameForLength(text){
+        let t = String(text || '');
+        t = t.replace(/^[哦噢嗯啊]+[，,]?\s*/, '');
+        t = t.replace(/^(你是说|你是想说|你想说的是|你的意思是)[，:]?\s*/, '');
+        t = t.replace(/[，,]?对吗(?=[？?。])/, '');
+        return t;
+    }
     function validateChatReplyLength(raw, level){
-        const isCorrection = /❌|✅/.test(raw);
+        const isCorrection = /❌|✅|你是说|你是想说|你想说的是|你的意思是/.test(String(raw || ''));
         const limit = chatLengthLimitsFor(level, isCorrection);
-        // 纠错模板中「❌ 学生原句」行是引用学生的话，不计入 AI 自写总字数
-        const ownLines = raw.split('\n').map(s=>s.trim()).filter(s=>s && !(isCorrection && s.startsWith('❌')));
+        // 纠错模板中「❌ 学生原句」行是引用学生的话，不计入 AI 自写总字数；「哦，你是说…，对吗？」框架也不计入
+        const ownRaw = isCorrection ? stripConfirmationFrameForLength(raw) : String(raw || '');
+        const ownLines = ownRaw.split('\n').map(s=>s.trim()).filter(s=>s && !(isCorrection && s.startsWith('❌')));
         const ownText = ownLines.join('\n');
         const totalHanzi = (ownText.match(/[\u4e00-\u9fff]/g) || []).length;
         if (totalHanzi > limit.maxTotalChars) return {ok:false, reason:'total', count:totalHanzi, isCorrection};
@@ -16041,7 +16456,7 @@ function saveFullState(){ if(!currentUser) return; const entries=Array.from(used
         return {ok:true, isCorrection};
     }
     function truncateChatReplyToLimit(raw, level){
-        const isCorrection = /❌|✅/.test(raw);
+        const isCorrection = /❌|✅|你是说|你是想说|你想说的是|你的意思是/.test(String(raw || ''));
         const limit = chatLengthLimitsFor(level, isCorrection);
         const parts = String(raw).split(/([。！？!?；;\n]+)/);
         let out = '';
@@ -16077,20 +16492,23 @@ function saveFullState(){ if(!currentUser) return; const entries=Array.from(used
         const level = parseInt(aiLevelSelect.value) || 3;
         const targetLang = targetLangSelect.value;
         const limPlain = chatLengthLimitsFor(level, false);
-        const diffGuide = level===1 ? "句子极短（每句3-6字），只能使用HSK1最基础词汇（我、你、他、是、有、去、来、吃、喝、好、大、小、喜欢等），只回复1句话，不要用任何关联词和复杂语法" : level===2 ? "句子短（每句5-9字），使用HSK1-2基础词汇，简单主谓/主谓宾，可带简单状语，回复1-2句" : level===3 ? "句子中等（每句7-14字），使用HSK3及以下词汇，可含趋向补语、结果补语、把字句，回复2-3句" : level===4 ? "句子中等偏长（每句10-18字），使用HSK4及以下词汇，可含较复杂补语和关联词，回复3-4句" : "句子正常（每句12-22字），使用HSK5及以下词汇，表达可以丰富自然，可有一定句法复杂度，回复3-5句";
-        const reasonNames = {total:'总字数', sentences:'句数', clausesPerSentence:'每句小句数', clause:'单个小句长度'};
-        const enforce = prevCheck ? `\n【长度强制修正 - 现在必须执行】你刚才的回复超过HSK${level}级长度限制（超限项：${reasonNames[prevCheck.reason]||prevCheck.reason}，当前值：${prevCheck.count}）。现在重新回复用户刚才那条消息，内容可以精简，但必须满足：每个小句（逗号前的一段）不超过${limPlain.maxChars}个汉字，每句最多${limPlain.maxClausesPerSentence}个小句，全段最多${limPlain.maxSentences}句，全文总字数不超过${limPlain.maxTotalChars}个汉字。宁可少说，不可超长。` : '';
         const _validMistakes = (mistakes || []).filter(m => m && m.original && m.corrected && stripForCompare(m.original) !== stripForCompare(m.corrected) && stripForCompare(m.corrected).replace(/[吧吗呢啊呀哦嘛咯喽哟]+$/, '') !== stripForCompare(m.original));
+        const limUse = _validMistakes.length > 0 ? chatLengthLimitsFor(level, true) : limPlain;
+        const diffGuide = level===1 ? "句子极短（每句3-6字），只能使用HSK1最基础词汇（我、你、他、是、有、去、来、吃、喝、好、大、小、喜欢等），只回复1句话，不要用任何关联词和复杂语法" : level===2 ? "句子短（每句5-9字），使用HSK1-2基础词汇，简单主谓/主谓宾，可带简单状语，回复1-2句" : level===3 ? "句子中等（每句7-14字），使用HSK3及以下词汇，可含趋向补语、结果补语、把字句，回复2-3句" : level===4 ? "句子中等偏长（每句10-18字），使用HSK4及以下词汇，可含较复杂补语和关联词，回复3-4句" : "句子正常（每句12-22字），使用HSK5及以下词汇，表达可以丰富自然，可有一定句法复杂度，回复3-5句";
+        const diffGuideUse = _validMistakes.length > 0 ? diffGuide + '（本次需要先做纠错确认，回复=「哦，你是说……」确认句+简短回应句，按纠错长度标准，不要长篇）' : diffGuide;
+        const reasonNames = {total:'总字数', sentences:'句数', clausesPerSentence:'每句小句数', clause:'单个小句长度'};
+        const limEnforce = prevCheck ? chatLengthLimitsFor(level, !!prevCheck.isCorrection) : limUse;
+        const enforce = prevCheck ? `\n【长度强制修正 - 现在必须执行】你刚才的回复超过HSK${level}级长度限制（超限项：${reasonNames[prevCheck.reason]||prevCheck.reason}，当前值：${prevCheck.count}）。现在重新回复用户刚才那条消息，内容可以精简，但必须满足：每个小句（逗号前的一段）不超过${limEnforce.maxChars}个汉字，每句最多${limEnforce.maxClausesPerSentence}个小句，全段最多${limEnforce.maxSentences}句，全文总字数不超过${limEnforce.maxTotalChars}个汉字。宁可少说，不可超长。` : '';
         const corrCtx = (_validMistakes.length > 0)
             ? '\n【系统纠错结果】\n系统已先分析学生这句话，发现以下偏误：\n'
                 + _validMistakes.map(m => '- 学生原句：「' + m.original + '」 → 正确句子：「' + m.corrected + '」（' + (m.type || '') + '）').join('\n')
-                + '\n回复时先用「哦，你是说……」+ 改正后的完整句子确认学生意思，然后再自然继续回应；「哦，你是说……」后面的句子必须逐字使用上面每条「正确句子」的完整句子，一个字都不许增、删、换，禁止省略主语等正确成分，禁止只截取片段（如学生说「我为了打工去的」，必须说「哦，你是说我去工作了」，不能说「去工作」）。如果某条「正确句子」和学生原句完全一样，就不要为它使用「哦，你是说……」。不要说「你是想问」。'
+                + '\n回复时先用「哦，你是说……」+ 改正后的完整句子确认学生意思，然后紧接着用' + targetLang + '在括号里简短翻译这个正确句子（格式：正确句子（翻译），对吗？），然后再自然继续回应；「哦，你是说……」后面的句子必须逐字照抄上面每条「正确句子」的完整句子，一个字都不许增、删、换，只允许在正确句子之后先接（' + targetLang + '翻译）再接着接「，对吗？」（也可以不加），禁止省略主语等正确成分，禁止只截取片段（如学生说「我为了打工去的」，必须说「哦，你是说我去工作了（I went to work），对吗？」，不能说「去工作」）。如果某条「正确句子」和学生原句完全一样，就不要为它使用「哦，你是说……」。不要说「你是想问」。'
             : '\n【系统纠错结果】\n（本次无纠错结果）\n学生这句话没有偏误。绝对不要使用「哦，你是说……」「你是想说……」等确认句式，也绝对不要重复学生的话；直接自然回应学生说的内容或问题，不要先复述原句再说新话。';
         const topicCtx = window._chatTopicContext
             ? '\n【当前话题背景】' + String(window._chatTopicContext).slice(0, 1200) + '\n请始终围绕这个话题和学生聊天，不要跑题；提问时一次只问一个问题，等学生回答后再继续问下一个，不要一次列出多个问题。'
             : '';
         const system = `你是HSK${level}级中文对话伙伴。像一个真实的朋友一样自然交流，用符合HSK${level}级的中文。
-【难度控制 - 最高优先级，必须严格遵守】严格匹配HSK${level}级水平，词语难度与句子长度如下：${diffGuide}。你现在是 HSK${level} 级，切换等级后，用词难度、句子长度、语法复杂度必须立刻明显改变。只能使用 HSK${level} 级及以下的词汇和语法。不要超过。每个小句（逗号前的一段）不超过${limPlain.maxChars}个汉字，每句最多${limPlain.maxClausesPerSentence}个小句，全段最多${limPlain.maxSentences}句，全文总字数不超过${limPlain.maxTotalChars}个汉字。宁可短，不可长。
+【难度控制 - 最高优先级，必须严格遵守】严格匹配HSK${level}级水平，词语难度与句子长度如下：${diffGuideUse}。你现在是 HSK${level} 级，切换等级后，用词难度、句子长度、语法复杂度必须立刻明显改变。只能使用 HSK${level} 级及以下的词汇和语法。不要超过。每个小句（逗号前的一段）不超过${limUse.maxChars}个汉字，每句最多${limUse.maxClausesPerSentence}个小句，全段最多${limUse.maxSentences}句，全文总字数不超过${limUse.maxTotalChars}个汉字。宁可短，不可长。
 ${gapChatGuide()}
 【回应优先级】
 1. 先直接回应用户刚说的内容或问题，绝不能答非所问。
@@ -16106,14 +16524,15 @@ ${gapChatGuide()}
 【纠错规则】
 系统已经先分析并纠正学生句子的偏误（结果见下方「系统纠错结果」），纠错块会在你的回复之后自动显示（里面是学生的原句和更好的说法）。你不需要在回复中使用 ❌/✅/💡/✏️ 或「订正/纠错」格式纠错，也绝不要输出这些符号和标签——你输出只会造成重复。
 你需要做的：
-- 如果「系统纠错结果」中列出了「正确句子」且与学生原句不同：先用「哦，你是说……」+ 改正后的完整句子来确认学生的意思（例如学生说「我见面他」，你回答「哦，你是说你想跟他见面，对吗？」），然后再继续回应。「哦，你是说……」后面的句子必须逐字使用「系统纠错结果」里对应的「正确句子」完整句子，一个字都不许增、删、换，禁止省略主语等正确成分、禁止只截取片段（如学生说「我为了打工去的」，必须说「哦，你是说我去工作了」，不能说「去工作」），禁止省略或改写数字/日期/时间/数量词。如果「正确句子」和学生原句完全一样，就不要使用「哦，你是说……」。
+- 如果「系统纠错结果」中列出了「正确句子」且与学生原句不同：先用「哦，你是说……」+ 改正后的完整句子来确认学生的意思，紧接着用${targetLang}在括号里简短翻译这个正确句子，然后再继续回应。例如系统给「我见面他 → 我想跟他见面」，你必须回答「哦，你是说我想跟他见面（I want to meet him），对吗？」（正确句子必须逐字照抄，绝不能改成「你想跟他见面」）。「哦，你是说……」后面的句子必须逐字照抄「系统纠错结果」里对应的「正确句子」完整句子，一个字都不许增、删、换，只允许在正确句子之后先接（${targetLang}翻译）再接「，对吗？」（也可以不加），禁止省略主语等正确成分、禁止只截取片段（如学生说「我为了打工去的」，必须说「哦，你是说我去工作了（I went to work），对吗？」，不能说「去工作」），禁止省略或改写数字/日期/时间/数量词。如果「正确句子」和学生原句完全一样，就不要使用「哦，你是说……」。
 - 如果「系统纠错结果」是「（本次无纠错结果）」，说明学生这句话没有偏误：绝对不要使用「哦，你是说……」「你是想说……」等确认句式，也绝对不要重复学生的话；直接自然回应学生说的内容或问题，正常往下聊，不要先复述原句再说新话。
 学生讲述自己以前说错的话或引用别人说的话时（如「我当时说『我见面他』」「其实我应该说我订错了」），转述内容不是错误，不要纠正、不要重述，正常回应即可。
 【输出前自检 - 每次回复前必须执行】
-(a) 每个小句（逗号前的一段）不超过${limPlain.maxChars}个汉字？
-(b) 全段不超过${limPlain.maxSentences}句？
-(c) 全文总字数不超过${limPlain.maxTotalChars}个汉字？
-(d) 用词是否在HSK${level}级范围内？
+(a) 每个小句（逗号前的一段）不超过${limUse.maxChars}个汉字？
+(b) 每句最多${limUse.maxClausesPerSentence}个小句？
+(c) 全段不超过${limUse.maxSentences}句？
+(d) 全文总字数不超过${limUse.maxTotalChars}个汉字？
+(e) 用词是否在HSK${level}级范围内？
 只要有一项不符合，就删掉多余内容，缩短后再回复。` + topicCtx + enforce + corrCtx;
         const messages = [{role:'system', content:system}, ...chatHistory];
         try{
@@ -16121,7 +16540,8 @@ ${gapChatGuide()}
             const data = await resp.json();
             if (data.error) throw new Error(data.error.message || "API error");
             if (!data.choices || !data.choices[0] || !data.choices[0].message) throw new Error("API error");
-            const raw = data.choices[0].message.content;
+            const raw = String(data.choices[0].message.content || '').trim();
+            if (!raw) throw new Error("Empty API reply");
             const check = validateChatReplyLength(raw, level);
             if (!check.ok && retryCount < 3){
                 return chatWithContext(userMsg, signal, retryCount + 1, check, mistakes);
@@ -16135,10 +16555,11 @@ ${gapChatGuide()}
             return {html, raw:finalRaw};
         }catch(e){
             window._lastChatError = (e && e.message) ? e.message : String(e);
-            if(netRetry === 0 && e && e.name !== 'AbortError'){
-                await new Promise(res => setTimeout(res, 700));
+            console.error('[chatWithContext]', e);
+            if(netRetry < 2 && e && e.name !== 'AbortError'){
+                await new Promise(res => setTimeout(res, netRetry === 0 ? 700 : 1500));
                 if(signal && signal.aborted) return null;
-                return chatWithContext(userMsg, signal, retryCount, prevCheck, mistakes, 1);
+                return chatWithContext(userMsg, signal, retryCount, prevCheck, mistakes, netRetry + 1);
             }
             return null;
         }
@@ -16542,14 +16963,59 @@ ${dictHints ? '\n【HSK语料库高频错误提示 - 逐条检查当前句子，
         }catch(e){ return null; }
     }
     function getHskErrorDict(){ return (typeof window.HSK_ERROR_DICT !== 'undefined') ? window.HSK_ERROR_DICT : null; }
+    // 语料库偏误排序（按频率）：cuoci/chunks/biezi/fanti 合并后统一按出现次数排序，取前500作为提示/规则池
+    let _rankedCorpusRules = null;
+    function getRankedCorpusRules(limit){
+        if(_rankedCorpusRules) return limit ? _rankedCorpusRules.slice(0, limit) : _rankedCorpusRules;
+        const dict = getHskErrorDict();
+        const arr = [];
+        if(dict){
+            (dict.cuoci || []).forEach(function(x){ if(x && x[0] && x[1] && x[2]) arr.push({ wrong:x[0], right:x[1], freq:x[2], kind:'cuoci' }); });
+            (dict.chunks || []).forEach(function(x){ if(x && x[0] && x[1] && x[2]) arr.push({ wrong:x[0], right:x[1], freq:x[2], kind:'chunks' }); });
+            (dict.biezi || []).forEach(function(x){ if(x && x[0] && x[1] && x[2]) arr.push({ wrong:x[0], right:x[1], freq:x[2], kind:'biezi' }); });
+            (dict.fanti || []).forEach(function(x){ if(x && x[0] && x[1] && x[2]) arr.push({ wrong:x[0], right:x[1], freq:x[2], kind:'fanti' }); });
+        }
+        arr.sort(function(a,b){ return b.freq - a.freq; });
+        _rankedCorpusRules = arr;
+        return limit ? arr.slice(0, limit) : arr;
+    }
+    // 从语料前500中筛选出的「无歧义」自动纠错规则（其余语境依赖型仍作为AI提示，避免误改）
+    const CORPUS_AUTO_RULES = [
+        ['的时时','的时候'],['二个人','两个人'],['二个和','两个和'],['个事情','件事情'],
+        ['个语言','种语言'],['决解','解决'],['您们','你们'],['农作品','农产品'],
+        ['食粮问题','粮食问题'],['吸烟人','吸烟者'],['越来增加','越来越多'],['越来提高','越来越高']
+    ];
+    function corpusAutoRules(text){
+        const out = [];
+        const t = String(text || '');
+        for(const r of CORPUS_AUTO_RULES){
+            if(out.length >= 4) break;
+            const wrong = r[0], right = r[1];
+            if(t.includes(wrong)){
+                out.push({ original: wrong, corrected: right, type: '词语错误', note: 'HSK作文语料高频偏误：学习者常把「' + right + '」写成「' + wrong + '」。' });
+            }
+        }
+        return out;
+    }
     const HSK_DICT_BIEZI_STOP = new Set('的了在是我他她它你们有和就不都还也很这那到对从向等会要能想可没被把跟与');
     // 根据 HSK 语料库错误词典生成提示：命中当前句子的高频误用，交给 AI 判断是否纠错
     function buildHskDictHints(text){
         const dict = getHskErrorDict();
         if(!dict || !text) return '';
         const hints = [], seen = new Set();
+        // 先按语料频率排序（前500）命中当前句子，给 AI 最高频的纠错提示
+        const ranked = getRankedCorpusRules(500);
+        for(const r of ranked){
+            if(hints.length >= 12) break;
+            const wrong = r.wrong, right = r.right, freq = r.freq;
+            if(!wrong || wrong.length < 2) continue;
+            if(text.includes(wrong) && !seen.has(wrong)){
+                seen.add(wrong);
+                hints.push('- 「' + wrong + '」在HSK语料中高频误用（' + freq + '次），正确常为「' + right + '」');
+            }
+        }
         for(const item of (dict.cuoci || [])){
-            if(hints.length >= 10) break;
+            if(hints.length >= 16) break;
             const wrong = item[0], right = item[1], freq = item[2];
             if(!wrong || wrong.length < 2 || freq < 5) continue;
             if(text.includes(wrong) && !seen.has(wrong)){
@@ -17082,6 +17548,39 @@ ${dictHints ? '\n【HSK语料库高频错误提示 - 逐条检查当前句子，
         if(!parts.length) parts.push(R.order);
         return parts.join('；');
     }
+    // 防止 AI 改出「和/跟/与/同 + 离合词 + 宾语」这类错误（如「我见面他」不能改成「我和见面他」）
+    function sanitizeChatCorrection(m){
+        if(!m) return m;
+        const c0 = String(m.corrected || '').trim();
+        if(!c0) return m;
+        const SEP = ['见面','帮忙','生气','洗澡','睡觉','毕业','结婚','聊天','散步','游泳','跑步','跳舞','唱歌','上课','上班','开会','握手','道歉','担心','放心','注意','考试','理发','点头','放假','干杯','看病','说话','打开','看见','离开','完成'];
+        let c = c0;
+        for(const sw of SEP){
+            // ① 「和/跟/与/同 + 离合词 + 人」→「和/跟/与/同 + 人 + 离合词」；「帮忙」特殊：直接说「帮+人」
+            const re1 = new RegExp('(和|跟|与|同)(' + sw + ')(我|你|他|她|它|我们|你们|他们|她们|朋友|同事|同学|家人|老师|妈妈|爸爸|孩子|客人|大家|谁)');
+            if(re1.test(c)){
+                c = c.replace(re1, sw === '帮忙' ? '帮$3' : '$1$3$2');
+                m.corrected = c;
+                m.type = normalizeMistakeType(m.type) || '离合词错误';
+                if(!m.note || isVagueMistakeNote(m.note)) m.note = (sw === '帮忙') ? '「帮忙」不能直接带宾语，应说「帮 + 人（+ 忙）」。' : '「' + sw + '」是离合词，不能直接带宾语；应说「跟/和/与 + 人 + ' + sw + '」。';
+                return m;
+            }
+            // ② 「离合词 + 人」且前面没有介词 → 补「跟」并调整语序；「帮忙」特殊：直接说「帮+人」
+            const re2 = new RegExp('(' + sw + ')(我|你|他|她|它|我们|你们|他们|她们|朋友|同事|同学|家人|老师|妈妈|爸爸|孩子|客人|大家|谁)', 'g');
+            if(re2.test(c)){
+                const firstIdx = c.search(re2);
+                const before = c.slice(0, firstIdx);
+                if(!/(?:和|跟|与|同)$/.test(before)){
+                    c = c.replace(re2, sw === '帮忙' ? '帮$2' : '跟$2$1');
+                    m.corrected = c;
+                    m.type = normalizeMistakeType(m.type) || '离合词错误';
+                    if(!m.note || isVagueMistakeNote(m.note)) m.note = (sw === '帮忙') ? '「帮忙」不能直接带宾语，应说「帮 + 人（+ 忙）」。' : '「' + sw + '」是离合词，不能直接带宾语；应说「跟 + 人 + ' + sw + '」。';
+                    return m;
+                }
+            }
+        }
+        return m;
+    }
     // 本地兜底：从 AI 自然回复中提取「重复学生句子并做了改动」的纠错对
     // 例如学生说「第一次看了鲜肉月饼的时候」，AI 回「第一次看到鲜肉月饼」；
     // 学生说「一吃这个就喜欢了」，AI 回「一吃就爱上了」——这类也算纠错。
@@ -17450,7 +17949,7 @@ ${dictHints ? '\n【HSK语料库高频错误提示 - 逐条检查当前句子，
         return map;
     }
     function downloadUnifiedReport(){ let rpt='=== 📚 完整学习报告 ===\n'+new Date().toLocaleString()+'\n\n'; rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n✏️ 作文批改（最终提交文本 + 修改过程）\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(writingEssays.length===0){ rpt+='(暂无作文批改记录)\n\n'; } else { writingEssays.forEach((we,i)=>{ rpt+='📌 作文 '+(i+1)+'（'+formatDate(we.date)+'，最终得分 '+(we.score||'--')+'）\n--- 最终提交文本 ---\n'+(we.original||'')+'\n'; if(we.revisions&&we.revisions.length>0){ rpt+='--- 修改过程 ---\n'; we.revisions.forEach((rv,k)=>{ rpt+='修改'+(k+1)+'（'+formatDate(rv.date)+'，得分 '+(rv.score||'--')+'）\n'+(rv.text||'')+'\n'; }); } rpt+='\n'; }); } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n📝 第一部分：全部聊天记录\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; const _chatMsgs = dedupeChatHistory(chatHistory || []); if(_chatMsgs.length===0){ rpt+='(暂无聊天记录)\n'; } else { const _copiedMap=buildCopiedFromAiMap(_chatMsgs); for(let msg of _chatMsgs){ const roleLabel=msg.role==='user'?'🧑 用户':'🤖 AI'; const timeStr=msg.time?new Date(msg.time).toLocaleString():''; rpt+=roleLabel+' ['+timeStr+']\n'+msg.content+'\n'; const _cp=_copiedMap.get(msg); if(_cp) rpt+='  ⚠️ 注：此句与前面AI说过的「'+_cp.phrase+'」相同/相似，可能不是学生自己生成。\n'; rpt+='\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n💬 阅读模式讨论记录\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; const _rc=(function(){try{return JSON.parse(localStorage.getItem('HSK_MODE_CHAT_READING_'+currentUser)||'[]')||[];}catch(e){return [];}})(); if(_rc.length===0){ rpt+='(暂无阅读讨论记录)\n'; } else { for(const _c of _rc){ rpt+='📌 '+(_c.date||'')+' '+(_c.title||'')+'\n'; for(const _m of (_c.messages||[])){ rpt+=(_m.role==='user'?'🧑 用户':'🤖 AI')+'：'+_m.content+'\n'; } rpt+='\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n💬 写作模式讨论记录\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; const _wc=(function(){try{return JSON.parse(localStorage.getItem('HSK_MODE_CHAT_WRITING_'+currentUser)||'[]')||[];}catch(e){return [];}})(); if(_wc.length===0){ rpt+='(暂无写作讨论记录)\n'; } else { for(const _c of _wc){ rpt+='📌 '+(_c.date||'')+' '+(_c.title||'')+'\n'; for(const _m of (_c.messages||[])){ rpt+=(_m.role==='user'?'🧑 用户':'🤖 AI')+'：'+_m.content+'\n'; } rpt+='\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n🔍 第二部分：查询过的词或句子\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(queriedItems.length===0){ rpt+='(暂无查询记录)\n'; } else { for(let i=0;i<queriedItems.length;i++){ const item=queriedItems[i]; const icon=item.type==='sentence'?'📝 句子':'🔤 词语'; rpt+=icon+' '+item.text+'\n  🌐 '+(item.translation||'')+'\n  📅 '+formatDate(item.date?item.date.slice(0,10):'')+'\n\n'; } }
-rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n🎯 错误库（错误的词/句子，全部来源）\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(gapBank.items.length===0){ rpt+='(暂无错误记录)\n'; } else { const _gi=[...gapBank.items].sort(gapSort); for(const it of _gi){ rpt+=(it.acquired?'✅已习得':'🔴未习得')+' '+it.text+'｜出现'+(it.count||1)+'次｜来源：'+(it.source||'')+'\n'; if(it.correct && it.correct!==it.text) rpt+='  正确：'+it.correct+'\n'; if(it.sentence) rpt+='  改正后的句子：'+it.sentence+'\n'; if(it.translation) rpt+='  母语翻译：'+it.translation+'\n'; if(it.correctUseCount) rpt+='  正确使用：'+it.correctUseCount+'/3\n'; if(it.occurrences&&it.occurrences.length) rpt+='  出现时间：'+it.occurrences.map(o=>o.date).join('、')+'\n'; if(it.usedSentences&&it.usedSentences.length) rpt+='  使用句子（时间）：'+it.usedSentences.map(u=>u.sentence+'('+u.source+' '+(u.time||u.date||'')+')').join('；')+'\n'; rpt+='\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n💭 第三部分：错句反思记录（全部历史）\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; const _rr=(window._reflectionResults||[]).slice().sort((a,b)=>String(b.date||'').localeCompare(String(a.date||''))); if(_rr.length===0){ rpt+='(暂无反思记录)\n'; } else { for(const r of _rr){ rpt+='['+(r.mode||'')+'] '+(r.text||'')+'\n'; if(r.user) rpt+='  ✏️ 你写的：'+r.user+'\n'; if(r.note) rpt+='  📌 '+(r.note||'')+'\n'; if(r.native) rpt+='  🌐 母语表达：'+r.native+'\n'; rpt+='  💭 反思：'+(r.reason||'（跳过）')+'\\n'; rpt+='  📅 '+(r.date||'')+'\n\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n⭐ 第四部分：收藏句子\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(favoriteSentences.length===0){ rpt+='(暂无收藏)\n'; } else { for(let item of favoriteSentences){ rpt+='🇨🇳 '+item.chinese+'\n🌐 '+(item.translation||'')+'\n📅 '+(item.date||'')+'\n\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n💬 「怎么说」尝试记录\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(zmsRecords.length===0){ rpt+='(暂无尝试记录)\n'; } else { for(var zi=0; zi<zmsRecords.length; zi++){ var zr=zmsRecords[zi]; rpt+='🌐 母语：'+zr.original+'\n'; if(zr.attempt) rpt+='  ✏️ 你的尝试：'+zr.attempt+'\n'; rpt+='  ✅ 参考答案：'+zr.reference+'\n  📅 '+(zr.date||'')+'\n\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n📰 阅读历史\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(readingHistory.length===0){ rpt+='(暂无阅读记录)\n'; } else { readingHistory.forEach((r,i)=>{ rpt+='📌 '+(r.title||('HSK'+r.level))+' [HSK'+r.level+']\n'; rpt+='📅 '+(r.date||'')+' · 主题：'+(r.topic||'')+'\n'; if(r.background) rpt+='背景：'+r.background+'\n'; if(r.sourceUrl) rpt+='🔗 '+r.sourceUrl+'\n'; rpt+='--- 正文 ---\n'+(r.content||'')+'\n\n'; }); } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n🔤 第五部分：音/形/义/用 四维记录（全部，含出现句子）\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; const _fourWords=Object.keys(vocabDimMap||{}).sort((a,b)=>a.localeCompare(b,'zh')); if(!_fourWords.length){ rpt+='(暂无记录)\n'; } else { const _sentMap={}; for(const _u of (window._dimUpdates||[])){ if(_u && _u.sent){ _sentMap[_u.word]=_sentMap[_u.word]||new Set(); _sentMap[_u.word].add(_u.sent); } } rpt+='| 词语 | 音（对/错/共） | 形（对/错/共） | 义（对/错/共） | 用（对/错/共） | 出现句子（最多10条） |\n|---|---|---|---|---|---|\n'; for(const _fw of _fourWords){ const _fd=vocabDimMap[_fw]||{}; const _pc2=(e)=>'对'+(e.c||0)+'/错'+Math.max(0,(e.t||0)-(e.c||0))+'/共'+(e.t||0); const _sents=_sentMap[_fw]; const _sentStr=_sents&&_sents.size?Array.from(_sents).slice(0,10).map(s=>String(s).replace(/\|/g,'｜').replace(/\r?\n/g,' ')).join('；'):''; rpt+='| '+String(_fw).replace(/\|/g,'｜')+' | '+_pc2(_fd['音']||{c:0,t:0})+' | '+_pc2(_fd['形']||{c:0,t:0})+' | '+_pc2(_fd['义']||{c:0,t:0})+' | '+_pc2(_fd['用']||{c:0,t:0})+' | '+_sentStr+' |\n'; } } rpt+='\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n✨ 第六部分：本次新增（按模式标记，含句子）\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; const _upd=(window._dimUpdates||[]).slice(-200); if(!_upd.length){ rpt+='(暂无新增)\n'; } else { for(const _u of _upd){ rpt+='['+(_u.mode||'未标记')+'] '+_u.word+' → '+_u.dims+' ✅ '+(_u.date||'')+(_u.sent?'｜'+_u.sent:'')+'\n'; } }
+rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n🎯 错误库（错误的词/句子，全部来源）\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(gapBank.items.length===0){ rpt+='(暂无错误记录)\n'; } else { const _gi=[...gapBank.items].sort(gapSort); for(const it of _gi){ rpt+=(it.acquired?'✅已习得':'🔴未习得')+' '+it.text+'｜出现'+(it.count||1)+'次｜来源：'+(it.source||'')+'\n'; if(it.correct && it.correct!==it.text) rpt+='  正确：'+it.correct+'\n'; if(it.sentence) rpt+='  改正后的句子：'+it.sentence+'\n'; if(it.translation) rpt+='  母语翻译：'+it.translation+'\n'; if(it.correctUseCount) rpt+='  正确使用：'+it.correctUseCount+'/3\n'; if(it.occurrences&&it.occurrences.length) rpt+='  出现时间：'+it.occurrences.map(o=>o.date).join('、')+'\n'; if(it.usedSentences&&it.usedSentences.length) rpt+='  使用句子（时间）：'+it.usedSentences.map(u=>u.sentence+'('+u.source+' '+(u.time||u.date||'')+')').join('；')+'\n'; rpt+='\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n📝 错句纠错记录（错句本）\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(wrongSentences.length===0){ rpt+='(暂无纠错记录)\n'; } else { for(const _ws of wrongSentences){ rpt+='✏️ 你写的：'+(_ws.userAnswer||'')+'\n'; rpt+='✅ 正确：'+(_ws.sentence||'')+'\n'; if(_ws.note) rpt+='💡 原因：'+(_ws.note||'')+'\n'; if(_ws.errType) rpt+='🏷 类型：'+(_ws.errType||'')+'\n'; rpt+='📅 '+(_ws.date||'')+'\n\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n💭 第三部分：错句反思记录（全部历史）\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; const _rr=(window._reflectionResults||[]).slice().sort((a,b)=>String(b.date||'').localeCompare(String(a.date||''))); if(_rr.length===0){ rpt+='(暂无反思记录)\n'; } else { for(const r of _rr){ rpt+='['+(r.mode||'')+'] '+(r.text||'')+'\n'; if(r.user) rpt+='  ✏️ 你写的：'+r.user+'\n'; if(r.note) rpt+='  📌 '+(r.note||'')+'\n'; if(r.native) rpt+='  🌐 母语表达：'+r.native+'\n'; rpt+='  💭 反思：'+(r.reason||'（跳过）')+'\\n'; rpt+='  📅 '+(r.date||'')+'\n\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n⭐ 第四部分：收藏句子\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(favoriteSentences.length===0){ rpt+='(暂无收藏)\n'; } else { for(let item of favoriteSentences){ rpt+='🇨🇳 '+item.chinese+'\n🌐 '+(item.translation||'')+'\n📅 '+(item.date||'')+'\n\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n💬 「怎么说」尝试记录\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(zmsRecords.length===0){ rpt+='(暂无尝试记录)\n'; } else { for(var zi=0; zi<zmsRecords.length; zi++){ var zr=zmsRecords[zi]; rpt+='🌐 母语：'+zr.original+'\n'; if(zr.attempt) rpt+='  ✏️ 你的尝试：'+zr.attempt+'\n'; rpt+='  ✅ 参考答案：'+zr.reference+'\n  📅 '+(zr.date||'')+'\n\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n📰 阅读历史\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(readingHistory.length===0){ rpt+='(暂无阅读记录)\n'; } else { readingHistory.forEach((r,i)=>{ rpt+='📌 '+(r.title||('HSK'+r.level))+' [HSK'+r.level+']\n'; rpt+='📅 '+(r.date||'')+' · 主题：'+(r.topic||'')+'\n'; if(r.background) rpt+='背景：'+r.background+'\n'; if(r.sourceUrl) rpt+='🔗 '+r.sourceUrl+'\n'; rpt+='--- 正文 ---\n'+(r.content||'')+'\n\n'; }); } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n🔤 第五部分：音/形/义/用 四维记录（全部，含出现句子）\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; const _fourWords=Object.keys(vocabDimMap||{}).sort((a,b)=>a.localeCompare(b,'zh')); if(!_fourWords.length){ rpt+='(暂无记录)\n'; } else { const _sentMap={}; for(const _u of (window._dimUpdates||[])){ if(_u && _u.sent){ _sentMap[_u.word]=_sentMap[_u.word]||new Set(); _sentMap[_u.word].add(_u.sent); } } rpt+='| 词语 | 音（对/错/共） | 形（对/错/共） | 义（对/错/共） | 用（对/错/共） | 出现句子（最多10条） |\n|---|---|---|---|---|---|\n'; for(const _fw of _fourWords){ const _fd=vocabDimMap[_fw]||{}; const _pc2=(e)=>'对'+(e.c||0)+'/错'+Math.max(0,(e.t||0)-(e.c||0))+'/共'+(e.t||0); const _sents=_sentMap[_fw]; const _sentStr=_sents&&_sents.size?Array.from(_sents).slice(0,10).map(s=>String(s).replace(/\|/g,'｜').replace(/\r?\n/g,' ')).join('；'):''; rpt+='| '+String(_fw).replace(/\|/g,'｜')+' | '+_pc2(_fd['音']||{c:0,t:0})+' | '+_pc2(_fd['形']||{c:0,t:0})+' | '+_pc2(_fd['义']||{c:0,t:0})+' | '+_pc2(_fd['用']||{c:0,t:0})+' | '+_sentStr+' |\n'; } } rpt+='\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n✨ 第六部分：本次新增（按模式标记，含句子）\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; const _upd=(window._dimUpdates||[]).slice(-200); if(!_upd.length){ rpt+='(暂无新增)\n'; } else { for(const _u of _upd){ rpt+='['+(_u.mode||'未标记')+'] '+_u.word+' → '+_u.dims+' ✅ '+(_u.date||'')+(_u.sent?'｜'+_u.sent:'')+'\n'; } }
 const ok = downloadTextFile(rpt, 'HSK_Learning_Report_' + getLocalDate() + '.md'); showToast(ok ? t('toast.download_started') : t('toast.download_failed')); }
 
 async function handleEndConversation(){ if(chatAbortController){ chatAbortController.abort(); chatAbortController=null; } if(window._chatMeaningPending){ window._chatMeaningPending = null; const _mp = document.getElementById("chatMeaningPromptMsg"); if(_mp) _mp.remove(); } if(window._chatCorrectionPending){ window._chatCorrectionPending = null; const _cp = document.getElementById("chatCorrectionConfirmMsg"); if(_cp) _cp.remove(); } if(currentSessionClauses.length===0&&sessionUserMessages.length===0){ const _zmsOnly = (window._zmsWrongAttempts || []).slice(); if(!_zmsOnly.length){ addAssistantMessage(t('analysis.no_sentences')); return; } window._zmsWrongAttempts = []; setTimeout(function(){ startReflection(_zmsOnly); }, 300); return; } const filteredClauses=currentSessionClauses.filter(c=>!isQueriedSentence(c)); const savedClauses=[...filteredClauses]; if(filteredClauses.length===0){ const _zmsOnly2=(window._zmsWrongAttempts||[]).slice(); window._zmsWrongAttempts=[]; if(_zmsOnly2.length){ setTimeout(function(){ startReflection(_zmsOnly2); },300); } else { addAssistantMessage(t('analysis.no_sentences')); } currentSessionClauses=[]; sessionUserMessages=[]; return; } addAssistantMessage(t('analysis.analyzing_prefix')+filteredClauses.length+'...'); try{ const analysis=await analyzeGrammarBatch(filteredClauses); if(analysis) mergeAnalysisResults(analysis, 'chat'); addAssistantMessage(t('analysis.grammar_done')); }catch(e){ addAssistantMessage(t('analysis.grammar_timeout')); } addAssistantMessage(t('analysis.vocab_analyzing')); try{ const vocabAnalysis=await analyzeVocabBatch(savedClauses); if(vocabAnalysis){ mergeVocabResultsFiltered(vocabAnalysis, 'chat'); } const matchCount=vocabAnalysis?vocabAnalysis.reduce((sum,item)=>sum+Object.keys(item.wordCounts||{}).length,0):0; addAssistantMessage(t('analysis.vocab_done')+' 匹配到 '+matchCount+' 个词'); }catch(e){ console.log('Vocab error:',e); addAssistantMessage(t('analysis.vocab_timeout')); } try{
@@ -17506,7 +18005,15 @@ renderVocabLevelProgress(); renderVocabTrackList(); const _userHanzi = sessionUs
             const tailMatch = rest.match(/[。！？!?；;\n]/);
             const endIdx = tailMatch ? start + tailMatch.index : r.length;
             const joined = items.map(it => it.c).join('，');
-            r = r.slice(0, start) + joined + '，对吗？' + r.slice(endIdx + 1);
+            // 保留 AI 在正确句子后面紧跟的母语翻译括号（如「我跟他见面（I met him）」）
+            let translation = '';
+            const first = items[0];
+            if(first && rest.indexOf(first.c) === 0){
+                const after = rest.slice(first.c.length);
+                const tm = after.match(/^\s*[（(]\s*([^）)]{1,120}?)\s*[）)]/);
+                if(tm) translation = '（' + tm[1] + '）';
+            }
+            r = r.slice(0, start) + joined + translation + '，对吗？' + r.slice(endIdx + 1);
         }
         return r;
     }
@@ -17577,6 +18084,14 @@ renderVocabLevelProgress(); renderVocabTrackList(); const _userHanzi = sessionUs
         input.focus();
     }
 
+    // 统一生成聊天失败详情：让用户能看到 API 具体报错（便于判断是 Key、网络还是模型问题）
+    function chatErrorDetail(){
+        const e = window._lastChatError;
+        if(!e) return '';
+        if(String(e) === 'API error') return '（服务器返回异常：请检查 API Key 是否有效、网络是否正常、模型名称是否可用）';
+        return '（' + escapeHtml(String(e)) + '）';
+    }
+
     async function finishChatCorrectionFlow(text, baseMistakes, meaning, opts){
         opts = opts || {};
         window._chatBusy = true;
@@ -17601,13 +18116,14 @@ renderVocabLevelProgress(); renderVocabTrackList(); const _userHanzi = sessionUs
                 const _lang = targetLangSelect ? targetLangSelect.value : 'Chinese';
                 if(!m.note || isVagueMistakeNote(m.note) || hasNonsenseSelfCorrection(m.note) || /^(missing|extra|缺少|多余|不足|余分|fehlt|überflüssig|falta|sobra|пропущено|лишнее|ขาด|เกิน|manca|in più)/i.test(String(m.note||'').trim()) || (_lang !== 'Chinese' && /[\u4e00-\u9fff]/.test(String(m.note)))) m.note = describeMistakeReason(m.original, m.corrected);
             }
-            const batch = filterMistakes(mistakes).filter(m => /[\u4e00-\u9fff]/.test(m.original || ''));
+            let batch = filterMistakes(mistakes).filter(m => /[\u4e00-\u9fff]/.test(m.original || ''));
+            if (!opts.confirmed) batch = batch.filter(m => !isFalseCorrection(m.original, m.corrected));
             let reply = await chatWithContext(text, signal, 0, null, batch);
             if(!reply && batch.length > 0){
                 // 纠错上下文导致回复失败时，退回正常聊天再试一次，避免直接显示「回复失败」
                 try{ reply = await chatWithContext(text, signal, 0, null, []); }catch(e){ reply = null; }
             }
-            const cleanReplyRaw = reply ? alignReplyWithCorrections(stripInlineCorrectionBlock(reply.raw), batch) : '';
+            let cleanReplyRaw = reply ? alignReplyWithCorrections(stripInlineCorrectionBlock(reply.raw), batch) : '';
             let filtered;
             if(opts.confirmed){
                 // 用户已经确认过意思：直接使用确认后的纠错，不再从 AI 复述里二次提取
@@ -17624,10 +18140,11 @@ renderVocabLevelProgress(); renderVocabTrackList(); const _userHanzi = sessionUs
                 if(/送给了(?!我|你|他|她|它|我们|你们|他们|朋友|同事|同学|家人)/.test(String(m.original||'')) && !/(?:给我|给你|给他|给她|给我们|给你们|给他们)/.test(String(m.corrected||''))){
                     m.corrected = String(m.original||'').replace('送给了', '送给我了');
                 }
+                sanitizeChatCorrection(m);
                 if(meaning) m.native = meaning;
             }
             if(filtered.length === 0 && !meaning && !opts.confirmed){
-                const _lh = localMistakeHeuristics(text);
+                const _lh = localMistakeHeuristics(text).concat(corpusAutoRules(text));
                 for(const _m of _lh){ filtered.push(_m); }
             }
             if(filtered.length === 0){
@@ -17638,40 +18155,27 @@ renderVocabLevelProgress(); renderVocabTrackList(); const _userHanzi = sessionUs
                 const _loc = describeMistakeReason(m.original, m.corrected);
                 if(_loc) m.note = _loc;
             }
+            // 给每个正确句子附上母语翻译，纠错块里逐条显示
+            await attachMistakeTranslations(filtered);
             window._chatSessionMistakes = window._chatSessionMistakes || [];
             for(const m of filtered){
                 const _whyWrong = m.note || '';
-                window._chatSessionMistakes.push({ mode:'聊天', text:m.corrected, user:m.original, note:_whyWrong, type:m.type||'', native: m.native || '' });
+                window._chatSessionMistakes.push({ mode:'聊天', text:m.corrected, user:m.original, note:_whyWrong, type:m.type||'', native: m.native || m.translation || '', key: stripForCompare(text) });
                 recordGapFromMistake(m);
             }
-            const _correctionIds = [];
             if(reply){
-                if(filtered.length > 0){
-                    // 最终一致性：纠错块显示的是 narrow 后的分句，AI 复述部分必须与之完全一致
-                    cleanReplyRaw = alignReplyWithCorrections(cleanReplyRaw, filtered);
-                }
                 for(const m of filtered){
                     addWrongSentence('','对话纠错',m.corrected,'',m.original,m.note||'',m.type||'');
                 }
                 let html = cleanReplyRaw.replace(/\n/g,'<br>'), raw = cleanReplyRaw;
                 if(filtered.length > 0){
-                    const htmlParts = [], rawLines = [];
-                    const _msgToken = 'm'+Date.now()+'_'+Math.random().toString(36).slice(2,6);
-                    for(const m of filtered){
-                        const _typeLabel = mistakeTypeLabel(m.type) || normalizeMistakeType(m.type) || String(m.type||'').trim();
-                        rawLines.push('📝 '+t('reflection.your')+'：'+m.original);
-                        rawLines.push('✅ '+t('reflection.correct')+'：'+m.corrected);
-                        if(_typeLabel) rawLines.push('🏷 类型：'+_typeLabel);
-                        const _typeBadge = _typeLabel ? ' <span class="mistake-type-badge">🏷 '+escapeHtml(_typeLabel)+'</span>' : '';
-                        const _cid = _msgToken+'_'+htmlParts.length;
-                        window._correctionStore = window._correctionStore||{};
-                        window._correctionStore[_cid] = { chinese:m.corrected, note:m.note };
-                        const _explainBtn = ' <button class="corr-explain-btn" onclick="window._toggleCorrectionExplain(\''+_cid+'\')">'+escapeHtml(t('corr.explain'))+'</button><div class="corr-explain-box" id="'+_cid+'_box"></div>';
-                        const _dh = diffHighlightHtml(m.original, m.corrected);
-                        htmlParts.push('<b style="color:#64748b">📝 '+escapeHtml(t('reflection.your'))+'：'+_dh.origHtml+'</b><br><b style="color:#27ae60">✅ '+escapeHtml(t('reflection.correct'))+'：'+_dh.corrHtml+'</b>'+_typeBadge+_explainBtn);
-                    }
-                    html += '<br><br><div class="chat-correction-block">' + t('chat.correction') + htmlParts.join('<br>') + '</div>';
-                    raw += '\n' + t('chat.correction') + '\n' + rawLines.join('\n');
+                    // 最终一致性：纠错块显示的是 narrow 后的分句，AI 复述部分必须与之完全一致
+                    cleanReplyRaw = alignReplyWithCorrections(cleanReplyRaw, filtered);
+                    const aiHtmlFinal = cleanReplyRaw.replace(/\n/g,'<br>');
+                    const block = buildChatCorrectionBlock(filtered, text, cleanReplyRaw);
+                    html = aiHtmlFinal + '<br><br>' + block.html;
+                    raw = cleanReplyRaw + '\n' + t('chat.correction') + '\n' + block.rawLines.join('\n');
+                    if(window._chatCorrectionData && window._chatCorrectionData[block.token]) window._chatCorrectionData[block.token].oldRaw = raw;
                     const last = chatHistory[chatHistory.length-1];
                     if(last && last.role === 'assistant'){ last.content = raw; saveChatHistory(); }
                 }
@@ -17680,17 +18184,18 @@ renderVocabLevelProgress(); renderVocabTrackList(); const _userHanzi = sessionUs
                 for(const m of filtered){
                     addWrongSentence('','对话纠错',m.corrected,'',m.original,m.note||'',m.type||'');
                 }
-                const _errDetail = (window._lastChatError && String(window._lastChatError) !== 'API error') ? '（' + escapeHtml(String(window._lastChatError)) + '）' : '';
-                let _fallbackHtml = t('analysis.reply_fail') + _errDetail;
+                const _errDetail = chatErrorDetail();
                 if(filtered.length){
-                    const _corrLines = filtered.map(m => '📝 ' + escapeHtml(m.original) + ' → ✅ ' + escapeHtml(m.corrected) + (m.note ? '<br>💡 ' + escapeHtml(String(m.note)).split('\\n').join('<br>').split('\n').join('<br>') : '')).join('<br>');
-                    _fallbackHtml += '<br><br>' + t('chat.correction') + _corrLines;
+                    const block = buildChatCorrectionBlock(filtered, text, '');
+                    const _fallbackHtml = t('analysis.reply_fail') + _errDetail + '<br><br>' + block.html;
+                    addAssistantMessage(_fallbackHtml, true, t('analysis.reply_fail') + _errDetail + '\n' + t('chat.correction') + '\n' + block.rawLines.join('\n'));
+                } else {
+                    addAssistantMessage(t('analysis.reply_fail') + _errDetail);
                 }
-                addAssistantMessage(_fallbackHtml, true, _fallbackHtml.replace(/<br>/g, '\n'));
             }
         }catch(e){
             if(e.name !== 'AbortError'){
-                const _errDetail2 = (window._lastChatError && String(window._lastChatError) !== 'API error') ? '（' + escapeHtml(String(window._lastChatError)) + '）' : '';
+                const _errDetail2 = chatErrorDetail();
                 addAssistantMessage(t('analysis.reply_fail') + _errDetail2);
             }
         }finally{
@@ -17698,6 +18203,110 @@ renderVocabLevelProgress(); renderVocabTrackList(); const _userHanzi = sessionUs
             window._chatBusy = false;
         }
     }
+
+    // 构建聊天纠错块（用户原句 + 正确句子 + 对比解释 + 「这不是我想表达的意思」按钮）
+    function buildChatCorrectionBlock(filtered, text, aiRaw){
+        const htmlParts = [], rawLines = [];
+        const _msgToken = 'm' + Date.now() + '_' + Math.random().toString(36).slice(2, 6);
+        for(const m of filtered){
+            const _typeLabel = mistakeTypeLabel(m.type) || normalizeMistakeType(m.type) || String(m.type || '').trim();
+            rawLines.push('📝 ' + t('reflection.your') + '：' + m.original);
+            rawLines.push('✅ ' + t('reflection.correct') + '：' + m.corrected);
+            if(m.translation) rawLines.push('🌐 ' + t('chat.meaning_title') + '：' + m.translation);
+            if(_typeLabel) rawLines.push('🏷 类型：' + _typeLabel);
+            if(m.note) rawLines.push('💡 ' + m.note);
+            const _typeBadge = _typeLabel ? ' <span class="mistake-type-badge">🏷 ' + escapeHtml(_typeLabel) + '</span>' : '';
+            const _cid = _msgToken + '_' + htmlParts.length;
+            window._correctionStore = window._correctionStore || {};
+            window._correctionStore[_cid] = { chinese: m.corrected, note: m.note };
+            const _explainBtn = ' <button class="corr-explain-btn" onclick="window._toggleCorrectionExplain(\'' + _cid + '\')">' + escapeHtml(t('corr.explain')) + '</button><div class="corr-explain-box" id="' + _cid + '_box"></div>';
+            const _dh = diffHighlightHtml(m.original, m.corrected);
+            const _trHtml = m.translation ? '<div class="corr-inline-tr">🌐 ' + escapeHtml(t('chat.meaning_title')) + '：' + escapeHtml(m.translation) + '</div>' : '';
+            const _noteHtml = m.note ? '<div class="corr-inline-note">💡 ' + escapeHtml(String(m.note)).split('\n').join('<br>') + '</div>' : '';
+            htmlParts.push('<div class="corr-item"><b style="color:#64748b">📝 ' + escapeHtml(t('reflection.your')) + '：' + _dh.origHtml + '</b><br><b style="color:#27ae60">✅ ' + escapeHtml(t('reflection.correct')) + '：' + _dh.corrHtml + '</b>' + _typeBadge + _explainBtn + _trHtml + _noteHtml + '</div>');
+        }
+        const notMeaningBtn = ' <button class="corr-not-meaning-btn" onclick="window._corrNotMeaning(\'' + _msgToken + '\')">' + escapeHtml(t('chat.not_meaning')) + '</button>';
+        const blockHtml = '<div class="chat-correction-block" id="corrBlock_' + _msgToken + '">' + t('chat.correction') + '<div class="chat-corr-items">' + htmlParts.join('<br>') + '</div><div class="chat-corr-actions">' + notMeaningBtn + '</div><div id="corrNativeArea_' + _msgToken + '" class="corr-native-area"></div></div>';
+        window._chatCorrectionData = window._chatCorrectionData || {};
+        window._chatCorrectionData[_msgToken] = { text: text, mistakes: filtered.map(function(m){ return { original: m.original, corrected: m.corrected, type: m.type || '', note: m.note || '', native: m.native || '', translation: m.translation || '' }; }), aiRaw: aiRaw || '' };
+        return { html: blockHtml, rawLines: rawLines, token: _msgToken };
+    }
+
+    // 「这不是我想表达的意思」→ 输入母语意思 → AI 按意思重新纠正
+    window._corrNotMeaning = function(token){
+        const data = window._chatCorrectionData && window._chatCorrectionData[token];
+        const area = document.getElementById('corrNativeArea_' + token);
+        if(!data || !area) return;
+        area.innerHTML = '<textarea id="corrNativeInput_' + token + '" placeholder="' + escapeHtml(t('chat.not_meaning_ph')) + '"></textarea>'
+            + '<button class="corr-native-confirm" onclick="window._corrSubmitMeaning(\'' + token + '\')">' + escapeHtml(t('chat.not_meaning_confirm')) + '</button>'
+            + '<button class="corr-native-cancel" onclick="window._corrCancelMeaning(\'' + token + '\')">' + escapeHtml(t('chat.not_meaning_cancel')) + '</button>';
+        const ta = document.getElementById('corrNativeInput_' + token);
+        if(ta) ta.focus();
+    };
+    window._corrCancelMeaning = function(token){
+        const area = document.getElementById('corrNativeArea_' + token);
+        if(area) area.innerHTML = '';
+    };
+    window._corrSubmitMeaning = async function(token){
+        const data = window._chatCorrectionData && window._chatCorrectionData[token];
+        const input = document.getElementById('corrNativeInput_' + token);
+        if(!data || !input) return;
+        const meaning = input.value.trim();
+        if(!meaning){ showToast(t('reflection.need_native')); return; }
+        input.disabled = true;
+        try{
+            let refined = null;
+            try{ refined = await refineMistakesWithMeaning(data.text, meaning, data.mistakes); }catch(e){ refined = null; }
+            let newMistakes = [];
+            if(Array.isArray(refined) && refined.length > 0){
+                newMistakes = refined;
+            } else {
+                let chinese = '';
+                try{ chinese = await translateNativeToChinese(meaning); }catch(e){ chinese = ''; }
+                if(!chinese){ showToast(t('zms.analysis_fail')); return; }
+                newMistakes = [{ original: data.text, corrected: chinese, type: '语义错误', note: '' }];
+            }
+            newMistakes = dedupeMistakesByOriginal(filterMistakes(newMistakes).filter(function(m){ return !isFalseCorrection(m.original, m.corrected); }));
+            for(const m of newMistakes){
+                m.type = normalizeMistakeType(m.type) || inferMistakeType(m);
+                const _nw = narrowMistakeToClauses(m.original, m.corrected);
+                if(_nw){ m.original = _nw.original; m.corrected = _nw.corrected; }
+                sanitizeChatCorrection(m);
+                const _loc = describeMistakeReason(m.original, m.corrected);
+                if(_loc) m.note = _loc;
+                if(meaning) m.native = meaning;
+            }
+            await attachMistakeTranslations(newMistakes);
+            if(!newMistakes.length){ showToast(t('zms.analysis_fail')); return; }
+            const msgKey = stripForCompare(data.text);
+            window._chatSessionMistakes = (window._chatSessionMistakes || []).filter(function(it){ return stripForCompare(it.key || '') !== msgKey; });
+            for(const m of newMistakes){
+                window._chatSessionMistakes.push({ mode: '聊天', text: m.corrected, user: m.original, note: m.note || '', type: m.type || '', native: m.native || m.translation || '', key: msgKey });
+            }
+            const oldOrig = (data.mistakes || []).map(function(m){ return m.original; });
+            wrongSentences = wrongSentences.filter(function(s){ return !(s.type === '对话纠错' && oldOrig.indexOf(s.userAnswer) !== -1); });
+            for(const m of newMistakes){
+                addWrongSentence('', '对话纠错', m.corrected, '', m.original, m.note || '', m.type || '');
+            }
+            const block = buildChatCorrectionBlock(newMistakes, data.text, data.aiRaw);
+            const container = document.getElementById('corrBlock_' + token);
+            if(container) container.outerHTML = block.html;
+            const newRaw = (data.aiRaw || '') + '\n' + t('chat.correction') + '\n' + block.rawLines.join('\n');
+            for(let i = chatHistory.length - 1; i >= 0; i--){
+                const msg = chatHistory[i];
+                if(msg && msg.role === 'assistant' && typeof msg.content === 'string' && data.oldRaw && msg.content.indexOf(data.oldRaw) !== -1){
+                    msg.content = newRaw;
+                    saveChatHistory();
+                    break;
+                }
+            }
+            showToast(t('chat.not_meaning_confirm'));
+        }catch(e){
+            showToast(t('zms.analysis_fail'));
+        } finally {
+            input.disabled = false;
+        }
+    };
 
     // 构造纠错用的聊天上下文：取最近几轮对话，帮助 AI 判断学生当前句子的意图（如是否在回答「谁做的？」）
     function buildChatContextForCorrection(){
@@ -17740,6 +18349,42 @@ renderVocabLevelProgress(); renderVocabTrackList(); const _userHanzi = sessionUs
         if(data.error) throw new Error(data.error.message || 'API error');
         if(!data.choices || !data.choices[0] || !data.choices[0].message) throw new Error('API error');
         return data.choices[0].message.content.trim();
+    }
+    // 批量把多个正确句子翻译成母语（一次调用，逐行对应），用于纠错块里显示每个正确句子的翻译
+    async function translateZhBatchToNative(texts){
+        const clean = (texts || []).filter(t => t && String(t).trim());
+        if(!clean.length) return {};
+        const targetLang = targetLangSelect ? targetLangSelect.value : 'English';
+        if(targetLang === 'Chinese') return {};
+        const apiKey = apiKeyInput.value.trim();
+        if(!apiKey) return {};
+        try{
+            const resp = await fetch(API_BASE, { method:'POST', headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer ' + apiKey }, body: JSON.stringify({ model:'deepseek-v4-flash', thinking:{ type:'disabled' }, max_tokens:2048, messages:[{ role:'user', content:'请将以下中文逐行翻译成' + targetLang + '，保持每行一一对应，只输出翻译结果，不要编号、不要解释：\n' + clean.join('\n') }], temperature:0.3 }) });
+            const data = await resp.json();
+            if(data.error) return {};
+            if(!data.choices || !data.choices[0] || !data.choices[0].message) return {};
+            const trText = String(data.choices[0].message.content || '');
+            const lines = trText.split(/\r?\n/).map(s => String(s).replace(/^\s*\d+[\.、\)]\s*/, '').trim());
+            const map = {};
+            for(let i = 0; i < clean.length; i++){
+                const tr = (lines[i] || '').trim();
+                if(tr) map[clean[i]] = tr;
+            }
+            return map;
+        }catch(e){ return {}; }
+    }
+    // 给纠错条目附上正确句子的母语翻译
+    async function attachMistakeTranslations(mistakes){
+        if(!mistakes || !mistakes.length) return;
+        const targetLang = targetLangSelect ? targetLangSelect.value : 'English';
+        if(targetLang === 'Chinese') return;
+        const need = mistakes.filter(m => m && m.corrected && !m.translation);
+        if(!need.length) return;
+        const map = await translateZhBatchToNative(need.map(m => String(m.corrected).trim()));
+        for(const m of need){
+            const tr = map[String(m.corrected).trim()];
+            if(tr) m.translation = tr;
+        }
     }
 
     async function translateNativeToChinese(native){
@@ -17861,7 +18506,7 @@ renderVocabLevelProgress(); renderVocabTrackList(); const _userHanzi = sessionUs
             // 本地规则优先：已知偏误模式用本地规则覆盖/补充 AI 结果，保证这几种错误不会改错或漏报
             const _lh = localMistakeHeuristics(text);
             const _ch = contextMistakeHeuristics(text, buildChatContextForCorrection());
-            const _allLocal = _lh.concat(_ch);
+            const _allLocal = _lh.concat(_ch).concat(corpusAutoRules(text));
             if(_allLocal.length){
                 for(const _lm of _allLocal){
                     const _lk = stripForCompare(_lm.original || '');
@@ -17875,15 +18520,11 @@ renderVocabLevelProgress(); renderVocabTrackList(); const _userHanzi = sessionUs
                 preFiltered = dedupeMistakesByOriginal(preFiltered);
                 mistakes = preFiltered;
             }
-            if(preFiltered.length > 0){
-                // 先让 AI 给出改正句 + 母语翻译，用户确认是不是自己想说的意思
-                await showCorrectionConfirm(text, preFiltered);
-                return;
-            }
+            // 隐形纠错：不打断对话，AI 回复里用「哦，你是说+正确句子+翻译」确认，下方显示纠错块
             await finishChatCorrectionFlow(text, mistakes, '');
         }catch(e){
             if(e.name !== 'AbortError'){
-                const _errDetail3 = (window._lastChatError && String(window._lastChatError) !== 'API error') ? '（' + escapeHtml(String(window._lastChatError)) + '）' : '';
+                const _errDetail3 = chatErrorDetail();
                 addAssistantMessage(t('analysis.reply_fail') + _errDetail3);
             }
         }finally{
@@ -18521,6 +19162,8 @@ function renderPractice(exerciseData) {
                 if (user === correct) { inp.classList.add('correct'); inp.classList.remove('incorrect'); }
                 else { inp.classList.add('incorrect'); inp.classList.remove('correct'); allCorrect = false; }
             });
+            // 听打测试：记录本组错误数，用于结束时决定是否显示 🎉 完成特效
+            if (!allCorrect && window._dictationTestState) window._dictationTestWrongs = (window._dictationTestWrongs || 0) + 1;
             if (!allCorrect && chineseRaw && !simpleMode) {
                 window._practiceMistakes = window._practiceMistakes || [];
                 window._practiceMistakes.push({
@@ -19167,7 +19810,7 @@ async function generateAndShowPractice(grammarPattern, grammarLevel, forceNew=fa
     function saveUsers(users){ localStorage.setItem(USERS_STORAGE, JSON.stringify(users)); }
     function updateHeaderUser(){ const el=document.getElementById('headerUsername'); if(currentUser){ el.innerHTML=t('user.welcome')+escapeHtml(currentUser)+' <span class="logout-link" id="logoutLink">'+t('user.logout')+'</span>'; document.getElementById('logoutLink').onclick=handleLogout; } else { el.innerHTML=''; } }
     async function handleLogin(){ const username=document.getElementById('loginUsername').value.trim(); const password=document.getElementById('loginPassword').value.trim(); const errorEl=document.getElementById('loginError'); const btn=document.getElementById('loginBtn'); if(!username||!password){ errorEl.textContent=t('login.error_empty'); return; } btn.disabled=true; btn.textContent=t('login.verifying'); errorEl.textContent=''; try { const users=getUsers(); const fast=hashPassword(password,username); const stored=users[username]; if(stored){ if(fast===stored){ /* new format match */ } else if(!stored.startsWith('fallback_')&&/^[0-9a-f]{64}$/.test(stored)){ const cryptoHash=await tryCryptoHash(password,username); if(cryptoHash!==stored){ errorEl.textContent=t('login.error_wrong'); btn.disabled=false; btn.textContent=t('login.button'); return; } } else { errorEl.textContent=t('login.error_wrong'); btn.disabled=false; btn.textContent=t('login.button'); return; } } else { users[username]=fast; saveUsers(users); } currentUser=username; localStorage.setItem(CURRENT_USER_STORAGE,username); document.getElementById('loginOverlay').classList.add('hidden'); updateHeaderUser(); finishInit(); } catch(e) { errorEl.textContent=t('login.error_fail'); btn.disabled=false; btn.textContent=t('login.button'); } }
-    function handleLogout(){ if(confirm(t('logout.confirm'))){ usedMap.clear(); favoriteSentences=[]; queriedItems=[]; chatHistory=[]; currentSessionClauses=[]; sessionUserMessages=[]; window._chatSessionMistakes=[]; learnPlan={}; vocabUsedMap.clear(); vocabCorrectList=[]; lastGeneratedVocabSentences.clear(); allGeneratedVocabSet.clear(); lastGeneratedSentences.clear(); lastGrammarMeta.clear(); lastGeneratedCollocations.clear(); usedPracticeStructures.clear(); wrongSentences=[]; writingEssays=[]; writingTopic=''; window._learnCustomData={}; currentLearnTab=null; readingTrack={unknownIn:{},knownIn:{},unknownOut:{}}; readingSessionUnknowns=[]; currentReadingAnalyzed=false; zmsRecords=[]; zmsAttemptState={}; window._zmsWrongAttempts=[]; window._reflectionResults=[]; window._reflectionQueue=[]; window._reflectionReasons=[]; window._reflectionDoneCallback=null; window._sentenceState=null; window._sentenceMistakes=[]; vocabDimMap={}; writingRequiredWords=[]; sentenceRows=[]; gapBank={words:[],patterns:[]}; renderGapBankUI(); totalMinutes=0; currentUser=null; localStorage.removeItem(CURRENT_USER_STORAGE); document.getElementById('loginOverlay').classList.remove('hidden'); document.getElementById('loginPassword').value=''; document.getElementById('loginError').textContent=''; document.getElementById('loginBtn').disabled=false; document.getElementById('loginBtn').textContent=t('login.button'); document.getElementById('chatMessages').innerHTML='<div class="message assistant-message"><div class="bubble assistant-bubble">'+t('chat.greeting')+'</div><div class="timestamp">'+t('chat.just_now')+'</div></div>'; updateHeaderUser(); grammarList=buildFullGrammarList(); renderLevelProgress(); updateGrammarDisplayByLevel(parseInt(grammarViewLevel.value)); renderTrackList(); renderVocabLevelProgress(); renderVocabLibrary(parseInt(document.getElementById('vocabViewLevel')?.value)||1); renderVocabTrackList(); renderQueriedBook(); renderFavoriteBook(); renderWrongSentences(); renderLearnTasks(); } }
+    function handleLogout(){ if(confirm(t('logout.confirm'))){ usedMap.clear(); favoriteSentences=[]; queriedItems=[]; chatHistory=[]; currentSessionClauses=[]; sessionUserMessages=[]; window._chatSessionMistakes=[]; learnPlan={}; vocabUsedMap.clear(); vocabCorrectList=[]; lastGeneratedVocabSentences.clear(); allGeneratedVocabSet.clear(); lastGeneratedSentences.clear(); lastGrammarMeta.clear(); lastGeneratedCollocations.clear(); usedPracticeStructures.clear(); wrongSentences=[]; writingEssays=[]; writingTopic=''; window._learnCustomData={}; currentLearnTab=null; readingTrack={unknownIn:{},knownIn:{},unknownOut:{}}; readingSessionUnknowns=[]; readingClickedSentences=[]; currentReadingAnalyzed=false; zmsRecords=[]; zmsAttemptState={}; window._zmsWrongAttempts=[]; window._reflectionResults=[]; window._reflectionQueue=[]; window._reflectionReasons=[]; window._reflectionDoneCallback=null; window._sentenceState=null; window._sentenceMistakes=[]; vocabDimMap={}; writingRequiredWords=[]; sentenceRows=[]; gapBank={words:[],patterns:[]}; renderGapBankUI(); totalMinutes=0; currentUser=null; localStorage.removeItem(CURRENT_USER_STORAGE); document.getElementById('loginOverlay').classList.remove('hidden'); document.getElementById('loginPassword').value=''; document.getElementById('loginError').textContent=''; document.getElementById('loginBtn').disabled=false; document.getElementById('loginBtn').textContent=t('login.button'); document.getElementById('chatMessages').innerHTML='<div class="message assistant-message"><div class="bubble assistant-bubble">'+t('chat.greeting')+'</div><div class="timestamp">'+t('chat.just_now')+'</div></div>'; updateHeaderUser(); grammarList=buildFullGrammarList(); renderLevelProgress(); updateGrammarDisplayByLevel(parseInt(grammarViewLevel.value)); renderTrackList(); renderVocabLevelProgress(); renderVocabLibrary(parseInt(document.getElementById('vocabViewLevel')?.value)||1); renderVocabTrackList(); renderQueriedBook(); renderFavoriteBook(); renderWrongSentences(); renderLearnTasks(); } }
     function switchGrammarTab(id, btn){ const tabs=btn.parentElement; tabs.querySelectorAll('.browser-tab').forEach(t=>t.classList.remove('active')); btn.classList.add('active'); const card=tabs.parentElement; const content=card.querySelector('.browser-tab-content'); if(content){ content.querySelectorAll('.track-list').forEach(l=>l.style.display='none'); const target=document.getElementById(id); if(target){target.style.display=''; target.style.display='block';} } }
     function switchVocabTab(id, btn){ const tabs=btn.parentElement; tabs.querySelectorAll('.browser-tab').forEach(t=>t.classList.remove('active')); btn.classList.add('active'); const card=tabs.parentElement; const content=card.querySelector('.browser-tab-content'); if(content){ content.querySelectorAll('.track-list').forEach(l=>l.style.display='none'); const target=document.getElementById(id); if(target){target.style.display=''; target.style.display='block';} } }
     function initTrackTabs(){}
@@ -19603,6 +20246,7 @@ async function generateAndShowPractice(grammarPattern, grammarLevel, forceNew=fa
         }
         if(!q.length){ showToast(t('practice.no_more_alert')); return; }
         window._dictationTestState = { queue: shuffleArray(q), done: 0, total: q.length };
+        window._dictationTestWrongs = 0;
         window._dictationMode = true;
         window._dictationOnly = true;
         window._learnMode = false;
@@ -19615,6 +20259,8 @@ async function generateAndShowPractice(grammarPattern, grammarLevel, forceNew=fa
         const st = window._dictationTestState;
         if(!st) return;
         if(st.queue.length === 0){
+            const wrongs = window._dictationTestWrongs || 0;
+            window._dictationTestWrongs = 0;
             window._dictationTestState = null;
             window._practiceCanAdvance = false;
             window._dictationOnly = false;
@@ -19623,7 +20269,8 @@ async function generateAndShowPractice(grammarPattern, grammarLevel, forceNew=fa
             stopAllSpeech();
             practiceGenerating = false;
             document.body.style.overflow = '';
-            showToast(t('dict_test.done'));
+            if(wrongs > 0) showToast(t('dict_test.done_wrong').replace('{n}', wrongs));
+            else showToast(t('dict_test.done'));
             return;
         }
         const item = st.queue.pop();
@@ -19661,7 +20308,7 @@ async function generateAndShowPractice(grammarPattern, grammarLevel, forceNew=fa
         const apiKey = apiKeyInput.value.trim();
         if(!apiKey) return null;
         const kindLabel = item.type === 'grammar' ? '语法' : '词语';
-        const prompt = '你是HSK中文教师。学生被要求用' + kindLabel + '「' + item.w + '」造一个句子，请批改。\n学生句子：' + sentence + '\n学生水平：HSK' + level + '\n\n要求：\n1. 判断句子是否自然通顺、符合常识，并且是否正确使用了「' + item.w + '」的意思和用法（不能只是出现了这个词/格式）。\n2. 有错误就给出改正后的完整句子 corrected；没错时 corrected 填空字符串。\n3. translation 用' + targetLang + '翻译 corrected（正确时翻译原句）。\n4. grammar 只写 AI 改动涉及的语法或句式（例如：把字句、动词+得+补语、关联词“因为...所以...”）；如果 AI 没有改动任何语法/句式，就填空字符串。\n5. issue 用' + targetLang + '简要说明错误原因或正确之处。\n6. explanation 用' + targetLang + '解释正确句子的关键词、搭配、语法，像纠错解析一样（可分点）。\n输出JSON：{"correct":true或false,"corrected":"正确句子","translation":"母语翻译","grammar":"AI改动的语法/句式","issue":"简要说明","explanation":"解释"}\n只输出 JSON。';
+        const prompt = '你是HSK中文教师。学生被要求用' + kindLabel + '「' + item.w + '」造一个句子，请批改。\n学生句子：' + sentence + '\n学生水平：HSK' + level + '\n\n要求：\n1. 判断句子是否自然通顺、符合常识，并且是否正确使用了「' + item.w + '」的意思和用法（不能只是出现了这个词/格式）。\n2. 有错误就给出改正后的完整句子 corrected；没错时 corrected 填空字符串。\n3. translation 用' + targetLang + '翻译 corrected（正确时翻译原句）。\n4. grammar 只写 AI 改动涉及的语法或句式（例如：把字句、动词+得+补语、关联词“因为...所以...”）；如果 AI 没有改动任何语法/句式，就填空字符串。\n5. issue 用' + targetLang + '简要说明错误原因或正确之处。\n6. explanation 用' + targetLang + '解释正确句子的关键词、搭配、语法，像纠错解析一样（可分点）。\n7. 标点符号一律不判错、不修改：corrected 必须保持学生原句的标点符号，不得增删改标点。\n8. 最小改动：只改真正错误或不自然的部分，其余字词一字不动；原句已经正确、只是“可以换一种更地道的说法”时，必须判 correct=true 且 corrected 填空。\n输出JSON：{"correct":true或false,"corrected":"正确句子","translation":"母语翻译","grammar":"AI改动的语法/句式","issue":"简要说明","explanation":"解释"}\n只输出 JSON。';
         try{
             const resp = await fetch(API_BASE, { method:'POST', headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer ' + apiKey }, body: JSON.stringify({ model:'deepseek-v4-flash', thinking:{ type:'disabled' }, max_tokens:2048, messages:[{ role:'user', content:prompt }], temperature:0, response_format:{ type:'json_object' } }) });
             const data = await resp.json();
@@ -19711,11 +20358,16 @@ async function generateAndShowPractice(grammarPattern, grammarLevel, forceNew=fa
         if(st.queue.length === 0){
             window._sentenceState = null;
             renderSentenceProgress();
-            const stage = document.getElementById('sentenceStage');
-            if(stage) stage.innerHTML = '<div class="sentence-stage"><div style="text-align:center;font-size:1.1rem;font-weight:700;color:#27ae60;padding:20px 0;">' + t('sentence.done') + '</div></div>';
-            showToast(t('sentence.done'));
             const mistakes = window._sentenceMistakes || [];
             window._sentenceMistakes = [];
+            const stage = document.getElementById('sentenceStage');
+            if(mistakes.length){
+                if(stage) stage.innerHTML = '<div class="sentence-stage"><div style="text-align:center;font-size:1.1rem;font-weight:700;color:#e67e22;padding:20px 0;">' + t('sentence.done_wrong').replace('{n}', mistakes.length) + '</div></div>';
+                showToast(t('sentence.done_wrong').replace('{n}', mistakes.length));
+            } else {
+                if(stage) stage.innerHTML = '<div class="sentence-stage"><div style="text-align:center;font-size:1.1rem;font-weight:700;color:#27ae60;padding:20px 0;">' + t('sentence.done') + '</div></div>';
+                showToast(t('sentence.done'));
+            }
             if(mistakes.length) setTimeout(function(){ startReflection(mistakes); }, 600);
             return;
         }
@@ -19724,6 +20376,44 @@ async function generateAndShowPractice(grammarPattern, grammarLevel, forceNew=fa
         st.done = (st.done || 0) + 1;
         renderSentenceProgress();
         renderSentenceStage(item);
+    }
+    let sentenceStageToken = 0;
+    async function fetchSentenceItemInfo(item){
+        const apiKey = apiKeyInput.value.trim();
+        if(!apiKey || !item) return null;
+        const targetLang = targetLangSelect.value;
+        let prompt;
+        if(item.type === 'grammar'){
+            prompt = '你是HSK中文教师。下面是一个汉语语法点/句式名称。如果它包含中文，请把中文部分用' + targetLang + '翻译出来（只翻译中文部分，保留其他文字和格式；如果完全没有中文就返回空字符串）。输出JSON：{"translation":"翻译结果"}。只输出JSON。\n语法点：' + item.w;
+        } else {
+            prompt = '你是HSK中文教师。请给中文词语「' + item.w + '」标注拼音，并用' + targetLang + '解释词义。要求：拼音按字分开、拼音之间用空格分隔（如：我们 wǒ men）。输出JSON：{"pinyin":"拼音","meaning":"词义"}。只输出JSON。';
+        }
+        try{
+            const resp = await fetch(API_BASE, { method:'POST', headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer ' + apiKey }, body: JSON.stringify({ model:'deepseek-v4-flash', thinking:{ type:'disabled' }, max_tokens:512, messages:[{ role:'user', content:prompt }], temperature:0, response_format:{ type:'json_object' } }) });
+            const data = await resp.json();
+            if(data.error) return null;
+            if(!data.choices || !data.choices[0] || !data.choices[0].message) return null;
+            let c = data.choices[0].message.content;
+            c = c.replace(/```json/g, '').replace(/```/g, '').trim();
+            const r = safeJsonParse(c);
+            return r || null;
+        }catch(e){ return null; }
+    }
+    async function decorateSentenceStage(item){
+        const myToken = sentenceStageToken;
+        const meta = document.getElementById('sentenceWordMeta');
+        const info = await fetchSentenceItemInfo(item);
+        if(myToken !== sentenceStageToken) return;
+        if(!meta) return;
+        if(!info){ meta.textContent = ''; return; }
+        if(item.type === 'grammar'){
+            const tr = String(info.translation || '').trim();
+            meta.textContent = tr ? ('🌐 ' + tr) : '';
+        } else {
+            const py = String(info.pinyin || '').trim();
+            const meaning = String(info.meaning || '').trim();
+            meta.textContent = (py ? '🔊 ' + py : '') + (meaning ? (py ? ' · ' : '') + '💡 ' + meaning : '');
+        }
     }
     function renderSentenceStage(item){
         const stage = document.getElementById('sentenceStage');
@@ -19734,6 +20424,7 @@ async function generateAndShowPractice(grammarPattern, grammarLevel, forceNew=fa
         stage.innerHTML = '<div class="sentence-stage">' +
             '<div style="font-size:0.78rem;color:#94a3b8;margin-bottom:4px;">' + (st ? (st.done + '/' + st.total) : '') + ' · ' + escapeHtml(lvLabel) + ' · ' + (item.type === 'grammar' ? '📐' : '📖') + '</div>' +
             '<div class="sentence-item-word">' + escapeHtml(item.w) + '</div>' +
+            '<div id="sentenceWordMeta" class="sentence-word-meta">⏳</div>' +
             '<div style="text-align:center;color:#94a3b8;font-size:0.8rem;margin-bottom:8px;">' + escapeHtml(item.type === 'grammar' ? t('sentence.hint_grammar') : t('sentence.hint_vocab')) + '</div>' +
             '<input id="sentenceInput" class="sentence-input" placeholder="' + escapeHtml(ph) + '" autocomplete="off">' +
             '<div class="sentence-actions">' +
@@ -19756,6 +20447,8 @@ async function generateAndShowPractice(grammarPattern, grammarLevel, forceNew=fa
             input.focus();
             input.addEventListener('keydown', function(e){ if(e.key === 'Enter' && !e.isComposing && e.keyCode !== 229){ e.preventDefault(); submitSentencePractice(); } });
         }
+        sentenceStageToken++;
+        decorateSentenceStage(item);
     }
     async function submitSentencePractice(){
         const st = window._sentenceState;
@@ -20064,7 +20757,7 @@ async function generateAndShowPractice(grammarPattern, grammarLevel, forceNew=fa
             finishReflectionQueue();
         }
     }
-    function showReflectionPrompt(){
+    async function showReflectionPrompt(){
         const q = window._reflectionQueue;
         const idx = window._reflectionIndex || 0;
         if(!q || !q.length || idx >= q.length){
@@ -20076,6 +20769,10 @@ async function generateAndShowPractice(grammarPattern, grammarLevel, forceNew=fa
         const isZms = it.mode === '怎么说';
         const total = q.length;
         const prevState = (window._reflectionReasons || [])[idx] || { choice:'', why:'', meaning:'', native: it.native || '', grammar: it.grammar || '' };
+        // 聊天/写作纠错反思：展示用户原句 + 正确句子 + 母语意思
+        if(!isReading && !isZms && !it.native){
+            await ensureReflectionNative(it);
+        }
         let ov = document.getElementById('reflectionOverlay');
         if(!ov){
             ov = document.createElement('div');
@@ -20083,21 +20780,31 @@ async function generateAndShowPractice(grammarPattern, grammarLevel, forceNew=fa
             ov.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;';
             document.body.appendChild(ov);
         }
-        const title = isReading ? t('reflection.q_confusion') : (isZms ? t('reflection.q_why_couldnt_say') : t('reflection.q_why_wrong'));
+        const title = isReading ? t('reflection.q_confusion') : (isZms ? t('reflection.q_why_couldnt_say') : (t('reflection.title_chat') || t('reflection.q_why_wrong')));
         let sentenceHtml = '';
         if (isReading) {
             sentenceHtml = '<div style="background:#fef3e2;border:1px solid #f0c040;border-radius:12px;padding:10px 12px;font-size:0.95rem;margin-bottom:10px;">📖 ' + escapeHtml(it.text) + '</div>';
         } else {
             if (it.user) sentenceHtml += '<div style="background:#f1f5f9;border:1px solid #cbd5e1;border-radius:12px;padding:10px 12px;font-size:0.95rem;margin-bottom:6px;">📝 ' + escapeHtml(t('reflection.your')) + '：' + escapeHtml(it.user) + '</div>';
             if (it.text) sentenceHtml += '<div style="background:#eafaf1;border:1px solid #27ae60;border-radius:12px;padding:10px 12px;font-size:0.95rem;margin-bottom:6px;">✅ ' + escapeHtml(t('reflection.correct')) + '：' + escapeHtml(it.text) + '</div>';
+            if (it.native) sentenceHtml += '<div style="background:#eef2ff;border:1px solid #c7d2fe;border-radius:12px;padding:10px 12px;font-size:0.9rem;margin-bottom:6px;">🌐 ' + escapeHtml(t('chat.meaning_title')) + '：' + escapeHtml(it.native) + '</div>';
             if (it.grammar) sentenceHtml += '<div style="background:#f3e8ff;border:1px solid #d8c4f0;border-radius:12px;padding:10px 12px;font-size:0.88rem;margin-bottom:10px;">' + escapeHtml(t('reflection.grammar_point')) + '：' + escapeHtml(it.grammar) + '</div>';
         }
         const btnStyle = 'display:block;width:100%;text-align:left;padding:12px 14px;border-radius:14px;border:1.5px solid #d0dae8;background:#f8fafc;cursor:pointer;font-size:0.95rem;font-weight:600;color:#1e2b5e;margin:0 0 8px;';
-        const writePh = isReading ? t('reflection.confusion_placeholder') : (isZms ? (t('reflection.why_couldnt_placeholder') || t('reflection.why_placeholder')) : t('reflection.why_placeholder'));
-        const choiceHtml = '<div id="reflectionWriteArea">' +
-            '<textarea id="reflectionWhy" placeholder="' + escapeHtml(writePh) + '" style="width:100%;min-height:80px;border:1.5px solid #d0dae8;border-radius:12px;padding:10px;font-size:0.9rem;font-family:inherit;box-sizing:border-box;margin-bottom:12px;">' + escapeHtml(prevState.why || '') + '</textarea>' +
-            '<div style="text-align:right;"><button id="reflectionWriteSaveBtn" style="padding:8px 18px;border-radius:14px;border:none;background:#1e2b5e;color:#fff;cursor:pointer;font-size:0.85rem;">' + escapeHtml(t('reflection.save_next')) + '</button></div>' +
-            '</div>';
+        let choiceHtml;
+        if(isReading || isZms){
+            const writePh = isReading ? t('reflection.confusion_placeholder') : (t('reflection.why_couldnt_placeholder') || t('reflection.why_placeholder'));
+            choiceHtml = '<div id="reflectionWriteArea">' +
+                '<textarea id="reflectionWhy" placeholder="' + escapeHtml(writePh) + '" style="width:100%;min-height:80px;border:1.5px solid #d0dae8;border-radius:12px;padding:10px;font-size:0.9rem;font-family:inherit;box-sizing:border-box;margin-bottom:12px;">' + escapeHtml(prevState.why || '') + '</textarea>' +
+                '<div style="text-align:right;"><button id="reflectionWriteSaveBtn" style="padding:8px 18px;border-radius:14px;border:none;background:#1e2b5e;color:#fff;cursor:pointer;font-size:0.85rem;">' + escapeHtml(t('reflection.save_next')) + '</button></div>' +
+                '</div>';
+        } else {
+            choiceHtml = '<div id="reflectionChoiceArea">' +
+                '<button class="reflection-opt" data-choice="A" style="' + btnStyle + '">' + escapeHtml(t('reflection.opt_a')) + '</button>' +
+                '<button class="reflection-opt" data-choice="B" style="' + btnStyle + '">' + escapeHtml(t('reflection.opt_b')) + '</button>' +
+                '</div>' +
+                '<div id="reflectionBDetail" style="display:none;"></div>';
+        }
         const prevHtml = idx > 0 ? '<button id="reflectionPrevBtn" style="padding:7px 16px;border-radius:14px;border:1px solid #d0dae8;background:#f8fafc;cursor:pointer;font-size:0.85rem;">' + escapeHtml(t('reflection.prev')) + '</button>' : '';
         ov.innerHTML = '<div style="background:#fff;border-radius:20px;max-width:580px;width:100%;padding:22px;box-shadow:0 10px 40px rgba(0,0,0,0.25);font-family:inherit;max-height:90vh;overflow:auto;">' +
             '<div style="font-weight:700;font-size:1rem;color:#1e2b5e;margin-bottom:10px;">💭 ' + escapeHtml(title) + '（' + (idx + 1) + '/' + total + '）</div>' +
@@ -20115,7 +20822,7 @@ async function generateAndShowPractice(grammarPattern, grammarLevel, forceNew=fa
             if(whyTa) whyTa.focus();
             writeSaveBtn.onclick = function(){
                 const why = whyTa ? whyTa.value.trim() : '';
-                if(!why){ showToast(t('reflection.need_why')); return; }
+                if(!why){ showToast(isReading ? t('reflection.need_why') : t('reflection.need_why')); return; }
                 const reasons = window._reflectionReasons || [];
                 reasons[idx] = reasons[idx] || {};
                 reasons[idx].choice = isReading ? '' : 'B';
@@ -20140,27 +20847,19 @@ async function generateAndShowPractice(grammarPattern, grammarLevel, forceNew=fa
             if(choiceArea) choiceArea.style.display = 'none';
             if(area){
                 area.style.display = 'block';
-                area.innerHTML = '<div style="margin-bottom:10px;">' +
-                    '<label style="display:block;font-size:0.85rem;font-weight:600;color:#1e2b5e;margin-bottom:6px;">' + escapeHtml(t('reflection2.why_title')) + '</label>' +
-                    '<textarea id="reflectionWhy" placeholder="' + escapeHtml(t('reflection2.why_ph')) + '" style="width:100%;min-height:60px;border:1.5px solid #d0dae8;border-radius:12px;padding:10px;font-size:0.9rem;font-family:inherit;box-sizing:border-box;"></textarea>' +
-                    '</div>' +
-                    '<div style="margin-bottom:12px;">' +
-                    '<label style="display:block;font-size:0.85rem;font-weight:600;color:#1e2b5e;margin-bottom:6px;">' + escapeHtml(t('reflection2.meaning_title')) + '</label>' +
-                    '<textarea id="reflectionMeaning" placeholder="' + escapeHtml(t('reflection2.meaning_ph')) + '" style="width:100%;min-height:60px;border:1.5px solid #d0dae8;border-radius:12px;padding:10px;font-size:0.9rem;font-family:inherit;box-sizing:border-box;"></textarea>' +
+                area.innerHTML = '<div style="margin-bottom:12px;">' +
+                    '<label style="display:block;font-size:0.85rem;font-weight:600;color:#1e2b5e;margin-bottom:6px;">' + escapeHtml(t('reflection.unclear_label')) + '</label>' +
+                    '<textarea id="reflectionUnclear" placeholder="' + escapeHtml(t('reflection.unclear_ph')) + '" style="width:100%;min-height:80px;border:1.5px solid #d0dae8;border-radius:12px;padding:10px;font-size:0.9rem;font-family:inherit;box-sizing:border-box;"></textarea>' +
                     '</div>' +
                     '<div style="text-align:right;"><button id="reflectionBSaveBtn" style="padding:8px 18px;border-radius:14px;border:none;background:#1e2b5e;color:#fff;cursor:pointer;font-size:0.85rem;">' + escapeHtml(t('reflection.save_next')) + '</button></div>';
-                const whyTa = document.getElementById('reflectionWhy');
-                const meaningTa = document.getElementById('reflectionMeaning');
-                if(whyTa) whyTa.focus();
+                const ta = document.getElementById('reflectionUnclear');
+                if(ta) ta.focus();
                 document.getElementById('reflectionBSaveBtn').onclick = function(){
-                    const why = whyTa ? whyTa.value.trim() : '';
-                    const meaning = meaningTa ? meaningTa.value.trim() : '';
-                    if(!why){ showToast(t('reflection2.need_why')); return; }
-                    if(!meaning){ showToast(t('reflection2.need_meaning')); return; }
+                    const why = ta ? ta.value.trim() : '';
+                    if(!why){ showToast(t('reflection.need_unclear')); return; }
                     reasons[idx] = reasons[idx] || {};
                     reasons[idx].choice = 'B';
                     reasons[idx].why = why;
-                    reasons[idx].meaning = meaning;
                     advanceReflection();
                 };
             }
@@ -20191,8 +20890,9 @@ async function generateAndShowPractice(grammarPattern, grammarLevel, forceNew=fa
                 reasonText = '为什么不会说：' + r.why;
                 if(r.meaning) reasonText += '｜正确句子的意思：' + r.meaning;
             } else if(r.choice === 'B'){
-                reasonText = (r.noChoiceLabel ? '' : reflectionReasonLabel('B') + '｜') + '为什么用错（词语/语法/语序）：' + (r.why || '');
-                if(r.meaning) reasonText += '｜正确句子的意思：' + r.meaning;
+                reasonText = (r.noChoiceLabel ? '' : t('reflection.opt_b') + '｜') + '哪里不明白：' + (r.why || '');
+            } else if(r.choice === 'A'){
+                reasonText = t('reflection.opt_a');
             } else if(r.choice){
                 reasonText = reflectionReasonLabel(r.choice);
             }
@@ -20204,7 +20904,7 @@ async function generateAndShowPractice(grammarPattern, grammarLevel, forceNew=fa
                 grammar: it.grammar || '',
                 reasonType: (r.choice === 'B' && !r.noChoiceLabel) ? '反思-B' : '反思',
                 reason: reasonText,
-                native: '',
+                native: it.native || '',
                 date: getLocalDate()
             });
         }
@@ -20866,9 +21566,26 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
         }
         let correct = String(v && v.m || '').trim();
         if(wlIsFunctionWord(v)) correct = await getWordUsageMeaning(word, lvl) || correct;
-        window._wlMeaningCorrect = correct;
         if(!correct){ wlAfterAnswer(false, t('mcq.no_meaning'), ''); return; }
-        const opts = buildWlMeaningOptions(correct, lvl);
+        const lang = targetLangSelect ? targetLangSelect.value : 'English';
+        let opts = buildWlMeaningOptions(correct, lvl);
+        // 母语不是英语时：把正确释义和干扰项一起翻译成学生母语
+        if (lang !== 'English') {
+            const trArr = await translateWlMeaningsToLang([correct].concat(opts), lang);
+            if (trArr && trArr.length === opts.length + 1) {
+                const trCorrect = String(trArr[0] || '').trim();
+                const seen = new Set([trCorrect.toLowerCase()]);
+                const newOpts = [];
+                for (let k = 1; k < trArr.length; k++) {
+                    const t = String(trArr[k] || '').trim();
+                    if (!t || seen.has(t.toLowerCase())) continue;
+                    seen.add(t.toLowerCase());
+                    newOpts.push(t);
+                }
+                if (trCorrect && newOpts.length >= 3) { correct = trCorrect; opts = newOpts; }
+            }
+        }
+        window._wlMeaningCorrect = correct;
         let html = '<div class="wlp-box">' + wlProgressLineHtml(word);
         if(dim === '音义'){
             html += '<div style="color:#64748b;">' + (isRetry ? t('mcq.retry') : '') + t('mcq.listen_meaning') + '</div><div style="margin:10px 0;"><button class="wlp-btn" onclick="window._wlSpeak(\'' + word + '\')">' + t('mcq.play') + '</button></div>';
@@ -20958,6 +21675,41 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
             if(c){ wordUsageCache[word] = c; saveWordUsageCache(); return c; }
             return '';
         }catch(e){ return ''; }
+    }
+    // 词语练习的意思选项翻译：母语不是英语时，把英语释义批量翻译成学生母语
+    window._wlMeaningTransCache = window._wlMeaningTransCache || {};
+    async function translateWlMeaningsToLang(texts, lang){
+        const cache = window._wlMeaningTransCache;
+        const key = lang + '|';
+        const need = [];
+        const out = [];
+        for(let i = 0; i < texts.length; i++){
+            const t = String(texts[i] || '').trim();
+            out[i] = t;
+            if(!t) continue;
+            const ck = key + t.toLowerCase();
+            if(cache[ck]){ out[i] = cache[ck]; continue; }
+            need.push({ i: i, t: t });
+        }
+        if(need.length){
+            const apiKey = apiKeyInput.value.trim();
+            if(apiKey){
+                try{
+                    const listText = need.map(function(x){ return x.t; }).join('\n');
+                    const resp = await fetch(API_BASE, { method:'POST', headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer ' + apiKey }, body: JSON.stringify({ model:'deepseek-v4-flash', thinking:{ type:'disabled' }, max_tokens:512, messages:[{ role:'user', content:'请把下面每行英语解释翻译成' + lang + '，每行单独翻译，只输出译文，保持行数一致，不要任何解释：\n' + listText }], temperature:0 }) });
+                    const data = await resp.json();
+                    if(!data.error && data.choices && data.choices[0] && data.choices[0].message){
+                        const lines = String(data.choices[0].message.content || '').split('\n').map(function(s){ return s.trim(); });
+                        for(let k = 0; k < need.length; k++){
+                            const tr = (lines[k] || '').trim() || need[k].t;
+                            cache[key + need[k].t.toLowerCase()] = tr;
+                            out[need[k].i] = tr;
+                        }
+                    }
+                }catch(e){}
+            }
+        }
+        return out;
     }
     function buildWlHanziOptions(word, lvl){
         const len = word.length;
@@ -21291,7 +22043,7 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
         apiKeyInput.addEventListener('input', refreshApiKeyStatus);
         refreshApiKeyStatus();
         if(document.getElementById('downloadUnifiedBtn')) document.getElementById('downloadUnifiedBtn').onclick=downloadUnifiedReport;
-        if(!userInput._chatKeyBound){ userInput._chatKeyBound=true; userInput.addEventListener('keypress',e=>{ if(e.key==='Enter' && !e.isComposing && e.keyCode!==229) handleUserMessage(); }); } grammarViewLevel.addEventListener('change',()=>updateGrammarDisplayByLevel(parseInt(grammarViewLevel.value))); closeModalSpan.onclick=()=>{modal.style.display='none';document.body.style.overflow='';}; closePracticeSpan.onclick=()=>{const _wasSelfPractice = window._selfPractice; practiceModal.style.display='none';stopAllSpeech();practiceGenerating=false;practiceSessionToken++;window._selfPractice=false;document.body.style.overflow=''; if(_wasSelfPractice) setTimeout(finishPracticeReflection, 400); window._dictationMode = false; window._dictationOnly = false; window._reviewMode = false; window._reviewQueue = null; window._learnMode = false; window._learnQueue = null; window._currentReviewItem = null; window._reviewRound = 0; window._practiceRevealed = false; window._practiceFinished = false; window._pendingLearnWord = null; window._learnRound = 0; window._dictationReflectQueue = []; window._dictationReflectDone = null; const _dro = document.getElementById('dictationReflectOverlay'); if(_dro) _dro.remove(); unbindDictReflectKeys(); window._dictationTestState = null; window._practiceCanAdvance = false; practiceContent.classList.remove('dictation-active','revealed'); const drb=document.getElementById('dictationRevealBtn'); if(drb) drb.classList.remove('show'); const _kh2 = document.getElementById('practiceKeyHints'); if(_kh2) _kh2.style.display = ''; }; window.onclick=e=>{ if(e.target===modal){modal.style.display='none';document.body.style.overflow='';} if(e.target===practiceModal){const _wasSelfPractice2 = window._selfPractice; practiceModal.style.display='none';stopAllSpeech();practiceGenerating=false;practiceSessionToken++;window._selfPractice=false;document.body.style.overflow=''; if(_wasSelfPractice2) setTimeout(finishPracticeReflection, 400);} }; function commitUsageMinutes(){ if(!currentUser) return; let delta=(Date.now()-sessionStart)/60000; if(delta>0){ totalMinutes+=delta; sessionStart=Date.now(); saveFullState(); updateStatsUI(); } } if(!window._usageTimerInit){ window._usageTimerInit=true; document.addEventListener('visibilitychange',()=>{ if(document.hidden){ commitUsageMinutes(); } else { sessionStart=Date.now(); } }); window.addEventListener('pagehide',()=>{ commitUsageMinutes(); }); setInterval(()=>{ if(document.hidden){ sessionStart=Date.now(); return; } commitUsageMinutes(); },60000); } /* Chrome speech synthesis keep-alive: resume every 15s to prevent the synthesizer from sleeping (known Chrome bug) */ setInterval(()=>{ try { if('speechSynthesis' in window && window.speechSynthesis && !window.speechSynthesis.speaking) { window.speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(''); u.volume=0; speechSynthesis.speak(u); } } catch(_) {} },15000); }
+        if(!userInput._chatKeyBound){ userInput._chatKeyBound=true; userInput.addEventListener('keypress',e=>{ if(e.key==='Enter' && !e.isComposing && e.keyCode!==229) handleUserMessage(); }); } grammarViewLevel.addEventListener('change',()=>updateGrammarDisplayByLevel(parseInt(grammarViewLevel.value))); closeModalSpan.onclick=()=>{modal.style.display='none';document.body.style.overflow='';}; closePracticeSpan.onclick=()=>{const _wasSelfPractice = window._selfPractice; practiceModal.style.display='none';stopAllSpeech();practiceGenerating=false;practiceSessionToken++;window._selfPractice=false;document.body.style.overflow=''; if(_wasSelfPractice) setTimeout(finishPracticeReflection, 400); window._dictationMode = false; window._dictationOnly = false; window._reviewMode = false; window._reviewQueue = null; window._learnMode = false; window._learnQueue = null; window._currentReviewItem = null; window._reviewRound = 0; window._practiceRevealed = false; window._practiceFinished = false; window._pendingLearnWord = null; window._learnRound = 0; window._dictationReflectQueue = []; window._dictationReflectDone = null; const _dro = document.getElementById('dictationReflectOverlay'); if(_dro) _dro.remove(); unbindDictReflectKeys(); window._dictationTestState = null; window._dictationTestWrongs = 0; window._practiceCanAdvance = false; practiceContent.classList.remove('dictation-active','revealed'); const drb=document.getElementById('dictationRevealBtn'); if(drb) drb.classList.remove('show'); const _kh2 = document.getElementById('practiceKeyHints'); if(_kh2) _kh2.style.display = ''; }; window.onclick=e=>{ if(e.target===modal){modal.style.display='none';document.body.style.overflow='';} if(e.target===practiceModal){const _wasSelfPractice2 = window._selfPractice; practiceModal.style.display='none';stopAllSpeech();practiceGenerating=false;practiceSessionToken++;window._selfPractice=false;document.body.style.overflow=''; if(_wasSelfPractice2) setTimeout(finishPracticeReflection, 400);} }; function commitUsageMinutes(){ if(!currentUser) return; let delta=(Date.now()-sessionStart)/60000; if(delta>0){ totalMinutes+=delta; sessionStart=Date.now(); saveFullState(); updateStatsUI(); } } if(!window._usageTimerInit){ window._usageTimerInit=true; document.addEventListener('visibilitychange',()=>{ if(document.hidden){ commitUsageMinutes(); } else { sessionStart=Date.now(); } }); window.addEventListener('pagehide',()=>{ commitUsageMinutes(); }); setInterval(()=>{ if(document.hidden){ sessionStart=Date.now(); return; } commitUsageMinutes(); },60000); } /* Chrome speech synthesis keep-alive: resume every 15s to prevent the synthesizer from sleeping (known Chrome bug) */ setInterval(()=>{ try { if('speechSynthesis' in window && window.speechSynthesis && !window.speechSynthesis.speaking) { window.speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(''); u.volume=0; speechSynthesis.speak(u); } } catch(_) {} },15000); }
     window._dictationMode = false;
     window._dictationOnly = false;
     window.revealDictation = function(){ const pc=document.getElementById('practiceContent'); if(pc){ pc.classList.toggle('revealed'); const btn=document.getElementById('dictationRevealBtn'); if(btn) btn.classList.toggle('show', !pc.classList.contains('revealed')); } };

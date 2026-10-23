@@ -306,12 +306,15 @@ function handleImageSearchProxy(req, res) {
     if (qIndex >= 0) query = req.url.slice(qIndex + 1);
     const params = new URLSearchParams(query);
     const q = (params.get('q') || '').trim();
+    const aspect = (params.get('aspect') || '').trim();
+    const mkt = (params.get('mkt') || 'en-US').trim();
     if (!q) {
         res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
         res.end(JSON.stringify({ error: '缺少 q 参数' }));
         return;
     }
-    const searchPath = '/images/search?q=' + encodeURIComponent(q) + '&form=HDRSC2';
+    // aspect=wide 时请求 Bing 返回横向图片；mkt=en-US 时结果更偏向英文图片（避免图片带中文文字）
+    const searchPath = '/images/search?q=' + encodeURIComponent(q) + '&form=HDRSC2&mkt=' + encodeURIComponent(mkt) + (aspect === 'wide' ? '&qft=+filterui:aspect-wide' : '');
     const options = {
         hostname: 'www.bing.com',
         port: 443,
