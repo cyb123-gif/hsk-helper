@@ -16526,8 +16526,18 @@ function saveFullState(){ if(!currentUser) return; const entries=Array.from(used
         const enforce = prevCheck ? `\n【长度强制修正 - 现在必须执行】你刚才的回复超过HSK${level}级长度限制（超限项：${reasonNames[prevCheck.reason]||prevCheck.reason}，当前值：${prevCheck.count}）。现在重新回复用户刚才那条消息，内容可以精简，但必须满足：每个小句（逗号前的一段）不超过${limEnforce.maxChars}个汉字，每句最多${limEnforce.maxClausesPerSentence}个小句，全段最多${limEnforce.maxSentences}句，全文总字数不超过${limEnforce.maxTotalChars}个汉字。宁可少说，不可超长。` : '';
         const corrCtx = (_validMistakes.length > 0)
             ? '\n【系统纠错结果】\n系统已先分析学生这句话，发现以下偏误：\n'
-                + _validMistakes.map(m => '- 学生原句：「' + m.original + '」 → 正确句子：「' + m.corrected + '」（' + (m.type || '') + '）').join('\n')
-                + '\n回复时先用「哦，你是说……」+ 改正后的完整句子确认学生意思，再接「，对吗？」，然后再自然继续回应；不要在确认句里加任何翻译（正确句子的翻译会由系统显示在下面的纠错块里）。「哦，你是说……」后面的句子必须逐字照抄上面每条「正确句子」的完整句子，一个字都不许增、删、换，禁止省略主语等正确成分，禁止只截取片段（如学生说「我为了打工去的」，必须说「哦，你是说我去工作了，对吗？」，不能说「去工作」），禁止把「正确句子」抄成生造词或错字，也不允许在正确句子里添加原文没有的字。如果某条「正确句子」和学生原句完全一样，就不要为它使用「哦，你是说……」。如果你无法保证逐字照抄正确句子，就干脆不用「哦，你是说……」句式，直接简短自然回应学生即可（纠错块会由系统自动显示）。不要说「你是想问」。'
+                + (function(){
+                    const seen = new Set(), rows = [];
+                    for(const m of _validMistakes){
+                        const cc = String(m.corrected || '').trim().replace(/[。！？!?]+$/, '');
+                        const key = stripForCompare(cc);
+                        if(!cc || seen.has(key)) continue;
+                        seen.add(key);
+                        rows.push('- 学生原句：「' + m.original + '」 → 正确句子：「' + cc + '」（' + (m.type || '') + '）');
+                    }
+                    return rows.join('\n');
+                })()
+                + '\n回复时先用「哦，你是说……」+ 改正后的完整句子确认学生意思，再接「，对吗？」，然后必须继续自然回应学生说的内容（1-3句），并在合适时提一个问题延续对话；不要只输出确认句就结束。不要在确认句里加任何翻译（正确句子的翻译会由系统显示在下面的纠错块里）。「哦，你是说……」后面的句子必须逐字照抄上面每条「正确句子」的完整句子，一个字都不许增、删、换，句末的句号不要抄进确认句（正确句子结尾直接接「，对吗？」），禁止省略主语等正确成分，禁止只截取片段（如学生说「我为了打工去的」，必须说「哦，你是说我去工作了，对吗？」，不能说「去工作」），禁止把「正确句子」抄成生造词或错字，也不允许在正确句子里添加原文没有的字。如果某条「正确句子」和学生原句完全一样，就不要为它使用「哦，你是说……」。如果你无法保证逐字照抄正确句子，就干脆不用「哦，你是说……」句式，直接简短自然回应学生即可（纠错块会由系统自动显示）。不要说「你是想问」。'
             : '\n【系统纠错结果】\n（本次无纠错结果）\n学生这句话没有偏误。绝对不要使用「哦，你是说……」「你是想说……」「……，对吗？」等任何确认句式，绝对不要重复、改写或复述学生的句子（哪怕你觉得它有错——纠错由系统单独处理），更不许把你擅自改写、或添加原文没有的字的句子塞进确认句式；直接自然回应学生说的内容或问题。';
         const topicCtx = window._chatTopicContext
             ? '\n【当前话题背景】' + String(window._chatTopicContext).slice(0, 1200) + '\n请始终围绕这个话题和学生聊天，不要跑题；提问时一次只问一个问题，等学生回答后再继续问下一个，不要一次列出多个问题。'
@@ -18086,8 +18096,10 @@ renderVocabLevelProgress(); renderVocabTrackList(); const _userHanzi = sessionUs
             items.push({ o, c });
         }
         if(!items.length) return r;
-        // 先把 AI 回复里已有的任何确认框架/复述剥掉，再由系统统一补上，保证每次都出现、格式一致
-        r = r.replace(/^(哦[，,]?\s*)?(?:你是说|你是想说|你想说的是|你的意思是|意思是说|是说)([^。！？!?\n]*?)(?:[，,]?\s*对吗[？?]?)?\s*/, '');
+        // 先把重复的「，对吗？」压成一个，再把 AI 回复里已有的任何确认框架/复述剥掉，
+        // 最后由系统统一补上，保证每次都出现、格式一致
+        r = r.replace(/([，,]\s*对吗[？?]?\s*){2,}/g, '，对吗？');
+        r = r.replace(/^(哦[，,]?\s*)?(?:你是说|你是想说|你想说的是|你的意思是|意思是说|是说)([^！？!?\n]*?)(?:(?:[，,]?\s*对吗[？?]?)+)?\s*/, '');
         // AI 直接复述原句时，替换为改正句
         for(const it of items){ if(r.includes(it.o)) r = r.split(it.o).join(it.c); }
         // AI 已经自然说出改正句且紧跟翻译括号时，保留翻译，其余照常
@@ -18099,8 +18111,10 @@ renderVocabLevelProgress(); renderVocabTrackList(); const _userHanzi = sessionUs
             const tm = after.match(/^\s*[（(]\s*([^）)]{1,120}?)\s*[）)]/);
             if(tm){ translation = '（' + tm[1] + '）'; r = r.slice(first.c.length + tm[0].length); }
             else r = r.slice(first.c.length);
-            // 去掉紧跟的「，对吗？」防止重复
-            r = r.replace(/^[，,]?\s*对吗[？?]?\s*/, '');
+            // 去掉紧跟的「，对吗？」和句号等残留标点（反复清理，顺序无关），防止重复
+            r = r.replace(/^[。，,、\s]+/, '');
+            r = r.replace(/^(?:[，,]?\s*对吗[？?]?\s*)+/, '');
+            r = r.replace(/^[。，,、\s]+/, '');
         }
         const joined = items.map(it => it.c).join('，');
         const frame = '哦，你是说' + joined + translation + '，对吗？';
@@ -18111,11 +18125,14 @@ renderVocabLevelProgress(); renderVocabTrackList(); const _userHanzi = sessionUs
     // 保留其后自然回应的内容，避免学生看到自己的正确句子被复述改错。
     function stripUnwantedConfirmationEcho(raw){
         let r = String(raw || '');
-        // 有「你是说」框架：整段剥掉
-        let cleaned = r.replace(/^(哦[，,]?\s*)?(?:你是说|你是想说|你想说的是|你的意思是|意思是说|是说)([^。！？!?\n]*?)(?:[，,]?\s*对吗[？?]?)?\s*/, '');
+        // 有「你是说」框架：整段剥掉（含重复的「，对吗？」）
+        let cleaned = r.replace(/([，,]\s*对吗[？?]?\s*){2,}/g, '，对吗？');
+        cleaned = cleaned.replace(/^(哦[，,]?\s*)?(?:你是说|你是想说|你想说的是|你的意思是|意思是说|是说)([^！？!?\n]*?)(?:(?:[，,]?\s*对吗[？?]?)+)?\s*/, '');
         // 无「你是说」但模型仍写了「改过的句子，对吗？」这类确认句（如「今天去北京游，对吗？」）：
         // 剥掉句首第一个以「，对吗/对吧/对不对/是吧」结尾的小句
         cleaned = cleaned.replace(/^[^。！？!?\n]+?[，,]\s*(?:对吗|对吧|对不对|是吧)[？?]?\s*/, '');
+        // 清理任何位置残留的重复「，对吗？」
+        cleaned = cleaned.replace(/([，,]\s*对吗[？?]?\s*){2,}/g, '，对吗？');
         return cleaned.trim() || r.trim();
     }
 
@@ -18286,7 +18303,20 @@ renderVocabLevelProgress(); renderVocabTrackList(); const _userHanzi = sessionUs
                 // 失败时沿用并行阶段已生成的自然回复，保证不卡住。
                 let _chat2 = null;
                 try{ _chat2 = await chatWithContext(text, signal, 0, null, batch); }catch(e){ _chat2 = null; }
-                if(_chat2) reply = _chat2;
+                if(_chat2){
+                    // 若这次只回了确认句、没有任何后续内容（或只剩标点/重复的「对吗」），
+                    // 改用并行阶段已生成的自然回复，由 align 本地补上确认句，保证话轮能继续下去
+                    let _rest = String(_chat2.raw || '').replace(/^(哦[，,]?\s*)?(?:你是说|你是想说|你想说的是|你的意思是|意思是说|是说)([^！？!?\n]*?)(?:(?:[，,]?\s*对吗[？?]?)+)?\s*/, '');
+                    for(const b of batch){
+                        const _bc = String(b.corrected || '').replace(/[。！？!?]+$/, '');
+                        if(_bc && _rest.indexOf(_bc) === 0) _rest = _rest.slice(_bc.length);
+                    }
+                    _rest = _rest.replace(/^[。，,、\s]+/, '').replace(/^(?:[，,]?\s*对吗[？?]?\s*)+/, '').replace(/^[。，,、\s]+/, '');
+                    if(_rest.replace(/[。，、！？!?？\s]/g, '') === ''){
+                        if(reply && reply.raw) _chat2 = null;
+                    }
+                    if(_chat2) reply = _chat2;
+                }
             }
             let cleanReplyRaw = reply ? alignReplyWithCorrections(stripInlineCorrectionBlock(reply.raw), batch) : '';
             // 系统判定无错时，AI 不应输出「哦，你是说……对吗？」；若模型仍输出，剥掉这段确认框架，
