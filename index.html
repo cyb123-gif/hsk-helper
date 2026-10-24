@@ -16519,7 +16519,7 @@ function saveFullState(){ if(!currentUser) return; const entries=Array.from(used
         const limPlain = chatLengthLimitsFor(level, false);
         const _validMistakes = (mistakes || []).filter(m => m && m.original && m.corrected && stripForCompare(m.original) !== stripForCompare(m.corrected) && stripForCompare(m.corrected).replace(/[吧吗呢啊呀哦嘛咯喽哟]+$/, '') !== stripForCompare(m.original));
         const limUse = _validMistakes.length > 0 ? chatLengthLimitsFor(level, true) : limPlain;
-        const diffGuide = level===1 ? "句子极短（每句3-6字），只能使用HSK1最基础词汇（我、你、他、是、有、去、来、吃、喝、好、大、小、喜欢等），只回复1句话，不要用任何关联词和复杂语法" : level===2 ? "句子短（每句5-9字），使用HSK1-2基础词汇，简单主谓/主谓宾，可带简单状语，回复1-2句" : level===3 ? "句子中等（每句7-14字），使用HSK3及以下词汇，可含趋向补语、结果补语、把字句，回复2-3句" : level===4 ? "句子中等偏长（每句10-18字），使用HSK4及以下词汇，可含较复杂补语和关联词，回复3-4句" : "句子正常（每句12-22字），使用HSK5及以下词汇，表达可以丰富自然，可有一定句法复杂度，回复3-5句";
+        const diffGuide = level===1 ? "句子极短（每句3-6字），只能使用HSK1最基础词汇（我、你、他、是、有、去、来、吃、喝、好、大、小、喜欢等），只回复1句话，不要用任何关联词和复杂语法" : level===2 ? "句子短（每句5-9字），使用HSK1-2基础词汇，简单主谓/主谓宾，可带简单状语，回复1-2句" : level===3 ? "句子中等（每句7-14字），使用HSK3及以下词汇，可含趋向补语、结果补语、把字句，回复3-4句，表达自然完整" : level===4 ? "句子中等偏长（每句10-18字），使用HSK4及以下词汇，可含较复杂补语和关联词，回复3-5句，表达自然完整" : "句子正常（每句12-22字），使用HSK5及以下词汇，表达可以丰富自然，可有一定句法复杂度，回复4-6句，表达自然完整";
         const diffGuideUse = _validMistakes.length > 0 ? diffGuide + '（本次需要先做纠错确认，回复=「哦，你是说……」确认句+简短回应句，按纠错长度标准，不要长篇）' : diffGuide;
         const reasonNames = {total:'总字数', sentences:'句数', clausesPerSentence:'每句小句数', clause:'单个小句长度'};
         const limEnforce = prevCheck ? chatLengthLimitsFor(level, !!prevCheck.isCorrection) : limUse;
@@ -16539,12 +16539,11 @@ ${gapChatGuide()}
 1. 先直接回应用户刚说的内容或问题，绝不能答非所问。
 2. 始终围绕用户当前的话题自然展开，不要突然跳到无关的新话题。
 3. 如果用户提出了问题，必须先回答问题，再补充其他内容。
-【交流方式 - 像朋友聊天，不要一直提问】
-你和学生是平等的对话伙伴。自然地交替使用以下方式，不要每次都提问：
-- 分享你的观点、想法或有趣的见闻（"我觉得..."、"有意思的是..."、"听说..."）
-- 对学生的分享表达共鸣和回应（"真的吗？那太有趣了"、"我理解你的感受"）
-- 偶尔轻松地提一个问题，但不要连问两次以上
-- 不要每次都以问题结尾——有时分享完自然结束就好
+【交流方式 - 像朋友聊天，延续话题】
+你和学生是平等的对话伙伴，自然地聊天：
+- 先回应学生刚说的内容，分享你的观点、想法或有趣的见闻（"我觉得..."、"有意思的是..."、"听说..."）；
+- 常常在回复的最后，根据学生刚说的内容自然地提一个问题，把对话继续下去；不要连问两次以上，问题要自然、和学生内容相关；
+- 学生明显在结束对话或只是简短寒暄时，可以只回应不提问，分享完自然结束就好；
 - 绝不要假装自己是人类去编造生活经历（如散步、吃饭、去了某地等）
 【纠错规则】
 系统已经先分析并纠正学生句子的偏误（结果见下方「系统纠错结果」），纠错块会在你的回复之后自动显示（里面是学生的原句和更好的说法）。你不需要在回复中使用 ❌/✅/💡/✏️ 或「订正/纠错」格式纠错，也绝不要输出这些符号和标签——你输出只会造成重复。
@@ -17424,6 +17423,27 @@ uncertain 表示你是否读不懂这个句子/分句、无法可靠推断学生
             const right = t.replace(/离婚(我|你|他|她|它|我们|你们|他们|她们|朋友|家人|妻子|丈夫|老公|老婆|女朋友|男朋友|父母|先生|太太|同事|同学)/, '跟' + person + '离婚');
             out.push({ original: t, corrected: right, type: '离合词错误', note: '「离婚」是离合词，不能直接带宾语；「跟某人离婚」要说「跟/和+人+离婚」。应说：' + right + '。' });
         }
+        // 其他常用离合词直接带宾语（确定性规则，100% 每次纠）：
+        // 见面/结婚/聊天/约会/握手/道歉+人 → 跟+人+动词；帮忙+人 → 帮+人+忙；生气+人 → 生+人+气
+        const _sepPerson = '(我的?朋友|我的?同学|我的?同事|我的?老师|我的?家人|我们|你们|他们|她们|大家|我|你|他|她)';
+        const sepWith = t.match(new RegExp('(见面|结婚|聊天|约会|握手|道歉)' + _sepPerson));
+        if(sepWith){
+            const verb = sepWith[1], person = sepWith[2];
+            const right = t.replace(sepWith[0], '跟' + person + verb);
+            if(right !== t) out.push({ original: t, corrected: right, type: '离合词错误', note: '「' + verb + '」是离合词，不能直接带宾语；要说「跟/和+人+' + verb + '」。应说：' + right + '。' });
+        }
+        const sepBang = t.match(new RegExp('帮忙' + _sepPerson));
+        if(sepBang){
+            const person = sepBang[1];
+            const right = t.replace(sepBang[0], '帮' + person + '忙');
+            if(right !== t) out.push({ original: t, corrected: right, type: '离合词错误', note: '「帮忙」是离合词，不能直接带宾语；要说「帮+人+忙」。应说：' + right + '。' });
+        }
+        const sepQi = t.match(new RegExp('生气' + _sepPerson));
+        if(sepQi){
+            const person = sepQi[1];
+            const right = t.replace(sepQi[0], '生' + person + '气');
+            if(right !== t) out.push({ original: t, corrected: right, type: '离合词错误', note: '「生气」是离合词，不能直接带宾语；要说「生+人+气」。应说：' + right + '。' });
+        }
         return out;
     }
     function dedupeMistakesByOriginal(mistakes){ if(!mistakes||!mistakes.length) return []; const out=[]; for(const m of mistakes){ const o=String(m.original||'').trim(); const c=String(m.corrected||'').trim(); if(!o||!c) continue; const ok=stripForCompare(o); const dupIdx=out.findIndex(x=>{ const xo=String(x.original||'').trim(); const xk=stripForCompare(xo); const xc=String(x.corrected||'').trim(); if(xk===ok) return true; if(xc===c) return true; const oOverlap=xk.includes(ok)||ok.includes(xk); const cOverlap=xc.includes(c)||c.includes(xc); if(oOverlap && Math.min(xk.length, ok.length) >= 2) return true; return oOverlap&&cOverlap; }); if(dupIdx===-1){ out.push(m); continue; } const prev=out[dupIdx]; const xo=String(prev.original||'').trim(); const xc=String(prev.corrected||'').trim(); if(ok.length > stripForCompare(xo).length) prev.original = o; const _mo=stripForCompare(prev.original); const _mc=stripForCompare(prev.corrected); const _nc=stripForCompare(c); const _prevSim=(_mo&&_mc)?(charLcsLen(_mo,_mc)/Math.max(_mo.length,_mc.length)):0; const _newSim=(_mo&&_nc)?(charLcsLen(_mo,_nc)/Math.max(_mo.length,_nc.length)):0; if(_newSim>_prevSim+0.05 || (Math.abs(_newSim-_prevSim)<=0.05 && _nc.length<_mc.length)) prev.corrected = c; if(m.uncertain === true || String(m.uncertain) === 'true' || m.uncertain === 1) prev.uncertain = true; if(!prev.note && m.note) prev.note = m.note; else if(prev.note && m.note && String(prev.note).trim() !== String(m.note).trim()) prev.note = String(prev.note).trim() + '；' + String(m.note).trim(); const prevType = normalizeMistakeType(prev.type); const mType = normalizeMistakeType(m.type) || inferMistakeType(m); if(prevType && mType && !String(prev.type).includes(mType)) prev.type = prevType + '、' + mType; else if(!prevType && mType) prev.type = mType; out[dupIdx] = prev; } return out; }
@@ -18058,40 +18078,33 @@ renderVocabLevelProgress(); renderVocabTrackList(); const _userHanzi = sessionUs
         const items = [];
         for(const m of mistakes){
             const o = String(m.original || '').trim();
-            const c = String(m.corrected || '').trim();
+            let c = String(m.corrected || '').trim();
             if(!o || !c || o === c || o.length < 2) continue;
             if(c.includes(o)) continue;
+            // 正确句子句末标点不进入确认框架，避免出现「见面。，对吗？」这类标点叠加
+            c = c.replace(/[。！？!?]+$/,'');
             items.push({ o, c });
         }
         if(!items.length) return r;
-        // 1) AI 未改写、直接复述原句时：逐个替换为 corrected
-        for(const it of items){
-            if(r.includes(it.o)) r = r.split(it.o).join(it.c);
+        // 先把 AI 回复里已有的任何确认框架/复述剥掉，再由系统统一补上，保证每次都出现、格式一致
+        r = r.replace(/^(哦[，,]?\s*)?(?:你是说|你是想说|你想说的是|你的意思是|意思是说|是说)([^。！？!?\n]*?)(?:[，,]?\s*对吗[？?]?)?\s*/, '');
+        // AI 直接复述原句时，替换为改正句
+        for(const it of items){ if(r.includes(it.o)) r = r.split(it.o).join(it.c); }
+        // AI 已经自然说出改正句且紧跟翻译括号时，保留翻译，其余照常
+        let translation = '';
+        const first = items[0];
+        const ri = r.indexOf(first.c);
+        if(ri === 0){
+            const after = r.slice(first.c.length);
+            const tm = after.match(/^\s*[（(]\s*([^）)]{1,120}?)\s*[）)]/);
+            if(tm){ translation = '（' + tm[1] + '）'; r = r.slice(first.c.length + tm[0].length); }
+            else r = r.slice(first.c.length);
+            // 去掉紧跟的「，对吗？」防止重复
+            r = r.replace(/^[，,]?\s*对吗[？?]?\s*/, '');
         }
-        // 2) AI 已改写复述（如「哦，你是说度过了开心的时光吧」）：把确认引导语后的复述内容整体替换为 corrected
         const joined = items.map(it => it.c).join('，');
-        const leadMatch = r.match(/(?:哦[，,]?\s*)?(?:你是说|你是想说|你的意思是|意思是说|是说)/);
-        if(leadMatch && leadMatch.index !== undefined){
-            const start = leadMatch.index + leadMatch[0].length;
-            const rest = r.slice(start);
-            const tailMatch = rest.match(/[。！？!?；;\n]/);
-            const endIdx = tailMatch ? start + tailMatch.index : r.length;
-            // 保留 AI 在正确句子后面紧跟的母语翻译括号（如「我跟他见面（I met him）」）
-            let translation = '';
-            const first = items[0];
-            if(first && rest.indexOf(first.c) === 0){
-                const after = rest.slice(first.c.length);
-                const tm = after.match(/^\s*[（(]\s*([^）)]{1,120}?)\s*[）)]/);
-                if(tm) translation = '（' + tm[1] + '）';
-            }
-            r = r.slice(0, start) + joined + translation + '，对吗？' + r.slice(endIdx + 1);
-        } else {
-            // AI 没按要求输出「哦，你是说……」确认句时：强制在回复开头补上确认句，
-            // 保证学生出错时一定能看到 AI 确认改正后的句子（回复本身已以改正句开头时不重复补）
-            const starts = items.some(it => stripForCompare(r).indexOf(stripForCompare(it.c)) === 0);
-            if(!starts) r = '哦，你是说' + joined + '，对吗？' + r;
-        }
-        return r;
+        const frame = '哦，你是说' + joined + translation + '，对吗？';
+        return r ? (frame + ' ' + r) : frame;
     }
 
     // 系统判定无错时，AI 不应输出「哦，你是说……对吗？」；若模型仍输出，剥掉这段确认框架，
