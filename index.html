@@ -17105,6 +17105,19 @@ ${dictHints ? '\n【HSK语料库高频错误提示 - 逐条检查当前句子，
             const right = (m[2] === '天') ? (m[1] + '整' + m[2]) : ('整整' + m[1] + m[2]);
             out.push({ original: wrong, corrected: right, type: '语序错误', note: '数量词位置错误：「' + wrong + '」应说「' + right + '」。' });
         }
+        // 处所宾语位置（确定性规则，不依赖 AI）：「我北京去了」→「我去北京了」。
+        // 允许句首/主语后出现时间词，但要求句子里有主语，避免误改「北京去了」这类承前省略回答。
+        const _placeWords = '北京|上海|广州|深圳|南京|天津|重庆|成都|杭州|武汉|西安|苏州|香港|台北|学校|公司|银行|医院|超市|商场|商店|饭店|饭馆|餐厅|公园|图书馆|书店|机场|车站|火车站|地铁站|电影院|博物馆|体育馆|游泳池|健身房|咖啡馆|茶馆|邮局|教室|宿舍|办公室|洗手间|厕所|海边|山上|城里|乡下|国外|中国|美国|日本|韩国|英国|法国|德国|泰国|印度|俄罗斯';
+        const _timeWords = '今天|昨天|明天|前天|后天|早上|上午|中午|下午|晚上|周末|今年|去年|明年|这个月|上个月|下个月';
+        const _subjWords = '我|我们|你|你们|他|她|他们|她们';
+        const placeGone = t.match(new RegExp('^(?:(?:' + _subjWords + ')|(?:' + _timeWords + '))*(' + _placeWords + ')(去了|来了)([。！!？?]*)$'));
+        if(placeGone && new RegExp(_subjWords).test(t) && placeGone[1] && placeGone[2]){
+            // 前缀 = 主语+时间词；动词跟随原句（去了→去，来了→来）；句尾标点原样保留
+            const prefix = t.slice(0, t.length - placeGone[1].length - placeGone[2].length - (placeGone[3] || '').length);
+            const verb = placeGone[2] === '来了' ? '来' : '去';
+            const right = prefix + verb + placeGone[1] + '了' + (placeGone[3] || '');
+            if(right !== t) out.push({ original: t, corrected: right, type: '语序错误', note: '处所宾语「' + placeGone[1] + '」要放在「' + verb + '」的后面。应说：' + right + '。' });
+        }
         const fest = t.match(/祝(春节|中秋节|国庆节|端午节|元宵节|清明节|劳动节|儿童节|新年|圣诞节|生日)(?!快乐|愉快|好)/);
         if(fest){
             const wrong = '祝' + fest[1];
