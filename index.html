@@ -13950,7 +13950,7 @@ ${searchRule}
                 end = tk.start;
                 idx--;
             }
-            return parts.join('');
+            return parts.join(String.fromCharCode(10));
         };
         const matchedAt = pos => {
             const cands = lexicon.get(text[pos]);
@@ -15597,6 +15597,17 @@ ${searchRule}
         "彼此+都+V","V+彼此","彼此(+之间)+的+N","S+如此","（+V+得）如此+Adj","Sentence，不但如此/虽然如此，sentence","V+也好","（不管/无论+）N/V1+也好，N/V2+也好，sentence","过于+Adj/V+了","可+Adj/V+了","稍+V{一个字]/Adj[一个字]","稍+V[一个字]+一下/一会儿/一点儿","稍+Adj[一个字]+一点儿/一些","稍微+V+一下/一会儿/一点儿/一些","稍微+Adj+一点儿/一些","稍微+有点儿+Adj","稍微+V[一个字]+一/了+V[一个字]","尤其+Adj","Sentence，尤其+是+N","Sentence，尤其（+是）+V","大都+V/Adj","不时（+地）+V","将+V","将要+V（+了）","仍旧+V","仍旧+没/没有/不+V","时常+V","时刻+V","依旧+Adj/V","一向+V","偶尔+V","再次+V","不要/避免+再次+V","偷偷（+地）+V","没（有）/不+偷偷（+地）+V","毕竟+V/Adj","Sentence，不免+V/Adj","差（一）点儿+（就）+V","倒是+V/Adj","V[一个字]+得+倒是+Adj","S+倒是+V/Adj，就是/可是+sentence","干脆+V","就+是/在+N","就+V/Adj","居然+V","S+可+V","S+可+不+Adj","V+得+可+不+Adj","明明+V/Adj，sentence","总算+V","随着+N+的+V，Sentence","随着+N+的+V（+而）+Adj","将+N+V","由+N/Pronoun(+来）+V","凭（+着）+N+V","凭（+着）+N，Sentence","依据+N+V","依据+N，Sentence","依照+N+V","依照+N，Sentence","Sentence，从而+V","Sentence，加上（+S）+V/Adj，（所以）+sentence","Sentence，完了+V","一旦+V，sentence","V+上（+O）+了","V+起来+了","V+起+O+来+了","V+下去","V+下来（+了）","S+V[一个字]+得（+O）","V+不得（+O）","V+得+V+不得","V/Adj+得+不得了","V/Adj+得+慌","V/Adj+得+厉害","V/Adj+坏+了","V/Adj+透(+O)+了","再也不+V+了","再也没+V+过","怎么都/也+不+V","怎么都/也+V+不+Adj/V","怎么都/也+没+V","V1+也不是，V2+也不是","Adj+得+V1+也不是，V2+也不是","V1+也+V1+不得，V2+也+V2+不得","V1+得+V2+也+V2+不得，V3+也+V3+不得","N1/V1/Adj1+是它，N2/V2/Adj2+也是它","V/Adj着+也是+V/Adj着，sentence","V1/N1/Pronoun1+归+V1/N1/Pronoun1，V2/N2/Pronoun2+归+V2/N2/Pronoun2，sentence","不管怎么说，sentence","看/瞧+Pronoun+V/Adj+的","真+有+Pronoun+的","V/Adj/Pronoun+什么+V/Adj/Pronoun","什么+N/V/Adj+不+N/V/Adj（+的）","V来V去","V/Adj+着+V/Adj着（+就）+V","S+没+N1/V1/Adj1+没+N2/V2/Adj2","没+N1/V1/Adj1+没+N2/V2/Adj2+的+N","没+N1/V1/Adj1+没+N2/V2/Adj2+地+V","说+V/Adj+就+V/Adj","说+V/Adj+就+V/Adj+的+N","有+N1/V1/Adj1+有+N2/V2/Adj2","有+N1/V1+有+N2/V2+的+N","有+V1+有+V2+地+V","被+V+得+有+N1/Adj1+有+N2/Adj2","S+不得了","不得了了，sentence","不得了+的+N","S+不敢当","（S+）得了（+啊/吧），sentence","Sentence+得了","用不着+V","S+用不着","从+N+来看，Sentence","S+到+N+为止","到+N+为止，Sentence","V+到+N/VP+为止","够+Adj/V+的","拿......来说，Sentence","S+Adj1/V1+的+Adj1/V1,Adj2/V2+的+Adj2/V2","V+得+Adj1/V1+的+Adj1/V1,Adj2/V2+的+Adj2/V2","在+N/Pronoun+看来，Sentence","有+着+O","Place+有+着+O","Place+V+有+O","把+O+adverbial（状语）+V","把+O+一+V[一个字]","把+O+V+了","把+O1+V+O2","S（patient[受事]）+V（+了）","S+叫/令/使/让+Sb+V","跟+N/Pronoun/V+相比,sentence","N1/Pronoun1+Adj+N2/Pronoun2+Number","或是+N1/V1，或是+N2/V2","尽管+sentence，但是/可是+sentence","一旦+V，就+V","要是+Sentence，就+V，否则+Sentence","除非+Sentence，才+V","除非+sentence，否则/不然+Sentence","sentence，因而+sentence","即使+Sentence，也+V","Sentence，为的是+V","Sentence，以便+V","没有+N1+就没有+N2","（S+）再+Adj+也+V"
     ];
     const LEVEL_MAP = {1: HSK1_RAW, 2: HSK2_RAW, 3: HSK3_RAW, 4: HSK4_RAW, 5: HSK5_RAW};
+    // 把 HSK1-5 语法规则（字母表达式）拼成一段参照文本，纠错 AI 用它作为结构判定依据
+    function buildGrammarReference(){
+        try{
+            const parts = [];
+            for(let lv = 1; lv <= 5; lv++){
+                const arr = LEVEL_MAP[lv] || [];
+                if(arr && arr.length) parts.push('HSK' + lv + '：' + arr.join('、'));
+            }
+            return parts.join('\\n');
+        }catch(e){ return ''; }
+    }
     // 语法例句：仅使用明确配置的例句，没有专属例句的语法点不显示悬停提示
     const HSK1_EXAMPLES = {"N+上（不要代词，表示地点）":"书在桌子上","N+下":"小狗在桌下睡觉","N+里":"礼物在书包里","会+V":"我男朋友会打篮球","能+V":"小王能来上课","想+V":"我想学中文","一边+V1,一边+V2":"他一边走路，一边唱歌"};
     const HSK2_EXAMPLES = {"可能+V":"他可能出去了","可以+V":"我们可以去看电影","应该+V":"你应该去上课","V+过":"我去过中国"};
@@ -16699,7 +16710,7 @@ N=名词, V=动词, Adj=形容词, Adv=副词, Prep=介词, Pron=代词(同Prono
 输出JSON：{"results":[{"sentence":"句子","matches":[{"pattern":"语法格式","level":等级}]}]}
 没有匹配的句子也要包含，matches为空数组。只输出纯JSON，不要任何解释文字。`;
 
-try{ const resp=await fetch(API_BASE,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${apiKey}`}, body:JSON.stringify({model:'deepseek-v4-pro',thinking:{type:'disabled'}, max_tokens:4096, messages:[{role:'system',content:prompt},{role:'user',content:blocksText}], temperature:0.1})}); const data=await resp.json(); if(data.error) throw new Error(data.error.message||"API error"); if(!data.choices||!data.choices[0]||!data.choices[0].message) throw new Error("API error"); let content=data.choices[0].message.content; content=content.replace(/```json/g,'').replace(/```/g,'').trim(); const parsed=JSON.parse(content); return parsed.results||parsed.matches||parsed||[]; }catch(e){ return null; } }async function analyzeMistakesBatch(userMessages, aiReplyRaw, contextMessages){ const apiKey=apiKeyInput.value.trim(); if(!apiKey||userMessages.length===0) return []; const targetLang = targetLangSelect ? targetLangSelect.value : 'English'; const dictHints = buildHskDictHints((userMessages || []).join(' ')); const prompt=`你是HSK中文教师兼严格的阅卷老师。请逐词逐句分析学生句子的偏误（error analysis）：先判断是否有真实偏误，再给出最小改动的改正和具体原因。纠错准确率是第一要求：有错必报（包括一个字的小错），无错不报；拿不准（两种说法母语者都常说）就不要报。\n\n【最高原则 - 无错不报】学生句子只要完全符合现代汉语普通话的词汇、语法、语序和搭配规范，就绝对不要报错、不要改写。禁止为了“更自然/更地道/换一种说法”改动正确句子；现代汉语里两种或多种说法都成立时，一律不要报。宁可漏报，不可误报。典型误报示例（绝对禁止）：学生写「我今天遇到了一个外国人」，这是完全正确的现代汉语句子，必须返回[]；任何删改「了」、把它换成别的字、或添加原文没有的内容的做法都是严重误报。「V+了+数量词+名词」结构（遇到了一个外国人、吃了一个苹果、看了一部电影）完全正确，永远不要动「了」。\n\n【纠错依据 - 只能报以下三类，说不出依据的一律不报】\n1. 本地HSK语料提示：下方【HSK语料库高频错误提示】列出的误用，且学生句子确实使用了其中的错误形式、在该语境下确实是错的才报；如果该词/该用法在当前语境下正确，就忽略提示、不报。\n2. 现代汉语普通话规范：明显违反普通话词汇、语法、搭配规则的真实偏误（如离合词直接带宾语、生造词、错别字、语序颠倒、缺必要成分、关联词错配）。\n3. HSK作文语料常见偏误：属于【重点排查】或【常见偏误类】中列出的确凿偏误类型，且句子确实符合该错误模式。\n每条输出前必须能回答：「原句错在哪条规则？」回答不出来就删除该条。\n\n【改动安全 - 必须遵守】\n- corrected 只准改真正错误的部分，正确部分一字不动；改完后逐字通读，只要出现现代汉语不存在的词（生造词）就说明改错了，删除该条。\n- 「了/的/得/地/着/过/把/被/在/是/有/就/都/也/很/和/跟/对/从/向/到/给/让」等功能字的使用，只有在明确违反规则时才改（如经常性情况误用「了」）；原句用法成立时一律不动。\n- 数字、日期、时间、数量词原样保留。\n- 输出前自检（每条记录都要过一遍）：①原句真的错吗？②依据是哪条规则？③corrected 是否把原本正确的部分也改了？④corrected 读起来是否通顺自然？任一答案为「不确定」或「是（改错了）」→ 删除该条，只输出100%确信的错误。\n\n【逐项检查清单 - 必须逐项过一遍】\n1. 词语意义和词性：单字词、双字词、短语的意思是否用对。\n2. 词语搭配：动宾搭配（如“庆祝节日”不能说“祝节日”）、定中搭配、数量词位置（如“一整天”不能说“整一天”）、介词搭配。\n3. 离合词：见面、帮忙、生气、洗澡、离婚、结婚等不能直接带宾语，必须说「跟/和+人+见面/离婚/结婚」。\n4. 虚词：的/地/得/了/着/过/把/被/关于/对于/因为/所以等用对没有。\n5. 语序：时间、地点、方式状语的位置，数量词位置。\n6. 框式结构：要是...就...、虽然...但是...、越...越...等框架完整不完整。\n7. 成分残缺/多余、句式杂糅、关联词错误。\n8. 对话问答 - 结合上下文：学生的句子常常是对老师上一句问题的简短回答，允许省略主语、宾语等能根据上文补出的成分，这种省略不算错、不要补全报错；但回答中真实存在的字词错误、语序错误必须报。例：老师问「你想去哪儿？」，学生回答「我去想背景」，结合上下文学生想说「我想去北京」，「背景」是「北京」的错字、语序也有误，必须报错（corrected 写「我想去北京」）。\n每类都要检查，确有此类的错误就报告。
+try{ const resp=await fetch(API_BASE,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${apiKey}`}, body:JSON.stringify({model:'deepseek-v4-pro',thinking:{type:'disabled'}, max_tokens:4096, messages:[{role:'system',content:prompt},{role:'user',content:blocksText}], temperature:0.1})}); const data=await resp.json(); if(data.error) throw new Error(data.error.message||"API error"); if(!data.choices||!data.choices[0]||!data.choices[0].message) throw new Error("API error"); let content=data.choices[0].message.content; content=content.replace(/```json/g,'').replace(/```/g,'').trim(); const parsed=JSON.parse(content); return parsed.results||parsed.matches||parsed||[]; }catch(e){ return null; } }async function analyzeMistakesBatch(userMessages, aiReplyRaw, contextMessages){ const apiKey=apiKeyInput.value.trim(); if(!apiKey||userMessages.length===0) return []; const targetLang = targetLangSelect ? targetLangSelect.value : 'English'; const dictHints = buildHskDictHints((userMessages || []).join(' ')); const grammarRef = buildGrammarReference(); const prompt=`你是HSK中文教师兼严格的阅卷老师。请逐词逐句分析学生句子的偏误（error analysis）：先判断是否有真实偏误，再给出最小改动的改正和具体原因。纠错准确率是第一要求：有错必报（包括一个字的小错），无错不报；拿不准（两种说法母语者都常说）就不要报。\n\n【最高原则 - 无错不报】学生句子只要完全符合现代汉语普通话的词汇、语法、语序和搭配规范，就绝对不要报错、不要改写。禁止为了“更自然/更地道/换一种说法”改动正确句子；现代汉语里两种或多种说法都成立时，一律不要报。宁可漏报，不可误报。典型误报示例（绝对禁止）：学生写「我今天遇到了一个外国人」，这是完全正确的现代汉语句子，必须返回[]；任何删改「了」、把它换成别的字、或添加原文没有的内容的做法都是严重误报。「V+了+数量词+名词」结构（遇到了一个外国人、吃了一个苹果、看了一部电影）完全正确，永远不要动「了」。\n\n【纠错依据 - 只能报以下三类，说不出依据的一律不报】\n1. 本地HSK语料提示：下方【HSK语料库高频错误提示】列出的误用，且学生句子确实使用了其中的错误形式、在该语境下确实是错的才报；如果该词/该用法在当前语境下正确，就忽略提示、不报。\n2. 现代汉语普通话规范：明显违反普通话词汇、语法、搭配规则的真实偏误（如离合词直接带宾语、生造词、错别字、语序颠倒、缺必要成分、关联词错配）。\n3. HSK作文语料常见偏误：属于【重点排查】或【常见偏误类】中列出的确凿偏误类型，且句子确实符合该错误模式。\n每条输出前必须能回答：「原句错在哪条规则？」回答不出来就删除该条。\n\n【改动安全 - 必须遵守】\n- corrected 只准改真正错误的部分，正确部分一字不动；改完后逐字通读，只要出现现代汉语不存在的词（生造词）就说明改错了，删除该条。\n- 「了/的/得/地/着/过/把/被/在/是/有/就/都/也/很/和/跟/对/从/向/到/给/让」等功能字的使用，只有在明确违反规则时才改（如经常性情况误用「了」）；原句用法成立时一律不动。\n- 数字、日期、时间、数量词原样保留。\n- 输出前自检（每条记录都要过一遍）：①原句真的错吗？②依据是哪条规则？③corrected 是否把原本正确的部分也改了？④corrected 读起来是否通顺自然？任一答案为「不确定」或「是（改错了）」→ 删除该条，只输出100%确信的错误。\n\n【逐项检查清单 - 必须逐项过一遍】\n1. 词语意义和词性：单字词、双字词、短语的意思是否用对。\n2. 词语搭配：动宾搭配（如“庆祝节日”不能说“祝节日”）、定中搭配、数量词位置（如“一整天”不能说“整一天”）、介词搭配。\n3. 离合词：见面、帮忙、生气、洗澡、离婚、结婚等不能直接带宾语，必须说「跟/和+人+见面/离婚/结婚」。\n4. 虚词：的/地/得/了/着/过/把/被/关于/对于/因为/所以等用对没有。\n5. 语序：时间、地点、方式状语的位置，数量词位置。\n6. 框式结构：要是...就...、虽然...但是...、越...越...等框架完整不完整。\n7. 成分残缺/多余、句式杂糅、关联词错误。\n8. 对话问答 - 结合上下文：学生的句子常常是对老师上一句问题的简短回答，允许省略主语、宾语等能根据上文补出的成分，这种省略不算错、不要补全报错；但回答中真实存在的字词错误、语序错误必须报。例：老师问「你想去哪儿？」，学生回答「我去想背景」，结合上下文学生想说「我想去北京」，「背景」是「北京」的错字、语序也有误，必须报错（corrected 写「我想去北京」）。\n每类都要检查，确有此类的错误就报告。
 
 【近义词辨析 - 特别注意】
 - 幸亏：后面必须接一个完整句子（有动词），如「幸亏你来了」；后面接人/事时用「多亏（了）」，如「多亏了朋友家人」。
@@ -16797,7 +16808,7 @@ type 字段必须从以下固定中文类型中选一个（不要自创、不要
 【uncertain 字段 - 必须遵守】
 uncertain 表示你是否读不懂这个句子/分句、无法可靠推断学生想表达的意思。判断标准：如果只是错字/别字/漏字/多字等能猜到意思的小错，uncertain 填 false；如果句子语义不通、结构混乱，你无法确定学生想说什么，uncertain 填 true。每条记录都必须输出 uncertain。
 
-【高频漏检示例 - 必须纠正】\n- "今天北京去了"→"今天去北京了"（处所宾语「北京」要放在「去」后面，不能放在「去了」前面；时间词「今天」放句首保持不变）\n- "我去想背景"→"我想去北京"（结合上文老师问「你想去哪儿？」理解；「背景」是「北京」的错字，不能按字面放过）\n- "我离婚他了"→"我跟他离婚了"（"离婚"是离合词，不能直接带宾语；必须保留原意）\n- "我今天整一天都在家"→"我今天一整天都在家"（数量词"一整天"位置错误）\n- "朋友们一起祝中秋节"→"朋友们一起庆祝中秋节"（"祝"不能直接加节日名；"祝中秋节快乐"也可以）\n- "为了我和朋友一起去吃饭"→"为了和朋友一起去吃饭"（"为了"后误加"我"；或"我为了和朋友一起去吃饭"）
+【高频漏检示例 - 必须纠正】\n- "今天北京去了"→"今天去北京了"（处所宾语「北京」要放在「去」后面，不能放在「去了」前面；时间词「今天」放句首保持不变。但若整句是话题/对比列举，如「北京去了，上海还没去」，不算错，不要报）\n- "我去想背景"→"我想去北京"（结合上文老师问「你想去哪儿？」理解；「背景」是「北京」的错字，不能按字面放过）\n- "我离婚他了"→"我跟他离婚了"（"离婚"是离合词，不能直接带宾语；必须保留原意）\n- "我今天整一天都在家"→"我今天一整天都在家"（数量词"一整天"位置错误）\n- "朋友们一起祝中秋节"→"朋友们一起庆祝中秋节"（"祝"不能直接加节日名；"祝中秋节快乐"也可以）\n- "为了我和朋友一起去吃饭"→"为了和朋友一起去吃饭"（"为了"后误加"我"；或"我为了和朋友一起去吃饭"）
 - "本来我想去五点半，但是我订了七点半"→"本来我想五点半去，但是我订了七点半"（只改前半句语序，后半句一字不动）
 - "因为为了我参加朋友公司的聚会"→"因为我要参加朋友公司的聚会"（"因为"和"为了"不能叠用）
 - "所以所有的地方人很多"→"所以所有的地方人都很多"（全称范围作主语，谓语前缺"都"）
@@ -16844,7 +16855,7 @@ uncertain 表示你是否读不懂这个句子/分句、无法可靠推断学生
 - "他的表情比以前满自信"→"他的表情比以前自信"（比较句「比以前」后不用「满」）
 - "我听他说的话，我哦觉得自己想做的事最好做"→"听了他的话，我觉得自己想做的事最好就去做"（「我听他说的话」→「听了他的话」；「我哦」多了「哦」；「最好做」→「最好就去做」）
 - "他退辞公司以后"→"他从公司辞职以后"（「退辞」不是正确的词，离开公司应说「从公司辞职」）
-${dictHints ? '\n【HSK语料库高频错误提示 - 逐条检查当前句子，确实属于这些误用就纠正，不属于不要报】\n' + dictHints : ''}这类提示只是检查线索，不是纠错命令：学生句子确实使用了错误形式才纠正；该词/该用法在当前语境下正确时，忽略提示、不要报。\n\n输出JSON数组：[{"original":"学生原文(片段)","corrected":"改正后(必须与original不同)","uncertain":true或false,"type":"错误类型（必须从上述固定中文类型中选一个）","pattern":"如果这个错误涉及语法格式/框式结构（可以填充其他内容的格式），写出该格式本身（如：要是...就...、越...越...、把字句、被字句、一边...一边...；不涉及就写空字符串）","note":"错误原因（用${targetLang}，具体说明，禁止空话）"}]。无错误返回[]。`; try{ const resp=await fetch(API_BASE,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${apiKey}`}, body:JSON.stringify({model:'deepseek-v4-pro',thinking:{type:'disabled'}, max_tokens:2048, messages:[{role:'system',content:prompt},{role:'user',content:((contextMessages?('【对话上下文】（仅用于理解学生当前句子的意思，不要纠错上下文内容）\n'+contextMessages+'\n\n'):'') + (aiReplyRaw ? ('学生句子: '+JSON.stringify(userMessages)+'\n\nAI对话伙伴的自然回复（仅供参考，可能已包含正确说法）:\n'+String(aiReplyRaw)) : ('学生句子: '+JSON.stringify(userMessages))))}], temperature:0.1, signal: aiFetchSignal(null, 45000)})}); const data=await resp.json(); if(data.error) throw new Error(data.error.message||"API error"); if(!data.choices||!data.choices[0]||!data.choices[0].message) throw new Error("API error"); let content=data.choices[0].message.content; content=content.replace(/```json/g,'').replace(/```/g,'').trim(); let parsed=null; try{ parsed=JSON.parse(content); }catch(e){ const arrM=content.match(/\[[\s\S]*\]/); const objM=content.match(/\{[\s\S]*\}/); const cand=arrM?arrM[0]:(objM?objM[0]:''); if(cand){ try{ parsed=JSON.parse(cand); }catch(e2){ parsed=null; } } } let arr=[]; if(Array.isArray(parsed)) arr=parsed; else if(parsed&&Array.isArray(parsed.mistakes)) arr=parsed.mistakes; else if(parsed&&Array.isArray(parsed.results)) arr=parsed.results; else if(parsed&&Array.isArray(parsed.errors)) arr=parsed.errors; else if(parsed&&typeof parsed.original==='string'&&typeof parsed.corrected==='string') arr=[parsed]; return arr; }catch(e){ return []; } }
+\n\n【HSK1-5 语法规则（字母表达式） - 结构判定依据】\n${grammarRef}\n\n【语用 - 结合上下文判断】结构规则之外必须结合【对话上下文】看语用：话题/对比句（如列举计划时说「北京去了，上海还没去」「北京去了，南京也去了」）、承前省略、口语变体等，凡结构合法且语境成立就不报错；只有确实违反上述 HSK 结构规则、且语境不支持的才报。\n\n${dictHints ? '\n【HSK语料库高频错误提示 - 逐条检查当前句子，确实属于这些误用就纠正，不属于不要报】\n' + dictHints : ''}这类提示只是检查线索，不是纠错命令：学生句子确实使用了错误形式才纠正；该词/该用法在当前语境下正确时，忽略提示、不要报。\n\n输出JSON数组：[{"original":"学生原文(片段)","corrected":"改正后(必须与original不同)","uncertain":true或false,"type":"错误类型（必须从上述固定中文类型中选一个）","pattern":"如果这个错误涉及语法格式/框式结构（可以填充其他内容的格式），写出该格式本身（如：要是...就...、越...越...、把字句、被字句、一边...一边...；不涉及就写空字符串）","note":"错误原因（用${targetLang}，具体说明，禁止空话）"}]。无错误返回[]。`; try{ const resp=await fetch(API_BASE,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${apiKey}`}, body:JSON.stringify({model:'deepseek-v4-pro',thinking:{type:'disabled'}, max_tokens:2048, messages:[{role:'system',content:prompt},{role:'user',content:((contextMessages?('【对话上下文】（仅用于理解学生当前句子的意思，不要纠错上下文内容）\n'+contextMessages+'\n\n'):'') + (aiReplyRaw ? ('学生句子: '+JSON.stringify(userMessages)+'\n\nAI对话伙伴的自然回复（仅供参考，可能已包含正确说法）:\n'+String(aiReplyRaw)) : ('学生句子: '+JSON.stringify(userMessages))))}], temperature:0.1, signal: aiFetchSignal(null, 45000)})}); const data=await resp.json(); if(data.error) throw new Error(data.error.message||"API error"); if(!data.choices||!data.choices[0]||!data.choices[0].message) throw new Error("API error"); let content=data.choices[0].message.content; content=content.replace(/```json/g,'').replace(/```/g,'').trim(); let parsed=null; try{ parsed=JSON.parse(content); }catch(e){ const arrM=content.match(/\[[\s\S]*\]/); const objM=content.match(/\{[\s\S]*\}/); const cand=arrM?arrM[0]:(objM?objM[0]:''); if(cand){ try{ parsed=JSON.parse(cand); }catch(e2){ parsed=null; } } } let arr=[]; if(Array.isArray(parsed)) arr=parsed; else if(parsed&&Array.isArray(parsed.mistakes)) arr=parsed.mistakes; else if(parsed&&Array.isArray(parsed.results)) arr=parsed.results; else if(parsed&&Array.isArray(parsed.errors)) arr=parsed.errors; else if(parsed&&typeof parsed.original==='string'&&typeof parsed.corrected==='string') arr=[parsed]; return arr; }catch(e){ return []; } }
     function isPunctuationOnlyDiff(a,b){var p='，。、！？；：…—·《》〈〉（）【】,.!?;:()[]{}<> ';var s=function(x){return (x||'').split('').filter(function(c){return p.indexOf(c)<0;}).join('');};return s(a)===s(b);}
     function filterMistakes(mistakes){ if(!mistakes||!mistakes.length) return []; const out=[]; for(const m of mistakes){ if(!m||!m.original||!m.corrected) continue; if(m.original===m.corrected) continue; if(isPunctuationOnlyDiff(m.original,m.corrected)) continue; const _fo=stripForCompare(m.original); const _fc=stripForCompare(m.corrected); if(_fo===_fc) continue; if(_fc.replace(/[吧吗呢啊呀哦嘛咯喽哟]+$/,'')===_fo) continue; if(out.some(x=>x.original===m.original&&x.corrected===m.corrected)) continue; out.push(m); } return out; }
     function charLcsLen(a,b){ const n=a.length,m=b.length; const dp=Array.from({length:n+1},()=>new Array(m+1).fill(0)); for(let i=n-1;i>=0;i--) for(let j=m-1;j>=0;j--) dp[i][j]=a[i]===b[j]?dp[i+1][j+1]+1:Math.max(dp[i+1][j],dp[i][j+1]); return dp[0][0]; }
@@ -16940,7 +16951,7 @@ ${dictHints ? '\n【HSK语料库高频错误提示 - 逐条检查当前句子，
         if(!apiKey || !userMessages || !userMessages.length) return candidates || [];
         const targetLang = targetLangSelect ? targetLangSelect.value : 'English';
         const candDesc = (candidates || []).map(m => '「' + (m.original||'') + '」→「' + (m.corrected||'') + '」(' + (m.type||'') + ')').join('；') || '（无）';
-        const prompt = '你是HSK中文教师。请对第一轮纠错做严格复核，纠错准确率高于一切：宁可漏报，不可误报。\\n\\n【学生句子】\\n' + JSON.stringify(userMessages) + '\\n\\n【第一轮候选纠错】\\n' + candDesc + '\\n\\n【复核标准 - 逐条执行】\\n1. 原句是否真的违反现代汉语普通话的词汇/语法/搭配规范，或真的属于HSK作文语料高频偏误（如离合词直接带宾语、错别字、语序颠倒、缺必要成分）？如果原句本身就是正确的现代汉语句子，或者两种说法母语者都常说，这条就是误报，必须删除。例：「我今天遇到了一个外国人」完全正确，任何人删改「了」或添加原文没有的字都是误报。\\n2. corrected 是否只改了真正错误的部分、改完后是否还是通顺自然的现代汉语？只要 corrected 里出现生造词、把正确部分也改掉、或读起来别扭，就把这条改成正确的最小改动；改不出来就删除。\\n3. 拿不准的一律删除，不要保留。\\n4. 补漏：如果学生句子还有第一轮漏掉的、确凿无疑的错误（必须能说出依据是哪条现代汉语规则或HSK语料高频偏误），也输出；拿不准的不补。\\n5. 每条输出 original、corrected、type（固定中文错误类型）、uncertain、pattern、note（用' + targetLang + '具体说明错误原因）。\\n\\n输出JSON数组：确认无误的最终纠错列表；一条都没有就输出[]。';
+        const prompt = '你是HSK中文教师。请对第一轮纠错做严格复核，纠错准确率高于一切：宁可漏报，不可误报。\\n\\n【学生句子】\\n' + JSON.stringify(userMessages) + '\\n\\n【第一轮候选纠错】\\n' + candDesc + '\\n\\n【复核标准 - 逐条执行】\\n1. 原句是否真的违反现代汉语普通话的词汇/语法/搭配规范，或真的属于HSK作文语料高频偏误（如离合词直接带宾语、错别字、语序颠倒、缺必要成分）？如果原句本身就是正确的现代汉语句子，或者两种说法母语者都常说，这条就是误报，必须删除。例：「我今天遇到了一个外国人」完全正确，任何人删改「了」或添加原文没有的字都是误报。\\n2. corrected 是否只改了真正错误的部分、改完后是否还是通顺自然的现代汉语？只要 corrected 里出现生造词、把正确部分也改掉、或读起来别扭，就把这条改成正确的最小改动；改不出来就删除。\\n3. 语用复核：结合【对话上下文】判断语用是否成立。话题/对比句（如列举计划时说「北京去了，上海还没去」）、承前省略、口语变体等结构合法且语境成立 → 不报、删掉对应条目。\\n4. 拿不准的一律删除，不要保留。\\n5. 补漏：如果学生句子还有第一轮漏掉的、确凿无疑的错误（必须能说出依据是哪条现代汉语规则或HSK语料高频偏误），也输出；拿不准的不补。\\n6. 每条输出 original、corrected、type（固定中文错误类型）、uncertain、pattern、note（用' + targetLang + '具体说明错误原因）。\\n\\n输出JSON数组：确认无误的最终纠错列表；一条都没有就输出[]。';
         try{
             const resp = await fetch(API_BASE, { method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey}, body: JSON.stringify({ model:'deepseek-v4-pro', thinking:{ type:'disabled' }, max_tokens:2048, messages:[{ role:'system', content:prompt },{ role:'user', content: (contextMessages ? ('【对话上下文】（仅用于理解学生当前句子的意思，不要纠错上下文内容）\\n' + contextMessages + '\\n\\n') : '') + JSON.stringify(userMessages) }], temperature:0, signal: aiFetchSignal(null, 45000) }) });
             const data = await resp.json();
@@ -17105,19 +17116,8 @@ ${dictHints ? '\n【HSK语料库高频错误提示 - 逐条检查当前句子，
             const right = (m[2] === '天') ? (m[1] + '整' + m[2]) : ('整整' + m[1] + m[2]);
             out.push({ original: wrong, corrected: right, type: '语序错误', note: '数量词位置错误：「' + wrong + '」应说「' + right + '」。' });
         }
-        // 处所宾语位置（确定性规则，不依赖 AI）：「我北京去了」→「我去北京了」。
-        // 允许句首/主语后出现时间词，但要求句子里有主语，避免误改「北京去了」这类承前省略回答。
-        const _placeWords = '北京|上海|广州|深圳|南京|天津|重庆|成都|杭州|武汉|西安|苏州|香港|台北|学校|公司|银行|医院|超市|商场|商店|饭店|饭馆|餐厅|公园|图书馆|书店|机场|车站|火车站|地铁站|电影院|博物馆|体育馆|游泳池|健身房|咖啡馆|茶馆|邮局|教室|宿舍|办公室|洗手间|厕所|海边|山上|城里|乡下|国外|中国|美国|日本|韩国|英国|法国|德国|泰国|印度|俄罗斯';
-        const _timeWords = '今天|昨天|明天|前天|后天|早上|上午|中午|下午|晚上|周末|今年|去年|明年|这个月|上个月|下个月';
-        const _subjWords = '我|我们|你|你们|他|她|他们|她们';
-        const placeGone = t.match(new RegExp('^(?:(?:' + _subjWords + ')|(?:' + _timeWords + '))*(' + _placeWords + ')(去了|来了)([。！!？?]*)$'));
-        if(placeGone && new RegExp(_subjWords).test(t) && placeGone[1] && placeGone[2]){
-            // 前缀 = 主语+时间词；动词跟随原句（去了→去，来了→来）；句尾标点原样保留
-            const prefix = t.slice(0, t.length - placeGone[1].length - placeGone[2].length - (placeGone[3] || '').length);
-            const verb = placeGone[2] === '来了' ? '来' : '去';
-            const right = prefix + verb + placeGone[1] + '了' + (placeGone[3] || '');
-            if(right !== t) out.push({ original: t, corrected: right, type: '语序错误', note: '处所宾语「' + placeGone[1] + '」要放在「' + verb + '」的后面。应说：' + right + '。' });
-        }
+        // 处所宾语位置规则已移到 contextMistakeHeuristics：需要结合上下文语用判断
+        // （话题/对比句如「北京去了，上海还没去」成立时不纠），避免机械误判。
         const fest = t.match(/祝(春节|中秋节|国庆节|端午节|元宵节|清明节|劳动节|儿童节|新年|圣诞节|生日)(?!快乐|愉快|好)/);
         if(fest){
             const wrong = '祝' + fest[1];
@@ -18499,6 +18499,24 @@ renderVocabLevelProgress(); renderVocabTrackList(); const _userHanzi = sessionUs
                 const act = m[2] === '打工' ? '工作' : m[2];
                 const right = subj + '去' + act + '了';
                 out.push({ original: t, corrected: right, type: '句式杂糅', note: '回答「顺利吗？」这类问题时，直接说明去做了什么：「' + right + '」；「为了……去的」在这里不自然，而且不能丢掉主语只说「去' + act + '」。' });
+            }
+        }
+        // 处所宾语位置（结合上下文语用）：单句「我北京去了」一般要改成「我去北京了」；
+        // 但话题/对比/列举语境里「北京去了，上海还没去」是成立的，此时不纠，交给 AI 判断。
+        {
+            const _placeWords = '北京|上海|广州|深圳|南京|天津|重庆|成都|杭州|武汉|西安|苏州|香港|台北|学校|公司|银行|医院|超市|商场|商店|饭店|饭馆|餐厅|公园|图书馆|书店|机场|车站|火车站|地铁站|电影院|博物馆|体育馆|游泳池|健身房|咖啡馆|茶馆|邮局|教室|宿舍|办公室|洗手间|厕所|海边|山上|城里|乡下|国外|中国|美国|日本|韩国|英国|法国|德国|泰国|印度|俄罗斯';
+            const _timeWords = '今天|昨天|明天|前天|后天|早上|上午|中午|下午|晚上|周末|今年|去年|明年|这个月|上个月|下个月';
+            const _subjWords = '我|我们|你|你们|他|她|他们|她们';
+            const _isChecklistCtx = /(哪些|哪里|哪儿)[^，。！？]{0,12}(还)?(没|没有)(去|来)|计划|清单|挨个|一个一个|都去(了|过)|还有哪里/.test(ctx);
+            const _isContrastSelf = /[，,、;；]/.test(t) || /(还没去|也没去|都去了|也去了|还没来)/.test(t);
+            if(!_isChecklistCtx && !_isContrastSelf){
+                const placeGone = t.match(new RegExp('^(?:(?:' + _subjWords + ')|(?:' + _timeWords + '))*(' + _placeWords + ')(去了|来了)([。！!？?]*)$'));
+                if(placeGone && new RegExp(_subjWords).test(t) && placeGone[1] && placeGone[2]){
+                    const prefix = t.slice(0, t.length - placeGone[1].length - placeGone[2].length - (placeGone[3] || '').length);
+                    const verb = placeGone[2] === '来了' ? '来' : '去';
+                    const right = prefix + verb + placeGone[1] + '了' + (placeGone[3] || '');
+                    if(right !== t) out.push({ original: t, corrected: right, type: '语序错误', note: '处所宾语「' + placeGone[1] + '」要放在「' + verb + '」的后面。应说：' + right + '。' });
+                }
             }
         }
         return out;
