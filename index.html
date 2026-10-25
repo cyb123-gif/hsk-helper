@@ -23,6 +23,10 @@
         .bubble { max-width: 85%; padding: 12px 18px; border-radius: 22px; line-height: 1.5; font-size: 1rem; word-break: break-word; }
         .user-bubble { background: #d9e6ff; color: #1a2b4c; border-bottom-right-radius: 6px; }
         .assistant-bubble { background: white; border: 1px solid #dee5ed; border-bottom-left-radius: 6px; }
+        .chat-thinking-bubble { display: flex; align-items: center; gap: 8px; background: white; border: 1px solid #dee5ed; border-bottom-left-radius: 6px; max-width: 85%; padding: 12px 18px; border-radius: 22px; }
+        .chat-thinking-line { display: inline-block; width: 5px; height: 1.1em; background: #1e2b5e; border-radius: 3px; animation: chatThinkingBlink 0.9s step-start infinite; }
+        .chat-thinking-text { color: #94a3b8; font-size: 0.85rem; }
+        @keyframes chatThinkingBlink { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0; } }
         .timestamp { font-size: 0.7rem; color: #7b8ba3; margin: 4px 10px 0; }
         .chat-input-area { padding: 16px 20px 20px; background: white; border-top: 1px solid #e2e8f0; display: flex; flex-direction: column; gap: 10px; }
         .input-group { display: flex; gap: 10px; }
@@ -5323,14 +5327,20 @@ const HSK2_VOCAB = [
             return uniq.join('、');
         }
         if(MISTAKE_TYPE_LIST.indexOf(t) >= 0) return t;
-        const alias = { '错别字':'错字', '语序颠倒':'语序错误', '搭配错误':'搭配不当', '缺字':'漏字', '冗余':'成分多余', '杂糅':'句式杂糅', '关联词':'关联词错误', '语义':'语义错误', '离合词':'离合词错误', '语法错误':'语序错误', '虚词':'虚词错误', '助词':'虚词错误', '介词':'虚词错误', '连词':'虚词错误', 'particle':'虚词错误', 'preposition':'虚词错误', 'function word':'虚词错误', 'vocabulary':'词语错误', 'grammar':'语序错误', 'character':'别字', 'redundant':'成分多余', 'collocation':'搭配不当', 'idiomatic':'语义错误', 'word order':'语序错误' };
+        const alias = { '错别字':'错字', '语序颠倒':'语序错误', '搭配错误':'搭配不当', '缺字':'漏字', '冗余':'成分多余', '杂糅':'句式杂糅', '关联词':'关联词错误', '语义':'语义错误', '离合词':'离合词错误', '语法错误':'语序错误', '虚词':'虚词错误', '助词':'虚词错误', '介词':'虚词错误', '连词':'虚词错误', 'particle':'虚词错误', 'preposition':'虚词错误', 'function word':'虚词错误', 'vocabulary':'词语错误', 'grammar':'语序错误', 'character':'别字', 'redundant':'成分多余', 'collocation':'搭配不当', 'idiomatic':'语义错误', 'word order':'语序错误', 'typo':'错字', '字/词错误':'字/词错误', '字词错误':'字/词错误' };
         if(alias[t]) return alias[t];
         return '';
     }
     function mistakeTypeLabel(type){
         const norm = normalizeMistakeType(type);
         if(!norm) return '';
-        return norm.split('、').map(tok => { const l = t('mistake.type.' + tok); return (l && l !== ('mistake.type.' + tok)) ? l : tok; }).join('、');
+        // 用字/用词类错误统一显示为「字/词错误」（不用 Typo/错字等说法）
+        const CHAR_WORD = { '错字':1, '别字':1, '漏字':1, '多字':1, '词语错误':1 };
+        return norm.split('、').map(tok => {
+            if(CHAR_WORD[tok]) return '字/词错误';
+            const l = t('mistake.type.' + tok);
+            return (l && l !== ('mistake.type.' + tok)) ? l : tok;
+        }).join('、');
     }
     function inferMistakeType(m){
         const n = String((m && m.note) || '').toLowerCase();
@@ -5482,7 +5492,7 @@ const HSK2_VOCAB = [
             'chat.header':'🤖 Chinese Learning Assistant',
             'chat.greeting':'Hello! I am your AI language partner. Let\'s chat together.',
             'chat.placeholder':'Chat with me...',
-            'chat.send':'Send',
+            'chat.send':'Send', 'chat.thinking':'AI is thinking...',
             'chat.end':'End Conversation',
             'chat.voice_title':'Voice input (click to start/stop)',
             'chat.voice_recording':'Recording... click to stop',
@@ -8234,7 +8244,7 @@ const HSK2_VOCAB = [
         'chat.header':'🤖 汉语学习助手',
         'chat.greeting':'你好，我是你的AI语伴，我们一起聊天吧',
         'chat.placeholder':'聊点什么吧...',
-        'chat.send':'发送', 'chat.end':'结束对话',
+        'chat.send':'发送', 'chat.end':'结束对话', 'chat.thinking':'AI 正在思考…',
         'chat.voice_title':'语音输入（点击开始/停止）',
         'chat.voice_recording':'录音中...点击停止',
         'chat.voice_listening':'🎤 正在聆听...',
@@ -10475,7 +10485,7 @@ const HSK2_VOCAB = [
             'writing.topic_opening':'📝 Opening suggestion', 'writing.topic_done':'✅ Topic set',
             'track.tab_chat_word':'💬 Chat words', 'track.tab_practice_word':'🎧 Listening/dictation words', 'track.tab_writing_word':'✏️ Writing words', 'track.tab_reading_word':'📖 Reading words', 'track.tab_chat_grammar':'💬 Chat grammar', 'track.tab_practice_grammar':'🎧 Listening/dictation grammar', 'track.tab_writing_grammar':'✏️ Writing grammar', 'track.tab_reading_grammar':'📖 Reading grammar',
             'track.ai_repeat':'⚠️ Repeated from AI',
-            'mistake.type.错字':'Typo', 'mistake.type.别字':'Wrong character', 'mistake.type.漏字':'Missing character', 'mistake.type.多字':'Extra character', 'mistake.type.词语错误':'Wrong word', 'mistake.type.离合词错误':'Separable verb', 'mistake.type.缺词':'Missing word', 'mistake.type.多词':'Extra word', 'mistake.type.语序错误':'Word order', 'mistake.type.搭配不当':'Collocation', 'mistake.type.成分残缺':'Incomplete element', 'mistake.type.成分多余':'Redundant element', 'mistake.type.句式杂糅':'Mixed patterns', 'mistake.type.关联词错误':'Connective', 'mistake.type.语义错误':'Meaning', 'mistake.type.虚词错误':'Function word',
+            'mistake.type.字/词错误':'字/词错误', 'mistake.type.离合词错误':'Separable verb', 'mistake.type.缺词':'Missing word', 'mistake.type.多词':'Extra word', 'mistake.type.语序错误':'Word order', 'mistake.type.搭配不当':'Collocation', 'mistake.type.成分残缺':'Incomplete element', 'mistake.type.成分多余':'Redundant element', 'mistake.type.句式杂糅':'Mixed patterns', 'mistake.type.关联词错误':'Connective', 'mistake.type.语义错误':'Meaning', 'mistake.type.虚词错误':'Function word',
         },
         'Japanese': {
             'zms.disamb_checking':'⏳ この単語に複数の意味があるか確認中...',
@@ -16177,7 +16187,22 @@ ${searchRule}
     function vocabHoverTitle(v){ if(!v) return ''; const m=String(v.m||'').trim(); const e=String(v.e||'').trim(); const s=(m&&e)?(m+' | '+e):(m||e); return escapeHtml(s).replace(/"/g,'&quot;'); }
     function safeJsonParse(raw){ let c=String(raw).replace(/```json\s*/gi,'').replace(/```/g,'').trim(); c=c.replace(/[\x00-\x08\x0b\x0c\x0e-\x1f]/g,''); try{ return JSON.parse(c); }catch(e1){ const m=c.match(/\{[\s\S]*\}/); if(m){ let fixed=m[0]; fixed=fixed.replace(/,\s*([}\]])/g,'$1'); fixed=fixed.replace(/[\x00-\x08\x0b\x0c\x0e-\x1f]/g,''); try{ return JSON.parse(fixed); }catch(e2){ return {}; } } return {}; } }
     function stripHtml(s){ return s.replace(/<[^>]*>/g,''); }
+    // AI 思考中指示器：回复框开头显示一根闪烁的粗竖线
+    function showChatThinkingIndicator(){
+        hideChatThinkingIndicator();
+        const div = document.createElement('div');
+        div.className = 'message assistant-message';
+        div.id = 'chatThinkingIndicator';
+        div.innerHTML = '<div class="chat-thinking-bubble"><span class="chat-thinking-line"></span><span class="chat-thinking-text">' + escapeHtml(t('chat.thinking')) + '</span></div>';
+        chatMessages.appendChild(div);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+    function hideChatThinkingIndicator(){
+        const el = document.getElementById('chatThinkingIndicator');
+        if(el) el.remove();
+    }
     function addMessage(role, content, isHtml, rawText){
+        if(role === 'assistant') hideChatThinkingIndicator();
         const div = document.createElement('div');
         div.className = 'message ' + role + '-message';
         const displayContent = isHtml ? content : escapeHtml(content);
@@ -16300,7 +16325,7 @@ ${searchRule}
 function loadWrongSentences(){ if(!currentUser) return; wrongSentences=[]; var raw=localStorage.getItem('HSK_WRONG_SENTENCES_'+currentUser); if(raw) try{ wrongSentences=JSON.parse(raw); }catch(e){ wrongSentences=[]; } }
 function addWrongSentence(word,type,chineseRaw,english,userAnswer,note,errType){ if(wrongSentences.some(function(s){ return s.sentence===chineseRaw&&s.userAnswer===userAnswer; })) return; wrongSentences.unshift({word:word,type:type,sentence:chineseRaw,english:english,userAnswer:userAnswer,note:note||'',errType:normalizeMistakeType(errType)||String(errType||'').trim(),date:getLocalDate()}); if(wrongSentences.length>500) wrongSentences.pop(); saveWrongSentences(); renderWrongSentences(); }
 window._removeWrongSentence=function(idx){ wrongSentences.splice(idx,1); saveWrongSentences(); renderWrongSentences(); };
-function renderWrongSentences(){ const el=document.getElementById('wrongSentenceList'); if(!el) return; if(wrongSentences.length===0){ el.innerHTML='<div class="empty-detail">'+t('wrong_sentences.empty')+'</div>'; return; } let html=''; for(let i=0;i<wrongSentences.length;i++){ const ws=wrongSentences[i]; const delBtn=' <button onclick="window._removeWrongSentence('+i+')" style="background:none;border:1px solid #f5c6cb;border-radius:8px;padding:1px 6px;font-size:0.68rem;cursor:pointer;color:#c0392b;margin-left:6px;">🗑️</button>'; if(ws.type==='对话纠错'||ws.type==='写作纠错'){ const _wsId='ws_'+i; window._correctionStore=window._correctionStore||{}; window._correctionStore[_wsId]={chinese:ws.sentence, note:ws.note}; const _wsExplain=' <button class="corr-explain-btn" onclick="window._toggleCorrectionExplain(\''+_wsId+'\')">'+escapeHtml(t('corr.explain'))+'</button><div class="corr-explain-box" id="'+_wsId+'_box"></div>'; var _dhh=diffHighlightHtml(ws.userAnswer, ws.sentence); html+='<div class="mistake-item"><div style="color:#27ae60;font-weight:600;">✅ '+_dhh.corrHtml+'</div><div class="mistake-original" style="color:#c0392b;">❌ '+_dhh.origHtml+'</div>'+(ws.errType?'<div style="margin:2px 0;"><span class="mistake-type-badge">🏷 '+escapeHtml(ws.errType)+'</span></div>':'')+_wsExplain+'<div style="font-size:0.7rem;color:#94a3b8;">📅 '+formatDate(ws.date)+delBtn+'</div></div>'; } else { html+='<div class="mistake-item"><div class="mistake-original">📝 '+escapeHtml(ws.word||ws.userAnswer)+'</div><div style="color:#27ae60;">✅ '+escapeHtml(ws.sentence)+'</div><div>✏️ '+escapeHtml(ws.userAnswer)+delBtn+'</div></div>'; } } el.innerHTML=html; translateLegacyWrongNotes(); }
+function renderWrongSentences(){ const el=document.getElementById('wrongSentenceList'); if(!el) return; if(wrongSentences.length===0){ el.innerHTML='<div class="empty-detail">'+t('wrong_sentences.empty')+'</div>'; return; } let html=''; for(let i=0;i<wrongSentences.length;i++){ const ws=wrongSentences[i]; const delBtn=' <button onclick="window._removeWrongSentence('+i+')" style="background:none;border:1px solid #f5c6cb;border-radius:8px;padding:1px 6px;font-size:0.68rem;cursor:pointer;color:#c0392b;margin-left:6px;">🗑️</button>'; if(ws.type==='对话纠错'||ws.type==='写作纠错'){ const _wsId='ws_'+i; window._correctionStore=window._correctionStore||{}; window._correctionStore[_wsId]={chinese:ws.sentence, note:ws.note}; const _wsExplain=' <button class="corr-explain-btn" onclick="window._toggleCorrectionExplain(\''+_wsId+'\')">'+escapeHtml(t('corr.explain'))+'</button><div class="corr-explain-box" id="'+_wsId+'_box"></div>'; var _dhh=diffHighlightHtml(ws.userAnswer, ws.sentence); html+='<div class="mistake-item"><div style="color:#27ae60;font-weight:600;">✅ '+_dhh.corrHtml+'</div><div class="mistake-original" style="color:#c0392b;">❌ '+_dhh.origHtml+'</div>'+(ws.errType?'<div style="margin:2px 0;"><span class="mistake-type-badge">🏷 '+escapeHtml(mistakeTypeLabel(ws.errType)||ws.errType)+'</span></div>':'')+_wsExplain+'<div style="font-size:0.7rem;color:#94a3b8;">📅 '+formatDate(ws.date)+delBtn+'</div></div>'; } else { html+='<div class="mistake-item"><div class="mistake-original">📝 '+escapeHtml(ws.word||ws.userAnswer)+'</div><div style="color:#27ae60;">✅ '+escapeHtml(ws.sentence)+'</div><div>✏️ '+escapeHtml(ws.userAnswer)+delBtn+'</div></div>'; } } el.innerHTML=html; translateLegacyWrongNotes(); }
 let wrongNoteTranslating = false;
 async function translateLegacyWrongNotes(){
     if(wrongNoteTranslating) return;
@@ -16537,7 +16562,7 @@ function saveFullState(){ if(!currentUser) return; const entries=Array.from(used
                     }
                     return rows.join('\n');
                 })()
-                + '\n回复时先用「哦，你是说……」+ 改正后的完整句子确认学生意思，再接「，对吗？」，然后必须继续自然回应学生说的内容（1-3句），并在合适时提一个问题延续对话；不要只输出确认句就结束。整个回复里「，对吗？」只能出现一次，只允许用在开头确认句的结尾，后面继续回应时绝对不要再重复正确句子或再加「，对吗？」。不要在确认句里加任何翻译（正确句子的翻译会由系统显示在下面的纠错块里）。「哦，你是说……」后面的句子必须逐字照抄上面每条「正确句子」的完整句子，一个字都不许增、删、换，句末的句号不要抄进确认句（正确句子结尾直接接「，对吗？」），禁止省略主语等正确成分，禁止只截取片段（如学生说「我为了打工去的」，必须说「哦，你是说我去工作了，对吗？」，不能说「去工作」），禁止把「正确句子」抄成生造词或错字，也不允许在正确句子里添加原文没有的字。如果某条「正确句子」和学生原句完全一样，就不要为它使用「哦，你是说……」。如果你无法保证逐字照抄正确句子，就干脆不用「哦，你是说……」句式，直接简短自然回应学生即可（纠错块会由系统自动显示）。不要说「你是想问」。'
+                + '\n回复开头先写一句「哦，你是说」+ 正确句子 +「，对吗？」确认学生意思，然后简短自然回应学生说的内容（1-3句），可在合适时提一个问题。整个回复「，对吗？」只出现这一次；正确句子照抄「系统纠错结果」里的「正确句子」原文（句末句号不要抄进确认句）。'
             : '\n【系统纠错结果】\n（本次无纠错结果）\n学生这句话没有偏误。绝对不要使用「哦，你是说……」「你是想说……」「……，对吗？」等任何确认句式，绝对不要重复、改写或复述学生的句子（哪怕你觉得它有错——纠错由系统单独处理），更不许把你擅自改写、或添加原文没有的字的句子塞进确认句式；直接自然回应学生说的内容或问题。';
         const topicCtx = window._chatTopicContext
             ? '\n【当前话题背景】' + String(window._chatTopicContext).slice(0, 1200) + '\n请始终围绕这个话题和学生聊天，不要跑题；提问时一次只问一个问题，等学生回答后再继续问下一个，不要一次列出多个问题。'
@@ -16549,16 +16574,17 @@ ${gapChatGuide()}
 1. 先直接回应用户刚说的内容或问题，绝不能答非所问。
 2. 始终围绕用户当前的话题自然展开，不要突然跳到无关的新话题。
 3. 如果用户提出了问题，必须先回答问题，再补充其他内容。
-【交流方式 - 像朋友聊天，延续话题】
-你和学生是平等的对话伙伴，自然地聊天：
-- 先回应学生刚说的内容，分享你的观点、想法或有趣的见闻（"我觉得..."、"有意思的是..."、"听说..."）；
-- 常常在回复的最后，根据学生刚说的内容自然地提一个问题，把对话继续下去；不要连问两次以上，问题要自然、和学生内容相关；
-- 学生明显在结束对话或只是简短寒暄时，可以只回应不提问，分享完自然结束就好；
+【交流方式 - 像朋友聊天，不要一直提问】
+你和学生是平等的对话伙伴。自然地交替使用以下方式，不要每次都提问：
+- 分享你的观点、想法或有趣的见闻（"我觉得..."、"有意思的是..."、"听说..."）
+- 对学生的分享表达共鸣和回应（"真的吗？那太有趣了"、"我理解你的感受"）
+- 偶尔轻松地提一个问题，但不要连问两次以上
+- 不要每次都以问题结尾——有时分享完自然结束就好
 - 绝不要假装自己是人类去编造生活经历（如散步、吃饭、去了某地等）
 【纠错规则】
 系统已经先分析并纠正学生句子的偏误（结果见下方「系统纠错结果」），纠错块会在你的回复之后自动显示（里面是学生的原句和更好的说法）。你不需要在回复中使用 ❌/✅/💡/✏️ 或「订正/纠错」格式纠错，也绝不要输出这些符号和标签——你输出只会造成重复。
 你需要做的：
-- 如果「系统纠错结果」中列出了「正确句子」且与学生原句不同：先用「哦，你是说……」+ 改正后的完整句子来确认学生的意思，再接「，对吗？」，然后再继续回应（不要在确认句里加翻译，正确句子的翻译由系统显示在下面的纠错块里）。整个回复「，对吗？」只能出现一次（只在开头确认句结尾），后面回应时禁止再重复正确句子或再加「，对吗？」。例如系统给「我见面他 → 我想跟他见面」，你必须回答「哦，你是说我想跟他见面，对吗？」（正确句子必须逐字照抄，绝不能改成「你想跟他见面」）。「哦，你是说……」后面的句子必须逐字照抄「系统纠错结果」里对应的「正确句子」完整句子，一个字都不许增、删、换，再接「，对吗？」（也可以不加），禁止省略主语等正确成分、禁止只截取片段（如学生说「我为了打工去的」，必须说「哦，你是说我去工作了，对吗？」，不能说「去工作」），禁止省略或改写数字/日期/时间/数量词。如果「正确句子」和学生原句完全一样，就不要使用「哦，你是说……」。
+- 如果「系统纠错结果」中列出了「正确句子」且与学生原句不同：回复 = 「哦，你是说」+ 正确句子 +「，对吗？」+ 简短自然回应（1-3句）。「，对吗？」整个回复只出现这一次；正确句子照抄系统给的内容。
 - 如果「系统纠错结果」是「（本次无纠错结果）」，说明学生这句话没有偏误：绝对不要使用「哦，你是说……」「你是想说……」等确认句式，也绝对不要重复学生的话；直接自然回应学生说的内容或问题，正常往下聊，不要先复述原句再说新话。
 学生讲述自己以前说错的话或引用别人说的话时（如「我当时说『我见面他』」「其实我应该说我订错了」），转述内容不是错误，不要纠正、不要重述，正常回应即可。
 【输出前自检 - 每次回复前必须执行】
@@ -18050,7 +18076,7 @@ uncertain 表示你是否读不懂这个句子/分句、无法可靠推断学生
         return map;
     }
     function downloadUnifiedReport(){ let rpt='=== 📚 完整学习报告 ===\n'+new Date().toLocaleString()+'\n\n'; rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n✏️ 作文批改（最终提交文本 + 修改过程）\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(writingEssays.length===0){ rpt+='(暂无作文批改记录)\n\n'; } else { writingEssays.forEach((we,i)=>{ rpt+='📌 作文 '+(i+1)+'（'+formatDate(we.date)+'，最终得分 '+(we.score||'--')+'）\n--- 最终提交文本 ---\n'+(we.original||'')+'\n'; if(we.revisions&&we.revisions.length>0){ rpt+='--- 修改过程 ---\n'; we.revisions.forEach((rv,k)=>{ rpt+='修改'+(k+1)+'（'+formatDate(rv.date)+'，得分 '+(rv.score||'--')+'）\n'+(rv.text||'')+'\n'; }); } rpt+='\n'; }); } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n📝 第一部分：全部聊天记录\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; const _chatMsgs = dedupeChatHistory(chatHistory || []); if(_chatMsgs.length===0){ rpt+='(暂无聊天记录)\n'; } else { const _copiedMap=buildCopiedFromAiMap(_chatMsgs); for(let msg of _chatMsgs){ const roleLabel=msg.role==='user'?'🧑 用户':'🤖 AI'; const timeStr=msg.time?new Date(msg.time).toLocaleString():''; rpt+=roleLabel+' ['+timeStr+']\n'+msg.content+'\n'; const _cp=_copiedMap.get(msg); if(_cp) rpt+='  ⚠️ 注：此句与前面AI说过的「'+_cp.phrase+'」相同/相似，可能不是学生自己生成。\n'; rpt+='\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n💬 阅读模式讨论记录\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; const _rc=(function(){try{return JSON.parse(localStorage.getItem('HSK_MODE_CHAT_READING_'+currentUser)||'[]')||[];}catch(e){return [];}})(); if(_rc.length===0){ rpt+='(暂无阅读讨论记录)\n'; } else { for(const _c of _rc){ rpt+='📌 '+(_c.date||'')+' '+(_c.title||'')+'\n'; for(const _m of (_c.messages||[])){ rpt+=(_m.role==='user'?'🧑 用户':'🤖 AI')+'：'+_m.content+'\n'; } rpt+='\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n💬 写作模式讨论记录\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; const _wc=(function(){try{return JSON.parse(localStorage.getItem('HSK_MODE_CHAT_WRITING_'+currentUser)||'[]')||[];}catch(e){return [];}})(); if(_wc.length===0){ rpt+='(暂无写作讨论记录)\n'; } else { for(const _c of _wc){ rpt+='📌 '+(_c.date||'')+' '+(_c.title||'')+'\n'; for(const _m of (_c.messages||[])){ rpt+=(_m.role==='user'?'🧑 用户':'🤖 AI')+'：'+_m.content+'\n'; } rpt+='\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n🔍 第二部分：查询过的词或句子\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(queriedItems.length===0){ rpt+='(暂无查询记录)\n'; } else { for(let i=0;i<queriedItems.length;i++){ const item=queriedItems[i]; const icon=item.type==='sentence'?'📝 句子':'🔤 词语'; rpt+=icon+' '+item.text+'\n  🌐 '+(item.translation||'')+'\n  📅 '+formatDate(item.date?item.date.slice(0,10):'')+'\n\n'; } }
-rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n🎯 错误库（错误的词/句子，全部来源）\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(gapBank.items.length===0){ rpt+='(暂无错误记录)\n'; } else { const _gi=[...gapBank.items].sort(gapSort); for(const it of _gi){ rpt+=(it.acquired?'✅已习得':'🔴未习得')+' '+it.text+'｜出现'+(it.count||1)+'次｜来源：'+(it.source||'')+'\n'; if(it.correct && it.correct!==it.text) rpt+='  正确：'+it.correct+'\n'; if(it.sentence) rpt+='  改正后的句子：'+it.sentence+'\n'; if(it.translation) rpt+='  母语翻译：'+it.translation+'\n'; if(it.correctUseCount) rpt+='  正确使用：'+it.correctUseCount+'/3\n'; if(it.occurrences&&it.occurrences.length) rpt+='  出现时间：'+it.occurrences.map(o=>o.date).join('、')+'\n'; if(it.usedSentences&&it.usedSentences.length) rpt+='  使用句子（时间）：'+it.usedSentences.map(u=>u.sentence+'('+u.source+' '+(u.time||u.date||'')+')').join('；')+'\n'; rpt+='\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n📝 错句纠错记录（错句本）\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(wrongSentences.length===0){ rpt+='(暂无纠错记录)\n'; } else { for(const _ws of wrongSentences){ rpt+='✏️ 你写的：'+(_ws.userAnswer||'')+'\n'; rpt+='✅ 正确：'+(_ws.sentence||'')+'\n'; if(_ws.note) rpt+='💡 原因：'+(_ws.note||'')+'\n'; if(_ws.errType) rpt+='🏷 类型：'+(_ws.errType||'')+'\n'; rpt+='📅 '+(_ws.date||'')+'\n\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n💭 第三部分：错句反思记录（全部历史）\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; const _rr=(window._reflectionResults||[]).slice().sort((a,b)=>String(b.date||'').localeCompare(String(a.date||''))); if(_rr.length===0){ rpt+='(暂无反思记录)\n'; } else { for(const r of _rr){ rpt+='['+(r.mode||'')+'] '+(r.text||'')+'\n'; if(r.user) rpt+='  ✏️ 你写的：'+r.user+'\n'; if(r.note) rpt+='  📌 '+(r.note||'')+'\n'; if(r.native) rpt+='  🌐 母语表达：'+r.native+'\n'; rpt+='  💭 反思：'+(r.reason||'（跳过）')+'\\n'; rpt+='  📅 '+(r.date||'')+'\n\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n⭐ 第四部分：收藏句子\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(favoriteSentences.length===0){ rpt+='(暂无收藏)\n'; } else { for(let item of favoriteSentences){ rpt+='🇨🇳 '+item.chinese+'\n🌐 '+(item.translation||'')+'\n📅 '+(item.date||'')+'\n\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n💬 「怎么说」尝试记录\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(zmsRecords.length===0){ rpt+='(暂无尝试记录)\n'; } else { for(var zi=0; zi<zmsRecords.length; zi++){ var zr=zmsRecords[zi]; rpt+='🌐 母语：'+zr.original+'\n'; if(zr.attempt) rpt+='  ✏️ 你的尝试：'+zr.attempt+'\n'; rpt+='  ✅ 参考答案：'+zr.reference+'\n  📅 '+(zr.date||'')+'\n\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n📰 阅读历史\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(readingHistory.length===0){ rpt+='(暂无阅读记录)\n'; } else { readingHistory.forEach((r,i)=>{ rpt+='📌 '+(r.title||('HSK'+r.level))+' [HSK'+r.level+']\n'; rpt+='📅 '+(r.date||'')+' · 主题：'+(r.topic||'')+'\n'; if(r.background) rpt+='背景：'+r.background+'\n'; if(r.sourceUrl) rpt+='🔗 '+r.sourceUrl+'\n'; rpt+='--- 正文 ---\n'+(r.content||'')+'\n\n'; }); } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n🔤 第五部分：音/形/义/用 四维记录（全部，含出现句子）\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; const _fourWords=Object.keys(vocabDimMap||{}).sort((a,b)=>a.localeCompare(b,'zh')); if(!_fourWords.length){ rpt+='(暂无记录)\n'; } else { const _sentMap={}; for(const _u of (window._dimUpdates||[])){ if(_u && _u.sent){ _sentMap[_u.word]=_sentMap[_u.word]||new Set(); _sentMap[_u.word].add(_u.sent); } } rpt+='| 词语 | 音（对/错/共） | 形（对/错/共） | 义（对/错/共） | 用（对/错/共） | 出现句子（最多10条） |\n|---|---|---|---|---|---|\n'; for(const _fw of _fourWords){ const _fd=vocabDimMap[_fw]||{}; const _pc2=(e)=>'对'+(e.c||0)+'/错'+Math.max(0,(e.t||0)-(e.c||0))+'/共'+(e.t||0); const _sents=_sentMap[_fw]; const _sentStr=_sents&&_sents.size?Array.from(_sents).slice(0,10).map(s=>String(s).replace(/\|/g,'｜').replace(/\r?\n/g,' ')).join('；'):''; rpt+='| '+String(_fw).replace(/\|/g,'｜')+' | '+_pc2(_fd['音']||{c:0,t:0})+' | '+_pc2(_fd['形']||{c:0,t:0})+' | '+_pc2(_fd['义']||{c:0,t:0})+' | '+_pc2(_fd['用']||{c:0,t:0})+' | '+_sentStr+' |\n'; } } rpt+='\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n✨ 第六部分：本次新增（按模式标记，含句子）\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; const _upd=(window._dimUpdates||[]).slice(-200); if(!_upd.length){ rpt+='(暂无新增)\n'; } else { for(const _u of _upd){ rpt+='['+(_u.mode||'未标记')+'] '+_u.word+' → '+_u.dims+' ✅ '+(_u.date||'')+(_u.sent?'｜'+_u.sent:'')+'\n'; } }
+rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n🎯 错误库（错误的词/句子，全部来源）\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(gapBank.items.length===0){ rpt+='(暂无错误记录)\n'; } else { const _gi=[...gapBank.items].sort(gapSort); for(const it of _gi){ rpt+=(it.acquired?'✅已习得':'🔴未习得')+' '+it.text+'｜出现'+(it.count||1)+'次｜来源：'+(it.source||'')+'\n'; if(it.correct && it.correct!==it.text) rpt+='  正确：'+it.correct+'\n'; if(it.sentence) rpt+='  改正后的句子：'+it.sentence+'\n'; if(it.translation) rpt+='  母语翻译：'+it.translation+'\n'; if(it.correctUseCount) rpt+='  正确使用：'+it.correctUseCount+'/3\n'; if(it.occurrences&&it.occurrences.length) rpt+='  出现时间：'+it.occurrences.map(o=>o.date).join('、')+'\n'; if(it.usedSentences&&it.usedSentences.length) rpt+='  使用句子（时间）：'+it.usedSentences.map(u=>u.sentence+'('+u.source+' '+(u.time||u.date||'')+')').join('；')+'\n'; rpt+='\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n📝 错句纠错记录（错句本）\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(wrongSentences.length===0){ rpt+='(暂无纠错记录)\n'; } else { for(const _ws of wrongSentences){ rpt+='✏️ 你写的：'+(_ws.userAnswer||'')+'\n'; rpt+='✅ 正确：'+(_ws.sentence||'')+'\n'; if(_ws.note) rpt+='💡 原因：'+(_ws.note||'')+'\n'; if(_ws.errType) rpt+='🏷 类型：'+(mistakeTypeLabel(_ws.errType)||_ws.errType||'')+'\n'; rpt+='📅 '+(_ws.date||'')+'\n\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n💭 第三部分：错句反思记录（全部历史）\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; const _rr=(window._reflectionResults||[]).slice().sort((a,b)=>String(b.date||'').localeCompare(String(a.date||''))); if(_rr.length===0){ rpt+='(暂无反思记录)\n'; } else { for(const r of _rr){ rpt+='['+(r.mode||'')+'] '+(r.text||'')+'\n'; if(r.user) rpt+='  ✏️ 你写的：'+r.user+'\n'; if(r.note) rpt+='  📌 '+(r.note||'')+'\n'; if(r.native) rpt+='  🌐 母语表达：'+r.native+'\n'; rpt+='  💭 反思：'+(r.reason||'（跳过）')+'\\n'; rpt+='  📅 '+(r.date||'')+'\n\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n⭐ 第四部分：收藏句子\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(favoriteSentences.length===0){ rpt+='(暂无收藏)\n'; } else { for(let item of favoriteSentences){ rpt+='🇨🇳 '+item.chinese+'\n🌐 '+(item.translation||'')+'\n📅 '+(item.date||'')+'\n\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n💬 「怎么说」尝试记录\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(zmsRecords.length===0){ rpt+='(暂无尝试记录)\n'; } else { for(var zi=0; zi<zmsRecords.length; zi++){ var zr=zmsRecords[zi]; rpt+='🌐 母语：'+zr.original+'\n'; if(zr.attempt) rpt+='  ✏️ 你的尝试：'+zr.attempt+'\n'; rpt+='  ✅ 参考答案：'+zr.reference+'\n  📅 '+(zr.date||'')+'\n\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n📰 阅读历史\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(readingHistory.length===0){ rpt+='(暂无阅读记录)\n'; } else { readingHistory.forEach((r,i)=>{ rpt+='📌 '+(r.title||('HSK'+r.level))+' [HSK'+r.level+']\n'; rpt+='📅 '+(r.date||'')+' · 主题：'+(r.topic||'')+'\n'; if(r.background) rpt+='背景：'+r.background+'\n'; if(r.sourceUrl) rpt+='🔗 '+r.sourceUrl+'\n'; rpt+='--- 正文 ---\n'+(r.content||'')+'\n\n'; }); } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n🔤 第五部分：音/形/义/用 四维记录（全部，含出现句子）\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; const _fourWords=Object.keys(vocabDimMap||{}).sort((a,b)=>a.localeCompare(b,'zh')); if(!_fourWords.length){ rpt+='(暂无记录)\n'; } else { const _sentMap={}; for(const _u of (window._dimUpdates||[])){ if(_u && _u.sent){ _sentMap[_u.word]=_sentMap[_u.word]||new Set(); _sentMap[_u.word].add(_u.sent); } } rpt+='| 词语 | 音（对/错/共） | 形（对/错/共） | 义（对/错/共） | 用（对/错/共） | 出现句子（最多10条） |\n|---|---|---|---|---|---|\n'; for(const _fw of _fourWords){ const _fd=vocabDimMap[_fw]||{}; const _pc2=(e)=>'对'+(e.c||0)+'/错'+Math.max(0,(e.t||0)-(e.c||0))+'/共'+(e.t||0); const _sents=_sentMap[_fw]; const _sentStr=_sents&&_sents.size?Array.from(_sents).slice(0,10).map(s=>String(s).replace(/\|/g,'｜').replace(/\r?\n/g,' ')).join('；'):''; rpt+='| '+String(_fw).replace(/\|/g,'｜')+' | '+_pc2(_fd['音']||{c:0,t:0})+' | '+_pc2(_fd['形']||{c:0,t:0})+' | '+_pc2(_fd['义']||{c:0,t:0})+' | '+_pc2(_fd['用']||{c:0,t:0})+' | '+_sentStr+' |\n'; } } rpt+='\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n✨ 第六部分：本次新增（按模式标记，含句子）\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; const _upd=(window._dimUpdates||[]).slice(-200); if(!_upd.length){ rpt+='(暂无新增)\n'; } else { for(const _u of _upd){ rpt+='['+(_u.mode||'未标记')+'] '+_u.word+' → '+_u.dims+' ✅ '+(_u.date||'')+(_u.sent?'｜'+_u.sent:'')+'\n'; } }
 const ok = downloadTextFile(rpt, 'HSK_Learning_Report_' + getLocalDate() + '.md'); showToast(ok ? t('toast.download_started') : t('toast.download_failed')); }
 
 async function handleEndConversation(){ if(chatAbortController){ chatAbortController.abort(); chatAbortController=null; } if(window._chatMeaningPending){ window._chatMeaningPending = null; const _mp = document.getElementById("chatMeaningPromptMsg"); if(_mp) _mp.remove(); } if(window._chatCorrectionPending){ window._chatCorrectionPending = null; const _cp = document.getElementById("chatCorrectionConfirmMsg"); if(_cp) _cp.remove(); } if(currentSessionClauses.length===0&&sessionUserMessages.length===0){ const _zmsOnly = (window._zmsWrongAttempts || []).slice(); if(!_zmsOnly.length){ addAssistantMessage(t('analysis.no_sentences')); return; } window._zmsWrongAttempts = []; setTimeout(function(){ startReflection(_zmsOnly); }, 300); return; } const filteredClauses=currentSessionClauses.filter(c=>!isQueriedSentence(c)); const savedClauses=[...filteredClauses]; if(filteredClauses.length===0){ const _zmsOnly2=(window._zmsWrongAttempts||[]).slice(); window._zmsWrongAttempts=[]; if(_zmsOnly2.length){ setTimeout(function(){ startReflection(_zmsOnly2); },300); } else { addAssistantMessage(t('analysis.no_sentences')); } currentSessionClauses=[]; sessionUserMessages=[]; return; } addAssistantMessage(t('analysis.analyzing_prefix')+filteredClauses.length+'...'); try{ const analysis=await analyzeGrammarBatch(filteredClauses); if(analysis) mergeAnalysisResults(analysis, 'chat'); addAssistantMessage(t('analysis.grammar_done')); }catch(e){ addAssistantMessage(t('analysis.grammar_timeout')); } addAssistantMessage(t('analysis.vocab_analyzing')); try{ const vocabAnalysis=await analyzeVocabBatch(savedClauses); if(vocabAnalysis){ mergeVocabResultsFiltered(vocabAnalysis, 'chat'); } const matchCount=vocabAnalysis?vocabAnalysis.reduce((sum,item)=>sum+Object.keys(item.wordCounts||{}).length,0):0; addAssistantMessage(t('analysis.vocab_done')+' 匹配到 '+matchCount+' 个词'); }catch(e){ console.log('Vocab error:',e); addAssistantMessage(t('analysis.vocab_timeout')); } try{
@@ -18096,39 +18122,31 @@ renderVocabLevelProgress(); renderVocabTrackList(); const _userHanzi = sessionUs
             items.push({ o, c });
         }
         if(!items.length) return r;
-        // 把 AI 回复里【所有位置】的确认框架剥掉，最后由系统统一补一个，
-        // 保证每次格式一致、整个回复只出现一次「，对吗？」。
-        // 1) 剥掉「哦，你是说……，对吗？」（句首和句中都要剥，含「对吧/对不对/是吧」变体）
+        // 正常情况：AI 按提示词只生成一次「哦，你是说……，对吗？」。
+        // 安全网：剥掉回复里所有位置的确认框架/复述，系统统一补一个，保证「，对吗？」只出现一次。
+        // 1) 剥掉「你是说……，对吗？」框架（句首和句中都要剥，含「对吧/对不对/是吧」变体）
         r = r.replace(/(?:哦[，,]?\s*)?(?:你是说|你是想说|你想说的是|你的意思是|意思是说|是说)([^。！？!?\n]*?)(?:[，,]?\s*(?:对吗|对吧|对不对|是吧)[？?]?)\s*/g, '');
-        // 2) AI 直接复述原句时，替换为改正句
-        for(const it of items){ if(r.includes(it.o)) r = r.split(it.o).join(it.c); }
-        // 3) 剥掉没有「你是说」前缀、模型直接在句中重复的「正确句子，对吗？」确认标记：
-        //    保留正确句子本身作为自然回应内容，只去掉重复的「，对吗？」
+        // 2) 复述原句 → 替换为改正句；句中残留的「正确句子，对吗？」只保留句子本身
         for(const it of items){
+            if(r.includes(it.o)) r = r.split(it.o).join(it.c);
             const esc = it.c.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
             r = r.replace(new RegExp(esc + '[，,]?\\s*(?:对吗|对吧|对不对|是吧)[？?]?', 'g'), it.c + '。');
         }
-        // 4) 剥掉省略了「，对吗？」的「你是说+改正句」前缀（模型偷懒时仍可能与系统框架重复）
-        for(const it of items){
-            const esc = it.c.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-            r = r.replace(new RegExp('(?:哦[，,]?\\s*)?(?:你是说|你是想说|你想说的是|你的意思是|意思是说|是说)' + esc, 'g'), '');
-        }
-        // 5) AI 回复以改正句开头时（没有「你是说」前缀），剥掉开头的改正句，防止和系统框架重复
+        // 3) 回复以改正句开头时（没有「你是说」前缀），剥掉它，防止和系统框架重复
         for(const it of items){
             const esc = it.c.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
             const lead = r.match(new RegExp('^\\s*' + esc + '(?=[。，,、\\s]|$)'));
             if(lead){ r = r.slice(lead[0].length); break; }
         }
-        // 6) 压缩任何位置残留的重复「，对吗？」
+        // 4) 压缩任何位置残留的重复「，对吗？」
         r = r.replace(/([，,]\s*(?:对吗|对吧|对不对|是吧)[？?]?\s*){2,}/g, '，对吗？');
-        // AI 已经自然说出改正句且紧跟翻译括号时，保留翻译，其余照常
+        // AI 已经自然说出改正句且紧跟翻译括号时，保留翻译
         let translation = '';
         const tm = r.match(/^\s*[（(]\s*([^）)]{1,120}?)\s*[）)]/);
         if(tm){ translation = '（' + tm[1] + '）'; r = r.slice(tm[0].length); }
-        // 清理句首残留标点
+        // 清理句首残留标点，补上唯一的确认框架
         r = r.replace(/^[。，,、\s]+/, '');
-        const joined = items.map(it => it.c).join('，');
-        const frame = '哦，你是说' + joined + translation + '，对吗？';
+        const frame = '哦，你是说' + items.map(it => it.c).join('，') + translation + '，对吗？';
         return r ? (frame + ' ' + r) : frame;
     }
 
@@ -18146,6 +18164,14 @@ renderVocabLevelProgress(); renderVocabTrackList(); const _userHanzi = sessionUs
         // 清理句首残留标点
         cleaned = cleaned.replace(/^[。，,、\s]+/, '');
         return cleaned.trim() || r.trim();
+    }
+    // 判断 AI 回复里剥掉所有确认框架后是否还有实际内容（用于决定是否回退到自然回复）
+    function hasFollowUpAfterConfirmation(raw){
+        const r = String(raw || '')
+            .replace(/(?:哦[，,]?\s*)?(?:你是说|你是想说|你想说的是|你的意思是|意思是说|是说)([^。！？!?\n]*?)(?:[，,]?\s*(?:对吗|对吧|对不对|是吧)[？?]?)\s*/g, '')
+            .replace(/^[^。！？!?\n]+?[，,]\s*(?:对吗|对吧|对不对|是吧)[？?]?\s*/, '')
+            .replace(/^[。，,、\s]+/, '');
+        return !!r.replace(/[。，、！？!?？\s]/g, '');
     }
 
     // 纠错差异高亮：原句删掉的字标红划线，改句中新增的字标绿加粗
@@ -18182,6 +18208,7 @@ renderVocabLevelProgress(); renderVocabTrackList(); const _userHanzi = sessionUs
 
     // 纠错前的「母语意思确认」：让用户用母语写出想表达的意思，再结合意思纠错
     function showChatMeaningPrompt(text, mistakes){
+        hideChatThinkingIndicator();
         const old = document.getElementById('chatMeaningPromptMsg');
         if(old) old.remove();
         const div = document.createElement('div');
@@ -18225,6 +18252,7 @@ renderVocabLevelProgress(); renderVocabTrackList(); const _userHanzi = sessionUs
     async function finishChatCorrectionFlow(text, baseMistakes, meaning, opts){
         opts = opts || {};
         window._chatBusy = true;
+        showChatThinkingIndicator();
         if(chatAbortController){ chatAbortController.abort(); }
         chatAbortController = new AbortController();
         const signal = chatAbortController.signal;
@@ -18244,6 +18272,7 @@ renderVocabLevelProgress(); renderVocabTrackList(); const _userHanzi = sessionUs
             }
             saveChatHistory();
             let reply = null;
+            let chat2Early = null;
             if(opts.analyze){
                 // 纠错分析和聊天回复并行发起；分析完成后立刻跑严格复核（删误报、修正改错、补确凿漏报）。
                 // 复核时把 AI 的聊天回复一并作为参考：若 AI 在回复里悄悄改对了学生的句子
@@ -18256,9 +18285,16 @@ renderVocabLevelProgress(); renderVocabTrackList(); const _userHanzi = sessionUs
                 ]);
                 let anaList = anaRes;
                 const _reviewCtx = _context + ((chatRes && chatRes.raw) ? ('\n【AI对话伙伴对这句话的回复（仅供参考，可能已包含正确说法）】\n' + chatRes.raw) : '');
-                let _reviewed = null;
-                try{ _reviewed = await reviewMistakesStrict([text], anaList, _reviewCtx); }catch(e){ _reviewed = null; }
-                if(Array.isArray(_reviewed)) anaList = _reviewed;
+                // 提速：严格复核与「带纠错上下文的第二次对话」并行，省掉一整轮串行等待。
+                // 第二次对话只提供自然回应（确认句由 align 本地用复核后的结果统一补上），
+                // 纠错准确度完全由「分析 + 复核」决定，不受并行影响。
+                const _candForChat2 = (anaList || []).filter(function(m){ return m && m.original && m.corrected; });
+                const [reviewedRes, chat2Res] = await Promise.all([
+                    reviewMistakesStrict([text], anaList, _reviewCtx).then(function(r){ return Array.isArray(r) ? r : null; }).catch(function(){ return null; }),
+                    _candForChat2.length > 0 ? chatWithContext(text, signal, 0, null, _candForChat2).then(function(r){ return r; }).catch(function(){ return null; }) : Promise.resolve(null)
+                ]);
+                if(Array.isArray(reviewedRes)) anaList = reviewedRes;
+                chat2Early = chat2Res;
                 mistakes = anaList;
                 reply = chatRes;
                 if(opts.cacheKey){
@@ -18310,21 +18346,12 @@ renderVocabLevelProgress(); renderVocabTrackList(); const _userHanzi = sessionUs
                     try{ reply = await chatWithContext(text, signal, 0, null, []); }catch(e){ reply = null; }
                 }
             } else if(batch.length > 0){
-                // 并行路径里确实发现了错误：再用纠错上下文重聊一次，恢复 10.18 版本的
-                // 「先纠错确认 + 按纠错模式长度回复」风格（纠错模式的句数/字数上限比普通聊天宽松）。
-                // 失败时沿用并行阶段已生成的自然回复，保证不卡住。
-                let _chat2 = null;
-                try{ _chat2 = await chatWithContext(text, signal, 0, null, batch); }catch(e){ _chat2 = null; }
+                // 并行路径里确实发现了错误：使用与复核并行的第二次对话（带纠错上下文）。
+                // 确认句由 align 本地统一补上；若这次只回了确认句、没有任何后续内容，
+                // 改用并行阶段已生成的自然回复，保证话轮能继续下去。
+                let _chat2 = chat2Early;
                 if(_chat2){
-                    // 若这次只回了确认句、没有任何后续内容（或只剩标点/重复的「对吗」），
-                    // 改用并行阶段已生成的自然回复，由 align 本地补上确认句，保证话轮能继续下去
-                    let _rest = String(_chat2.raw || '').replace(/^(哦[，,]?\s*)?(?:你是说|你是想说|你想说的是|你的意思是|意思是说|是说)([^！？!?\n]*?)(?:(?:[，,]?\s*对吗[？?]?)+)?\s*/, '');
-                    for(const b of batch){
-                        const _bc = String(b.corrected || '').replace(/[。！？!?]+$/, '');
-                        if(_bc && _rest.indexOf(_bc) === 0) _rest = _rest.slice(_bc.length);
-                    }
-                    _rest = _rest.replace(/^[。，,、\s]+/, '').replace(/^(?:[，,]?\s*对吗[？?]?\s*)+/, '').replace(/^[。，,、\s]+/, '');
-                    if(_rest.replace(/[。，、！？!?？\s]/g, '') === ''){
+                    if(!hasFollowUpAfterConfirmation(_chat2.raw)){
                         if(reply && reply.raw) _chat2 = null;
                     }
                     if(_chat2) reply = _chat2;
@@ -18417,6 +18444,7 @@ renderVocabLevelProgress(); renderVocabTrackList(); const _userHanzi = sessionUs
             }
         }finally{
             chatAbortController = null;
+            hideChatThinkingIndicator();
             window._chatBusy = false;
         }
     }
@@ -18664,6 +18692,7 @@ renderVocabLevelProgress(); renderVocabTrackList(); const _userHanzi = sessionUs
     // 纠错确认：改正句 + 母语翻译 → 学生确认是不是自己想说的意思
     async function showCorrectionConfirm(text, mistakes){
         return new Promise((resolve) => {
+            hideChatThinkingIndicator();
             const old = document.getElementById('chatCorrectionConfirmMsg');
             if(old) old.remove();
             const correctedCn = mistakes.map(m => m.corrected).join('；');
@@ -18754,6 +18783,7 @@ renderVocabLevelProgress(); renderVocabTrackList(); const _userHanzi = sessionUs
             }
         }finally{
             chatAbortController = null;
+            hideChatThinkingIndicator();
             window._chatBusy = false;
         }
     }
