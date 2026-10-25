@@ -974,6 +974,9 @@
             <div class="stat-title"><span>📚 API 设置</span><span class="level-badge">🔑</span></div>
             <input type="password" class="api-key-input" id="apiKeyInput" placeholder="DeepSeek API Key（已默认填入）" value="sk-b93153a9b5854be4b0efc3ba13148779" autocomplete="off">
             <div class="small-note" id="apiKeyStatus">🔑 API Key 已默认填入，可直接使用；也可替换为你自己的 Key。</div>
+            <input type="password" class="api-key-input" id="ttsMakerTokenInput" placeholder="TTSMaker Token（可选：填入后 AI 朗读使用 ttsmaker.com 音色）" autocomplete="off" style="margin-top:8px;">
+            <input type="number" class="api-key-input" id="ttsMakerVoiceInput" value="1504" min="1" step="1" autocomplete="off" style="margin-top:8px;max-width:220px;" title="TTSMaker 音色 ID（Voice ID）">
+            <div class="small-note">🔊 可选：注册 <b>ttsmaker.com</b> → 进入「API/控制台」复制你的 Token，粘贴到上面即可启用 TTSMaker 朗读音色；下面的数字是音色 ID（默认 1504 中文女声，可在 ttsmaker.com 语音列表查看其它编号）。不填 Token 则继续用默认语音。</div>
             <div class="stat-title"><span>📊 语法点明细 (点击查看明细)</span></div>
             <div class="progress-grid" id="levelProgress"></div>
         </div>
@@ -16325,9 +16328,26 @@ ${searchRule}
     function addAssistantMessage(txt, isHtml, rawText, speakText){ addMessage('assistant', txt, isHtml, rawText, speakText); }
     window._translateToggle=async function(text, msgId){ const btn=document.getElementById(msgId+'_btn'); const trEl=document.getElementById(msgId+'_tr'); if(trEl.dataset.translated==='1'){ if(trEl.style.display==='none'){ trEl.style.display='block'; btn.textContent=t('chat.hide_translation'); } else { trEl.style.display='none'; btn.textContent=t('chat.translate'); } return; } btn.disabled=true; btn.textContent=t('chat.translating'); trEl.style.display='block'; trEl.textContent='⏳ ...'; const apiKey=apiKeyInput.value.trim(); if(!apiKey){ trEl.textContent=t('api_key_required'); btn.disabled=false; btn.textContent=t('chat.translate'); return; } const targetLang=targetLangSelect.value; try{ const resp=await fetch(API_BASE,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey}, body:JSON.stringify({model:'deepseek-v4-flash',thinking:{type:'disabled'}, max_tokens:4096, messages:[{role:'user',content:'请将以下中文逐行翻译成'+targetLang+'，保持原来的分行格式，每行单独翻译：\n'+text}], temperature:0.3})}); const data=await resp.json(); if(data.error) throw new Error(data.error.message||"API error"); if(!data.choices||!data.choices[0]||!data.choices[0].message) throw new Error("API error"); const tr=data.choices[0].message.content.trim(); const origLines=text.split('\n'); const trLines=tr.split('\n'); let resultHtml=''; const maxLines=Math.max(origLines.length, trLines.length); for(let i=0;i<maxLines;i++){ const o=(origLines[i]||'').trim(); const t=(trLines[i]||'').trim(); resultHtml+='<div style="margin-bottom:2px;"><b>'+escapeHtml(o)+'</b> → <b style="color:#27ae60">'+escapeHtml(t)+'</b></div>'; } trEl.innerHTML=resultHtml; trEl.dataset.translated='1'; btn.textContent=t('chat.hide_translation'); btn.disabled=false; }catch(e){ trEl.textContent=t('chat.translation_fail'); btn.disabled=false; btn.textContent=t('chat.translate'); } };
     window._pinyinToggle=async function(text, msgId){ const btn=document.getElementById(msgId+'_pyBtn'); const pyEl=document.getElementById(msgId+'_py'); if(!btn||!pyEl) return; if(pyEl.dataset.loaded==='1'){ if(pyEl.style.display==='none'){ pyEl.style.display='block'; btn.textContent=t('chat.hide_pinyin'); } else { pyEl.style.display='none'; btn.textContent=t('chat.pinyin'); } return; } btn.disabled=true; btn.textContent=t('chat.pinyin_loading'); pyEl.style.display='block'; pyEl.textContent='⏳ ...'; const apiKey=apiKeyInput.value.trim(); if(!apiKey){ pyEl.textContent=t('api_key_required'); btn.disabled=false; btn.textContent=t('chat.pinyin'); return; } try{ const resp=await fetch(API_BASE,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey}, body:JSON.stringify({model:'deepseek-v4-flash',thinking:{type:'disabled'}, max_tokens:4096, messages:[{role:'user',content:'请给下面的中文内容标注拼音。每个汉字的拼音用空格分开（如：wǒ shì xué shēng），保持原来的分行格式，每行单独标注，只输出拼音文本，不要输出任何其他内容：\n'+text}], temperature:0})}); const data=await resp.json(); if(data.error) throw new Error(data.error.message||"API error"); if(!data.choices||!data.choices[0]||!data.choices[0].message) throw new Error("API error"); const py=data.choices[0].message.content.trim(); const origLines=text.split('\n'); const pyLines=py.split('\n'); let resultHtml=''; const maxLines=Math.max(origLines.length, pyLines.length); for(let i=0;i<maxLines;i++){ const o=(origLines[i]||'').trim(); const p=(pyLines[i]||'').trim(); resultHtml+='<div style="margin-bottom:2px;">'+escapeHtml(o)+'<br><b style="color:#1565c0;">'+escapeHtml(p)+'</b></div>'; } pyEl.innerHTML=resultHtml; pyEl.dataset.loaded='1'; btn.textContent=t('chat.hide_pinyin'); btn.disabled=false; }catch(e){ pyEl.textContent=t('chat.pinyin_fail'); btn.disabled=false; btn.textContent=t('chat.pinyin'); } };
-    // 聊天朗读：优先用北语 TTS（与听写模式同源，无需 API Key），失败时退回浏览器语音
+    // 聊天朗读：TTSMaker Token（填写后优先）→ 北语 TTS（无需 Key）→ 浏览器语音
     let chatTtsAudio = null;
     let chatTtsText = '';
+    function ttsMakerBase(){
+        if((location.hostname === 'localhost' || location.hostname === '127.0.0.1')) return '/ttsmaker';
+        return 'https://api.ttsmaker.com/v1/create-tts-order';
+    }
+    function playChatTtsUrl(url, isBlobUrl){
+        const audio = new Audio(url);
+        chatTtsAudio = audio;
+        audio.onended = function(){
+            chatTtsAudio = null; chatTtsText = '';
+            if(isBlobUrl){ try{ URL.revokeObjectURL(url); }catch(e){} }
+        };
+        audio.onerror = function(){
+            chatTtsAudio = null; chatTtsText = '';
+            if(isBlobUrl){ try{ URL.revokeObjectURL(url); }catch(e){} }
+        };
+        audio.play();
+    }
     async function speakChatTextWithTts(text){
         const clean = String(text || '').trim();
         if(!clean) return;
@@ -16339,21 +16359,32 @@ ${searchRule}
             if(chatTtsText === clean){ chatTtsText = ''; return; }
         }
         chatTtsText = clean;
+        // 1) TTSMaker（填写 Token 后优先使用）
+        const ttsMakerToken = (document.getElementById('ttsMakerTokenInput') || {}).value || '';
+        if(ttsMakerToken.trim()){
+            try{
+                const voiceId = parseInt((document.getElementById('ttsMakerVoiceInput') || {}).value) || 1504;
+                const resp = await fetch(ttsMakerBase(), { method:'POST', headers:{ 'Content-Type':'application/json; charset=utf-8' }, body: JSON.stringify({ token: ttsMakerToken.trim(), text: clean, voice_id: voiceId, audio_format:'mp3', audio_speed:1.0, audio_volume:0, text_paragraph_pause_time:0 }) });
+                const data = await resp.json();
+                if(data && data.status === 'success' && data.audio_file_url){
+                    playChatTtsUrl(data.audio_file_url, false);
+                    return;
+                }
+                console.warn('[TTSMaker]', data && (data.error_details || data.msg || data.status));
+            }catch(e){ console.warn('[TTSMaker]', e && e.message); }
+        }
+        // 2) 北语 TTS 兜底
         try{
             const resp = await fetch(dictationTtsBase() + '?text=' + encodeURIComponent(clean) + '&speed=5&voice=1');
             const ct = resp.headers.get('content-type') || '';
             if(!resp.ok || !/audio|mpeg|wav|mp3/i.test(ct)) throw new Error('tts unavailable');
             const blob = await resp.blob();
-            const url = URL.createObjectURL(blob);
-            const audio = new Audio(url);
-            chatTtsAudio = audio;
-            audio.onended = function(){ chatTtsAudio = null; chatTtsText = ''; try{ URL.revokeObjectURL(url); }catch(e){} };
-            audio.onerror = function(){ chatTtsAudio = null; chatTtsText = ''; try{ URL.revokeObjectURL(url); }catch(e){} };
-            audio.play();
-        }catch(e){
-            chatTtsText = '';
-            speakChinese(clean);
-        }
+            playChatTtsUrl(URL.createObjectURL(blob), true);
+            return;
+        }catch(e){}
+        // 3) 浏览器语音兜底
+        chatTtsText = '';
+        speakChinese(clean);
     }
     window._readMsg=function(text){ speakChatTextWithTts(text); };
     function splitClauses(text){ return text.split(/[，,。；;！!？?]+/).filter(s=>s.trim().length>0).map(s=>s.trim()); }
@@ -20093,7 +20124,7 @@ async function generateAndShowPractice(grammarPattern, grammarLevel, forceNew=fa
     function saveUsers(users){ localStorage.setItem(USERS_STORAGE, JSON.stringify(users)); }
     function updateHeaderUser(){ const el=document.getElementById('headerUsername'); if(currentUser){ el.innerHTML=t('user.welcome')+escapeHtml(currentUser)+' <span class="logout-link" id="logoutLink">'+t('user.logout')+'</span>'; document.getElementById('logoutLink').onclick=handleLogout; } else { el.innerHTML=''; } }
     async function handleLogin(){ const username=document.getElementById('loginUsername').value.trim(); const password=document.getElementById('loginPassword').value.trim(); const errorEl=document.getElementById('loginError'); const btn=document.getElementById('loginBtn'); if(!username||!password){ errorEl.textContent=t('login.error_empty'); return; } btn.disabled=true; btn.textContent=t('login.verifying'); errorEl.textContent=''; try { const users=getUsers(); const fast=hashPassword(password,username); const stored=users[username]; if(stored){ if(fast===stored){ /* new format match */ } else if(!stored.startsWith('fallback_')&&/^[0-9a-f]{64}$/.test(stored)){ const cryptoHash=await tryCryptoHash(password,username); if(cryptoHash!==stored){ errorEl.textContent=t('login.error_wrong'); btn.disabled=false; btn.textContent=t('login.button'); return; } } else { errorEl.textContent=t('login.error_wrong'); btn.disabled=false; btn.textContent=t('login.button'); return; } } else { users[username]=fast; saveUsers(users); } currentUser=username; localStorage.setItem(CURRENT_USER_STORAGE,username); document.getElementById('loginOverlay').classList.add('hidden'); updateHeaderUser(); finishInit(); } catch(e) { errorEl.textContent=t('login.error_fail'); btn.disabled=false; btn.textContent=t('login.button'); } }
-    function handleLogout(){ if(confirm(t('logout.confirm'))){ usedMap.clear(); favoriteSentences=[]; queriedItems=[]; chatHistory=[]; currentSessionClauses=[]; sessionUserMessages=[]; window._chatSessionMistakes=[]; learnPlan={}; vocabUsedMap.clear(); vocabCorrectList=[]; lastGeneratedVocabSentences.clear(); allGeneratedVocabSet.clear(); lastGeneratedSentences.clear(); lastGrammarMeta.clear(); lastGeneratedCollocations.clear(); usedPracticeStructures.clear(); wrongSentences=[]; writingEssays=[]; writingTopic=''; window._learnCustomData={}; currentLearnTab=null; readingTrack={unknownIn:{},knownIn:{},unknownOut:{}}; readingSessionUnknowns=[]; readingClickedSentences=[]; currentReadingAnalyzed=false; zmsRecords=[]; zmsAttemptState={}; window._zmsWrongAttempts=[]; window._reflectionResults=[]; window._reflectionQueue=[]; window._reflectionReasons=[]; window._reflectionDoneCallback=null; window._sentenceState=null; window._sentenceMistakes=[]; vocabDimMap={}; writingRequiredWords=[]; sentenceRows=[]; gapBank={words:[],patterns:[]}; renderGapBankUI(); totalMinutes=0; currentUser=null; localStorage.removeItem(CURRENT_USER_STORAGE); document.getElementById('loginOverlay').classList.remove('hidden'); document.getElementById('loginPassword').value=''; document.getElementById('loginError').textContent=''; document.getElementById('loginBtn').disabled=false; document.getElementById('loginBtn').textContent=t('login.button'); document.getElementById('chatMessages').innerHTML='<div class="message assistant-message"><div class="bubble assistant-bubble">'+t('chat.greeting')+'</div><div class="timestamp">'+t('chat.just_now')+'</div></div>'; updateHeaderUser(); grammarList=buildFullGrammarList(); renderLevelProgress(); updateGrammarDisplayByLevel(parseInt(grammarViewLevel.value)); renderTrackList(); renderVocabLevelProgress(); renderVocabLibrary(parseInt(document.getElementById('vocabViewLevel')?.value)||1); renderVocabTrackList(); renderQueriedBook(); renderFavoriteBook(); renderWrongSentences(); renderLearnTasks(); } }
+    function handleLogout(){ if(confirm(t('logout.confirm'))){ usedMap.clear(); favoriteSentences=[]; queriedItems=[]; chatHistory=[]; currentSessionClauses=[]; sessionUserMessages=[]; window._chatSessionMistakes=[]; learnPlan={}; vocabUsedMap.clear(); vocabCorrectList=[]; lastGeneratedVocabSentences.clear(); allGeneratedVocabSet.clear(); lastGeneratedSentences.clear(); lastGrammarMeta.clear(); lastGeneratedCollocations.clear(); usedPracticeStructures.clear(); wrongSentences=[]; writingEssays=[]; writingTopic=''; window._learnCustomData={}; currentLearnTab=null; readingTrack={unknownIn:{},knownIn:{},unknownOut:{}}; readingSessionUnknowns=[]; readingClickedSentences=[]; currentReadingAnalyzed=false; zmsRecords=[]; zmsAttemptState={}; window._zmsWrongAttempts=[]; window._reflectionResults=[]; window._reflectionQueue=[]; window._reflectionReasons=[]; window._reflectionDoneCallback=null; window._sentenceState=null; window._sentenceMistakes=[]; vocabDimMap={}; writingRequiredWords=[]; sentenceRows=[]; gapBank={words:[],patterns:[]}; renderGapBankUI(); totalMinutes=0; currentUser=null; localStorage.removeItem(CURRENT_USER_STORAGE); try{ localStorage.removeItem('TTSMAKER_TOKEN'); localStorage.removeItem('TTSMAKER_VOICE'); }catch(e){} document.getElementById('loginOverlay').classList.remove('hidden'); document.getElementById('loginPassword').value=''; document.getElementById('loginError').textContent=''; document.getElementById('loginBtn').disabled=false; document.getElementById('loginBtn').textContent=t('login.button'); document.getElementById('chatMessages').innerHTML='<div class="message assistant-message"><div class="bubble assistant-bubble">'+t('chat.greeting')+'</div><div class="timestamp">'+t('chat.just_now')+'</div></div>'; updateHeaderUser(); grammarList=buildFullGrammarList(); renderLevelProgress(); updateGrammarDisplayByLevel(parseInt(grammarViewLevel.value)); renderTrackList(); renderVocabLevelProgress(); renderVocabLibrary(parseInt(document.getElementById('vocabViewLevel')?.value)||1); renderVocabTrackList(); renderQueriedBook(); renderFavoriteBook(); renderWrongSentences(); renderLearnTasks(); } }
     function switchGrammarTab(id, btn){ const tabs=btn.parentElement; tabs.querySelectorAll('.browser-tab').forEach(t=>t.classList.remove('active')); btn.classList.add('active'); const card=tabs.parentElement; const content=card.querySelector('.browser-tab-content'); if(content){ content.querySelectorAll('.track-list').forEach(l=>l.style.display='none'); const target=document.getElementById(id); if(target){target.style.display=''; target.style.display='block';} } }
     function switchVocabTab(id, btn){ const tabs=btn.parentElement; tabs.querySelectorAll('.browser-tab').forEach(t=>t.classList.remove('active')); btn.classList.add('active'); const card=tabs.parentElement; const content=card.querySelector('.browser-tab-content'); if(content){ content.querySelectorAll('.track-list').forEach(l=>l.style.display='none'); const target=document.getElementById(id); if(target){target.style.display=''; target.style.display='block';} } }
     function initTrackTabs(){}
@@ -22332,6 +22363,21 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
         try { localStorage.removeItem(API_KEY_STORAGE); } catch(e) {}
         apiKeyInput.addEventListener('input', refreshApiKeyStatus);
         refreshApiKeyStatus();
+        // TTSMaker Token 持久化保存（用户自己的 Token，便于下次使用）；语音 ID 同步保存
+        const ttsTokenInput = document.getElementById('ttsMakerTokenInput');
+        const ttsVoiceInput = document.getElementById('ttsMakerVoiceInput');
+        if(ttsTokenInput){
+            try{
+                const savedTtsToken = localStorage.getItem('TTSMAKER_TOKEN');
+                if(savedTtsToken) ttsTokenInput.value = savedTtsToken;
+                const savedTtsVoice = localStorage.getItem('TTSMAKER_VOICE');
+                if(savedTtsVoice && ttsVoiceInput) ttsVoiceInput.value = savedTtsVoice;
+            }catch(e){}
+            ttsTokenInput.addEventListener('input', function(){ try{ localStorage.setItem('TTSMAKER_TOKEN', ttsTokenInput.value.trim()); }catch(e){} });
+        }
+        if(ttsVoiceInput){
+            ttsVoiceInput.addEventListener('input', function(){ try{ localStorage.setItem('TTSMAKER_VOICE', String(ttsVoiceInput.value)); }catch(e){} });
+        }
         if(document.getElementById('downloadUnifiedBtn')) document.getElementById('downloadUnifiedBtn').onclick=downloadUnifiedReport;
         if(!userInput._chatKeyBound){ userInput._chatKeyBound=true; userInput.addEventListener('keypress',e=>{ if(e.key==='Enter' && !e.isComposing && e.keyCode!==229) handleUserMessage(); }); } grammarViewLevel.addEventListener('change',()=>updateGrammarDisplayByLevel(parseInt(grammarViewLevel.value))); closeModalSpan.onclick=()=>{modal.style.display='none';document.body.style.overflow='';}; closePracticeSpan.onclick=()=>{const _wasSelfPractice = window._selfPractice; practiceModal.style.display='none';stopAllSpeech();practiceGenerating=false;practiceSessionToken++;window._selfPractice=false;document.body.style.overflow=''; if(_wasSelfPractice) setTimeout(finishPracticeReflection, 400); window._dictationMode = false; window._dictationOnly = false; window._reviewMode = false; window._reviewQueue = null; window._learnMode = false; window._learnQueue = null; window._currentReviewItem = null; window._reviewRound = 0; window._practiceRevealed = false; window._practiceFinished = false; window._pendingLearnWord = null; window._learnRound = 0; window._dictationReflectQueue = []; window._dictationReflectDone = null; const _dro = document.getElementById('dictationReflectOverlay'); if(_dro) _dro.remove(); unbindDictReflectKeys(); window._dictationTestState = null; window._dictationTestWrongs = 0; window._practiceCanAdvance = false; practiceContent.classList.remove('dictation-active','revealed'); const drb=document.getElementById('dictationRevealBtn'); if(drb) drb.classList.remove('show'); const _kh2 = document.getElementById('practiceKeyHints'); if(_kh2) _kh2.style.display = ''; }; window.onclick=e=>{ if(e.target===modal){modal.style.display='none';document.body.style.overflow='';} if(e.target===practiceModal){const _wasSelfPractice2 = window._selfPractice; practiceModal.style.display='none';stopAllSpeech();practiceGenerating=false;practiceSessionToken++;window._selfPractice=false;document.body.style.overflow=''; if(_wasSelfPractice2) setTimeout(finishPracticeReflection, 400);} }; function commitUsageMinutes(){ if(!currentUser) return; let delta=(Date.now()-sessionStart)/60000; if(delta>0){ totalMinutes+=delta; sessionStart=Date.now(); saveFullState(); updateStatsUI(); } } if(!window._usageTimerInit){ window._usageTimerInit=true; document.addEventListener('visibilitychange',()=>{ if(document.hidden){ commitUsageMinutes(); } else { sessionStart=Date.now(); } }); window.addEventListener('pagehide',()=>{ commitUsageMinutes(); }); setInterval(()=>{ if(document.hidden){ sessionStart=Date.now(); return; } commitUsageMinutes(); },60000); } /* Chrome speech synthesis keep-alive: resume every 15s to prevent the synthesizer from sleeping (known Chrome bug) */ setInterval(()=>{ try { if('speechSynthesis' in window && window.speechSynthesis && !window.speechSynthesis.speaking) { window.speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(''); u.volume=0; speechSynthesis.speak(u); } } catch(_) {} },15000); }
     window._dictationMode = false;
