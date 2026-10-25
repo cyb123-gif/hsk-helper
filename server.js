@@ -227,54 +227,6 @@ function handleTtsProxy(req, res) {
     });
 }
 
-// TTSMaker 语音合成代理（api.ttsmaker.com，前端传 JSON，服务端转发避免跨域）
-function handleTtsMakerProxy(req, res) {
-    let body = '';
-    req.on('data', (chunk) => {
-        body += chunk;
-        if (body.length > 20000) {
-            res.writeHead(413, { 'Content-Type': 'application/json; charset=utf-8' });
-            res.end(JSON.stringify({ error: '请求体过大' }));
-            req.destroy();
-        }
-    });
-    req.on('end', () => {
-        if (!body) {
-            res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
-            res.end(JSON.stringify({ error: '缺少请求体' }));
-            return;
-        }
-        const options = {
-            hostname: 'api.ttsmaker.com',
-            port: 443,
-            path: '/v1/create-tts-order',
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json; charset=utf-8',
-                'Content-Length': Buffer.byteLength(body),
-                'User-Agent': 'Mozilla/5.0'
-            },
-            timeout: 30000
-        };
-        const proxyReq = https.request(options, (proxyRes) => {
-            res.writeHead(proxyRes.statusCode || 200, { 'Content-Type': 'application/json; charset=utf-8' });
-            proxyRes.pipe(res);
-        });
-        proxyReq.on('error', (err) => {
-            console.error('[TTSMaker] 请求失败:', err.message);
-            res.writeHead(502, { 'Content-Type': 'application/json; charset=utf-8' });
-            res.end(JSON.stringify({ error: 'TTSMaker 请求失败: ' + err.message }));
-        });
-        proxyReq.on('timeout', () => {
-            proxyReq.destroy();
-            res.writeHead(504, { 'Content-Type': 'application/json; charset=utf-8' });
-            res.end(JSON.stringify({ error: 'TTSMaker 请求超时' }));
-        });
-        proxyReq.write(body);
-        proxyReq.end();
-    });
-}
-
 // 新闻搜索代理（百度新闻搜索，无需 API Key，国内可访问）
 function handleNewsSearchProxy(req, res) {
     let query = '';
@@ -435,12 +387,6 @@ const server = http.createServer((req, res) => {
     // TTS 语音合成代理
     if (req.url.startsWith('/tts?')) {
         handleTtsProxy(req, res);
-        return;
-    }
-
-    // TTSMaker 语音合成代理
-    if (req.url.startsWith('/ttsmaker')) {
-        handleTtsMakerProxy(req, res);
         return;
     }
 
