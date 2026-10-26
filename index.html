@@ -748,7 +748,7 @@
                     <button id="readingGenerateBtn" class="reading-generate-btn">✨ 生成短文</button>
                     <span id="readingGeneratingHint" style="display:none;margin-left:8px;color:#e67e22;font-weight:700;font-size:0.85rem;">⏳ AI 正在写文章，请稍候…</span>
                     <button id="readingFinishBtn" class="reading-generate-btn" style="background:linear-gradient(135deg,#27ae60,#1e8449);">✅ 完成阅读</button>
-                    <button id="readingChatBtn" class="reading-generate-btn" style="background:linear-gradient(135deg,#1e2b5e,#334155);">💬 读完，去聊天</button>
+                    <button id="readingChatBtn" class="reading-generate-btn" style="background:linear-gradient(135deg,#1e2b5e,#334155);">💬 文章讨论</button>
                     <button id="readingPinyinBtn" class="reading-generate-btn" style="background:linear-gradient(135deg,#7b1fa2,#4a148c);">🔤 拼音</button>
                 </div>
                 <div class="reading-level-row">
@@ -11289,7 +11289,7 @@ const HSK2_VOCAB = [
 
     // 听写模式上传音频相关文案多语种字典
     const I18N_NEW4 = {
-        'Chinese': { 'dict.upload_ai_group':'✨ AI 生成（用 AI 声音）：','dict.upload_file_group':'🎙️ 上传音频（用原声，AI 设置不生效）：','dict.upload_rate_label':'🔉 播放倍速（AI 声音和上传音频都适用）','dict.upload_subtitle':'上传 mp3/mp4 用原声听写；或让 AI 生成文章，用 AI 声音逐句朗读。提交后自动批改并统计正确率。','dict.upload_file_btn':'📁 上传音频 (mp3/mp4)','dict.upload_ai_btn':'✨ AI 生成听写文章','dict.upload_status_preparing':'⏳ 正在准备音频…','dict.upload_status_model':'⏳ 首次加载 Whisper 模型（约40MB，仅一次）…','dict.upload_status_model_dl':'⏳ 正在下载模型 {p}%','dict.upload_status_recognizing':'⏳ 正在本地识别（约需1-3分钟）…','dict.upload_status_done':'✅ 识别完成，共 {n} 句','dict.upload_status_fail':'⚠️ 识别失败：{msg}','dict.upload_status_network':'（识别引擎或模型下载失败，请检查网络后重试）','dict.upload_fail_toast':'⚠️ 本地识别失败，请重试（首次需联网下载约40MB模型）', 'reading.chat_btn':'💬 读完，去聊天', 'writing.chat_btn':'💬 写完，去聊天', 'chat.greeting_native':'' },
+        'Chinese': { 'dict.upload_ai_group':'✨ AI 生成（用 AI 声音）：','dict.upload_file_group':'🎙️ 上传音频（用原声，AI 设置不生效）：','dict.upload_rate_label':'🔉 播放倍速（AI 声音和上传音频都适用）','dict.upload_subtitle':'上传 mp3/mp4 用原声听写；或让 AI 生成文章，用 AI 声音逐句朗读。提交后自动批改并统计正确率。','dict.upload_file_btn':'📁 上传音频 (mp3/mp4)','dict.upload_ai_btn':'✨ AI 生成听写文章','dict.upload_status_preparing':'⏳ 正在准备音频…','dict.upload_status_model':'⏳ 首次加载 Whisper 模型（约40MB，仅一次）…','dict.upload_status_model_dl':'⏳ 正在下载模型 {p}%','dict.upload_status_recognizing':'⏳ 正在本地识别（约需1-3分钟）…','dict.upload_status_done':'✅ 识别完成，共 {n} 句','dict.upload_status_fail':'⚠️ 识别失败：{msg}','dict.upload_status_network':'（识别引擎或模型下载失败，请检查网络后重试）','dict.upload_fail_toast':'⚠️ 本地识别失败，请重试（首次需联网下载约40MB模型）', 'reading.chat_btn':'💬 文章讨论', 'writing.chat_btn':'💬 写完，去聊天', 'chat.greeting_native':'' },
         'English': { 'dict.upload_ai_group':'✨ AI Generate (AI voice):','dict.upload_file_group':'🎙️ Upload Audio (original voice, AI settings ignored):','dict.upload_rate_label':'🔉 Playback speed (applies to AI voice and uploaded audio)','dict.upload_subtitle':'Upload mp3/mp4 to dictate from the original audio, or let AI generate an article read by AI voice. Auto-check after submit.','dict.upload_file_btn':'📁 Upload audio (mp3/mp4)','dict.upload_ai_btn':'✨ AI Generate Dictation','dict.upload_status_preparing':'⏳ Preparing audio…','dict.upload_status_model':'⏳ Loading Whisper model for the first time (~40MB, once only)…','dict.upload_status_model_dl':'⏳ Downloading model {p}%','dict.upload_status_recognizing':'⏳ Transcribing locally (about 1-3 min)…','dict.upload_status_done':'✅ Done, {n} sentences','dict.upload_status_fail':'⚠️ Transcription failed: {msg}','dict.upload_status_network':' (engine/model download failed, check network and retry)','dict.upload_fail_toast':'⚠️ Local transcription failed, retry (first time needs ~40MB model download)', 'reading.chat_btn':'💬 Read done, chat', 'writing.chat_btn':'💬 Written, chat', 'chat.greeting_native':'Hi, I am your AI language partner. Let\'s chat!' },
         'Japanese': { 'dict.upload_ai_group':'✨ AI生成（AI音声）：','dict.upload_file_group':'🎙️ 音声アップロード（原音声、AI設定は無効）：','dict.upload_rate_label':'🔉 再生速度（AI音声・アップロード音声共通）','dict.upload_subtitle':'mp3/mp4をアップロードして原音声で書き取り、またはAIが記事を生成してAI音声で読み上げます。送信すると自動採点します。','dict.upload_file_btn':'📁 音声アップロード (mp3/mp4)','dict.upload_ai_btn':'✨ AIで記事を生成','dict.upload_status_preparing':'⏳ 音声を準備中…','dict.upload_status_model':'⏳ Whisperモデルを初回読み込み中（約40MB、初回のみ）…','dict.upload_status_model_dl':'⏳ モデルダウンロード中 {p}%','dict.upload_status_recognizing':'⏳ ローカルで認識中（約1-3分）…','dict.upload_status_done':'✅ 認識完了、{n}文','dict.upload_status_fail':'⚠️ 認識失敗：{msg}','dict.upload_status_network':'（エンジン/モデルのダウンロード失敗。ネットワークを確認して再試行）','dict.upload_fail_toast':'⚠️ ローカル認識に失敗しました。再試行してください（初回は約40MBのモデルダウンロードが必要）', 'reading.chat_btn':'💬 読み終わったらチャット', 'writing.chat_btn':'💬 書き終わったらチャット', 'chat.greeting_native':'こんにちは、私はあなたのAI言語パートナーです。一緒に話しましょう！' },
         'Korean': { 'dict.upload_ai_group':'✨ AI 생성（AI 음성）：','dict.upload_file_group':'🎙️ 오디오 업로드（원음성, AI 설정 무시）：','dict.upload_rate_label':'🔉 재생 속도（AI 음성·업로드 오디오 공통）','dict.upload_subtitle':'mp3/mp4를 업로드해 원음성으로 받아쓰거나, AI가 글을 생성해 AI 음성으로 읽어줍니다. 제출하면 자동 채점합니다.','dict.upload_file_btn':'📁 오디오 업로드 (mp3/mp4)','dict.upload_ai_btn':'✨ AI 받아쓰기 글 생성','dict.upload_status_preparing':'⏳ 오디오 준비 중…','dict.upload_status_model':'⏳ Whisper 모델 첫 로딩（약40MB, 1회만）…','dict.upload_status_model_dl':'⏳ 모델 다운로드 {p}%','dict.upload_status_recognizing':'⏳ 로컬 인식 중（약1-3분）…','dict.upload_status_done':'✅ 인식 완료, {n}문장','dict.upload_status_fail':'⚠️ 인식 실패：{msg}','dict.upload_status_network':'（엔진/모델 다운로드 실패. 네트워크 확인 후 재시도）','dict.upload_fail_toast':'⚠️ 로컬 인식 실패. 다시 시도하세요（첫 1회 약40MB 모델 다운로드 필요）', 'reading.chat_btn':'💬 읽고 채팅', 'writing.chat_btn':'💬 쓰고 채팅', 'chat.greeting_native':'안녕하세요, 저는 당신의 AI 언어 파트너입니다. 함께 이야기해요!' },
@@ -15079,18 +15079,16 @@ ${searchRule}
                 for (const tk of toks) {
                     if (tk.cls === 'punct' || tk.cls === 'proper' || !tk.word) continue;
                     if (!/[\u4e00-\u9fff]/.test(tk.word)) continue;
-                    if (tk.word.length < 2) continue;
                     if (pnSet.has(tk.word)) continue;
-                    // 目标词：本等级词 + 超纲词（高一级新词不在其中）
-                    if (tk.level !== rLevel && tk.level !== 0) continue;
+                    // 目标词：高于所选等级的带等级词（本等级词和超纲词不算）；一个目标词一道题
+                    if (!(tk.level > rLevel)) continue;
                     if (seen.has(tk.word)) continue;
                     seen.add(tk.word);
                     targets.push({ word: tk.word, level: tk.level, sentence: s.text });
                 }
             }
         }
-        // 本等级词优先，超纲词靠后
-        targets.sort((a, b) => (a.level === 0 ? 1 : 0) - (b.level === 0 ? 1 : 0) || a.word.localeCompare(b.word, 'zh'));
+        // 按出现顺序保持题目顺序即可（与文章顺序一致）
         return targets;
     }
     function recordReadingComprehension(word, level){
@@ -15123,18 +15121,19 @@ ${searchRule}
         if (area) area.innerHTML = '<div style="text-align:center;color:#64748b;padding:14px;">⏳ AI 正在出判断题，请稍候…</div>';
         try {
             const targets = collectReadingJudgeTargets();
-            if (!targets.length) throw new Error('文章里没有可出题的本等级词或超纲词');
+            if (!targets.length) throw new Error('文章里没有高于所选等级的词语');
             const rLevel = currentReading.level || getReadingLevel();
             const targetLang = targetLangSelect.value;
-            const tList = targets.slice(0, 6).map(t2 => '目标词「' + t2.word + '」（' + (t2.level > 0 ? vocabLevelLabel(t2.level) : '超纲') + '），原句：' + t2.sentence).join('\n');
-            const prompt = '你是一位HSK汉语教师。学生水平：HSK' + rLevel + '（母语' + targetLang + '）。下面是短文中选出的目标词和它们所在的句子：\n' + tList + '\n\n请为每个目标词出一道判断题：把原句改写成一个新说法 statement。要求：\n1. statement 必须原样保留目标词；除目标词外的其他词语全部换成比 HSK' + rLevel + ' 更低的简单词语，保证学生能读懂。\n2. 一半题目的 statement 与原句意思一样（isTrue:true），一半不一样（改变关键信息，如人物/时间/地点/动作/结果，isTrue:false），两种随机混合。\n3. why 用' + targetLang + '写一句简短解释（为什么对或错），不超过25个词。\n输出JSON：{"items":[{"word":"目标词","sentence":"原句","statement":"改写说法","isTrue":true或false,"why":"解释"}]}\n只输出 JSON。';
-            const resp = await fetch(API_BASE, { method:'POST', headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer '+apiKey }, body: JSON.stringify({ model:'deepseek-v4-flash', thinking:{ type:'disabled' }, max_tokens:2048, messages:[{ role:'user', content:prompt }], temperature:0.8, response_format:{ type:'json_object' } }) });
+            // 一个目标词一道题，题目数量完全由目标词数量决定
+            const tList = targets.map(t2 => '目标词「' + t2.word + '」（' + vocabLevelLabel(t2.level) + '），原句：' + t2.sentence).join('\n');
+            const prompt = '你是一位HSK汉语教师。学生水平：HSK' + rLevel + '（母语' + targetLang + '）。下面是短文中选出的目标词和它们所在的句子：\n' + tList + '\n\n请为【每一个】目标词出一道判断题（一个词一道题，数量必须与目标词数量完全一致，不要多也不要少）：把原句改写成一个新说法 statement。要求：\n1. statement 必须原样保留目标词；除目标词外的其他词语全部换成比 HSK' + rLevel + ' 更低的简单词语，保证学生能读懂。\n2. 一半题目的 statement 与原句意思一样（isTrue:true），一半不一样（改变关键信息，如人物/时间/地点/动作/结果，isTrue:false），两种随机混合。\n3. why 用' + targetLang + '写一句简短解释（为什么对或错），不超过25个词。\n输出JSON：{"items":[{"word":"目标词","sentence":"原句","statement":"改写说法","isTrue":true或false,"why":"解释"}]}\n只输出 JSON。';
+            const resp = await fetch(API_BASE, { method:'POST', headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer '+apiKey }, body: JSON.stringify({ model:'deepseek-v4-flash', thinking:{ type:'disabled' }, max_tokens:4096, messages:[{ role:'user', content:prompt }], temperature:0.8, response_format:{ type:'json_object' } }) });
             const data = await resp.json();
             if (data.error) throw new Error(data.error.message || 'API error');
             let c = String((data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) || '');
             c = c.replace(/```json/g, '').replace(/```/g, '').trim();
             const r = safeJsonParse(c);
-            readingJudgeItems = (Array.isArray(r && r.items) ? r.items : []).filter(it => it && it.word && it.sentence && it.statement).slice(0, 6);
+            readingJudgeItems = (Array.isArray(r && r.items) ? r.items : []).filter(it => it && it.word && it.sentence && it.statement);
             if (!readingJudgeItems.length) throw new Error('AI 没有返回有效题目，请重试');
             readingJudgeDone = 0;
             // 题目缓存到文章上，切走再切回来不用重新出题；阅读历史也一起保存
@@ -15152,11 +15151,8 @@ ${searchRule}
         if (!area) return;
         if (window._hideReadingForTask) { area.innerHTML = ''; return; }
         area.style.display = 'block';
-        let html = '<div class="reading-judge-summary">🎯 判断题（' + readingJudgeDone + '/' + readingJudgeItems.length + '）在文中找到这个词，判断下面说法和文中句子的意思是否一样 <a href="javascript:void(0)" onclick="window._readingJudgeRegen()" style="font-size:0.75rem;color:#64748b;text-decoration:underline;font-weight:400;">🔄 换一组</a></div>';
+        let html = '<div class="reading-judge-summary">🎯 判断题（' + readingJudgeDone + '/' + readingJudgeItems.length + '）在文中找到对应的句子，判断下面说法和文中句子的意思是否一样</div>';
         readingJudgeItems.forEach((it, i) => {
-            const lv = vocabLevelOfWord(it.word);
-            const color = READING_LV_COLORS[lv] || READING_LV_COLORS[0];
-            const bg = READING_LV_BG[lv] || READING_LV_BG[0];
             const answered = it.userAnswer != null;
             const ok = answered && (it.userAnswer === !!it.isTrue);
             const btnCls = (isTrue) => {
@@ -15166,7 +15162,6 @@ ${searchRule}
                 return '';
             };
             html += '<div class="reading-judge-card" data-idx="' + i + '">'
-                + '<span class="rj-word" style="background:' + bg + ';color:' + color + ';border:1.5px solid ' + color + ';">' + escapeHtml(it.word) + (lv > 0 ? ' <small>· ' + escapeHtml(vocabLevelLabel(lv)) + '</small>' : ' <small>· 超纲</small>') + '</span>'
                 + '<div class="rj-statement">💬 ' + escapeHtml(it.statement) + '</div>'
                 + '<div class="rj-btns">'
                 + '<button class="rj-btn' + btnCls(true) + '" data-ans="true"' + (answered ? ' disabled' : '') + '>✅ 意思一样</button>'
@@ -15181,7 +15176,7 @@ ${searchRule}
             html += '</div>';
         });
         if (readingJudgeDone >= readingJudgeItems.length && readingJudgeItems.length) {
-            html += '<div style="text-align:center;color:#2e7d32;font-weight:700;padding:8px;">🎉 全部完成！点「🔄 换一组」可以再出新题</div>';
+            html += '<div style="text-align:center;color:#2e7d32;font-weight:700;padding:8px;">🎉 全部完成！</div>';
         }
         area.innerHTML = html;
     }
@@ -15498,7 +15493,7 @@ ${searchRule}
             renderModeChatMessages(kind);
         }
         const rcb = document.getElementById('readingChatBtn');
-        if(rcb) rcb.onclick = function(){ showGoChatDialog('reading'); };
+        if(rcb) rcb.onclick = function(){ jumpToChatFromMode('reading'); };
         const wcb = document.getElementById('writingChatBtn');
         if(wcb) wcb.onclick = function(){ showGoChatDialog('writing'); };
     })();
@@ -15506,6 +15501,8 @@ ${searchRule}
     // 读完/写完 → 跳到主聊天模式，让 AI 根据内容先问3个问题（复用聊天模式全部功能，不重复写代码）
     // 读完/写完 → 弹出选择框：是否转去聊天模式
     function showGoChatDialog(kind){
+        // 阅读模式不再弹选择框，直接进入「文章讨论」
+        if (kind === 'reading') { jumpToChatFromMode('reading'); return; }
         const kindName = (kind === 'reading') ? t('reading.tab') : t('mode.writing');
         let ov = document.getElementById('gotoChatOverlay');
         if(ov) ov.remove();
