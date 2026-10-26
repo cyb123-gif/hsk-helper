@@ -382,6 +382,8 @@
         .read-word.gap-hl { background: #fff3cd !important; border-bottom: 3px solid #e6a700 !important; }
         .read-word.selected { outline: 2px solid #1e2b5e; background: #dbeafe; }
         .read-word.drag-hover { background: #bfdbfe; }
+        .read-word.kw-mark { outline: 2px solid #e67e22; background: #fff7ed; }
+        .read-word.proper { border-bottom: 1px dotted #94a3b8; cursor: pointer; }
         .read-punct { cursor: default; }
         body.reading-mode-sentence .read-punct { cursor: pointer; }
         body.reading-dragging .reading-article { user-select: none; -webkit-user-select: none; }
@@ -423,6 +425,42 @@
         .reading-culture-notes .rcn-item { margin-bottom: 4px; }
         .reading-image { display: block; width: 100%; max-width: 760px; height: auto; max-height: 430px; aspect-ratio: 16 / 9; object-fit: cover; object-position: center; margin: 12px auto; border-radius: 14px; box-shadow: 0 4px 14px rgba(15,23,42,0.12); }
         .reading-image-fail { margin: 6px 0; padding: 6px 10px; background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 10px; font-size: 0.78rem; color: #94a3b8; text-align: center; }
+        /* ===== 阅读理解判断题 ===== */
+        .reading-judge-area { margin: 14px 16px; }
+        .reading-judge-card { background: #fff; border: 1.5px solid #c7d2fe; border-radius: 16px; padding: 14px 16px; margin-bottom: 12px; }
+        .reading-judge-card .rj-word { font-size: 1.05rem; font-weight: 800; padding: 2px 8px; border-radius: 8px; display: inline-block; margin-bottom: 6px; }
+        .reading-judge-card .rj-sentence { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 8px 12px; font-size: 0.95rem; line-height: 1.8; margin-bottom: 8px; }
+        .reading-judge-card .rj-statement { background: #fff7ed; border: 1px dashed #fdba74; border-radius: 10px; padding: 8px 12px; font-size: 0.95rem; line-height: 1.8; margin-bottom: 8px; }
+        .reading-judge-card .rj-btns { display: flex; gap: 10px; flex-wrap: wrap; }
+        .reading-judge-card .rj-btn { flex: 1; min-width: 130px; padding: 9px 12px; border-radius: 14px; border: 1.5px solid #d0dae8; background: #fff; cursor: pointer; font-size: 0.9rem; font-weight: 700; color: #1e2b5e; }
+        .reading-judge-card .rj-btn.correct { background: #e8f5e9; border-color: #2e7d32; color: #2e7d32; }
+        .reading-judge-card .rj-btn.wrong { background: #ffebee; border-color: #c0392b; color: #c0392b; }
+        .reading-judge-card .rj-feedback { margin-top: 8px; font-size: 0.85rem; color: #334155; background: #f1f5f9; border-radius: 10px; padding: 8px 12px; }
+        .reading-judge-card .rj-feedback.ok { background: #e8f5e9; color: #2e7d32; }
+        .reading-judge-card .rj-feedback.no { background: #ffebee; color: #c0392b; }
+        .reading-judge-summary { text-align: center; font-size: 0.9rem; font-weight: 700; color: #1e2b5e; margin-bottom: 10px; }
+        /* ===== 阅读复述准备 ===== */
+        .reading-retell-prep { margin: 14px 16px; background: #ecfdf5; border: 1.5px solid #6ee7b7; border-radius: 16px; padding: 14px 16px; }
+        .reading-retell-prep .rrp-title { font-weight: 800; color: #065f46; margin-bottom: 6px; }
+        .reading-retell-prep .rrp-hint { font-size: 0.8rem; color: #047857; margin-bottom: 8px; }
+        .reading-retell-prep .rrp-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; min-height: 28px; }
+        .reading-retell-prep .rrp-chip { background: #fff; border: 1.5px solid #f59e0b; color: #92400e; border-radius: 12px; padding: 2px 10px; font-size: 0.82rem; }
+        .reading-retell-prep textarea { width: 100%; min-height: 90px; border: 1.5px solid #a7f3d0; border-radius: 12px; padding: 10px; font-size: 0.9rem; box-sizing: border-box; font-family: inherit; }
+        .reading-retell-prep .rrp-btns { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
+        .reading-retell-prep .rrp-btn { padding: 9px 18px; border-radius: 14px; border: none; cursor: pointer; font-size: 0.9rem; font-weight: 700; }
+        .reading-retell-prep .rrp-btn.go { background: #059669; color: #fff; }
+        .reading-retell-prep .rrp-btn.cancel { background: #fff; border: 1.5px solid #d0dae8; color: #475569; }
+        /* ===== 写作复述栏 ===== */
+        .writing-retell-bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; background: #ecfdf5; border: 1.5px solid #6ee7b7; border-radius: 14px; padding: 10px 14px; margin: 10px 12px 0; font-size: 0.85rem; }
+        .writing-retell-bar .wrb-title { font-weight: 800; color: #065f46; }
+        .writing-retell-bar .wrb-chip { background: #fff; border: 1.5px solid #f59e0b; color: #92400e; border-radius: 12px; padding: 1px 8px; font-size: 0.78rem; }
+        .writing-retell-bar .wrb-btn { margin-left: auto; background: #fff; border: 1.5px solid #d0dae8; border-radius: 12px; padding: 3px 12px; cursor: pointer; font-size: 0.78rem; color: #475569; }
+        .writing-retell-outline { display: none; flex-basis: 100%; background: #fff; border: 1px dashed #6ee7b7; border-radius: 10px; padding: 8px 12px; font-size: 0.82rem; color: #334155; white-space: pre-wrap; word-break: break-all; }
+        /* ===== 聊天模式·文章回顾卡片 ===== */
+        .chat-article-review { margin: 10px 12px 0; background: #f8fafc; border: 1.5px solid #c7d2fe; border-radius: 14px; font-size: 0.9rem; }
+        .chat-article-review .car-head { display: flex; align-items: center; gap: 8px; padding: 8px 12px; cursor: pointer; font-weight: 700; color: #1e2b5e; }
+        .chat-article-review .car-body { display: none; padding: 0 12px 10px; max-height: 240px; overflow-y: auto; line-height: 1.9; color: #1e293b; }
+        .chat-article-review.open .car-body { display: block; }
         /* ===== 阅读/写作模式内嵌讨论聊天 ===== */
         .mode-chat-card { margin: 12px 0; background: #fff; border: 1px solid #e9eef4; border-radius: 16px; padding: 12px; }
         .mode-chat-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
@@ -635,6 +673,10 @@
             <button class="mode-tab" data-mode="mcq" id="modeTabMcq">🎯 词语练习</button>
         </div>
         <div class="chat-messages-wrapper" id="chatMessagesWrapper">
+        <div id="chatArticleReview" class="chat-article-review" style="display:none;">
+            <div class="car-head" id="chatArticleReviewHead">📖 文章回顾（点击展开/收起）</div>
+            <div class="car-body" id="chatArticleReviewBody"></div>
+        </div>
         <div class="chat-messages" id="chatMessages">
             <div class="message assistant-message">
                 <div class="bubble assistant-bubble">你好，我是你的AI语伴，我们一起聊天吧<div class="greeting-native" id="chatGreetingNative" style="display:none;margin-top:6px;color:#64748b;font-size:0.85rem;"></div></div>
@@ -673,6 +715,13 @@
         </div>
         </div>
         <div class="writing-panel" id="writingPanel">
+            <div id="writingRetellBar" class="writing-retell-bar" style="display:none;">
+                <span class="wrb-title">📝 复述：《<span id="writingRetellTitle"></span>》</span>
+                <span id="writingRetellChips"></span>
+                <button class="wrb-btn" id="writingRetellOutlineBtn" type="button">📋 看提纲</button>
+                <div class="writing-retell-outline" id="writingRetellOutlineBox"></div>
+                <button class="wrb-btn" id="writingRetellExitBtn" type="button" style="color:#c0392b;">✕ 退出复述</button>
+            </div>
             <div class="writing-submit-area" style="background:#f8fafc;border-bottom:1px solid #e9eef4;position:sticky;top:0;z-index:10;">
                 <div class="zenmeshuo-area" style="margin:0;flex:1 1 100%;min-width:0;">
                     <input type="text" id="wZenmeshuoInput" placeholder="用你的母语写一句话，点「怎么说」翻译成中文...">
@@ -699,6 +748,8 @@
                     <button id="readingFinishBtn" class="reading-generate-btn" style="background:linear-gradient(135deg,#27ae60,#1e8449);">✅ 完成阅读</button>
                     <button id="readingChatBtn" class="reading-generate-btn" style="background:linear-gradient(135deg,#1e2b5e,#334155);">💬 读完，去聊天</button>
                     <button id="readingPinyinBtn" class="reading-generate-btn" style="background:linear-gradient(135deg,#7b1fa2,#4a148c);">🔤 拼音</button>
+                    <button id="readingJudgeBtn" class="reading-generate-btn" style="background:linear-gradient(135deg,#d97706,#b45309);">🎯 判断题练习</button>
+                    <button id="readingRetellBtn" class="reading-generate-btn" style="background:linear-gradient(135deg,#0f766e,#115e59);">📝 复述文章</button>
                 </div>
                 <div class="reading-level-row">
                     <label id="readingLevelLabel">📖 阅读等级：</label>
@@ -725,6 +776,17 @@
             </div>
             <div class="reading-content" id="readingContent">
                 <div class="empty-detail" id="readingEmpty">还没有生成短文。选择等级后点击「生成短文」，AI 会为你写一篇有趣的短文。</div>
+            </div>
+            <div id="readingJudgeArea" class="reading-judge-area" style="display:none;"></div>
+            <div id="readingRetellPrep" class="reading-retell-prep" style="display:none;">
+                <div class="rrp-title">📝 复述准备</div>
+                <div class="rrp-hint">① 点击文章里的词语，把它们标成你的复述关键词（橙色框）；② 在下面写你的复述提纲/框架；③ 点「开始复述」后文章会隐藏，只能看着关键词和提纲写。</div>
+                <div class="rrp-chips" id="readingRetellChips"></div>
+                <textarea id="readingRetellOutline" placeholder="写你的复述提纲，例如：&#10;时间：……&#10;地点：……&#10;人物：……&#10;先发生…… 然后…… 最后……&#10;我想用这些词："></textarea>
+                <div class="rrp-btns">
+                    <button class="rrp-btn go" id="readingRetellGoBtn">✅ 准备完毕，开始复述</button>
+                    <button class="rrp-btn cancel" id="readingRetellCancelBtn">取消</button>
+                </div>
             </div>
             <div class="reading-history">
                 <div class="reading-history-title" id="readingHistoryTitle">📜 阅读历史</div>
@@ -13069,12 +13131,13 @@ const HSK2_VOCAB = [
     // ===== 阅读词汇追踪：完成阅读时统计，按等级累加出现次数 =====
     function readingTrackKey(){ return 'HSK_READING_TRACK_' + currentUser; }
     function loadReadingTrack(){
-        if(!currentUser){ readingTrack = { unknownIn:{}, knownIn:{}, unknownOut:{} }; return; }
+        if(!currentUser){ readingTrack = { unknownIn:{}, knownIn:{}, unknownOut:{}, comprehension:{ in:{}, out:{} } }; return; }
         const raw = localStorage.getItem(readingTrackKey());
         try{
             const d = raw ? JSON.parse(raw) : null;
             readingTrack = (d && d.unknownIn && d.knownIn && d.unknownOut) ? d : { unknownIn:{}, knownIn:{}, unknownOut:{} };
         }catch(e){ readingTrack = { unknownIn:{}, knownIn:{}, unknownOut:{} }; }
+        if(!readingTrack.comprehension) readingTrack.comprehension = { in:{}, out:{} };
     }
     function saveReadingTrack(){ if(!currentUser) return; localStorage.setItem(readingTrackKey(), JSON.stringify(readingTrack)); }
     function countOccurrences(text, sub){
@@ -13122,6 +13185,7 @@ const HSK2_VOCAB = [
         for(const w of Object.keys(counts)){
             const lv = vocabLevelOfWord(w);
             if(!lv) continue;
+            if ((readingTrack.comprehension.in || {})[w]) continue; // 判断题已记入理解词，只记一次
             const c = counts[w] || 0;
             if(unknownInSet.has(w)){
                 const obj = readingTrack.unknownIn[w] || { level: lv, count: 0 };
@@ -13148,6 +13212,7 @@ const HSK2_VOCAB = [
         for(const u of readingSessionUnknowns){
             const isInVocab = (u.type === 'word') && (vocabLevelOfWord(u.text) > 0);
             if(isInVocab) continue;
+            if ((readingTrack.comprehension.out || {})[u.text]) continue; // 判断题已记入理解词，只记一次
             const occ = countOccurrences(content, u.text) || 1;
             const obj = readingTrack.unknownOut[u.text] || { type: u.type || 'phrase', count: 0 };
             obj.type = u.type || 'phrase';
@@ -13714,6 +13779,7 @@ ${searchRule}
   "sourceUrl": "必须填写。如果短文基于真实新闻/帖子，填该新闻或帖子的真实可访问链接；如果找不到原文，填一个相关话题的搜索链接（例如 https://www.bing.com/search?q=关键词）。必须是 http/https 开头的完整链接。",
   "newWords": [{"word":"新词","pinyin":"拼音","meaning":"用${targetLang}解释意思","example":"用这个新词造的简单中文例句"}],
   "usedWords": ["短文中实际用到的本等级词汇"],
+  "properNouns": ["正文中出现的所有人名、地名、机构名、作品名等专有名词（按原文原样列出；没有就填空数组）"],
   "cultureNotes": [{"term":"文章中的中文词","note":"用${targetLang}简单解释"}],
   "imageKeyword": "必须与本文内容直接相关的英文图片搜索关键词（2-4个英文单词，只描述文章主角/场景/物品，如写中秋节月饼就写 mid autumn festival mooncake，写熊猫就写 giant panda；严禁输出中文或其他语言；不要选需要文字、海报、图表、截图才能表达的词）",
   "topic": "这篇短文的新闻主题（用${targetLang}一句话说明）"
@@ -13770,6 +13836,7 @@ ${searchRule}
                 sourceUrl: sourceUrl,
                 newWords: newWords,
                 usedWords: usedWords,
+                properNouns: (Array.isArray(result.properNouns) ? result.properNouns : []).map(p => String(p || '').trim()).filter(p => p.length >= 2 && /[\u4e00-\u9fff]/.test(p)),
                 cultureNotes: (Array.isArray(result.cultureNotes) ? result.cultureNotes : []).filter(cn => cn && cn.term).slice(0, 6),
                 topic: result.topic || '',
                 level: mix.level,
@@ -14019,11 +14086,51 @@ ${searchRule}
         }
         return tokens;
     }
-    function buildReadingHighlighted(text, level) {
+    function detectProperNounsFallback(text){
+        // 未拿到 AI 给出的专有名词清单时（如粘贴文本），用规则兜底识别常见人名/地名
+        const out = new Set();
+        const src = String(text || '');
+        const PLACES = ['中国','北京','上海','广州','深圳','南京','西安','杭州','成都','重庆','武汉','苏州','天津','香港','澳门','台湾','美国','英国','法国','德国','日本','韩国','俄罗斯','印度','泰国','越南','印度尼西亚','澳大利亚','加拿大','埃及','新加坡','马来西亚','欧洲','亚洲','非洲','美洲','长江','黄河','长城','故宫','天安门','西湖','泰山','兵马俑','奥林匹克','世界杯'];
+        for (const p of PLACES) { let i = src.indexOf(p); while (i !== -1) { out.add(p); i = src.indexOf(p, i + p.length); } }
+        const TITLES = ['老师','先生','女士','小姐','同学','医生','校长','主席','总统','师傅','经理','教练','警察','教授','阿姨','叔叔'];
+        let m;
+        // 姓氏+称谓（王老师、李医生）：只用百家姓做前缀，避免把「朋友王老师」误切成「友王老师」
+        const SURNAMES = '赵钱孙李周吴郑王冯陈蒋沈韩杨朱秦许何吕施张孔曹严华金魏陶姜谢邹喻柏窦章云苏潘葛范彭郎鲁韦昌马苗花方俞任袁柳鲍史唐费廉岑薛雷贺倪汤滕殷罗毕郝邬安常乐于时傅皮卞齐康伍余元卜顾孟平黄和穆萧尹姚邵汪祁毛禹狄米贝明臧计伏成戴谈宋茅庞熊纪舒屈项祝董梁杜阮蓝闵席季麻强贾路娄危江童颜郭梅盛林刁钟徐邱骆高夏蔡田樊胡凌霍虞万支柯管卢莫经房裘缪干解应宗丁宣邓郁单杭洪包诸左石崔吉钮龚程嵇邢滑裴陆荣翁荀羊於惠甄曲家封芮羿储靳汲邴糜松井段富巫乌焦巴弓牧隗山谷车侯宓蓬全郗班仰秋仲伊宫宁仇栾暴甘钭厉戎祖武符刘景詹束龙叶幸司韶郜黎蓟薄印宿白怀蒲邰从鄂索咸籍赖卓蔺屠蒙池乔阴郁胥能苍双闻莘党翟谭贡劳逄姬申扶堵冉宰郦雍却璩桑桂濮牛寿通边扈燕冀郏浦尚农温别庄晏柴瞿阎充慕连茹习宦艾鱼容向古易慎戈廖庾终暨居衡步都耿满弘匡国文寇广禄阙东欧殳沃利蔚越夔隆师巩厍聂晁勾敖融冷訾辛阚那简饶空曾毋沙乜养鞠须丰巢关蒯相查后荆红游竺权逯盖益桓公';
+        const rxTitle = new RegExp('([' + SURNAMES + '])(' + TITLES.join('|') + ')', 'g');
+        while ((m = rxTitle.exec(src))) out.add(m[0]);
+        const rxX = /[小老阿][\u4e00-\u9fff]/g;
+        while ((m = rxX.exec(src))) { const w = m[0]; if (vocabLevelOfWord(w) === 0 && w.length === 2) out.add(w); }
+        return Array.from(out).filter(p => p.length >= 2);
+    }
+    function buildReadingHighlighted(text, level, properNouns) {
         const blcuTokens = READING_TOKEN_CACHE.get(text);
-        const tokens = (blcuTokens && blcuTokens.length)
+        let tokens = (blcuTokens && blcuTokens.length)
             ? buildReadingTokensFromBlcu(text, level, blcuTokens)
             : buildReadingTokens(text, level);
+        // 专有名词（人名/地名/机构名等）：不切分、不上色、不计入等级词，整段作为一个可点词
+        const pnList = (Array.isArray(properNouns) ? properNouns : [])
+            .map(p => String(p || '').trim())
+            .filter(p => p.length >= 2 && /[\u4e00-\u9fff]/.test(p))
+            .concat(detectProperNounsFallback(text));
+        const pnSeen = new Set();
+        const properSpans = [];
+        for (const pn of pnList) {
+            if (pnSeen.has(pn)) continue;
+            pnSeen.add(pn);
+            let idx = text.indexOf(pn);
+            while (idx !== -1) {
+                const sp = [idx, idx + pn.length];
+                if (!properSpans.some(o => o[0] < sp[1] && sp[0] < o[1])) properSpans.push(sp);
+                idx = text.indexOf(pn, idx + pn.length);
+            }
+        }
+        properSpans.sort((a, b) => a[0] - b[0]);
+        if (properSpans.length) {
+            const covered = sp => properSpans.some(o => o[0] < sp[1] && sp[0] < o[1]);
+            tokens = tokens.filter(tk => !covered([tk.start, tk.end]));
+            for (const sp of properSpans) tokens.push({ start: sp[0], end: sp[1], cls: 'proper', word: text.slice(sp[0], sp[1]), level: 0 });
+            tokens.sort((a, b) => a.start - b.start);
+        }
         // 错误库内容在阅读正文中换颜色标注
         const gapSpans = [];
         const gText = text;
@@ -14050,6 +14157,8 @@ ${searchRule}
                 } else {
                     html += '<span class="read-punct">' + content + '</span>';
                 }
+            } else if (tk.cls === 'proper') {
+                html += '<span class="read-word proper" data-word="' + escapeHtml(tk.word) + '" data-level="0" title="' + escapeHtml(tk.word + ' · 专有名词') + '">' + content + '</span>';
             } else {
                 const lvName = tk.level ? vocabLevelLabel(tk.level) : '';
                 const title = tk.level ? (tk.word + ' · ' + lvName) : tk.word;
@@ -14100,9 +14209,10 @@ ${searchRule}
             .trim();
     }
     let readingRenderSeq = 0;
-    function renderReadingArticleHtml(reading, paras, rLevel) {
+    function renderReadingArticleHtml(reading, paras, rLevel, keepSelection) {
         const contentEl = document.getElementById('readingContent');
         if (!contentEl) return;
+        const properNouns = reading.properNouns || [];
         let html = '<div class="reading-article">';
         const titleText = reading.titleNative || reading.title;
         const titleCn = reading.title || '';
@@ -14129,10 +14239,10 @@ ${searchRule}
             html += '<p class="reading-para' + (readingShowPinyin && pinyinParas[pi] ? ' has-pinyin' : '') + '">';
             const sentences = splitReadingSentences(para);
             if (sentences.length === 0) {
-                html += buildReadingHighlighted(para, rLevel);
+                html += buildReadingHighlighted(para, rLevel, properNouns);
             } else {
                 for (const sent of sentences) {
-                    html += '<span class="read-sent" data-sent="' + escapeHtml(sent) + '">' + buildReadingHighlighted(sent, rLevel) + '</span>';
+                    html += '<span class="read-sent" data-sent="' + escapeHtml(sent) + '">' + buildReadingHighlighted(sent, rLevel, properNouns) + '</span>';
                 }
             }
             html += '</p>';
@@ -14150,7 +14260,27 @@ ${searchRule}
         html += '</div>';
         contentEl.innerHTML = html;
         contentEl.classList.toggle('show-pinyin', readingShowPinyin);
-        hideReadingSelection();
+        if (keepSelection && readingSelectedItems.length) {
+            // 分词结果刷新重渲染同一篇文章：恢复原来的选中高亮和浮框位置
+            readingSelectedItems.forEach(it => {
+                if (it.type === 'word') {
+                    contentEl.querySelectorAll('.read-word').forEach(el => { if (el.dataset.word === it.text) el.classList.add('selected'); });
+                } else if (it.type === 'sentence') {
+                    contentEl.querySelectorAll('.read-sent').forEach(el => { if (el.dataset.sent === it.text) el.classList.add('selected'); });
+                } else {
+                    contentEl.querySelectorAll('.read-word').forEach(el => { if (it.text && it.text.indexOf(el.dataset.word) !== -1) el.classList.add('selected'); });
+                }
+            });
+            renderReadingSelectionBar();
+            const _tip = document.getElementById('readingTransTooltip');
+            if (_tip && _tip.style.display !== 'none') {
+                const _first = contentEl.querySelector('.read-word.selected, .read-sent.selected');
+                readingTipAnchor = _first || null;
+                if (_first) positionReadingTransTooltip(_first);
+            }
+        } else {
+            hideReadingSelection();
+        }
     }
     async function renderReadingArticle(reading) {
         const renderSeq = ++readingRenderSeq;
@@ -14196,8 +14326,8 @@ ${searchRule}
                 }
                 paraStart += para.length + 1;
             }
-            // 北语分词已缓存，重新渲染以应用更准确的分词高亮
-            renderReadingArticleHtml(reading, paras, rLevel);
+            // 北语分词已缓存，重新渲染以应用更准确的分词高亮（保持已选中的词和浮框）
+            renderReadingArticleHtml(reading, paras, rLevel, true);
         }
     }
     window._readingSpeak = function (text) { toggleSpeakChinese(text); };
@@ -14319,14 +14449,18 @@ ${searchRule}
         if (data.error) throw new Error(data.error.message || 'API error');
         return (data.choices[0].message.content || '').trim();
     }
+    function readingProperNounSet(){
+        return new Set((currentReading && Array.isArray(currentReading.properNouns)) ? currentReading.properNouns : []);
+    }
     function collectReadingUnknownCandidates(items) {
         const set = new Set();
+        const pnSet = readingProperNounSet();
         for (const it of items) {
             const sel = document.querySelectorAll('.read-sent.selected .read-word, .read-word.selected');
-            sel.forEach(el => { if (el.dataset.word) set.add(el.dataset.word); });
+            sel.forEach(el => { const w = el.dataset.word; if (w && !pnSet.has(w)) set.add(w); });
             if (!sel.length && it.text) {
                 const toks = buildReadingTokens(it.text, getReadingLevel());
-                toks.forEach(t => { if (t.cls !== 'punct' && t.word) set.add(t.word); });
+                toks.forEach(t => { if (t.cls !== 'punct' && t.cls !== 'proper' && t.word && !pnSet.has(t.word)) set.add(t.word); });
             }
         }
         return Array.from(set).filter(w => /[\u4e00-\u9fff]/.test(w));
@@ -14392,9 +14526,11 @@ ${searchRule}
     function askReadingSentenceUnknowns(sentence) {
         const toks = buildReadingTokens(String(sentence || ''), getReadingLevel());
         const candidates = [];
+        const pnSet = readingProperNounSet();
         for (const tk of toks) {
-            if (tk.cls === 'punct' || !tk.word) continue;
+            if (tk.cls === 'punct' || tk.cls === 'proper' || !tk.word) continue;
             if (!/[\u4e00-\u9fff]/.test(tk.word)) continue;
+            if (pnSet.has(tk.word)) continue;
             if (candidates.indexOf(tk.word) === -1) candidates.push(tk.word);
         }
         return new Promise(resolve => {
@@ -14489,9 +14625,7 @@ ${searchRule}
             try{ result = await translateReadingTextItem(it.text, targetLang, apiKey); }catch(e){ result = t('reading.translation_fail'); }
             line.innerHTML = '<strong>' + escapeHtml(it.text) + '</strong>：' + escapeHtml(result || '');
         }
-        container.innerHTML += '<div class="reading-tip-actions" style="margin-top:6px;">'
-            + '<button onclick="window._readingFavSel()">' + escapeHtml(t('reading.fav')) + '</button>'
-            + '</div>';
+        // 收藏按钮已在浮框/选择栏的动作区里，这里不再重复添加，避免出现两个“收藏”
         if(readingTipAnchor) positionReadingTransTooltip(readingTipAnchor);
     }
     window._readingTipTranslate = async function(){
@@ -14512,6 +14646,11 @@ ${searchRule}
         const chipEl = e.target.closest('.reading-used-chip');
         const rwEl = e.target.closest('.rw-word');
         if (wordEl && wordEl.dataset.word) {
+            // 复述准备模式：点词 = 标记/取消关键词（橙色框），不触发普通选中
+            if (readingRetellPrep) {
+                toggleRetellKeyword(wordEl);
+                return;
+            }
             const wasSelected = wordEl.classList.contains('selected');
             toggleReadingWord(wordEl);
             if (!wasSelected) {
@@ -14563,7 +14702,21 @@ ${searchRule}
     }
     function getReadingWordAtPoint(x, y) {
         const el = document.elementFromPoint(x, y);
-        return el && el.closest ? el.closest('.read-word') : null;
+        const direct = el && el.closest ? el.closest('.read-word') : null;
+        if (direct) return direct;
+        // 指针落在词与词之间、行尾空白或最后一个词后面时，找同一行里指针右侧最近的词，
+        // 这样拖选可以一直选到本行最后一个词
+        if (!el || !el.closest || !el.closest('#readingContent')) return null;
+        const words = getReadingWordEls();
+        let best = null, bestDist = Infinity;
+        for (const w of words) {
+            const r = w.getBoundingClientRect();
+            if (!r.width || !r.height) continue;
+            if (Math.abs((r.top + r.height / 2) - y) > r.height) continue;
+            const d = Math.abs(x - r.right);
+            if (d < bestDist) { bestDist = d; best = w; }
+        }
+        return best;
     }
     function activateReadingWordDrag() {
         if (!readingWordDrag) return false;
@@ -14832,6 +14985,7 @@ ${searchRule}
             content: text, contentPinyin: '',
             sourceUrl: '', imageUrl: '', imageStatus: '',
             cultureNotes: [], newWords: [], usedWords: [],
+            properNouns: detectProperNounsFallback(text),
             level: rLevel, date: getLocalDateTime()
         };
         currentReading = reading;
@@ -14877,6 +15031,270 @@ ${searchRule}
         const pasteInput = document.getElementById('readingPasteInput');
         if (pasteInput) pasteInput.addEventListener('keydown', function(e){ if(e.key === 'Enter' && (e.ctrlKey || e.metaKey)){ e.preventDefault(); startReadingFromPastedText(); } });
     }
+
+    // ==================== 阅读理解判断题（题型1） ====================
+    const READING_LV_COLORS = {1:'#2e7d32', 2:'#ef6c00', 3:'#1565c0', 4:'#7b1fa2', 5:'#c2185b', 6:'#00695c', 0:'#64748b'};
+    const READING_LV_BG = {1:'#e8f5e9', 2:'#fff3e0', 3:'#e3f2fd', 4:'#f3e5f5', 5:'#fce4ec', 6:'#e0f2f1', 0:'#f1f5f9'};
+    let readingJudgeItems = [];
+    let readingJudgeDone = 0;
+    function highlightWordInSentenceHtml(sentence, word){
+        const safe = escapeHtml(sentence);
+        const w = escapeHtml(word);
+        if (!w) return safe;
+        return safe.split(w).join('<span style="background:#fde68a;border-radius:4px;padding:0 2px;font-weight:700;">' + w + '</span>');
+    }
+    function collectReadingJudgeTargets(){
+        const reading = currentReading;
+        if (!reading) return [];
+        const rLevel = reading.level || getReadingLevel();
+        const paras = String(reading.content || '').split(/\n+/).filter(p => p.trim());
+        const pnSet = readingProperNounSet();
+        const targets = [];
+        const seen = new Set();
+        for (const para of paras) {
+            const sents = splitReadingSentencesWithOffsets(para);
+            for (const s of sents) {
+                const toks = buildReadingTokens(s.text, rLevel);
+                for (const tk of toks) {
+                    if (tk.cls === 'punct' || tk.cls === 'proper' || !tk.word) continue;
+                    if (!/[\u4e00-\u9fff]/.test(tk.word)) continue;
+                    if (tk.word.length < 2) continue;
+                    if (pnSet.has(tk.word)) continue;
+                    // 目标词：本等级词 + 超纲词（高一级新词不在其中）
+                    if (tk.level !== rLevel && tk.level !== 0) continue;
+                    if (seen.has(tk.word)) continue;
+                    seen.add(tk.word);
+                    targets.push({ word: tk.word, level: tk.level, sentence: s.text });
+                }
+            }
+        }
+        // 本等级词优先，超纲词靠后
+        targets.sort((a, b) => (a.level === 0 ? 1 : 0) - (b.level === 0 ? 1 : 0) || a.word.localeCompare(b.word, 'zh'));
+        return targets;
+    }
+    function recordReadingComprehension(word, level){
+        if (!word) return;
+        readingTrack.comprehension = readingTrack.comprehension || { in: {}, out: {} };
+        const lv = level || vocabLevelOfWord(word) || 0;
+        if (lv > 0) {
+            const obj = readingTrack.comprehension.in[word] || { level: lv, count: 0 };
+            if (obj.count === 0) obj.count = 1; // 只记一次
+            readingTrack.comprehension.in[word] = obj;
+        } else {
+            const obj = readingTrack.comprehension.out[word] || { count: 0 };
+            if (obj.count === 0) obj.count = 1;
+            readingTrack.comprehension.out[word] = obj;
+        }
+        saveReadingTrack();
+        renderReadingTrackLists();
+    }
+    async function generateReadingJudge(){
+        if (!currentReading) { showToast('请先生成短文'); return; }
+        const apiKey = apiKeyInput.value.trim();
+        if (!apiKey) { alert(t('api_key_required')); return; }
+        const btn = document.getElementById('readingJudgeBtn');
+        if (btn) { btn.disabled = true; btn.textContent = '⏳ 出题中…'; }
+        const area = document.getElementById('readingJudgeArea');
+        if (area) { area.style.display = 'block'; area.innerHTML = '<div style="text-align:center;color:#64748b;padding:14px;">⏳ AI 正在出判断题，请稍候…</div>'; }
+        try {
+            const targets = collectReadingJudgeTargets();
+            if (!targets.length) throw new Error('文章里没有可出题的本等级词或超纲词');
+            const rLevel = currentReading.level || getReadingLevel();
+            const targetLang = targetLangSelect.value;
+            const tList = targets.slice(0, 6).map(t2 => '目标词「' + t2.word + '」（' + (t2.level > 0 ? vocabLevelLabel(t2.level) : '超纲') + '），原句：' + t2.sentence).join('\n');
+            const prompt = '你是一位HSK汉语教师。学生水平：HSK' + rLevel + '（母语' + targetLang + '）。下面是短文中选出的目标词和它们所在的句子：\n' + tList + '\n\n请为每个目标词出一道判断题：把原句改写成一个新说法 statement。要求：\n1. statement 必须原样保留目标词；除目标词外的其他词语全部换成比 HSK' + rLevel + ' 更低的简单词语，保证学生能读懂。\n2. 一半题目的 statement 与原句意思一样（isTrue:true），一半不一样（改变关键信息，如人物/时间/地点/动作/结果，isTrue:false），两种随机混合。\n3. why 用' + targetLang + '写一句简短解释（为什么对或错），不超过25个词。\n输出JSON：{"items":[{"word":"目标词","sentence":"原句","statement":"改写说法","isTrue":true或false,"why":"解释"}]}\n只输出 JSON。';
+            const resp = await fetch(API_BASE, { method:'POST', headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer '+apiKey }, body: JSON.stringify({ model:'deepseek-v4-flash', thinking:{ type:'disabled' }, max_tokens:2048, messages:[{ role:'user', content:prompt }], temperature:0.8, response_format:{ type:'json_object' } }) });
+            const data = await resp.json();
+            if (data.error) throw new Error(data.error.message || 'API error');
+            let c = String((data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) || '');
+            c = c.replace(/```json/g, '').replace(/```/g, '').trim();
+            const r = safeJsonParse(c);
+            readingJudgeItems = (Array.isArray(r && r.items) ? r.items : []).filter(it => it && it.word && it.sentence && it.statement).slice(0, 6);
+            if (!readingJudgeItems.length) throw new Error('AI 没有返回有效题目，请重试');
+            readingJudgeDone = 0;
+            renderReadingJudgeArea();
+        } catch (e) {
+            if (area) area.innerHTML = '<div style="text-align:center;color:#c0392b;padding:14px;">出题失败：' + escapeHtml((e && e.message) || '') + '</div>';
+        }
+        if (btn) { btn.disabled = false; btn.textContent = '🎯 判断题练习'; }
+    }
+    function renderReadingJudgeArea(){
+        const area = document.getElementById('readingJudgeArea');
+        if (!area) return;
+        area.style.display = 'block';
+        let html = '<div class="reading-judge-summary">🎯 判断题（' + readingJudgeDone + '/' + readingJudgeItems.length + '）读原句，判断下面说法和原句意思是否一样</div>';
+        readingJudgeItems.forEach((it, i) => {
+            const lv = vocabLevelOfWord(it.word);
+            const color = READING_LV_COLORS[lv] || READING_LV_COLORS[0];
+            const bg = READING_LV_BG[lv] || READING_LV_BG[0];
+            const answered = it.userAnswer != null;
+            const ok = answered && (it.userAnswer === !!it.isTrue);
+            const btnCls = (isTrue) => {
+                if (!answered) return '';
+                if (it.isTrue === isTrue) return ' correct';
+                if (it.userAnswer === isTrue) return ' wrong';
+                return '';
+            };
+            html += '<div class="reading-judge-card" data-idx="' + i + '">'
+                + '<span class="rj-word" style="background:' + bg + ';color:' + color + ';border:1.5px solid ' + color + ';">' + escapeHtml(it.word) + (lv > 0 ? ' <small>· ' + escapeHtml(vocabLevelLabel(lv)) + '</small>' : ' <small>· 超纲</small>') + '</span>'
+                + '<div class="rj-sentence">📖 ' + highlightWordInSentenceHtml(it.sentence, it.word) + '</div>'
+                + '<div class="rj-statement">💬 ' + escapeHtml(it.statement) + '</div>'
+                + '<div class="rj-btns">'
+                + '<button class="rj-btn' + btnCls(true) + '" data-ans="true"' + (answered ? ' disabled' : '') + '>✅ 意思一样</button>'
+                + '<button class="rj-btn' + btnCls(false) + '" data-ans="false"' + (answered ? ' disabled' : '') + '>❌ 意思不一样</button>'
+                + '</div>';
+            if (answered) {
+                html += '<div class="rj-feedback ' + (ok ? 'ok' : 'no') + '">'
+                    + (ok ? '✅ 判断正确！已把这个词记入「理解词」' : '❌ 正确答案是：' + (it.isTrue ? '两个句子意思一样' : '两个句子意思不一样'))
+                    + (it.why ? ' — ' + escapeHtml(it.why) : '')
+                    + '</div>';
+            }
+            html += '</div>';
+        });
+        if (readingJudgeDone >= readingJudgeItems.length && readingJudgeItems.length) {
+            html += '<div style="text-align:center;color:#2e7d32;font-weight:700;padding:8px;">🎉 全部完成！点击上方「🎯 判断题练习」可以再出一组新题</div>';
+        }
+        area.innerHTML = html;
+    }
+    function answerReadingJudge(idx, ans){
+        const it = readingJudgeItems[idx];
+        if (!it || it.userAnswer != null) return;
+        it.userAnswer = ans;
+        if (ans === !!it.isTrue) {
+            readingJudgeDone++;
+            recordReadingComprehension(it.word, vocabLevelOfWord(it.word));
+        }
+        renderReadingJudgeArea();
+    }
+
+    // ==================== 阅读复述（题型2：关键词+提纲 → 写作模式） ====================
+    let readingRetellPrep = false;
+    let retellState = null; // { title, article, keywords:[], outline:'' }
+    function renderRetellChips(){
+        const box = document.getElementById('readingRetellChips');
+        if (!box) return;
+        box.innerHTML = (retellState && retellState.keywords.length)
+            ? retellState.keywords.map(w => '<span class="rrp-chip">' + escapeHtml(w) + '</span>').join('')
+            : '<span style="color:#94a3b8;font-size:0.8rem;">还没有选关键词</span>';
+    }
+    function syncRetellOutlineTextarea(){
+        const ta = document.getElementById('readingRetellOutline');
+        if (!ta || !retellState) return;
+        if (!ta.dataset.touched) {
+            ta.value = (retellState.keywords.length ? '关键词：' + retellState.keywords.join('、') + '\n\n' : '') + '提纲：\n';
+        }
+    }
+    function toggleRetellKeyword(el){
+        if (!readingRetellPrep || !retellState || !el || !el.dataset.word) return;
+        const w = el.dataset.word;
+        const i = retellState.keywords.indexOf(w);
+        if (i === -1) { retellState.keywords.push(w); el.classList.add('kw-mark'); }
+        else { retellState.keywords.splice(i, 1); el.classList.remove('kw-mark'); }
+        renderRetellChips();
+        syncRetellOutlineTextarea();
+    }
+    function startRetellPrep(){
+        if (!currentReading) { showToast('请先生成短文'); return; }
+        retellState = { title: currentReading.title || '', article: String(currentReading.content || ''), keywords: [], outline: '' };
+        document.querySelectorAll('#readingContent .read-word').forEach(el => el.classList.remove('kw-mark'));
+        const ta = document.getElementById('readingRetellOutline');
+        if (ta) { ta.dataset.touched = ''; ta.value = ''; }
+        readingRetellPrep = true;
+        const prep = document.getElementById('readingRetellPrep');
+        if (prep) prep.style.display = 'block';
+        renderRetellChips();
+        syncRetellOutlineTextarea();
+        showToast('📝 点击文章里的词标记关键词，写完提纲点「开始复述」');
+    }
+    function cancelRetellPrep(){
+        readingRetellPrep = false;
+        document.querySelectorAll('#readingContent .read-word.kw-mark').forEach(el => el.classList.remove('kw-mark'));
+        const prep = document.getElementById('readingRetellPrep');
+        if (prep) prep.style.display = 'none';
+        retellState = null;
+    }
+    function startRetelling(){
+        if (!retellState) { showToast('请先标记关键词'); return; }
+        const ta = document.getElementById('readingRetellOutline');
+        retellState.outline = ta ? ta.value.trim() : '';
+        if (!retellState.keywords.length && !retellState.outline) { showToast('请至少标记一个关键词或写一点提纲'); return; }
+        readingRetellPrep = false;
+        document.querySelectorAll('#readingContent .read-word.kw-mark').forEach(el => el.classList.remove('kw-mark'));
+        const prep = document.getElementById('readingRetellPrep');
+        if (prep) prep.style.display = 'none';
+        window._retellContext = { article: retellState.article, keywords: retellState.keywords.slice(), outline: retellState.outline, title: retellState.title };
+        // 清空写作面板旧状态，进入复述写作
+        writingSession = null; writingTopic = ''; writingRequiredWords = [];
+        const wta = document.getElementById('writingTextarea');
+        if (wta) { wta.value = ''; wta.placeholder = '请看着上面的关键词和提纲，复述《' + (retellState.title || '短文') + '》。不要看原文！'; }
+        const wr = document.getElementById('writingResults');
+        if (wr) { wr.innerHTML = ''; wr.classList.remove('active'); }
+        const sa = document.getElementById('sentenceArea');
+        if (sa) sa.style.display = 'none';
+        updateWritingStatus('idle');
+        updateWritingLengthHint();
+        switchMode('writing');
+        renderWritingRetellBar();
+        showToast('📝 开始复述吧！写完点「提交批改」');
+    }
+    function renderWritingRetellBar(){
+        const bar = document.getElementById('writingRetellBar');
+        if (!bar) return;
+        if (!retellState) { bar.style.display = 'none'; return; }
+        bar.style.display = 'flex';
+        const tEl = document.getElementById('writingRetellTitle');
+        if (tEl) tEl.textContent = retellState.title || '短文';
+        const cEl = document.getElementById('writingRetellChips');
+        if (cEl) cEl.innerHTML = retellState.keywords.map(w => '<span class="wrb-chip">' + escapeHtml(w) + '</span>').join('');
+        const oEl = document.getElementById('writingRetellOutlineBox');
+        if (oEl) { oEl.textContent = retellState.outline || ''; oEl.style.display = 'none'; }
+    }
+    function exitRetelling(){
+        retellState = null;
+        window._retellContext = null;
+        const bar = document.getElementById('writingRetellBar');
+        if (bar) bar.style.display = 'none';
+        showToast('已退出复述');
+    }
+    (function bindReadingNewFeatures(){
+        const jBtn = document.getElementById('readingJudgeBtn');
+        if (jBtn) jBtn.onclick = generateReadingJudge;
+        const rBtn = document.getElementById('readingRetellBtn');
+        if (rBtn) rBtn.onclick = startRetellPrep;
+        const rGo = document.getElementById('readingRetellGoBtn');
+        if (rGo) rGo.onclick = startRetelling;
+        const rCancel = document.getElementById('readingRetellCancelBtn');
+        if (rCancel) rCancel.onclick = cancelRetellPrep;
+        const rOutline = document.getElementById('readingRetellOutline');
+        if (rOutline) rOutline.addEventListener('input', function(){ rOutline.dataset.touched = '1'; });
+        const jArea = document.getElementById('readingJudgeArea');
+        if (jArea) jArea.addEventListener('click', function(e){
+            const b = e.target && e.target.closest ? e.target.closest('.rj-btn') : null;
+            if (!b) return;
+            const card = e.target.closest('.reading-judge-card');
+            if (!card) return;
+            answerReadingJudge(parseInt(card.dataset.idx) || 0, b.dataset.ans === 'true');
+        });
+        const wOutBtn = document.getElementById('writingRetellOutlineBtn');
+        if (wOutBtn) wOutBtn.onclick = function(){
+            const b = document.getElementById('writingRetellOutlineBox');
+            if (b) b.style.display = (b.style.display === 'block') ? 'none' : 'block';
+        };
+        const wExit = document.getElementById('writingRetellExitBtn');
+        if (wExit) wExit.onclick = exitRetelling;
+        // 选中词后的浮框：点空白处关闭（点词/句子/浮框本身/选择栏不关闭）
+        document.addEventListener('click', function(e){
+            const tEl = e.target;
+            if (!tEl || !tEl.closest) return;
+            if (tEl.closest('#readingTransTooltip') || tEl.closest('#readingSelectionBar') || tEl.closest('#readingChoiceOverlay')) return;
+            if (tEl.closest('.read-word') || tEl.closest('.read-sent') || tEl.closest('.rw-word') || tEl.closest('.reading-used-chip')) return;
+            if (tEl.closest('#readingRetellPrep') || tEl.closest('#readingJudgeArea')) return;
+            const tip = document.getElementById('readingTransTooltip');
+            const bar = document.getElementById('readingSelectionBar');
+            if ((tip && tip.style.display !== 'none') || (bar && bar.style.display !== 'none')) hideReadingSelection();
+        });
+    })();
+
 
     // ==================== 阅读/写作模式内嵌讨论聊天 ====================
     window._readingChatMsgs = window._readingChatMsgs || [];
@@ -15019,19 +15437,43 @@ ${searchRule}
         ov = document.createElement('div');
         ov.id = 'gotoChatOverlay';
         ov.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,0.55);z-index:10002;display:flex;align-items:center;justify-content:center;padding:16px;';
-        ov.innerHTML = '<div style="background:#fff;border-radius:20px;max-width:460px;width:100%;padding:24px;box-shadow:0 10px 40px rgba(0,0,0,0.25);font-family:inherit;text-align:center;">' +
+        const quizBtn = (kind === 'reading')
+            ? '<button id="gotoChatYes" style="padding:10px 22px;border-radius:16px;border:none;cursor:pointer;background:#1e2b5e;color:#fff;font-weight:700;font-size:0.9rem;">🎯 开始阅读理解问答</button>'
+            : '<button id="gotoChatYes" style="padding:10px 22px;border-radius:16px;border:none;cursor:pointer;background:#1e2b5e;color:#fff;font-weight:700;font-size:0.9rem;">' + escapeHtml(t('goto_chat.go')) + '</button>';
+        const freeBtn = (kind === 'reading')
+            ? '<button id="gotoChatFree" style="padding:10px 22px;border-radius:16px;border:1.5px solid #1e2b5e;cursor:pointer;background:#fff;color:#1e2b5e;font-weight:600;font-size:0.9rem;">💬 自由聊天</button>'
+            : '';
+        ov.innerHTML = '<div style="background:#fff;border-radius:20px;max-width:520px;width:100%;padding:24px;box-shadow:0 10px 40px rgba(0,0,0,0.25);font-family:inherit;text-align:center;">' +
             '<div style="font-size:2rem;margin-bottom:8px;">💬</div>' +
             '<div style="font-weight:700;font-size:1.05rem;color:#1e2b5e;margin-bottom:6px;">' + escapeHtml(t('goto_chat.title')) + '</div>' +
             '<div style="color:#64748b;font-size:0.85rem;margin-bottom:18px;">' + escapeHtml(kindName) + '</div>' +
             '<div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">' +
-            '<button id="gotoChatYes" style="padding:10px 22px;border-radius:16px;border:none;cursor:pointer;background:#1e2b5e;color:#fff;font-weight:700;font-size:0.9rem;">' + escapeHtml(t('goto_chat.go')) + '</button>' +
+            quizBtn + freeBtn +
             '<button id="gotoChatNo" style="padding:10px 22px;border-radius:16px;border:1.5px solid #d0dae8;cursor:pointer;background:#fff;color:#475569;font-weight:600;font-size:0.9rem;">' + escapeHtml(t('goto_chat.stay')) + '</button>' +
             '</div></div>';
         document.body.appendChild(ov);
-        document.getElementById('gotoChatYes').onclick = function(){ ov.remove(); jumpToChatFromMode(kind); };
+        document.getElementById('gotoChatYes').onclick = function(){ ov.remove(); jumpToChatFromMode(kind, kind === 'reading'); };
+        const freeEl = document.getElementById('gotoChatFree');
+        if (freeEl) freeEl.onclick = function(){ ov.remove(); jumpToChatFromMode(kind, false); };
         document.getElementById('gotoChatNo').onclick = function(){ ov.remove(); };
     }
-    async function jumpToChatFromMode(kind){
+    function showChatArticleReview(reading){
+        const card = document.getElementById('chatArticleReview');
+        if (!card || !reading) return;
+        const level = reading.level || getReadingLevel();
+        const paras = String(reading.content || '').split(/\n+/).filter(p => p.trim());
+        const body = document.getElementById('chatArticleReviewBody');
+        if (body) body.innerHTML = paras.map(p => '<p style="margin:0 0 8px;">' + buildReadingHighlighted(p, level, reading.properNouns || []) + '</p>').join('');
+        card.style.display = 'block';
+        card.classList.remove('open');
+        const bodyEl = card.querySelector('.car-body');
+        if (bodyEl) bodyEl.style.display = 'none';
+    }
+    function hideChatArticleReview(){
+        const card = document.getElementById('chatArticleReview');
+        if (card) card.style.display = 'none';
+    }
+    async function jumpToChatFromMode(kind, quiz){
         const apiKey = apiKeyInput.value.trim();
         if(!apiKey){ alert(t('api_key_required')); return; }
         let ctx = '';
@@ -15044,15 +15486,26 @@ ${searchRule}
             ctx = '学生刚写完一篇作文（已提交批改）。\n作文：\n' + text.slice(0, 1200) + '\n最近得分：' + (writingSession.lastScore || '');
         }
         switchMode('chat');
-        // 记住话题背景，之后聊天 AI 会一直围绕这个话题，并且一次只问一个问题
-        window._chatTopicContext = (kind === 'reading')
-            ? ('学生刚读完一篇短文。标题：' + (currentReading.title || '') + '；主题：' + (currentReading.topic || '') + '；内容：' + String(currentReading.content || '').slice(0, 1000))
-            : ('学生刚写完一篇作文。作文：' + String((writingSession && writingSession.lastText) || '').slice(0, 1000));
-        addAssistantMessage(t('mode_chat.preparing').replace('{kind}', kind === 'reading' ? t('reading.kind_name') : t('writing.kind_name')), false);
+        if (quiz && kind === 'reading') {
+            // 题型3：讨论评价题——结合文章让学生谈和自己有关的真实情况，AI 点评并追问
+            showChatArticleReview(currentReading);
+            window._chatTopicContext = '现在进行「阅读理解讨论」。规则：\n1. 你是讨论主持人，先评价学生刚才的复述/回答里说得好的地方，再用简单中文给出一个更地道的说法（如果有偏误），然后结合文章内容问下一个问题。\n2. 问题要引导学生谈和自己有关的真实情况（你的生活、你的国家、你的想法），并与文章内容对比，一次只问一个问题。\n3. 学生回答后先简短点评，再追问或换新问题；不要一次列出多个问题。\n4. 讨论对象是这篇文章：\n标题：' + (currentReading.title || '') + '\n内容：' + String(currentReading.content || '').slice(0, 1000);
+            addAssistantMessage(t('mode_chat.preparing').replace('{kind}', t('reading.kind_name')), false);
+        } else {
+            hideChatArticleReview();
+            // 记住话题背景，之后聊天 AI 会一直围绕这个话题，并且一次只问一个问题
+            window._chatTopicContext = (kind === 'reading')
+                ? ('学生刚读完一篇短文。标题：' + (currentReading.title || '') + '；主题：' + (currentReading.topic || '') + '；内容：' + String(currentReading.content || '').slice(0, 1000))
+                : ('学生刚写完一篇作文。作文：' + String((writingSession && writingSession.lastText) || '').slice(0, 1000));
+            addAssistantMessage(t('mode_chat.preparing').replace('{kind}', kind === 'reading' ? t('reading.kind_name') : t('writing.kind_name')), false);
+        }
         const targetLang = targetLangSelect.value;
         const level = parseInt(aiLevelSelect.value) || 3;
         try{
-            const prompt = '你是一位 HSK 汉语教师。请根据下面的材料，出1个讨论问题（简单中文，HSK' + level + '级水平）。问题要：①和材料内容相关；②从“你的国家/你们国家”的角度做跨文化对比，问题里必须用“在你的国家”或“你们国家”，绝对不要出现任何具体国家名；③能引发表达和讨论。只输出1个问题，不要输出多个。\n\n【材料】\n' + ctx + '\n\n输出JSON：{"question":"问题"}\n只输出 JSON。';
+            const quizRule = (quiz && kind === 'reading')
+                ? '请出一个「讨论评价题」：结合文章内容，让学生谈谈和自己有关的真实情况（自己的生活/国家/想法），并和文章做对比。问题必须是开放性的、能引发表达，简单中文（HSK' + level + '级），一次只问一个问题；问题里不要出现任何具体国家名。'
+                : '请根据下面的材料，出1个讨论问题（简单中文，HSK' + level + '级水平）。问题要：①和材料内容相关；②从“你的国家/你们国家”的角度做跨文化对比，问题里必须用“在你的国家”或“你们国家”，绝对不要出现任何具体国家名；③能引发表达和讨论。只输出1个问题，不要输出多个。';
+            const prompt = '你是一位 HSK 汉语教师。' + quizRule + '\n\n【材料】\n' + ctx + '\n\n输出JSON：{"question":"问题"}\n只输出 JSON。';
             const resp = await fetch(API_BASE, { method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey}, body: JSON.stringify({ model:'deepseek-v4-flash', thinking:{ type:'disabled' }, max_tokens:1024, messages:[{ role:'user', content:prompt }], temperature:0.8, response_format:{ type:'json_object' } }) });
             const data = await resp.json();
             if(data.error) throw new Error(data.error.message || 'API error');
@@ -15069,6 +15522,16 @@ ${searchRule}
             addAssistantMessage((kind === 'reading' ? '这篇文章' : '你的作文') + '很有意思！在你的国家也是这样吗？', false);
         }
     }
+    (function bindChatArticleReview(){
+        const head = document.getElementById('chatArticleReviewHead');
+        if (head) head.onclick = function(){
+            const card = document.getElementById('chatArticleReview');
+            if (!card) return;
+            card.classList.toggle('open');
+            const body = card.querySelector('.car-body');
+            if (body) body.style.display = card.classList.contains('open') ? 'block' : 'none';
+        };
+    })();
 
     // ==================== 候选词（对话/写作下方：还没用过/练过的词） ====================
     let candidateLevel = 3;
@@ -15216,8 +15679,9 @@ ${searchRule}
         const jsonFmt = '输出JSON格式：{"score":整数0-100,"length_chars":' + charCount + ',"length_ok":' + (charCount >= min) + ',"discourse":"' + langName + '语篇结构评价","syntax":"' + langName + '句法语法评价","semantic":"' + langName + '词汇语义评价","characters":"' + langName + '汉字书写评价","overall":"' + langName + '总体评价","hints":[{"original":"错误分句(中文)","corrected":"AI直接改好的正确分句(中文)","type":"固定中文错误类型","issue":"' + langName + '简短说明"}]}';
         const dictHints = buildHskDictHints(text);
         const dictHintText = dictHints ? '\n【HSK语料库高频错误提示 - 逐条检查作文，确实属于这些误用就纠正，不属于不要报】\n' + dictHints : '';
+        const retellCtx = window._retellContext ? ('\n\n【本次任务：课文复述】学生不看原文，只根据自己选的关键词和提纲复述了下面这篇文章。批改要求：\n1. 语言纠错照常进行（语法、用词、搭配、汉字）。\n2. overall 里必须评价复述内容：哪些要点讲到了、哪些要点漏掉了、有没有与原文事实不符的地方。\n3. 学生正确使用了关键词时在 overall 里点名表扬；关键词用错（意思/搭配不对）时也要指出。\n4. 内容评价用' + langName + '写，引用原文和学生句子时保留中文。\n【原文】\n' + String(window._retellContext.article || '') + '\n【学生关键词】' + (Array.isArray(window._retellContext.keywords) ? window._retellContext.keywords.join('、') : '') + '\n【学生提纲】\n' + String(window._retellContext.outline || '')) : '';
         if (!isRevision) {
-            return '你是一位资深中文写作教师。请批改以下学生作文，并用' + langName + '（' + targetLang + '）撰写全部反馈。\n\n【学生当前水平】HSK' + level + '\n' + lengthRule + '\n\n【评分规则】1. 长度达标是及格前提，字数不足时总分≤59。2. 字数达标后，评分核心是"正确性"和"地道性"（语法、用词、是否自然），不要因为内容简单而压分。3. 分数档位：90-100优秀，80-89良好，70-79一般，60-69需努力，60以下错误很多。4. 评分要稳定一致：同一篇作文、同样的问题应给出相同分数，不要出现随机波动。\n\n【学生作文】\n' + text + '\n\n' + heuristic + dictHintText + '\n\n' + jsonFmt + '\n只用JSON回复。';
+            return '你是一位资深中文写作教师。请批改以下学生作文，并用' + langName + '（' + targetLang + '）撰写全部反馈。\n\n【学生当前水平】HSK' + level + '\n' + lengthRule + '\n\n【评分规则】1. 长度达标是及格前提，字数不足时总分≤59。2. 字数达标后，评分核心是"正确性"和"地道性"（语法、用词、是否自然），不要因为内容简单而压分。3. 分数档位：90-100优秀，80-89良好，70-79一般，60-69需努力，60以下错误很多。4. 评分要稳定一致：同一篇作文、同样的问题应给出相同分数，不要出现随机波动。' + retellCtx + '\n\n【学生作文】\n' + text + '\n\n' + heuristic + dictHintText + '\n\n' + jsonFmt + '\n只用JSON回复。';
         }
         const prevHints = (session.lastHints && session.lastHints.length > 0)
             ? session.lastHints.map((h, i) => {
@@ -18021,21 +18485,28 @@ uncertain 表示你是否读不懂这个句子/分句、无法可靠推断学生
         const unknownIn = Object.entries(readingTrack.unknownIn || {}).map(([w, o]) => mk(w, o));
         const knownIn = Object.entries(readingTrack.knownIn || {}).map(([w, o]) => mk(w, o));
         const unknownOut = Object.entries(readingTrack.unknownOut || {}).map(([t, o]) => ({ text: t, type: (o && o.type) || 'phrase', count: (o && o.count) || 0 }));
+        const comp = readingTrack.comprehension || { in:{}, out:{} };
+        const compIn = Object.entries(comp.in || {}).map(([w, o]) => mk(w, o));
+        const compOut = Object.entries(comp.out || {}).map(([t, o]) => ({ text: t, type: 'word', count: (o && o.count) || 0 }));
         const items = [
-            ...unknownIn.map(it => ({ text: it.word, level: it.level, count: it.count, out: false, known: false })),
-            ...unknownOut.map(it => ({ text: it.text, level: 0, count: it.count, out: true, known: false, type: it.type })),
-            ...knownIn.map(it => ({ text: it.word, level: it.level, count: it.count, out: false, known: true }))
+            ...unknownIn.map(it => ({ text: it.word, level: it.level, count: it.count, out: false, known: false, comp: false })),
+            ...unknownOut.map(it => ({ text: it.text, level: 0, count: it.count, out: true, known: false, type: it.type, comp: false })),
+            ...compIn.map(it => ({ text: it.word, level: it.level, count: it.count, out: false, known: false, comp: true })),
+            ...compOut.map(it => ({ text: it.text, level: 0, count: it.count, out: true, known: false, type: it.type, comp: true })),
+            ...knownIn.map(it => ({ text: it.word, level: it.level, count: it.count, out: false, known: true, comp: false }))
         ].filter(it => !gapWords.has(stripForCompare(it.text)))
-         .sort((a, b) => (a.out ? 1 : 0) - (b.out ? 1 : 0) || b.count - a.count || a.text.localeCompare(b.text));
+         .sort((a, b) => (a.comp ? -1 : 0) - (b.comp ? -1 : 0) || (a.out ? 1 : 0) - (b.out ? 1 : 0) || b.count - a.count || a.text.localeCompare(b.text));
         const elUnknown = document.getElementById('readingUnknownInList');
         if (elUnknown) {
             if (items.length === 0) { elUnknown.innerHTML = ''; }
             else {
                 let h = '';
                 for (const it of items) {
-                    const badge = it.out
-                        ? '<span class="level-tag" style="background:#eceff1;color:#546e7a;">超纲' + (it.type === 'sentence' ? '·句子' : (it.type === 'phrase' ? '·短语' : '·词')) + '</span>'
-                        : (it.known ? '<span class="level-tag" style="background:#e8f5e9;color:#2e7d32;">✅ 知道</span>' : '<span class="level-tag">' + escapeHtml(vocabLevelLabel(it.level)) + '</span>');
+                    const badge = it.comp
+                        ? '<span class="level-tag" style="background:#fde68a;color:#92400e;">🎯 理解' + (it.out ? '·超纲' : '') + '</span>'
+                        : (it.out
+                            ? '<span class="level-tag" style="background:#eceff1;color:#546e7a;">超纲' + (it.type === 'sentence' ? '·句子' : (it.type === 'phrase' ? '·短语' : '·词')) + '</span>'
+                            : (it.known ? '<span class="level-tag" style="background:#e8f5e9;color:#2e7d32;">✅ 知道</span>' : '<span class="level-tag">' + escapeHtml(vocabLevelLabel(it.level)) + '</span>'));
                     h += '<div class="track-item" title="该词/短语在已完成阅读的文章中累计出现的次数"><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + badge + ' ' + escapeHtml(it.text) + '</span><span style="flex-shrink:0;min-width:70px;text-align:right;font-size:0.72rem;color:#1e2b5e;">累计出现 ' + it.count + ' 次</span></div>';
                 }
                 elUnknown.innerHTML = h;
@@ -20104,7 +20575,7 @@ async function generateAndShowPractice(grammarPattern, grammarLevel, forceNew=fa
     function saveUsers(users){ localStorage.setItem(USERS_STORAGE, JSON.stringify(users)); }
     function updateHeaderUser(){ const el=document.getElementById('headerUsername'); if(currentUser){ el.innerHTML=t('user.welcome')+escapeHtml(currentUser)+' <span class="logout-link" id="logoutLink">'+t('user.logout')+'</span>'; document.getElementById('logoutLink').onclick=handleLogout; } else { el.innerHTML=''; } }
     async function handleLogin(){ const username=document.getElementById('loginUsername').value.trim(); const password=document.getElementById('loginPassword').value.trim(); const errorEl=document.getElementById('loginError'); const btn=document.getElementById('loginBtn'); if(!username||!password){ errorEl.textContent=t('login.error_empty'); return; } btn.disabled=true; btn.textContent=t('login.verifying'); errorEl.textContent=''; try { const users=getUsers(); const fast=hashPassword(password,username); const stored=users[username]; if(stored){ if(fast===stored){ /* new format match */ } else if(!stored.startsWith('fallback_')&&/^[0-9a-f]{64}$/.test(stored)){ const cryptoHash=await tryCryptoHash(password,username); if(cryptoHash!==stored){ errorEl.textContent=t('login.error_wrong'); btn.disabled=false; btn.textContent=t('login.button'); return; } } else { errorEl.textContent=t('login.error_wrong'); btn.disabled=false; btn.textContent=t('login.button'); return; } } else { users[username]=fast; saveUsers(users); } currentUser=username; localStorage.setItem(CURRENT_USER_STORAGE,username); document.getElementById('loginOverlay').classList.add('hidden'); updateHeaderUser(); finishInit(); } catch(e) { errorEl.textContent=t('login.error_fail'); btn.disabled=false; btn.textContent=t('login.button'); } }
-    function handleLogout(){ if(confirm(t('logout.confirm'))){ usedMap.clear(); favoriteSentences=[]; queriedItems=[]; chatHistory=[]; currentSessionClauses=[]; sessionUserMessages=[]; window._chatSessionMistakes=[]; learnPlan={}; vocabUsedMap.clear(); vocabCorrectList=[]; lastGeneratedVocabSentences.clear(); allGeneratedVocabSet.clear(); lastGeneratedSentences.clear(); lastGrammarMeta.clear(); lastGeneratedCollocations.clear(); usedPracticeStructures.clear(); wrongSentences=[]; writingEssays=[]; writingTopic=''; window._learnCustomData={}; currentLearnTab=null; readingTrack={unknownIn:{},knownIn:{},unknownOut:{}}; readingSessionUnknowns=[]; readingClickedSentences=[]; currentReadingAnalyzed=false; zmsRecords=[]; zmsAttemptState={}; window._zmsWrongAttempts=[]; window._reflectionResults=[]; window._reflectionQueue=[]; window._reflectionReasons=[]; window._reflectionDoneCallback=null; window._sentenceState=null; window._sentenceMistakes=[]; vocabDimMap={}; writingRequiredWords=[]; sentenceRows=[]; gapBank={words:[],patterns:[]}; renderGapBankUI(); totalMinutes=0; currentUser=null; localStorage.removeItem(CURRENT_USER_STORAGE); document.getElementById('loginOverlay').classList.remove('hidden'); document.getElementById('loginPassword').value=''; document.getElementById('loginError').textContent=''; document.getElementById('loginBtn').disabled=false; document.getElementById('loginBtn').textContent=t('login.button'); document.getElementById('chatMessages').innerHTML='<div class="message assistant-message"><div class="bubble assistant-bubble">'+t('chat.greeting')+'</div><div class="timestamp">'+t('chat.just_now')+'</div></div>'; updateHeaderUser(); grammarList=buildFullGrammarList(); renderLevelProgress(); updateGrammarDisplayByLevel(parseInt(grammarViewLevel.value)); renderTrackList(); renderVocabLevelProgress(); renderVocabLibrary(parseInt(document.getElementById('vocabViewLevel')?.value)||1); renderVocabTrackList(); renderQueriedBook(); renderFavoriteBook(); renderWrongSentences(); renderLearnTasks(); } }
+    function handleLogout(){ if(confirm(t('logout.confirm'))){ usedMap.clear(); favoriteSentences=[]; queriedItems=[]; chatHistory=[]; currentSessionClauses=[]; sessionUserMessages=[]; window._chatSessionMistakes=[]; learnPlan={}; vocabUsedMap.clear(); vocabCorrectList=[]; lastGeneratedVocabSentences.clear(); allGeneratedVocabSet.clear(); lastGeneratedSentences.clear(); lastGrammarMeta.clear(); lastGeneratedCollocations.clear(); usedPracticeStructures.clear(); wrongSentences=[]; writingEssays=[]; writingTopic=''; window._learnCustomData={}; currentLearnTab=null; readingTrack={unknownIn:{},knownIn:{},unknownOut:{},comprehension:{in:{},out:{}}}; readingSessionUnknowns=[]; readingClickedSentences=[]; currentReadingAnalyzed=false; zmsRecords=[]; zmsAttemptState={}; window._zmsWrongAttempts=[]; window._reflectionResults=[]; window._reflectionQueue=[]; window._reflectionReasons=[]; window._reflectionDoneCallback=null; window._sentenceState=null; window._sentenceMistakes=[]; vocabDimMap={}; writingRequiredWords=[]; sentenceRows=[]; gapBank={words:[],patterns:[]}; renderGapBankUI(); totalMinutes=0; currentUser=null; localStorage.removeItem(CURRENT_USER_STORAGE); document.getElementById('loginOverlay').classList.remove('hidden'); document.getElementById('loginPassword').value=''; document.getElementById('loginError').textContent=''; document.getElementById('loginBtn').disabled=false; document.getElementById('loginBtn').textContent=t('login.button'); document.getElementById('chatMessages').innerHTML='<div class="message assistant-message"><div class="bubble assistant-bubble">'+t('chat.greeting')+'</div><div class="timestamp">'+t('chat.just_now')+'</div></div>'; updateHeaderUser(); grammarList=buildFullGrammarList(); renderLevelProgress(); updateGrammarDisplayByLevel(parseInt(grammarViewLevel.value)); renderTrackList(); renderVocabLevelProgress(); renderVocabLibrary(parseInt(document.getElementById('vocabViewLevel')?.value)||1); renderVocabTrackList(); renderQueriedBook(); renderFavoriteBook(); renderWrongSentences(); renderLearnTasks(); } }
     function switchGrammarTab(id, btn){ const tabs=btn.parentElement; tabs.querySelectorAll('.browser-tab').forEach(t=>t.classList.remove('active')); btn.classList.add('active'); const card=tabs.parentElement; const content=card.querySelector('.browser-tab-content'); if(content){ content.querySelectorAll('.track-list').forEach(l=>l.style.display='none'); const target=document.getElementById(id); if(target){target.style.display=''; target.style.display='block';} } }
     function switchVocabTab(id, btn){ const tabs=btn.parentElement; tabs.querySelectorAll('.browser-tab').forEach(t=>t.classList.remove('active')); btn.classList.add('active'); const card=tabs.parentElement; const content=card.querySelector('.browser-tab-content'); if(content){ content.querySelectorAll('.track-list').forEach(l=>l.style.display='none'); const target=document.getElementById(id); if(target){target.style.display=''; target.style.display='block';} } }
     function initTrackTabs(){}
