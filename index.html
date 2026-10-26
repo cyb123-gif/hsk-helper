@@ -718,7 +718,7 @@
         </div>
         <div class="writing-panel" id="writingPanel">
             <div id="writingRetellBar" class="writing-retell-bar" style="display:none;">
-                <span class="wrb-title">📝 复述：《<span id="writingRetellTitle"></span>》</span>
+                <span class="wrb-title"><span id="writingRetellTitlePrefix">📝 复述：《</span><span id="writingRetellTitle"></span>》</span>
                 <span id="writingRetellChips"></span>
                 <button class="wrb-btn" id="writingRetellOutlineBtn" type="button">📋 看提纲</button>
                 <div class="writing-retell-outline" id="writingRetellOutlineBox"></div>
@@ -11303,6 +11303,464 @@ const HSK2_VOCAB = [
         'Indonesian': { 'dict.upload_ai_group':'✨ Buat dengan AI (suara AI):','dict.upload_file_group':'🎙️ Unggah audio (suara asli, pengaturan AI diabaikan):','dict.upload_rate_label':'🔉 Kecepatan putar (suara AI & audio unggahan)','dict.upload_subtitle':'Unggah mp3/mp4 untuk dikte dengan suara asli, atau biarkan AI membuat artikel yang dibacakan dengan suara AI. Koreksi otomatis setelah kirim.','dict.upload_file_btn':'📁 Unggah audio (mp3/mp4)','dict.upload_ai_btn':'✨ Buat dikte','dict.upload_status_preparing':'⏳ Menyiapkan audio…','dict.upload_status_model':'⏳ Memuat model Whisper pertama kali (~40MB, sekali saja)…','dict.upload_status_model_dl':'⏳ Mengunduh model {p}%','dict.upload_status_recognizing':'⏳ Mengenali secara lokal (1-3 menit)…','dict.upload_status_done':'✅ Selesai, {n} kalimat','dict.upload_status_fail':'⚠️ Gagal: {msg}','dict.upload_status_network':' (unduh engine/model gagal, periksa jaringan)','dict.upload_fail_toast':'⚠️ Pengenalan lokal gagal, coba lagi (~40MB pertama kali)', 'reading.chat_btn':'💬 Selesai baca, chat', 'writing.chat_btn':'💬 Selesai tulis, chat', 'chat.greeting_native':'Halo, saya partner bahasa AI kamu. Ayo ngobrol!' },
         'Slovak': { 'dict.upload_ai_group':'✨ Generovanie AI (hlas AI):','dict.upload_file_group':'🎙️ Nahrať audio (pôvodný hlas, nastavenia AI sa ignorujú):','dict.upload_rate_label':'🔉 Rýchlosť prehrávania (hlas AI aj nahrané audio)','dict.upload_subtitle':'Nahrajte mp3/mp4 na diktát pôvodným hlasom alebo nechajte AI vygenerovať článok čítaný hlasom AI. Po odoslaní sa automaticky opraví.','dict.upload_file_btn':'📁 Nahrať audio (mp3/mp4)','dict.upload_ai_btn':'✨ Generovať diktát','dict.upload_status_preparing':'⏳ Pripravujem audio…','dict.upload_status_model':'⏳ Prvé načítanie modelu Whisper (~40 MB, len raz)…','dict.upload_status_model_dl':'⏳ Sťahujem model {p}%','dict.upload_status_recognizing':'⏳ Lokálne rozpoznávanie (1-3 min)…','dict.upload_status_done':'✅ Hotovo, {n} viet','dict.upload_status_fail':'⚠️ Zlyhalo: {msg}','dict.upload_status_network':' (sťahovanie enginu/modelu zlyhalo, skontrolujte sieť)','dict.upload_fail_toast':'⚠️ Lokálne rozpoznávanie zlyhalo, skúste znova (~40 MB prvýkrát)', 'reading.chat_btn':'💬 Prečítané, chat', 'writing.chat_btn':'💬 Napísané, chat', 'chat.greeting_native':'Ahoj, som tvoj AI jazykový partner. Poďme sa rozprávať!' }
     };
+    // 阅读理解新功能（判断题练习/复述/文章讨论）多语言
+    const I18N_NEW9 = {
+        'Chinese': {
+            'reading.judge_tab':'🎯 判断题练习',
+            'reading.retell_tab':'📝 复述文章',
+            'reading.chat_btn':'💬 文章讨论',
+            'reading.retell_prep_title':'📝 复述准备',
+            'reading.retell_prep_hint':'① 点击文章里的词语，把它们标成你的复述关键词（橙色框）；② 在下面写你的复述提纲/框架；③ 点「开始复述」后去写作模式，只能看着关键词和提纲写。',
+            'reading.retell_outline_ph':'写你的复述提纲，例如：\n时间：……\n地点：……\n人物：……\n先发生…… 然后…… 最后……\n我想用这些词：',
+            'reading.retell_go':'✅ 准备完毕，开始复述', 'reading.retell_kw_label':'关键词：','reading.retell_outline_label':'提纲：',
+            'reading.retell_cancel':'取消',
+            'reading.retell_no_kw':'还没有选关键词',
+            'reading.retell_need_kw':'请至少标记一个关键词或写一点提纲',
+            'reading.retell_started':'📝 开始复述吧！写完点「提交批改」',
+            'reading.retell_prep_toast':'📝 点击文章里的词标记关键词，写完提纲点「开始复述」',
+            'reading.retell_exited':'已退出复述',
+            'reading.retell_placeholder':'请看着上面的关键词和提纲，复述《{title}》。不要看原文！',
+            'reading.retell_bar_title':'📝 复述：《',
+            'reading.retell_outline_btn':'📋 看提纲',
+            'reading.retell_exit_btn':'✕ 退出复述',
+            'reading.lock_retell':'复述进行中：原文暂时隐藏，写作结束后才能查看。',
+            'reading.lock_discuss':'文章讨论进行中：原文暂时隐藏，结束对话后才能查看。',
+            'reading.lock_history':'任务进行中，结束后才能查看阅读历史',
+            'reading.judge_loading':'⏳ AI 正在出判断题，请稍候…',
+            'reading.judge_no_key':'🔑 请先在右侧输入 DeepSeek API Key，判断题会自动生成',
+            'reading.judge_summary':'🎯 判断题（{done}/{total}）在文中找到对应的句子，判断下面说法和文中句子的意思是否一样',
+            'reading.judge_same':'✅ 意思一样',
+            'reading.judge_diff':'❌ 意思不一样',
+            'reading.judge_ok':'✅ 判断正确！已把这个词记入「理解词」',
+            'reading.judge_no':'❌ 正确答案是：',
+            'reading.judge_true':'两个句子意思一样',
+            'reading.judge_false':'两个句子意思不一样',
+            'reading.judge_done':'🎉 全部完成！',
+            'reading.judge_fail':'出题失败：',
+            'reading.judge_retry':'🔄 重试',
+            'reading.judge_no_targets':'文章里没有高于所选等级的词语'
+        },
+        'English': {
+            'reading.judge_tab':'🎯 True/False Practice',
+            'reading.retell_tab':'📝 Retell the Article',
+            'reading.chat_btn':'💬 Article Discussion',
+            'reading.retell_prep_title':'📝 Retelling Prep',
+            'reading.retell_prep_hint':'① Tap words in the article to mark them as your retell keywords (orange box); ② Write your outline below; ③ When you tap "Start Retelling", the article hides and you go to the writing mode with only your keywords and outline visible.',
+            'reading.retell_outline_ph':'Write your retell outline, e.g.:\nTime: …\nPlace: …\nPeople: …\nFirst… then… finally…\nWords I want to use:',
+            'reading.retell_go':'✅ Done — Start Retelling', 'reading.retell_kw_label':'Keywords: ','reading.retell_outline_label':'Outline: ',
+            'reading.retell_cancel':'Cancel',
+            'reading.retell_no_kw':'No keywords selected yet',
+            'reading.retell_need_kw':'Please mark at least one keyword or write a short outline',
+            'reading.retell_started':'📝 Start retelling! Tap "Submit" when done',
+            'reading.retell_prep_toast':'📝 Tap words to mark keywords, write your outline, then tap "Start Retelling"',
+            'reading.retell_exited':'Retelling exited',
+            'reading.retell_placeholder':'Look at your keywords and outline above and retell "{title}". Do not look at the original!',
+            'reading.retell_bar_title':'📝 Retell: ',
+            'reading.retell_outline_btn':'📋 Outline',
+            'reading.retell_exit_btn':'✕ Exit retelling',
+            'reading.lock_retell':'Retelling in progress: the article is hidden until you finish writing.',
+            'reading.lock_discuss':'Article discussion in progress: the article is hidden until you end the conversation.',
+            'reading.lock_history':'Task in progress — reading history is hidden until it ends',
+            'reading.judge_loading':'⏳ AI is making true/false questions…',
+            'reading.judge_no_key':'🔑 Enter your DeepSeek API Key on the right; questions will be generated automatically',
+            'reading.judge_summary':'🎯 True/False ({done}/{total}) Find the matching sentence in the article and decide whether the statement means the same',
+            'reading.judge_same':'✅ Same meaning',
+            'reading.judge_diff':'❌ Different meaning',
+            'reading.judge_ok':'✅ Correct! This word has been recorded as "understood"',
+            'reading.judge_no':'❌ Correct answer: ',
+            'reading.judge_true':'the two sentences mean the same',
+            'reading.judge_false':'the two sentences mean different things',
+            'reading.judge_done':'🎉 All done!',
+            'reading.judge_fail':'Failed to make questions: ',
+            'reading.judge_retry':'🔄 Retry',
+            'reading.judge_no_targets':'No words above your selected level in this article'
+        },
+        'Japanese': {
+            'reading.judge_tab':'🎯 正誤問題',
+            'reading.retell_tab':'📝 文章を再話',
+            'reading.chat_btn':'💬 文章ディスカッション',
+            'reading.retell_prep_title':'📝 再話の準備',
+            'reading.retell_prep_hint':'① 本文の単語をタップして再話のキーワードに（オレンジ枠）；② 下にアウトラインを書く；③「再話スタート」を押すと本文が隠れ、キーワードとアウトラインだけ見ながら作文します。',
+            'reading.retell_outline_ph':'再話のアウトラインを書いてください。例：\n時間：…\n場所：…\n人物：…\n最初に… それから… 最後に…\n使いたい言葉：',
+            'reading.retell_go':'✅ 準備完了、再話スタート', 'reading.retell_kw_label':'キーワード：','reading.retell_outline_label':'アウトライン：',
+            'reading.retell_cancel':'キャンセル',
+            'reading.retell_no_kw':'まだキーワードがありません',
+            'reading.retell_need_kw':'キーワードを1つ以上選ぶか、アウトラインを書いてください',
+            'reading.retell_started':'📝 再話スタート！書き終わったら「提出」を押してください',
+            'reading.retell_prep_toast':'📝 単語をタップしてキーワードにし、アウトラインを書いて「再話スタート」',
+            'reading.retell_exited':'再話を終了しました',
+            'reading.retell_placeholder':'上のキーワードとアウトラインを見ながら「{title}」を再話してください。本文は見ないで！',
+            'reading.retell_bar_title':'📝 再話：',
+            'reading.retell_outline_btn':'📋 アウトライン',
+            'reading.retell_exit_btn':'✕ 再話を終了',
+            'reading.lock_retell':'再話中：作文が終わるまで本文は非表示です。',
+            'reading.lock_discuss':'文章ディスカッション中：会話を終了するまで本文は非表示です。',
+            'reading.lock_history':'タスク中：終了するまで読書履歴は非表示です',
+            'reading.judge_loading':'⏳ AIが正誤問題を作っています…',
+            'reading.judge_no_key':'🔑 右側にDeepSeek APIキーを入力すると、問題が自動生成されます',
+            'reading.judge_summary':'🎯 正誤問題（{done}/{total}）本文から対応する文を探し、この文が同じ意味か判断してください',
+            'reading.judge_same':'✅ 同じ意味',
+            'reading.judge_diff':'❌ 違う意味',
+            'reading.judge_ok':'✅ 正解！この言葉を「理解した単語」に記録しました',
+            'reading.judge_no':'❌ 正解は：',
+            'reading.judge_true':'二つの文は同じ意味',
+            'reading.judge_false':'二つの文は違う意味',
+            'reading.judge_done':'🎉 全部完了！',
+            'reading.judge_fail':'問題作成に失敗：',
+            'reading.judge_retry':'🔄 再試行',
+            'reading.judge_no_targets':'この文章には選択レベルより上の単語がありません'
+        },
+        'Korean': {
+            'reading.judge_tab':'🎯 판단 문제',
+            'reading.retell_tab':'📝 글 다시 말하기',
+            'reading.chat_btn':'💬 글 토론',
+            'reading.retell_prep_title':'📝 다시 말하기 준비',
+            'reading.retell_prep_hint':'① 본문 단어를 눌러 다시 말하기 키워드로 표시(주황색 테두리); ② 아래에 개요를 쓰세요; ③ 「다시 말하기 시작」을 누르면 본문이 숨겨지고 키워드와 개요만 보며 씁니다.',
+            'reading.retell_outline_ph':'다시 말하기 개요를 쓰세요. 예:\n시간: …\n장소: …\n인물: …\n먼저… 그다음… 마지막으로…\n쓰고 싶은 단어:',
+            'reading.retell_go':'✅ 준비 완료, 다시 말하기 시작','reading.retell_kw_label':'키워드: ','reading.retell_outline_label':'개요: ',
+            'reading.retell_cancel':'취소',
+            'reading.retell_no_kw':'아직 키워드가 없습니다',
+            'reading.retell_need_kw':'키워드를 하나 이상 고르거나 개요를 조금 쓰세요',
+            'reading.retell_started':'📝 다시 말하기 시작! 다 쓰면 「제출」을 누르세요',
+            'reading.retell_prep_toast':'📝 단어를 눌러 키워드를 표시하고 개요를 쓴 뒤 「다시 말하기 시작」',
+            'reading.retell_exited':'다시 말하기를 종료했습니다',
+            'reading.retell_placeholder':'위의 키워드와 개요를 보며 「{title}」을(를) 다시 말하세요. 원문을 보지 마세요!',
+            'reading.retell_bar_title':'📝 다시 말하기: ',
+            'reading.retell_outline_btn':'📋 개요 보기',
+            'reading.retell_exit_btn':'✕ 다시 말하기 종료',
+            'reading.lock_retell':'다시 말하기 진행 중: 글쓰기가 끝날 때까지 원문이 숨겨집니다.',
+            'reading.lock_discuss':'글 토론 진행 중: 대화가 끝날 때까지 원문이 숨겨집니다.',
+            'reading.lock_history':'과제 진행 중 — 끝날 때까지 읽기 기록이 숨겨집니다',
+            'reading.judge_loading':'⏳ AI가 판단 문제를 만들고 있어요…',
+            'reading.judge_no_key':'🔑 오른쪽에 DeepSeek API 키를 입력하면 문제가 자동 생성됩니다',
+            'reading.judge_summary':'🎯 판단 문제({done}/{total}) 본문에서 해당 문장을 찾아 이 문장과 뜻이 같은지 판단하세요',
+            'reading.judge_same':'✅ 뜻이 같음',
+            'reading.judge_diff':'❌ 뜻이 다름',
+            'reading.judge_ok':'✅ 정답! 이 단어를 「이해한 단어」로 기록했어요',
+            'reading.judge_no':'❌ 정답: ',
+            'reading.judge_true':'두 문장의 뜻이 같습니다',
+            'reading.judge_false':'두 문장의 뜻이 다릅니다',
+            'reading.judge_done':'🎉 모두 완료!',
+            'reading.judge_fail':'문제 만들기 실패: ',
+            'reading.judge_retry':'🔄 다시 시도',
+            'reading.judge_no_targets':'이 글에는 선택한 등급보다 높은 단어가 없습니다'
+        },
+        'French': {
+            'reading.judge_tab':'🎯 Vrai / Faux',
+            'reading.retell_tab':'📝 Raconter le texte',
+            'reading.chat_btn':'💬 Discussion du texte',
+            'reading.retell_prep_title':'📝 Préparation au récit',
+            'reading.retell_prep_hint':'① Touchez les mots du texte pour en faire vos mots-clés (cadre orange) ; ② Écrivez votre plan ci-dessous ; ③ En appuyant sur « Commencer », le texte est masqué et vous écrivez avec seulement vos mots-clés et votre plan.',
+            'reading.retell_outline_ph':'Écrivez votre plan, par ex. :\nTemps : …\nLieu : …\nPersonnages : …\nD\'abord… ensuite… enfin…\nMots à utiliser :',
+            'reading.retell_go':'✅ Prêt — Commencer le récit', 'reading.retell_kw_label':'Mots-clés : ','reading.retell_outline_label':'Plan : ',
+            'reading.retell_cancel':'Annuler',
+            'reading.retell_no_kw':'Pas encore de mots-clés',
+            'reading.retell_need_kw':'Choisissez au moins un mot-clé ou écrivez un petit plan',
+            'reading.retell_started':'📝 Racontez ! Appuyez sur « Soumettre » quand vous avez fini',
+            'reading.retell_prep_toast':'📝 Touchez des mots pour les marquer, écrivez votre plan, puis « Commencer le récit »',
+            'reading.retell_exited':'Récit terminé',
+            'reading.retell_placeholder':'Regardez vos mots-clés et votre plan ci-dessus et racontez « {title} ». Ne regardez pas le texte original !',
+            'reading.retell_bar_title':'📝 Récit : ',
+            'reading.retell_outline_btn':'📋 Plan',
+            'reading.retell_exit_btn':'✕ Quitter le récit',
+            'reading.lock_retell':'Récit en cours : le texte est masqué jusqu\'à la fin de la rédaction.',
+            'reading.lock_discuss':'Discussion en cours : le texte est masqué jusqu\'à la fin de la conversation.',
+            'reading.lock_history':'Tâche en cours — l\'historique est masqué jusqu\'à la fin',
+            'reading.judge_loading':'⏳ L\'IA prépare les questions…',
+            'reading.judge_no_key':'🔑 Saisissez votre clé API DeepSeek à droite ; les questions se génèrent automatiquement',
+            'reading.judge_summary':'🎯 Vrai/Faux ({done}/{total}) Trouvez la phrase correspondante dans le texte et jugez si l\'énoncé a le même sens',
+            'reading.judge_same':'✅ Même sens',
+            'reading.judge_diff':'❌ Sens différent',
+            'reading.judge_ok':'✅ Correct ! Ce mot est enregistré comme « compris »',
+            'reading.judge_no':'❌ Bonne réponse : ',
+            'reading.judge_true':'les deux phrases ont le même sens',
+            'reading.judge_false':'les deux phrases ont des sens différents',
+            'reading.judge_done':'🎉 Terminé !',
+            'reading.judge_fail':'Échec de la génération : ',
+            'reading.judge_retry':'🔄 Réessayer',
+            'reading.judge_no_targets':'Aucun mot au-dessus de votre niveau dans ce texte'
+        },
+        'German': {
+            'reading.judge_tab':'🎯 Richtig/Falsch',
+            'reading.retell_tab':'📝 Text nacherzählen',
+            'reading.chat_btn':'💬 Textdiskussion',
+            'reading.retell_prep_title':'📝 Vorbereitung',
+            'reading.retell_prep_hint':'① Tippe Wörter im Text an, um sie als Schlüsselwörter zu markieren (oranger Rahmen); ② Schreibe unten deine Gliederung; ③ Mit „Starten" wird der Text ausgeblendet und du schreibst nur mit Schlüsselwörtern und Gliederung.',
+            'reading.retell_outline_ph':'Schreibe deine Gliederung, z. B.:\nZeit: …\nOrt: …\nPersonen: …\nZuerst… dann… zuletzt…\nWörter, die ich nutzen will:',
+            'reading.retell_go':'✅ Fertig — Nacherzählung starten', 'reading.retell_kw_label':'Schlüsselwörter: ','reading.retell_outline_label':'Gliederung: ',
+            'reading.retell_cancel':'Abbrechen',
+            'reading.retell_no_kw':'Noch keine Schlüsselwörter',
+            'reading.retell_need_kw':'Markiere mindestens ein Schlüsselwort oder schreibe eine kurze Gliederung',
+            'reading.retell_started':'📝 Erzähl nach! Tippe danach auf „Abgeben"',
+            'reading.retell_prep_toast':'📝 Wörter antippen und markieren, Gliederung schreiben, dann „Nacherzählung starten"',
+            'reading.retell_exited':'Nacherzählung beendet',
+            'reading.retell_placeholder':'Sieh dir oben Schlüsselwörter und Gliederung an und erzähle „{title}" nach. Nicht ins Original schauen!',
+            'reading.retell_bar_title':'📝 Nacherzählung: ',
+            'reading.retell_outline_btn':'📋 Gliederung',
+            'reading.retell_exit_btn':'✕ Nacherzählung beenden',
+            'reading.lock_retell':'Nacherzählung läuft: Der Text bleibt bis zum Ende des Schreibens verborgen.',
+            'reading.lock_discuss':'Textdiskussion läuft: Der Text bleibt bis zum Ende des Gesprächs verborgen.',
+            'reading.lock_history':'Aufgabe läuft — der Verlauf bleibt bis zum Ende verborgen',
+            'reading.judge_loading':'⏳ Die KI erstellt Richtig/Falsch-Fragen…',
+            'reading.judge_no_key':'🔑 Gib rechts deinen DeepSeek-API-Key ein; Fragen werden automatisch erstellt',
+            'reading.judge_summary':'🎯 Richtig/Falsch ({done}/{total}) Finde den passenden Satz im Text und beurteile, ob die Aussage dieselbe Bedeutung hat',
+            'reading.judge_same':'✅ Gleiche Bedeutung',
+            'reading.judge_diff':'❌ Andere Bedeutung',
+            'reading.judge_ok':'✅ Richtig! Dieses Wort wurde als „verstanden" gespeichert',
+            'reading.judge_no':'❌ Richtige Antwort: ',
+            'reading.judge_true':'die beiden Sätze bedeuten dasselbe',
+            'reading.judge_false':'die beiden Sätze bedeuten Unterschiedliches',
+            'reading.judge_done':'🎉 Alles geschafft!',
+            'reading.judge_fail':'Fragen konnten nicht erstellt werden: ',
+            'reading.judge_retry':'🔄 Erneut versuchen',
+            'reading.judge_no_targets':'Keine Wörter über deinem Niveau in diesem Text'
+        },
+        'Spanish': {
+            'reading.judge_tab':'🎯 Verdadero/Falso',
+            'reading.retell_tab':'📝 Recontar el texto',
+            'reading.chat_btn':'💬 Discusión del texto',
+            'reading.retell_prep_title':'📝 Preparación para recontar',
+            'reading.retell_prep_hint':'① Toca palabras del texto para marcarlas como palabras clave (marco naranja); ② Escribe tu esquema abajo; ③ Al tocar «Empezar», el texto se oculta y escribes solo con tus palabras clave y tu esquema.',
+            'reading.retell_outline_ph':'Escribe tu esquema, p. ej.:\nTiempo: …\nLugar: …\nPersonas: …\nPrimero… luego… al final…\nPalabras que quiero usar:',
+            'reading.retell_go':'✅ Listo — Empezar a recontar', 'reading.retell_kw_label':'Palabras clave: ','reading.retell_outline_label':'Esquema: ',
+            'reading.retell_cancel':'Cancelar',
+            'reading.retell_no_kw':'Aún no hay palabras clave',
+            'reading.retell_need_kw':'Marca al menos una palabra clave o escribe un esquema breve',
+            'reading.retell_started':'📝 ¡A recontar! Toca «Enviar» al terminar',
+            'reading.retell_prep_toast':'📝 Toca palabras para marcarlas, escribe tu esquema y luego «Empezar a recontar»',
+            'reading.retell_exited':'Recontado finalizado',
+            'reading.retell_placeholder':'Mira tus palabras clave y tu esquema arriba y recuenta «{title}». ¡No mires el original!',
+            'reading.retell_bar_title':'📝 Recuento: ',
+            'reading.retell_outline_btn':'📋 Esquema',
+            'reading.retell_exit_btn':'✕ Salir del recuento',
+            'reading.lock_retell':'Recuento en curso: el texto está oculto hasta terminar de escribir.',
+            'reading.lock_discuss':'Discusión en curso: el texto está oculto hasta terminar la conversación.',
+            'reading.lock_history':'Tarea en curso: el historial está oculto hasta que termine',
+            'reading.judge_loading':'⏳ La IA está creando preguntas…',
+            'reading.judge_no_key':'🔑 Introduce tu clave API de DeepSeek a la derecha; las preguntas se generan solas',
+            'reading.judge_summary':'🎯 Verdadero/Falso ({done}/{total}) Encuentra la frase correspondiente en el texto y juzga si la afirmación significa lo mismo',
+            'reading.judge_same':'✅ Mismo significado',
+            'reading.judge_diff':'❌ Significado distinto',
+            'reading.judge_ok':'✅ ¡Correcto! Esta palabra se guardó como «comprendida»',
+            'reading.judge_no':'❌ Respuesta correcta: ',
+            'reading.judge_true':'las dos frases significan lo mismo',
+            'reading.judge_false':'las dos frases significan cosas distintas',
+            'reading.judge_done':'🎉 ¡Todo listo!',
+            'reading.judge_fail':'No se pudieron crear las preguntas: ',
+            'reading.judge_retry':'🔄 Reintentar',
+            'reading.judge_no_targets':'No hay palabras por encima de tu nivel en este texto'
+        },
+        'Russian': {
+            'reading.judge_tab':'🎯 Верно/Неверно',
+            'reading.retell_tab':'📝 Пересказ текста',
+            'reading.chat_btn':'💬 Обсуждение текста',
+            'reading.retell_prep_title':'📝 Подготовка к пересказу',
+            'reading.retell_prep_hint':'① Нажимайте на слова в тексте, чтобы отметить их как ключевые (оранжевая рамка); ② Ниже напишите план; ③ После нажатия «Начать» текст скроется, и вы будете писать, видя только ключевые слова и план.',
+            'reading.retell_outline_ph':'Напишите план, например:\nВремя: …\nМесто: …\nЛюди: …\nСначала… потом… в конце…\nСлова, которые хочу использовать:',
+            'reading.retell_go':'✅ Готово — начать пересказ', 'reading.retell_kw_label':'Ключевые слова: ','reading.retell_outline_label':'План: ',
+            'reading.retell_cancel':'Отмена',
+            'reading.retell_no_kw':'Ключевых слов пока нет',
+            'reading.retell_need_kw':'Отметьте хотя бы одно ключевое слово или напишите короткий план',
+            'reading.retell_started':'📝 Пересказывайте! Закончите — нажмите «Отправить»',
+            'reading.retell_prep_toast':'📝 Нажимайте на слова, чтобы отметить их, напишите план, затем «Начать пересказ»',
+            'reading.retell_exited':'Пересказ завершён',
+            'reading.retell_placeholder':'Смотрите на ключевые слова и план выше и перескажите «{title}». Не смотрите в оригинал!',
+            'reading.retell_bar_title':'📝 Пересказ: ',
+            'reading.retell_outline_btn':'📋 План',
+            'reading.retell_exit_btn':'✕ Выйти из пересказа',
+            'reading.lock_retell':'Идёт пересказ: текст скрыт до окончания письма.',
+            'reading.lock_discuss':'Идёт обсуждение текста: текст скрыт до окончания разговора.',
+            'reading.lock_history':'Идёт задание — история скрыта до его завершения',
+            'reading.judge_loading':'⏳ ИИ составляет вопросы…',
+            'reading.judge_no_key':'🔑 Введите ключ API DeepSeek справа — вопросы создадутся автоматически',
+            'reading.judge_summary':'🎯 Верно/Неверно ({done}/{total}) Найдите нужное предложение в тексте и решите, совпадает ли смысл',
+            'reading.judge_same':'✅ Смысл тот же',
+            'reading.judge_diff':'❌ Смысл другой',
+            'reading.judge_ok':'✅ Верно! Это слово записано как «понятое»',
+            'reading.judge_no':'❌ Правильный ответ: ',
+            'reading.judge_true':'смысл двух предложений одинаковый',
+            'reading.judge_false':'смысл двух предложений разный',
+            'reading.judge_done':'🎉 Всё готово!',
+            'reading.judge_fail':'Не удалось создать вопросы: ',
+            'reading.judge_retry':'🔄 Повторить',
+            'reading.judge_no_targets':'В этом тексте нет слов выше вашего уровня'
+        },
+        'Thai': {
+            'reading.judge_tab':'🎯 ถูก/ผิด',
+            'reading.retell_tab':'📝 เล่าเรื่องใหม่',
+            'reading.chat_btn':'💬 คุยเรื่องบทความ',
+            'reading.retell_prep_title':'📝 เตรียมเล่าเรื่อง',
+            'reading.retell_prep_hint':'① แตะคำในบทความเพื่อทำเครื่องหมายเป็นคำสำคัญ (กรอบสีส้ม); ② เขียนโครงเรื่องด้านล่าง; ③ กด «เริ่มเล่า» แล้วบทความจะซ่อน เหลือแค่คำสำคัญกับโครงเรื่อง',
+            'reading.retell_outline_ph':'เขียนโครงเรื่อง เช่น:\nเวลา: …\nสถานที่: …\nคน: …\nตอนแรก… แล้ว… สุดท้าย…\nคำที่อยากใช้:',
+            'reading.retell_go':'✅ พร้อมแล้ว — เริ่มเล่าเรื่อง', 'reading.retell_kw_label':'คำสำคัญ: ','reading.retell_outline_label':'โครงเรื่อง: ',
+            'reading.retell_cancel':'ยกเลิก',
+            'reading.retell_no_kw':'ยังไม่มีคำสำคัญ',
+            'reading.retell_need_kw':'เลือกคำสำคัญอย่างน้อยหนึ่งคำหรือเขียนโครงเรื่องสั้น ๆ',
+            'reading.retell_started':'📝 เริ่มเล่าเรื่อง! เขียนเสร็จแล้วกด «ส่ง»',
+            'reading.retell_prep_toast':'📝 แตะคำเพื่อทำเครื่องหมาย เขียนโครงเรื่อง แล้วกด «เริ่มเล่าเรื่อง»',
+            'reading.retell_exited':'ออกจากการเล่าเรื่องแล้ว',
+            'reading.retell_placeholder':'ดูคำสำคัญและโครงเรื่องด้านบน แล้วเล่าเรื่อง «{title}» อย่าดูบทความต้นฉบับ!',
+            'reading.retell_bar_title':'📝 เล่าเรื่อง: ',
+            'reading.retell_outline_btn':'📋 โครงเรื่อง',
+            'reading.retell_exit_btn':'✕ ออกจากการเล่าเรื่อง',
+            'reading.lock_retell':'กำลังเล่าเรื่อง: บทความถูกซ่อนจนกว่าจะเขียนเสร็จ',
+            'reading.lock_discuss':'กำลังคุยเรื่องบทความ: บทความถูกซ่อนจนกว่าจะจบการสนทนา',
+            'reading.lock_history':'กำลังทำภารกิจ — ประวัติการอ่านถูกซ่อนจนกว่าจะเสร็จ',
+            'reading.judge_loading':'⏳ AI กำลังสร้างคำถาม…',
+            'reading.judge_no_key':'🔑 ใส่ API Key ของ DeepSeek ด้านขวา คำถามจะสร้างอัตโนมัติ',
+            'reading.judge_summary':'🎯 ถูก/ผิด ({done}/{total}) หาประโยคที่ตรงกันในบทความแล้วตัดสินว่าข้อความนี้ความหมายเหมือนกันไหม',
+            'reading.judge_same':'✅ ความหมายเหมือนกัน',
+            'reading.judge_diff':'❌ ความหมายต่างกัน',
+            'reading.judge_ok':'✅ ถูกต้อง! บันทึกคำนี้เป็น «คำที่เข้าใจ» แล้ว',
+            'reading.judge_no':'❌ คำตอบที่ถูก: ',
+            'reading.judge_true':'สองประโยคความหมายเหมือนกัน',
+            'reading.judge_false':'สองประโยคความหมายต่างกัน',
+            'reading.judge_done':'🎉 เสร็จหมดแล้ว!',
+            'reading.judge_fail':'สร้างคำถามไม่สำเร็จ: ',
+            'reading.judge_retry':'🔄 ลองใหม่',
+            'reading.judge_no_targets':'ไม่มีคำที่สูงกว่าระดับที่เลือกในบทความนี้'
+        },
+        'Italian': {
+            'reading.judge_tab':'🎯 Vero/Falso',
+            'reading.retell_tab':'📝 Racconta il testo',
+            'reading.chat_btn':'💬 Discussione sul testo',
+            'reading.retell_prep_title':'📝 Preparazione al racconto',
+            'reading.retell_prep_hint':'① Tocca le parole del testo per segnarle come parole chiave (cornice arancione); ② Scrivi sotto la tua scaletta; ③ Premendo «Inizia», il testo si nasconde e scrivi solo con parole chiave e scaletta.',
+            'reading.retell_outline_ph':'Scrivi la tua scaletta, es.:\nTempo: …\nLuogo: …\nPersone: …\nPrima… poi… infine…\nParole che voglio usare:',
+            'reading.retell_go':'✅ Pronto — Inizia a raccontare', 'reading.retell_kw_label':'Parole chiave: ','reading.retell_outline_label':'Scaletta: ',
+            'reading.retell_cancel':'Annulla',
+            'reading.retell_no_kw':'Nessuna parola chiave ancora',
+            'reading.retell_need_kw':'Segna almeno una parola chiave o scrivi una breve scaletta',
+            'reading.retell_started':'📝 Racconta! Quando hai finito premi «Invia»',
+            'reading.retell_prep_toast':'📝 Tocca le parole per segnarle, scrivi la scaletta, poi «Inizia a raccontare»',
+            'reading.retell_exited':'Racconto terminato',
+            'reading.retell_placeholder':'Guarda le parole chiave e la scaletta qui sopra e racconta «{title}». Non guardare il testo originale!',
+            'reading.retell_bar_title':'📝 Racconto: ',
+            'reading.retell_outline_btn':'📋 Scaletta',
+            'reading.retell_exit_btn':'✕ Esci dal racconto',
+            'reading.lock_retell':'Racconto in corso: il testo è nascosto fino alla fine della scrittura.',
+            'reading.lock_discuss':'Discussione in corso: il testo è nascosto fino alla fine della conversazione.',
+            'reading.lock_history':'Attività in corso — la cronologia è nascosta fino alla fine',
+            'reading.judge_loading':'⏳ L\'IA sta preparando le domande…',
+            'reading.judge_no_key':'🔑 Inserisci a destra la tua API Key DeepSeek; le domande si generano da sole',
+            'reading.judge_summary':'🎯 Vero/Falso ({done}/{total}) Trova la frase corrispondente nel testo e giudica se l\'affermazione ha lo stesso significato',
+            'reading.judge_same':'✅ Stesso significato',
+            'reading.judge_diff':'❌ Significato diverso',
+            'reading.judge_ok':'✅ Esatto! Questa parola è stata salvata come «compresa»',
+            'reading.judge_no':'❌ Risposta corretta: ',
+            'reading.judge_true':'le due frasi hanno lo stesso significato',
+            'reading.judge_false':'le due frasi hanno significati diversi',
+            'reading.judge_done':'🎉 Tutto fatto!',
+            'reading.judge_fail':'Creazione domande non riuscita: ',
+            'reading.judge_retry':'🔄 Riprova',
+            'reading.judge_no_targets':'Nessuna parola sopra il tuo livello in questo testo'
+        },
+        'Vietnamese': {
+            'reading.judge_tab':'🎯 Đúng/Sai',
+            'reading.retell_tab':'📝 Kể lại bài đọc',
+            'reading.chat_btn':'💬 Thảo luận bài đọc',
+            'reading.retell_prep_title':'📝 Chuẩn bị kể lại',
+            'reading.retell_prep_hint':'① Bấm vào các từ trong bài để đánh dấu làm từ khóa (khung cam); ② Viết dàn ý bên dưới; ③ Bấm «Bắt đầu» thì bài đọc sẽ ẩn, bạn chỉ nhìn từ khóa và dàn ý để viết.',
+            'reading.retell_outline_ph':'Viết dàn ý, ví dụ:\nThời gian: …\nĐịa điểm: …\nNhân vật: …\nĐầu tiên… sau đó… cuối cùng…\nNhững từ muốn dùng:',
+            'reading.retell_go':'✅ Sẵn sàng — Bắt đầu kể lại', 'reading.retell_kw_label':'Từ khóa: ','reading.retell_outline_label':'Dàn ý: ',
+            'reading.retell_cancel':'Hủy',
+            'reading.retell_no_kw':'Chưa có từ khóa',
+            'reading.retell_need_kw':'Hãy chọn ít nhất một từ khóa hoặc viết dàn ý ngắn',
+            'reading.retell_started':'📝 Bắt đầu kể lại! Viết xong bấm «Nộp bài»',
+            'reading.retell_prep_toast':'📝 Bấm từ để đánh dấu, viết dàn ý, rồi bấm «Bắt đầu kể lại»',
+            'reading.retell_exited':'Đã thoát kể lại',
+            'reading.retell_placeholder':'Nhìn từ khóa và dàn ý phía trên, kể lại «{title}». Đừng nhìn bài gốc!',
+            'reading.retell_bar_title':'📝 Kể lại: ',
+            'reading.retell_outline_btn':'📋 Dàn ý',
+            'reading.retell_exit_btn':'✕ Thoát kể lại',
+            'reading.lock_retell':'Đang kể lại: bài đọc bị ẩn cho đến khi viết xong.',
+            'reading.lock_discuss':'Đang thảo luận: bài đọc bị ẩn cho đến khi kết thúc cuộc trò chuyện.',
+            'reading.lock_history':'Đang làm bài — lịch sử đọc bị ẩn cho đến khi xong',
+            'reading.judge_loading':'⏳ AI đang tạo câu hỏi…',
+            'reading.judge_no_key':'🔑 Nhập API Key DeepSeek ở bên phải, câu hỏi sẽ tự tạo',
+            'reading.judge_summary':'🎯 Đúng/Sai ({done}/{total}) Tìm câu tương ứng trong bài và xét xem câu này có cùng nghĩa không',
+            'reading.judge_same':'✅ Cùng nghĩa',
+            'reading.judge_diff':'❌ Khác nghĩa',
+            'reading.judge_ok':'✅ Đúng! Từ này đã được ghi là «đã hiểu»',
+            'reading.judge_no':'❌ Đáp án đúng: ',
+            'reading.judge_true':'hai câu có cùng nghĩa',
+            'reading.judge_false':'hai câu có nghĩa khác nhau',
+            'reading.judge_done':'🎉 Hoàn thành!',
+            'reading.judge_fail':'Tạo câu hỏi thất bại: ',
+            'reading.judge_retry':'🔄 Thử lại',
+            'reading.judge_no_targets':'Bài này không có từ nào cao hơn trình độ đã chọn'
+        },
+        'Indonesian': {
+            'reading.judge_tab':'🎯 Benar/Salah',
+            'reading.retell_tab':'📝 Ceritakan kembali',
+            'reading.chat_btn':'💬 Diskusi artikel',
+            'reading.retell_prep_title':'📝 Persiapan menceritakan',
+            'reading.retell_prep_hint':'① Ketuk kata dalam artikel untuk menandainya sebagai kata kunci (bingkai oranye); ② Tulis kerangka di bawah; ③ Saat menekan «Mulai», artikel disembunyikan dan kamu menulis hanya dengan kata kunci dan kerangka.',
+            'reading.retell_outline_ph':'Tulis kerangka, mis.:\nWaktu: …\nTempat: …\nOrang: …\nPertama… lalu… terakhir…\nKata yang ingin dipakai:',
+            'reading.retell_go':'✅ Siap — Mulai menceritakan', 'reading.retell_kw_label':'Kata kunci: ','reading.retell_outline_label':'Kerangka: ',
+            'reading.retell_cancel':'Batal',
+            'reading.retell_no_kw':'Belum ada kata kunci',
+            'reading.retell_need_kw':'Tandai setidaknya satu kata kunci atau tulis kerangka singkat',
+            'reading.retell_started':'📝 Mulai menceritakan! Setelah selesai tekan «Kirim»',
+            'reading.retell_prep_toast':'📝 Ketuk kata untuk menandai, tulis kerangka, lalu «Mulai menceritakan»',
+            'reading.retell_exited':'Selesai menceritakan',
+            'reading.retell_placeholder':'Lihat kata kunci dan kerangka di atas, lalu ceritakan kembali «{title}». Jangan melihat teks asli!',
+            'reading.retell_bar_title':'📝 Cerita ulang: ',
+            'reading.retell_outline_btn':'📋 Kerangka',
+            'reading.retell_exit_btn':'✕ Keluar dari cerita ulang',
+            'reading.lock_retell':'Sedang menceritakan: teks disembunyikan sampai menulis selesai.',
+            'reading.lock_discuss':'Diskusi sedang berlangsung: teks disembunyikan sampai percakapan berakhir.',
+            'reading.lock_history':'Tugas sedang berjalan — riwayat disembunyikan sampai selesai',
+            'reading.judge_loading':'⏳ AI sedang membuat soal…',
+            'reading.judge_no_key':'🔑 Masukkan API Key DeepSeek di sebelah kanan; soal dibuat otomatis',
+            'reading.judge_summary':'🎯 Benar/Salah ({done}/{total}) Cari kalimat yang sesuai di artikel lalu nilai apakah kalimat ini artinya sama',
+            'reading.judge_same':'✅ Arti sama',
+            'reading.judge_diff':'❌ Arti berbeda',
+            'reading.judge_ok':'✅ Benar! Kata ini dicatat sebagai «dipahami»',
+            'reading.judge_no':'❌ Jawaban benar: ',
+            'reading.judge_true':'dua kalimat itu artinya sama',
+            'reading.judge_false':'dua kalimat itu artinya berbeda',
+            'reading.judge_done':'🎉 Selesai semua!',
+            'reading.judge_fail':'Gagal membuat soal: ',
+            'reading.judge_retry':'🔄 Coba lagi',
+            'reading.judge_no_targets':'Tidak ada kata di atas level yang dipilih dalam artikel ini'
+        },
+        'Slovak': {
+            'reading.judge_tab':'🎯 Pravda/Nepravda',
+            'reading.retell_tab':'📝 Prerozprávaj text',
+            'reading.chat_btn':'💬 Diskusia o texte',
+            'reading.retell_prep_title':'📝 Príprava na prerozprávanie',
+            'reading.retell_prep_hint':'① Ťukni na slová v texte a označ ich ako kľúčové (oranžový rámik); ② Nižšie napíš osnovu; ③ Po stlačení «Začať» sa text skryje a píšeš len podľa kľúčových slov a osnovy.',
+            'reading.retell_outline_ph':'Napíš osnovu, napr.:\nČas: …\nMiesto: …\nĽudia: …\nNajprv… potom… nakoniec…\nSlová, ktoré chcem použiť:',
+            'reading.retell_go':'✅ Pripravené — Začať prerozprávanie', 'reading.retell_kw_label':'Kľúčové slová: ','reading.retell_outline_label':'Osnova: ',
+            'reading.retell_cancel':'Zrušiť',
+            'reading.retell_no_kw':'Zatiaľ žiadne kľúčové slová',
+            'reading.retell_need_kw':'Označ aspoň jedno kľúčové slovo alebo napíš krátku osnovu',
+            'reading.retell_started':'📝 Prerozprávaj! Keď skončíš, stlač «Odoslať»',
+            'reading.retell_prep_toast':'📝 Ťukaj na slová a označuj ich, napíš osnovu a potom «Začať prerozprávanie»',
+            'reading.retell_exited':'Prerozprávanie ukončené',
+            'reading.retell_placeholder':'Pozri sa na kľúčové slová a osnovu hore a prerozprávaj «{title}». Nepozeraj sa na originál!',
+            'reading.retell_bar_title':'📝 Prerozprávanie: ',
+            'reading.retell_outline_btn':'📋 Osnova',
+            'reading.retell_exit_btn':'✕ Ukončiť prerozprávanie',
+            'reading.lock_retell':'Prebieha prerozprávanie: text je skrytý, kým nedokončíš písanie.',
+            'reading.lock_discuss':'Prebieha diskusia: text je skrytý, kým sa rozhovor neskončí.',
+            'reading.lock_history':'Prebieha úloha — história je skrytá až do konca',
+            'reading.judge_loading':'⏳ AI vytvára otázky…',
+            'reading.judge_no_key':'🔑 Vpravo zadaj DeepSeek API kľúč; otázky sa vytvoria automaticky',
+            'reading.judge_summary':'🎯 Pravda/Nepravda ({done}/{total}) Nájdi v texte príslušnú vetu a posúď, či má výrok rovnaký význam',
+            'reading.judge_same':'✅ Rovnaký význam',
+            'reading.judge_diff':'❌ Iný význam',
+            'reading.judge_ok':'✅ Správne! Toto slovo je uložené ako «pochopené»',
+            'reading.judge_no':'❌ Správna odpoveď: ',
+            'reading.judge_true':'obe vety majú rovnaký význam',
+            'reading.judge_false':'obe vety majú odlišný význam',
+            'reading.judge_done':'🎉 Všetko hotové!',
+            'reading.judge_fail':'Otázky sa nepodarilo vytvoriť: ',
+            'reading.judge_retry':'🔄 Skúsiť znova',
+            'reading.judge_no_targets':'V tomto texte nie sú slová nad tvojou úrovňou'
+        }
+    };
 
     // 阅读模式粘贴文本直接阅读的多语种文案
     const I18N_NEW5 = {
@@ -12020,10 +12478,10 @@ const HSK2_VOCAB = [
     function t(key) {
         const lang = targetLangSelect ? targetLangSelect.value : 'English';
         const dict = I18N[lang];
-        const extra = Object.assign({}, I18N_EXTRA['Chinese'] || {}, I18N_EXTRA2['Chinese'] || {}, I18N_EXTRA3['Chinese'] || {}, (typeof I18N_GAP !== 'undefined' && I18N_GAP['Chinese']) || {}, (typeof I18N_NEW !== 'undefined' && I18N_NEW['Chinese']) || {}, (typeof I18N_NEW2 !== 'undefined' && I18N_NEW2['Chinese']) || {}, (typeof I18N_NEW3 !== 'undefined' && I18N_NEW3['Chinese']) || {}, (typeof I18N_NEW4 !== 'undefined' && I18N_NEW4['Chinese']) || {}, (typeof I18N_NEW5 !== 'undefined' && I18N_NEW5['Chinese']) || {}, (typeof I18N_NEW6 !== 'undefined' && I18N_NEW6['Chinese']) || {}, (typeof I18N_NEW7 !== 'undefined' && I18N_NEW7['Chinese']) || {}, (typeof I18N_NEW8 !== 'undefined' && I18N_NEW8['Chinese']) || {}, I18N_EXTRA[lang] || {}, I18N_EXTRA2[lang] || {}, I18N_EXTRA3[lang] || {}, (typeof I18N_GAP !== 'undefined' && I18N_GAP[lang]) || {}, (typeof I18N_NEW !== 'undefined' && I18N_NEW[lang]) || {}, (typeof I18N_NEW2 !== 'undefined' && I18N_NEW2[lang]) || {}, (typeof I18N_NEW3 !== 'undefined' && I18N_NEW3[lang]) || {}, (typeof I18N_NEW4 !== 'undefined' && I18N_NEW4[lang]) || {}, (typeof I18N_NEW5 !== 'undefined' && I18N_NEW5[lang]) || {}, (typeof I18N_NEW6 !== 'undefined' && I18N_NEW6[lang]) || {}, (typeof I18N_NEW7 !== 'undefined' && I18N_NEW7[lang]) || {}, (typeof I18N_NEW8 !== 'undefined' && I18N_NEW8[lang]) || {});
+        const extra = Object.assign({}, I18N_EXTRA['Chinese'] || {}, I18N_EXTRA2['Chinese'] || {}, I18N_EXTRA3['Chinese'] || {}, (typeof I18N_GAP !== 'undefined' && I18N_GAP['Chinese']) || {}, (typeof I18N_NEW !== 'undefined' && I18N_NEW['Chinese']) || {}, (typeof I18N_NEW2 !== 'undefined' && I18N_NEW2['Chinese']) || {}, (typeof I18N_NEW3 !== 'undefined' && I18N_NEW3['Chinese']) || {}, (typeof I18N_NEW4 !== 'undefined' && I18N_NEW4['Chinese']) || {}, (typeof I18N_NEW5 !== 'undefined' && I18N_NEW5['Chinese']) || {}, (typeof I18N_NEW6 !== 'undefined' && I18N_NEW6['Chinese']) || {}, (typeof I18N_NEW7 !== 'undefined' && I18N_NEW7['Chinese']) || {}, (typeof I18N_NEW8 !== 'undefined' && I18N_NEW8['Chinese']) || {}, (typeof I18N_NEW9 !== 'undefined' && I18N_NEW9['Chinese']) || {}, I18N_EXTRA[lang] || {}, I18N_EXTRA2[lang] || {}, I18N_EXTRA3[lang] || {}, (typeof I18N_GAP !== 'undefined' && I18N_GAP[lang]) || {}, (typeof I18N_NEW !== 'undefined' && I18N_NEW[lang]) || {}, (typeof I18N_NEW2 !== 'undefined' && I18N_NEW2[lang]) || {}, (typeof I18N_NEW3 !== 'undefined' && I18N_NEW3[lang]) || {}, (typeof I18N_NEW4 !== 'undefined' && I18N_NEW4[lang]) || {}, (typeof I18N_NEW5 !== 'undefined' && I18N_NEW5[lang]) || {}, (typeof I18N_NEW6 !== 'undefined' && I18N_NEW6[lang]) || {}, (typeof I18N_NEW7 !== 'undefined' && I18N_NEW7[lang]) || {}, (typeof I18N_NEW8 !== 'undefined' && I18N_NEW8[lang]) || {}, (typeof I18N_NEW9 !== 'undefined' && I18N_NEW9[lang]) || {});
         const voice = I18N_VOICE[lang] || I18N_VOICE['Chinese'] || {};
         const translated = (dict && dict[key]) ? dict[key] : (extra[key] || voice[key] || '');
-        const chinese = (ZH && ZH[key]) ? ZH[key] : ((I18N_EXTRA['Chinese'] && I18N_EXTRA['Chinese'][key]) || (I18N_EXTRA2['Chinese'] && I18N_EXTRA2['Chinese'][key]) || (I18N_EXTRA3['Chinese'] && I18N_EXTRA3['Chinese'][key]) || (typeof I18N_GAP !== 'undefined' && I18N_GAP['Chinese'] && I18N_GAP['Chinese'][key]) || (typeof I18N_NEW !== 'undefined' && I18N_NEW['Chinese'] && I18N_NEW['Chinese'][key]) || (typeof I18N_NEW2 !== 'undefined' && I18N_NEW2['Chinese'] && I18N_NEW2['Chinese'][key]) || (typeof I18N_NEW3 !== 'undefined' && I18N_NEW3['Chinese'] && I18N_NEW3['Chinese'][key]) || (typeof I18N_NEW4 !== 'undefined' && I18N_NEW4['Chinese'] && I18N_NEW4['Chinese'][key]) || (typeof I18N_NEW5 !== 'undefined' && I18N_NEW5['Chinese'] && I18N_NEW5['Chinese'][key]) || (typeof I18N_NEW6 !== 'undefined' && I18N_NEW6['Chinese'] && I18N_NEW6['Chinese'][key]) || (typeof I18N_NEW7 !== 'undefined' && I18N_NEW7['Chinese'] && I18N_NEW7['Chinese'][key]) || (typeof I18N_NEW8 !== 'undefined' && I18N_NEW8['Chinese'] && I18N_NEW8['Chinese'][key]) || (I18N_VOICE['Chinese'] && I18N_VOICE['Chinese'][key]) || '');
+        const chinese = (ZH && ZH[key]) ? ZH[key] : ((I18N_EXTRA['Chinese'] && I18N_EXTRA['Chinese'][key]) || (I18N_EXTRA2['Chinese'] && I18N_EXTRA2['Chinese'][key]) || (I18N_EXTRA3['Chinese'] && I18N_EXTRA3['Chinese'][key]) || (typeof I18N_GAP !== 'undefined' && I18N_GAP['Chinese'] && I18N_GAP['Chinese'][key]) || (typeof I18N_NEW !== 'undefined' && I18N_NEW['Chinese'] && I18N_NEW['Chinese'][key]) || (typeof I18N_NEW2 !== 'undefined' && I18N_NEW2['Chinese'] && I18N_NEW2['Chinese'][key]) || (typeof I18N_NEW3 !== 'undefined' && I18N_NEW3['Chinese'] && I18N_NEW3['Chinese'][key]) || (typeof I18N_NEW4 !== 'undefined' && I18N_NEW4['Chinese'] && I18N_NEW4['Chinese'][key]) || (typeof I18N_NEW5 !== 'undefined' && I18N_NEW5['Chinese'] && I18N_NEW5['Chinese'][key]) || (typeof I18N_NEW6 !== 'undefined' && I18N_NEW6['Chinese'] && I18N_NEW6['Chinese'][key]) || (typeof I18N_NEW7 !== 'undefined' && I18N_NEW7['Chinese'] && I18N_NEW7['Chinese'][key]) || (typeof I18N_NEW8 !== 'undefined' && I18N_NEW8['Chinese'] && I18N_NEW8['Chinese'][key]) || (typeof I18N_NEW9 !== 'undefined' && I18N_NEW9['Chinese'] && I18N_NEW9['Chinese'][key]) || (I18N_VOICE['Chinese'] && I18N_VOICE['Chinese'][key]) || '');
         if (!translated) return chinese || key;
         return translated;
     }
@@ -12197,6 +12655,7 @@ const HSK2_VOCAB = [
         if (document.getElementById('readingLevelSelect')) renderReadingLevelSelect();
         const rfb = document.getElementById('readingFinishBtn'); if(rfb) rfb.textContent = currentReadingAnalyzed ? t('reading.finish_done') : t('reading.finish_btn');
         const rcb = document.getElementById('readingChatBtn'); if(rcb) rcb.textContent = t('reading.chat_btn');
+        if (typeof applyReadingTaskLanguage === 'function') applyReadingTaskLanguage();
         const wcb = document.getElementById('writingChatBtn'); if(wcb) wcb.textContent = t('writing.chat_btn');
         const rpb = document.getElementById('readingPasteBtn'); if(rpb) rpb.textContent = t('reading.paste_btn');
         const rpi = document.getElementById('readingPasteInput'); if(rpi) rpi.placeholder = t('reading.paste_placeholder');
@@ -14221,7 +14680,7 @@ ${searchRule}
         // 复述/讨论进行中：原文锁定，结束后才能看
         if (window._hideReadingForTask) {
             contentEl.innerHTML = '<div class="empty-detail" style="padding:40px 16px;">🔒 ' +
-                (window._hideReadingForTask === 'retell' ? '复述进行中：原文暂时隐藏，写作结束后才能查看。' : '文章讨论进行中：原文暂时隐藏，结束对话后才能查看。') +
+                escapeHtml(window._hideReadingForTask === 'retell' ? t('reading.lock_retell') : t('reading.lock_discuss')) +
                 '</div>';
             const taskArea = document.getElementById('readingTaskArea');
             if (taskArea) taskArea.style.display = 'none';
@@ -14974,7 +15433,7 @@ ${searchRule}
         const el = document.getElementById('readingHistoryList');
         if (!el) return;
         if (window._hideReadingForTask) {
-            el.innerHTML = '<div class="empty-detail" style="padding:20px 8px;">🔒 任务进行中，结束后才能查看阅读历史</div>';
+            el.innerHTML = '<div class="empty-detail" style="padding:20px 8px;">🔒 ' + escapeHtml(t('reading.lock_history')) + '</div>';
             return;
         }
         if (readingHistory.length === 0) { el.innerHTML = '<div class="empty-detail">—</div>'; return; }
@@ -15110,18 +15569,18 @@ ${searchRule}
         renderReadingTrackLists();
     }
     async function generateReadingJudge(auto){
-        if (!currentReading) { showToast('请先生成短文'); return; }
+        if (!currentReading) { showToast(t('reading.no_article')); return; }
         const apiKey = apiKeyInput.value.trim();
         const area = document.getElementById('readingJudgeArea');
         if (!apiKey) {
             if (!auto) alert(t('api_key_required'));
-            else if (area) area.innerHTML = '<div style="text-align:center;color:#b45309;padding:14px;">🔑 请先在右侧输入 DeepSeek API Key，判断题会自动生成</div>';
+            else if (area) area.innerHTML = '<div style="text-align:center;color:#b45309;padding:14px;">' + escapeHtml(t('reading.judge_no_key')) + '</div>';
             return;
         }
-        if (area) area.innerHTML = '<div style="text-align:center;color:#64748b;padding:14px;">⏳ AI 正在出判断题，请稍候…</div>';
+        if (area) area.innerHTML = '<div style="text-align:center;color:#64748b;padding:14px;">' + escapeHtml(t('reading.judge_loading')) + '</div>';
         try {
             const targets = collectReadingJudgeTargets();
-            if (!targets.length) throw new Error('文章里没有高于所选等级的词语');
+            if (!targets.length) throw new Error(t('reading.judge_no_targets'));
             const rLevel = currentReading.level || getReadingLevel();
             const targetLang = targetLangSelect.value;
             // 一个目标词一道题，题目数量完全由目标词数量决定
@@ -15142,7 +15601,7 @@ ${searchRule}
             if (hidx >= 0) { readingHistory[hidx].judgeItems = currentReading.judgeItems; saveReadingHistory(); }
             renderReadingJudgeArea();
         } catch (e) {
-            if (area) area.innerHTML = '<div style="text-align:center;color:#c0392b;padding:14px;">出题失败：' + escapeHtml((e && e.message) || '') + ' <a href="javascript:void(0)" onclick="window._readingJudgeRegen()" style="color:#c0392b;text-decoration:underline;">🔄 重试</a></div>';
+            if (area) area.innerHTML = '<div style="text-align:center;color:#c0392b;padding:14px;">' + escapeHtml(t('reading.judge_fail')) + escapeHtml((e && e.message) || '') + ' <a href="javascript:void(0)" onclick="window._readingJudgeRegen()" style="color:#c0392b;text-decoration:underline;">' + escapeHtml(t('reading.judge_retry')) + '</a></div>';
         }
     }
     window._readingJudgeRegen = function(){ generateReadingJudge(false); };
@@ -15151,7 +15610,7 @@ ${searchRule}
         if (!area) return;
         if (window._hideReadingForTask) { area.innerHTML = ''; return; }
         area.style.display = 'block';
-        let html = '<div class="reading-judge-summary">🎯 判断题（' + readingJudgeDone + '/' + readingJudgeItems.length + '）在文中找到对应的句子，判断下面说法和文中句子的意思是否一样</div>';
+        let html = '<div class="reading-judge-summary">' + escapeHtml(t('reading.judge_summary').replace('{done}', readingJudgeDone).replace('{total}', readingJudgeItems.length)) + '</div>';
         readingJudgeItems.forEach((it, i) => {
             const answered = it.userAnswer != null;
             const ok = answered && (it.userAnswer === !!it.isTrue);
@@ -15164,19 +15623,19 @@ ${searchRule}
             html += '<div class="reading-judge-card" data-idx="' + i + '">'
                 + '<div class="rj-statement">💬 ' + escapeHtml(it.statement) + '</div>'
                 + '<div class="rj-btns">'
-                + '<button class="rj-btn' + btnCls(true) + '" data-ans="true"' + (answered ? ' disabled' : '') + '>✅ 意思一样</button>'
-                + '<button class="rj-btn' + btnCls(false) + '" data-ans="false"' + (answered ? ' disabled' : '') + '>❌ 意思不一样</button>'
+                + '<button class="rj-btn' + btnCls(true) + '" data-ans="true"' + (answered ? ' disabled' : '') + '>' + escapeHtml(t('reading.judge_same')) + '</button>'
+                + '<button class="rj-btn' + btnCls(false) + '" data-ans="false"' + (answered ? ' disabled' : '') + '>' + escapeHtml(t('reading.judge_diff')) + '</button>'
                 + '</div>';
             if (answered) {
                 html += '<div class="rj-feedback ' + (ok ? 'ok' : 'no') + '">'
-                    + (ok ? '✅ 判断正确！已把这个词记入「理解词」' : '❌ 正确答案是：' + (it.isTrue ? '两个句子意思一样' : '两个句子意思不一样'))
+                    + (ok ? escapeHtml(t('reading.judge_ok')) : escapeHtml(t('reading.judge_no')) + escapeHtml(it.isTrue ? t('reading.judge_true') : t('reading.judge_false')))
                     + (it.why ? ' — ' + escapeHtml(it.why) : '')
                     + '</div>';
             }
             html += '</div>';
         });
         if (readingJudgeDone >= readingJudgeItems.length && readingJudgeItems.length) {
-            html += '<div style="text-align:center;color:#2e7d32;font-weight:700;padding:8px;">🎉 全部完成！</div>';
+            html += '<div style="text-align:center;color:#2e7d32;font-weight:700;padding:8px;">' + escapeHtml(t('reading.judge_done')) + '</div>';
         }
         area.innerHTML = html;
     }
@@ -15237,13 +15696,13 @@ ${searchRule}
         if (!box) return;
         box.innerHTML = (retellState && retellState.keywords.length)
             ? retellState.keywords.map(w => '<span class="rrp-chip">' + escapeHtml(w) + '</span>').join('')
-            : '<span style="color:#94a3b8;font-size:0.8rem;">还没有选关键词</span>';
+            : '<span style="color:#94a3b8;font-size:0.8rem;">' + escapeHtml(t('reading.retell_no_kw')) + '</span>';
     }
     function syncRetellOutlineTextarea(){
         const ta = document.getElementById('readingRetellOutline');
         if (!ta || !retellState) return;
         if (!ta.dataset.touched) {
-            ta.value = (retellState.keywords.length ? '关键词：' + retellState.keywords.join('、') + '\n\n' : '') + '提纲：\n';
+            ta.value = (retellState.keywords.length ? t('reading.retell_kw_label') + retellState.keywords.join('、') + '\n\n' : '') + t('reading.retell_outline_label') + '\n';
         }
     }
     function toggleRetellKeyword(el){
@@ -15256,7 +15715,7 @@ ${searchRule}
         syncRetellOutlineTextarea();
     }
     function startRetellPrep(){
-        if (!currentReading) { showToast('请先生成短文'); return; }
+        if (!currentReading) { showToast(t('reading.no_article')); return; }
         retellState = { title: currentReading.title || '', article: String(currentReading.content || ''), keywords: [], outline: '' };
         document.querySelectorAll('#readingContent .read-word').forEach(el => el.classList.remove('kw-mark'));
         const ta = document.getElementById('readingRetellOutline');
@@ -15267,7 +15726,7 @@ ${searchRule}
         setReadingTaskTab('retell');
         renderRetellChips();
         syncRetellOutlineTextarea();
-        showToast('📝 点击文章里的词标记关键词，写完提纲点「开始复述」');
+        showToast(t('reading.retell_prep_toast'));
     }
     function cancelRetellPrep(){
         readingRetellPrep = false;
@@ -15276,10 +15735,10 @@ ${searchRule}
         setReadingTaskTab('judge');
     }
     function startRetelling(){
-        if (!retellState) { showToast('请先标记关键词'); return; }
+        if (!retellState) { showToast(t('reading.retell_need_kw')); return; }
         const ta = document.getElementById('readingRetellOutline');
         retellState.outline = ta ? ta.value.trim() : '';
-        if (!retellState.keywords.length && !retellState.outline) { showToast('请至少标记一个关键词或写一点提纲'); return; }
+        if (!retellState.keywords.length && !retellState.outline) { showToast(t('reading.retell_need_kw')); return; }
         readingRetellPrep = false;
         document.querySelectorAll('#readingContent .read-word.kw-mark').forEach(el => el.classList.remove('kw-mark'));
         window._retellContext = { article: retellState.article, keywords: retellState.keywords.slice(), outline: retellState.outline, title: retellState.title };
@@ -15295,7 +15754,7 @@ ${searchRule}
         // 清空写作面板旧状态，进入复述写作
         writingSession = null; writingTopic = ''; writingRequiredWords = [];
         const wta = document.getElementById('writingTextarea');
-        if (wta) { wta.value = ''; wta.placeholder = '请看着上面的关键词和提纲，复述《' + (retellState.title || '短文') + '》。不要看原文！'; }
+        if (wta) { wta.value = ''; wta.placeholder = t('reading.retell_placeholder').replace('{title}', retellState.title || ''); }
         const wr = document.getElementById('writingResults');
         if (wr) { wr.innerHTML = ''; wr.classList.remove('active'); }
         const sa = document.getElementById('sentenceArea');
@@ -15304,7 +15763,7 @@ ${searchRule}
         updateWritingLengthHint();
         switchMode('writing');
         renderWritingRetellBar();
-        showToast('📝 开始复述吧！写完点「提交批改」');
+        showToast(t('reading.retell_started'));
     }
     function renderWritingRetellBar(){
         const bar = document.getElementById('writingRetellBar');
@@ -15324,7 +15783,31 @@ ${searchRule}
         const bar = document.getElementById('writingRetellBar');
         if (bar) bar.style.display = 'none';
         clearReadingTaskLock();
-        showToast('已退出复述');
+        showToast(t('reading.retell_exited'));
+    }
+    // 阅读理解新功能文案多语言刷新
+    function applyReadingTaskLanguage(){
+        const jt = document.getElementById('readingJudgeTabBtn');
+        if (jt) jt.textContent = t('reading.judge_tab');
+        const rt = document.getElementById('readingRetellTabBtn');
+        if (rt) rt.textContent = t('reading.retell_tab');
+        const title = document.querySelector('#readingRetellPrep .rrp-title');
+        if (title) title.textContent = t('reading.retell_prep_title');
+        const hint = document.querySelector('#readingRetellPrep .rrp-hint');
+        if (hint) hint.textContent = t('reading.retell_prep_hint');
+        const ta = document.getElementById('readingRetellOutline');
+        if (ta && !ta.dataset.touched) ta.placeholder = t('reading.retell_outline_ph');
+        const go = document.getElementById('readingRetellGoBtn');
+        if (go) go.textContent = t('reading.retell_go');
+        const cancel = document.getElementById('readingRetellCancelBtn');
+        if (cancel) cancel.textContent = t('reading.retell_cancel');
+        const wo = document.getElementById('writingRetellOutlineBtn');
+        if (wo) wo.textContent = t('reading.retell_outline_btn');
+        const we = document.getElementById('writingRetellExitBtn');
+        if (we) we.textContent = t('reading.retell_exit_btn');
+        const wp = document.getElementById('writingRetellTitlePrefix');
+        if (wp) wp.textContent = t('reading.retell_bar_title');
+        if (readingJudgeItems && readingJudgeItems.length) renderReadingJudgeArea();
     }
     (function bindReadingNewFeatures(){
         const judgeTab = document.getElementById('readingJudgeTabBtn');
@@ -15509,9 +15992,7 @@ ${searchRule}
         ov = document.createElement('div');
         ov.id = 'gotoChatOverlay';
         ov.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,0.55);z-index:10002;display:flex;align-items:center;justify-content:center;padding:16px;';
-        const goBtn = (kind === 'reading')
-            ? '<button id="gotoChatYes" style="padding:10px 22px;border-radius:16px;border:none;cursor:pointer;background:#1e2b5e;color:#fff;font-weight:700;font-size:0.9rem;">💬 文章讨论</button>'
-            : '<button id="gotoChatYes" style="padding:10px 22px;border-radius:16px;border:none;cursor:pointer;background:#1e2b5e;color:#fff;font-weight:700;font-size:0.9rem;">' + escapeHtml(t('goto_chat.go')) + '</button>';
+        const goBtn = '<button id="gotoChatYes" style="padding:10px 22px;border-radius:16px;border:none;cursor:pointer;background:#1e2b5e;color:#fff;font-weight:700;font-size:0.9rem;">' + escapeHtml(t('goto_chat.go')) + '</button>';
         ov.innerHTML = '<div style="background:#fff;border-radius:20px;max-width:520px;width:100%;padding:24px;box-shadow:0 10px 40px rgba(0,0,0,0.25);font-family:inherit;text-align:center;">' +
             '<div style="font-size:2rem;margin-bottom:8px;">💬</div>' +
             '<div style="font-weight:700;font-size:1.05rem;color:#1e2b5e;margin-bottom:6px;">' + escapeHtml(t('goto_chat.title')) + '</div>' +
@@ -15529,7 +16010,7 @@ ${searchRule}
         if(!apiKey){ alert(t('api_key_required')); return; }
         let ctx = '';
         if(kind === 'reading'){
-            if(!currentReading){ showToast('请先生成短文，再读完去聊天'); return; }
+            if(!currentReading){ showToast(t('reading.no_article')); return; }
             ctx = '学生刚读完一篇短文。\n标题：' + (currentReading.title || '') + '\n主题：' + (currentReading.topic || '') + '\n内容：\n' + String(currentReading.content || '').slice(0, 1200);
             // 讨论进行中：阅读原文和历史锁定，结束对话后才能看
             window._hideReadingForTask = 'discuss';
