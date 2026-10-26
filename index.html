@@ -617,19 +617,6 @@
         <p class="login-note">输入任意用户名和密码即可创建账号。相同账号下次登录可看到历史记录。</p>
     </div>
 </div>
-<div id="classTokenOverlay" class="login-overlay hidden">
-    <div class="login-card">
-        <div class="login-icon">🔑</div>
-        <h2 class="login-title">班级口令</h2>
-        <p class="login-subtitle">请输入老师提供的班级口令后使用 AI 功能</p>
-        <div class="login-form">
-            <input type="password" id="classTokenInput" class="login-input" placeholder="班级口令 / Class token" autocomplete="off">
-            <div id="classTokenError" class="login-error"></div>
-            <button id="classTokenBtn" class="login-btn">验 证</button>
-        </div>
-        <p class="login-note">只需输入一次，本设备会自动记住。换设备或清理浏览器后需重新输入。</p>
-    </div>
-</div>
 <div id="toast" class="toast"></div>
 <div class="app">
     <div class="chat-panel">
@@ -984,11 +971,9 @@
                     <option value="Slovak">斯洛伐克语 Slovenčina</option>
                 </select>
             </div>
-            <div id="apiKeySection">
-                <div class="stat-title"><span>📚 API 设置</span><span class="level-badge">🔑</span></div>
-                <input type="password" class="api-key-input" id="apiKeyInput" placeholder="DeepSeek API Key（云端代理模式无需填写）" value="" autocomplete="off">
-                <div class="small-note" id="apiKeyStatus">🔑 线上模式由服务器统一管理 API Key，无需填写；本地开发模式可填写自己的 Key。</div>
-            </div>
+            <div class="stat-title"><span>📚 API 设置</span><span class="level-badge">🔑</span></div>
+            <input type="password" class="api-key-input" id="apiKeyInput" placeholder="请输入老师提供的 DeepSeek API Key" value="" autocomplete="off">
+            <div class="small-note" id="apiKeyStatus">🔑 请输入老师提供的 DeepSeek API Key（不会保存，每次打开页面重新输入）。</div>
             <div class="stat-title"><span>📊 语法点明细 (点击查看明细)</span></div>
             <div class="progress-grid" id="levelProgress"></div>
         </div>
@@ -5380,65 +5365,11 @@ const HSK2_VOCAB = [
     function favoriteKey(){ return FAVORITE_STORAGE_PREFIX + currentUser; }
     function minutesKey(){ return 'HSK_TOTAL_MINUTES_' + currentUser; }
 
-    // 自动检测运行环境：本地服务器走本地代理；线上走 Pages Functions 代理（Key 和口令都在服务器端）
-    // ★ 代理部署在 Pages 项目里，与网页同域（workers.dev 在国内被墙，不能使用）：
-    const WORKER_BASE = 'https://hsk-helper.pages.dev';
+    // 自动检测运行环境：本地服务器走本地代理；线上（GitHub Pages 等静态托管）直连 DeepSeek API
     const IS_LOCAL_SERVER = (location.hostname === 'localhost' || location.hostname === '127.0.0.1');
-    const WORKER_CONFIGURED = WORKER_BASE && WORKER_BASE.indexOf('__YOUR') !== 0;
     const API_BASE = IS_LOCAL_SERVER
         ? '/v1/chat/completions'
-        : (WORKER_CONFIGURED
-            ? WORKER_BASE + '/v1/chat/completions'
-            : 'https://api.deepseek.com/v1/chat/completions');
-
-    // ==================== 班级口令（仅云端代理模式） ====================
-    // 口令保存在本机 localStorage，验证通过后每次调用 AI 自动附带，无需重复输入
-    const CLASS_TOKEN_STORAGE = 'HSK_CLASS_TOKEN_V1';
-    function getClassToken(){ try { return localStorage.getItem(CLASS_TOKEN_STORAGE) || ''; } catch(e){ return ''; } }
-    function useWorkerProxy(){ return WORKER_CONFIGURED && !IS_LOCAL_SERVER; }
-    function classTokenRequired(){ return useWorkerProxy() && !getClassToken(); }
-    function showClassTokenOverlay(errMsg){
-        const ov = document.getElementById('classTokenOverlay');
-        if (!ov) return;
-        const errEl = document.getElementById('classTokenError');
-        if (errEl) errEl.textContent = errMsg || '';
-        ov.classList.remove('hidden');
-        const inp = document.getElementById('classTokenInput');
-        if (inp) { inp.value = ''; setTimeout(() => inp.focus(), 100); }
-    }
-    function hideClassTokenOverlay(){
-        const ov = document.getElementById('classTokenOverlay');
-        if (ov) ov.classList.add('hidden');
-    }
-    function ensureClassToken(){
-        if (classTokenRequired()) showClassTokenOverlay('');
-    }
-    async function verifyClassToken(){
-        const inp = document.getElementById('classTokenInput');
-        const btn = document.getElementById('classTokenBtn');
-        const errEl = document.getElementById('classTokenError');
-        if (!inp || !btn) return;
-        const tok = inp.value.trim();
-        if (!tok) { if (errEl) errEl.textContent = '⚠️ 请输入班级口令'; return; }
-        btn.disabled = true; btn.textContent = '验证中...';
-        try {
-            const resp = await fetch(WORKER_BASE + '/ping?_=' + Date.now(), { headers: { 'X-Class-Token': tok } });
-            if (resp.status === 200) {
-                try { localStorage.setItem(CLASS_TOKEN_STORAGE, tok); } catch(e) {}
-                hideClassTokenOverlay();
-                showToast('✅ 口令正确，可以开始使用了');
-            } else if (resp.status === 401) {
-                if (errEl) errEl.textContent = '❌ 口令不正确，请向老师确认后重试';
-            } else if (resp.status === 429) {
-                if (errEl) errEl.textContent = '⚠️ 尝试太频繁，请稍后再试';
-            } else {
-                if (errEl) errEl.textContent = '⚠️ 无法连接服务器，请检查网络后重试';
-            }
-        } catch(e) {
-            if (errEl) errEl.textContent = '⚠️ 无法连接服务器，请检查网络后重试';
-        }
-        btn.disabled = false; btn.textContent = '验 证';
-    }
+        : 'https://api.deepseek.com/v1/chat/completions';
 
     // ==================== API Key 校验（保持占位符：不校验，Key 不写入 HTML） ====================
     // VALID_API_KEY_HASH 可由 node set_api_key_hash.js 写入，但按需求不再使用。
@@ -5513,7 +5444,7 @@ const HSK2_VOCAB = [
         if (!apiKeyHashConfigured()) return true;   // 未配置哈希时不校验
         return sha256Hex(k) === VALID_API_KEY_HASH.trim().toLowerCase();
     }
-    // 拦截 DeepSeek 请求：校验 Key、自动附带班级口令、口令失效时弹出重输框
+    // 拦截 DeepSeek 请求：只有通过校验的 Key 才会真正发送（其它请求不受影响）
     (function installApiKeyGuard(){
         const originalFetch = window.fetch.bind(window);
         window.fetch = function(url, opts){
@@ -5529,24 +5460,8 @@ const HSK2_VOCAB = [
                         return Promise.reject(new Error('❌ API Key 不正确，只有管理员提供的新 Key 才能使用'));
                     }
                 }
-                // 云端代理模式：自动附带班级口令
-                if (useWorkerProxy()) {
-                    try { h['X-Class-Token'] = getClassToken(); } catch(e) {}
-                }
             }
-            const p = originalFetch(url, opts);
-            // 云端代理模式：口令错误/过期（401/403）时清空口令并弹出重输框
-            if (isDeepSeek && useWorkerProxy()) {
-                return p.then(resp => {
-                    if (resp.status === 401 || resp.status === 403) {
-                        try { localStorage.removeItem(CLASS_TOKEN_STORAGE); } catch(e) {}
-                        showClassTokenOverlay('口令错误或已过期，请重新输入班级口令');
-                        return Promise.reject(new Error('CLASS_TOKEN_INVALID'));
-                    }
-                    return resp;
-                });
-            }
-            return p;
+            return originalFetch(url, opts);
         };
     })();
     function refreshApiKeyStatus(){
@@ -5554,12 +5469,12 @@ const HSK2_VOCAB = [
         if (!el) return;
         const k = apiKeyInput.value.trim();
         if (!apiKeyHashConfigured()) {
-            el.textContent = '';
+            el.textContent = '🔑 请输入老师提供的 DeepSeek API Key（不会保存，每次打开页面重新输入）。';
             el.style.color = '#64748b';
             return;
         }
         if (!k) {
-            el.textContent = '';
+            el.textContent = '🔑 请输入老师提供的 DeepSeek API Key。';
             el.style.color = '#64748b';
         } else if (isValidApiKey(k)) {
             el.textContent = '✅ API Key 正确，可以使用。';
@@ -16082,13 +15997,6 @@ ${searchRule}
     const sendBtn = document.getElementById('sendBtn'), endBtn = document.getElementById('endConversationBtn');
     const levelProgressDiv = document.getElementById('levelProgress');
     const apiKeyInput = document.getElementById('apiKeyInput'), grammarLibraryList = document.getElementById('grammarLibraryList');
-    // 云端代理模式：API Key 由服务器管理，页面填入占位值并只隐藏 API 设置区块
-    // （同一卡片里的「学生母语」语言选择和「语法点明细」进度必须保持可见）
-    if (useWorkerProxy() && apiKeyInput) {
-        apiKeyInput.value = 'worker-mode';
-        const apiKeySection = document.getElementById('apiKeySection');
-        if (apiKeySection) apiKeySection.style.display = 'none';
-    }
     const grammarViewLevel = document.getElementById('grammarViewLevel');
     const aiLevelSelect = document.getElementById('aiLevelSelect');
     const targetLangSelect = document.getElementById('targetLanguageSelect');
@@ -20195,7 +20103,7 @@ async function generateAndShowPractice(grammarPattern, grammarLevel, forceNew=fa
     function getUsers(){ const raw=localStorage.getItem(USERS_STORAGE); return raw?JSON.parse(raw):{}; }
     function saveUsers(users){ localStorage.setItem(USERS_STORAGE, JSON.stringify(users)); }
     function updateHeaderUser(){ const el=document.getElementById('headerUsername'); if(currentUser){ el.innerHTML=t('user.welcome')+escapeHtml(currentUser)+' <span class="logout-link" id="logoutLink">'+t('user.logout')+'</span>'; document.getElementById('logoutLink').onclick=handleLogout; } else { el.innerHTML=''; } }
-    async function handleLogin(){ const username=document.getElementById('loginUsername').value.trim(); const password=document.getElementById('loginPassword').value.trim(); const errorEl=document.getElementById('loginError'); const btn=document.getElementById('loginBtn'); if(!username||!password){ errorEl.textContent=t('login.error_empty'); return; } btn.disabled=true; btn.textContent=t('login.verifying'); errorEl.textContent=''; try { const users=getUsers(); const fast=hashPassword(password,username); const stored=users[username]; if(stored){ if(fast===stored){ /* new format match */ } else if(!stored.startsWith('fallback_')&&/^[0-9a-f]{64}$/.test(stored)){ const cryptoHash=await tryCryptoHash(password,username); if(cryptoHash!==stored){ errorEl.textContent=t('login.error_wrong'); btn.disabled=false; btn.textContent=t('login.button'); return; } } else { errorEl.textContent=t('login.error_wrong'); btn.disabled=false; btn.textContent=t('login.button'); return; } } else { users[username]=fast; saveUsers(users); } currentUser=username; localStorage.setItem(CURRENT_USER_STORAGE,username); document.getElementById('loginOverlay').classList.add('hidden'); updateHeaderUser(); finishInit(); ensureClassToken(); } catch(e) { errorEl.textContent=t('login.error_fail'); btn.disabled=false; btn.textContent=t('login.button'); } }
+    async function handleLogin(){ const username=document.getElementById('loginUsername').value.trim(); const password=document.getElementById('loginPassword').value.trim(); const errorEl=document.getElementById('loginError'); const btn=document.getElementById('loginBtn'); if(!username||!password){ errorEl.textContent=t('login.error_empty'); return; } btn.disabled=true; btn.textContent=t('login.verifying'); errorEl.textContent=''; try { const users=getUsers(); const fast=hashPassword(password,username); const stored=users[username]; if(stored){ if(fast===stored){ /* new format match */ } else if(!stored.startsWith('fallback_')&&/^[0-9a-f]{64}$/.test(stored)){ const cryptoHash=await tryCryptoHash(password,username); if(cryptoHash!==stored){ errorEl.textContent=t('login.error_wrong'); btn.disabled=false; btn.textContent=t('login.button'); return; } } else { errorEl.textContent=t('login.error_wrong'); btn.disabled=false; btn.textContent=t('login.button'); return; } } else { users[username]=fast; saveUsers(users); } currentUser=username; localStorage.setItem(CURRENT_USER_STORAGE,username); document.getElementById('loginOverlay').classList.add('hidden'); updateHeaderUser(); finishInit(); } catch(e) { errorEl.textContent=t('login.error_fail'); btn.disabled=false; btn.textContent=t('login.button'); } }
     function handleLogout(){ if(confirm(t('logout.confirm'))){ usedMap.clear(); favoriteSentences=[]; queriedItems=[]; chatHistory=[]; currentSessionClauses=[]; sessionUserMessages=[]; window._chatSessionMistakes=[]; learnPlan={}; vocabUsedMap.clear(); vocabCorrectList=[]; lastGeneratedVocabSentences.clear(); allGeneratedVocabSet.clear(); lastGeneratedSentences.clear(); lastGrammarMeta.clear(); lastGeneratedCollocations.clear(); usedPracticeStructures.clear(); wrongSentences=[]; writingEssays=[]; writingTopic=''; window._learnCustomData={}; currentLearnTab=null; readingTrack={unknownIn:{},knownIn:{},unknownOut:{}}; readingSessionUnknowns=[]; readingClickedSentences=[]; currentReadingAnalyzed=false; zmsRecords=[]; zmsAttemptState={}; window._zmsWrongAttempts=[]; window._reflectionResults=[]; window._reflectionQueue=[]; window._reflectionReasons=[]; window._reflectionDoneCallback=null; window._sentenceState=null; window._sentenceMistakes=[]; vocabDimMap={}; writingRequiredWords=[]; sentenceRows=[]; gapBank={words:[],patterns:[]}; renderGapBankUI(); totalMinutes=0; currentUser=null; localStorage.removeItem(CURRENT_USER_STORAGE); document.getElementById('loginOverlay').classList.remove('hidden'); document.getElementById('loginPassword').value=''; document.getElementById('loginError').textContent=''; document.getElementById('loginBtn').disabled=false; document.getElementById('loginBtn').textContent=t('login.button'); document.getElementById('chatMessages').innerHTML='<div class="message assistant-message"><div class="bubble assistant-bubble">'+t('chat.greeting')+'</div><div class="timestamp">'+t('chat.just_now')+'</div></div>'; updateHeaderUser(); grammarList=buildFullGrammarList(); renderLevelProgress(); updateGrammarDisplayByLevel(parseInt(grammarViewLevel.value)); renderTrackList(); renderVocabLevelProgress(); renderVocabLibrary(parseInt(document.getElementById('vocabViewLevel')?.value)||1); renderVocabTrackList(); renderQueriedBook(); renderFavoriteBook(); renderWrongSentences(); renderLearnTasks(); } }
     function switchGrammarTab(id, btn){ const tabs=btn.parentElement; tabs.querySelectorAll('.browser-tab').forEach(t=>t.classList.remove('active')); btn.classList.add('active'); const card=tabs.parentElement; const content=card.querySelector('.browser-tab-content'); if(content){ content.querySelectorAll('.track-list').forEach(l=>l.style.display='none'); const target=document.getElementById(id); if(target){target.style.display=''; target.style.display='block';} } }
     function switchVocabTab(id, btn){ const tabs=btn.parentElement; tabs.querySelectorAll('.browser-tab').forEach(t=>t.classList.remove('active')); btn.classList.add('active'); const card=tabs.parentElement; const content=card.querySelector('.browser-tab-content'); if(content){ content.querySelectorAll('.track-list').forEach(l=>l.style.display='none'); const target=document.getElementById(id); if(target){target.style.display=''; target.style.display='block';} } }
@@ -22446,19 +22354,12 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
         document.getElementById('loginPassword').addEventListener('keypress', e => { if(e.key === 'Enter') handleLogin(); });
         document.getElementById('loginUsername').addEventListener('keypress', e => { if(e.key === 'Enter') document.getElementById('loginPassword').focus(); });
 
-        // 绑定班级口令按钮事件（云端代理模式）
-        const classTokenBtn = document.getElementById('classTokenBtn');
-        if (classTokenBtn) classTokenBtn.onclick = verifyClassToken;
-        const classTokenInput = document.getElementById('classTokenInput');
-        if (classTokenInput) classTokenInput.addEventListener('keypress', e => { if (e.key === 'Enter') verifyClassToken(); });
-
         const savedUser = localStorage.getItem(CURRENT_USER_STORAGE);
         if(savedUser){
             currentUser = savedUser;
             document.getElementById('loginOverlay').classList.add('hidden');
             updateHeaderUser();
             finishInit();
-            ensureClassToken();
             return;
         }
         document.getElementById('loginOverlay').classList.remove('hidden');
