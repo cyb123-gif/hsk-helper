@@ -984,9 +984,11 @@
                     <option value="Slovak">斯洛伐克语 Slovenčina</option>
                 </select>
             </div>
-            <div class="stat-title"><span>📚 API 设置</span><span class="level-badge">🔑</span></div>
-            <input type="password" class="api-key-input" id="apiKeyInput" placeholder="DeepSeek API Key（云端代理模式无需填写）" value="" autocomplete="off">
-            <div class="small-note" id="apiKeyStatus">🔑 线上模式由服务器统一管理 API Key，无需填写；本地开发模式可填写自己的 Key。</div>
+            <div id="apiKeySection">
+                <div class="stat-title"><span>📚 API 设置</span><span class="level-badge">🔑</span></div>
+                <input type="password" class="api-key-input" id="apiKeyInput" placeholder="DeepSeek API Key（云端代理模式无需填写）" value="" autocomplete="off">
+                <div class="small-note" id="apiKeyStatus">🔑 线上模式由服务器统一管理 API Key，无需填写；本地开发模式可填写自己的 Key。</div>
+            </div>
             <div class="stat-title"><span>📊 语法点明细 (点击查看明细)</span></div>
             <div class="progress-grid" id="levelProgress"></div>
         </div>
@@ -16080,11 +16082,12 @@ ${searchRule}
     const sendBtn = document.getElementById('sendBtn'), endBtn = document.getElementById('endConversationBtn');
     const levelProgressDiv = document.getElementById('levelProgress');
     const apiKeyInput = document.getElementById('apiKeyInput'), grammarLibraryList = document.getElementById('grammarLibraryList');
-    // 云端代理模式：API Key 由服务器管理，页面填入占位值并隐藏 API 设置卡片（避免各处代码因 Key 为空而中止）
+    // 云端代理模式：API Key 由服务器管理，页面填入占位值并只隐藏 API 设置区块
+    // （同一卡片里的「学生母语」语言选择和「语法点明细」进度必须保持可见）
     if (useWorkerProxy() && apiKeyInput) {
         apiKeyInput.value = 'worker-mode';
-        const apiCard = apiKeyInput.closest('.card');
-        if (apiCard) apiCard.style.display = 'none';
+        const apiKeySection = document.getElementById('apiKeySection');
+        if (apiKeySection) apiKeySection.style.display = 'none';
     }
     const grammarViewLevel = document.getElementById('grammarViewLevel');
     const aiLevelSelect = document.getElementById('aiLevelSelect');
