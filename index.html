@@ -387,7 +387,9 @@
         .read-punct { cursor: default; }
         body.reading-mode-sentence .read-punct { cursor: pointer; }
         body.reading-dragging .reading-article { user-select: none; -webkit-user-select: none; }
-        .reading-selection-bar { margin: 8px 16px; background: white; border: 1.5px solid #1e2b5e; border-radius: 14px; padding: 10px 14px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 0.9rem; }
+        .reading-selection-bar { margin: 8px 16px; background: white; border: 1.5px solid #1e2b5e; border-radius: 14px; padding: 10px 14px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 0.9rem; min-height: 48px; box-sizing: border-box; }
+        /* 有文章时始终保留选择栏占位，避免点击词语后布局跳动（旁边的窗口跟着动） */
+        .reading-selection-bar.bar-empty { visibility: hidden; border-color: transparent; background: transparent; }
         .reading-selection-bar .sel-text { font-weight: 700; color: #1e2b5e; flex: 1 1 100%; white-space: normal; word-break: break-all; line-height: 1.5; }
         .reading-selection-bar .sel-tr-item { font-size: 0.82rem; color: #1e293b; margin: 2px 0; }
         .reading-selection-bar .sel-translation { flex-basis: 100%; font-size: 0.85rem; color: #27ae60; background: #f0f9f0; padding: 8px 12px; border-radius: 10px; display: none; white-space: pre-wrap; }
@@ -424,6 +426,8 @@
         .reading-culture-notes .rcn-title { font-weight: 700; color: #1e2b5e; margin-bottom: 6px; }
         .reading-culture-notes .rcn-item { margin-bottom: 4px; }
         .reading-image { display: block; width: 100%; max-width: 760px; height: auto; max-height: 430px; aspect-ratio: 16 / 9; object-fit: cover; object-position: center; margin: 12px auto; border-radius: 14px; box-shadow: 0 4px 14px rgba(15,23,42,0.12); }
+        /* AI 正在写文章期间不显示任何图片 */
+        #readingContent.reading-generating .reading-image { display: none; }
         .reading-image-fail { margin: 6px 0; padding: 6px 10px; background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 10px; font-size: 0.78rem; color: #94a3b8; text-align: center; }
         /* ===== 阅读理解判断题 ===== */
         .reading-judge-area { margin: 14px 16px; }
@@ -456,6 +460,16 @@
         .reading-retell-prep .rrp-btn { padding: 9px 18px; border-radius: 14px; border: none; cursor: pointer; font-size: 0.9rem; font-weight: 700; }
         .reading-retell-prep .rrp-btn.go { background: #059669; color: #fff; }
         .reading-retell-prep .rrp-btn.cancel { background: #fff; border: 1.5px solid #d0dae8; color: #475569; }
+        /* AI 推荐复述关键词 */
+        .reading-retell-prep .rrp-ai-row { background: #f0fdfa; border: 1.5px dashed #34d399; border-radius: 12px; padding: 10px 12px; margin-bottom: 10px; }
+        .reading-retell-prep .rrp-ai-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; }
+        .reading-retell-prep .rrp-ai-title { font-weight: 800; color: #065f46; font-size: 0.86rem; }
+        .reading-retell-prep .rrp-ai-used { font-size: 0.75rem; color: #047857; font-weight: 700; }
+        .reading-retell-prep .rrp-btn.ai { background: #0f766e; color: #fff; padding: 6px 14px; border-radius: 12px; font-size: 0.8rem; }
+        .reading-retell-prep .rrp-btn.ai:disabled { opacity: 0.6; cursor: not-allowed; }
+        .reading-retell-prep .rrp-ai-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 0; min-height: 24px; }
+        .reading-retell-prep .rrp-ai-chip { cursor: pointer; user-select: none; -webkit-user-select: none; }
+        .reading-retell-prep .rrp-ai-chip.on { background: #065f46; border-color: #065f46; color: #fff; }
         /* ===== 写作复述栏 ===== */
         .writing-retell-bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; background: #ecfdf5; border: 1.5px solid #6ee7b7; border-radius: 14px; padding: 10px 14px; margin: 10px 12px 0; font-size: 0.85rem; }
         .writing-retell-bar .wrb-title { font-weight: 800; color: #065f46; }
@@ -787,6 +801,14 @@
                     <div class="rrp-title">📝 复述准备</div>
                     <div class="rrp-hint">① 点击文章里的词语，把它们标成你的复述关键词（橙色框）；② 在下面写你的复述提纲/框架；③ 点「开始复述」后去写作模式，只能看着关键词和提纲写。</div>
                     <div class="rrp-chips" id="readingRetellChips"></div>
+                    <div class="rrp-ai-row">
+                        <div class="rrp-ai-head">
+                            <span class="rrp-ai-title" id="readingRetellAiTitle">🤖 AI 推荐复述关键词</span>
+                            <button class="rrp-btn ai" id="readingRetellAiBtn" type="button">✨ 获取 AI 推荐</button>
+                            <span class="rrp-ai-used" id="readingRetellAiUsed"></span>
+                        </div>
+                        <div class="rrp-chips rrp-ai-chips" id="readingRetellAiChips"></div>
+                    </div>
                     <textarea id="readingRetellOutline" placeholder="写你的复述提纲，例如：&#10;时间：……&#10;地点：……&#10;人物：……&#10;先发生…… 然后…… 最后……&#10;我想用这些词："></textarea>
                     <div class="rrp-btns">
                         <button class="rrp-btn go" id="readingRetellGoBtn">✅ 准备完毕，开始复述</button>
@@ -5524,8 +5546,9 @@ const HSK2_VOCAB = [
                 if (auth.indexOf('Bearer ') === 0) {
                     const key = auth.slice(7).trim();
                     if (!isValidApiKey(key)) {
-                        showToast('❌ API Key 不正确，只有管理员提供的新 Key 才能使用');
-                        return Promise.reject(new Error('❌ API Key 不正确，只有管理员提供的新 Key 才能使用'));
+                        const _wrongKeyMsg = t('api.key_wrong_toast');
+                        showToast(_wrongKeyMsg);
+                        return Promise.reject(new Error(_wrongKeyMsg));
                     }
                 }
             }
@@ -5537,18 +5560,18 @@ const HSK2_VOCAB = [
         if (!el) return;
         const k = apiKeyInput.value.trim();
         if (!apiKeyHashConfigured()) {
-            el.textContent = '🔑 请输入老师提供的 DeepSeek API Key（不会保存，每次打开页面重新输入）。';
+            el.textContent = t('api.key_note');
             el.style.color = '#64748b';
             return;
         }
         if (!k) {
-            el.textContent = '🔑 请输入老师提供的 DeepSeek API Key。';
+            el.textContent = t('api.key_note_plain');
             el.style.color = '#64748b';
         } else if (isValidApiKey(k)) {
-            el.textContent = '✅ API Key 正确，可以使用。';
+            el.textContent = t('api.key_ok');
             el.style.color = '#2e7d32';
         } else {
-            el.textContent = '❌ API Key 不正确，只有管理员提供的新 Key 才能使用。';
+            el.textContent = t('api.key_bad');
             el.style.color = '#c0392b';
         }
     }
@@ -12475,13 +12498,381 @@ const HSK2_VOCAB = [
         }
     };
 
+    // 2026-10-28 新增文案：API框指导语 / 对错判断题 / 复述AI选词 / 反思对话框补全
+    const I18N_NEW12 = {
+        'Chinese': {
+            'api.key_placeholder':'请输入老师提供的 DeepSeek API Key',
+            'api.key_note':'🔑 请输入老师提供的 DeepSeek API Key（不会保存，每次打开页面重新输入）。',
+            'api.key_note_plain':'🔑 请输入老师提供的 DeepSeek API Key。',
+            'api.key_ok':'✅ API Key 正确，可以使用。',
+            'api.key_bad':'❌ API Key 不正确，只有管理员提供的新 Key 才能使用。',
+            'api.key_wrong_toast':'❌ API Key 不正确，只有管理员提供的新 Key 才能使用',
+            'reading.topic_custom_ph':'自己输入话题，或写一句写作要求，如：足球、摄影、太空探索…也可以写「请写一个男孩第一次坐飞机的故事」',
+            'reading.judge_summary':'🎯 对错判断（{done}/{total}）读下面每句话，判断它和短文内容是否一致',
+            'reading.judge_same':'✅ 对',
+            'reading.judge_diff':'❌ 错',
+            'reading.judge_true':'对',
+            'reading.judge_false':'错',
+            'reading.judge_ok':'✅ 判断正确！已把这个词记入「理解词」',
+            'reading.judge_no':'❌ 正确答案：',
+            'reflection.title_chat':'🤔 错误反思：这句话为什么写错了？你现在明白了吗？',
+            'reflection.reason_unclear':'哪里不明白：',
+            'reflection.reason_couldnt_say':'为什么不会说：',
+            'reflection.reason_meaning':'正确句子的意思：',
+            'reading.retell_prep_hint':'① 点「AI推荐关键词」，在AI给的词里点选你要用的词（也可以直接点文章里的词语，橙色框）；② 在下面写复述提纲；③ 点「开始复述」后去写作模式，只能看着关键词和提纲写。',
+            'reading.retell_ai_title':'🤖 AI 推荐复述关键词',
+            'reading.retell_ai_btn':'✨ 获取 AI 推荐',
+            'reading.retell_ai_loading':'⏳ AI 正在挑选关键词…',
+            'reading.retell_ai_empty':'点下面的词选中/取消，选好后点「开始复述」',
+            'reading.retell_ai_fail':'⚠️ 获取推荐失败，可以直接点文章里的词语',
+            'reading.retell_ai_no_key':'🔑 请先输入 API Key',
+            'reading.retell_ai_used':'已选 {n} 个关键词'
+        },
+        'English': {
+            'api.key_placeholder':'Enter the DeepSeek API Key from your teacher',
+            'api.key_note':'🔑 Enter the DeepSeek API Key from your teacher (it is not saved; re-enter it each time you open the page).',
+            'api.key_note_plain':'🔑 Enter the DeepSeek API Key from your teacher.',
+            'api.key_ok':'✅ API Key is correct and ready to use.',
+            'api.key_bad':'❌ API Key is incorrect. Only a new key provided by the administrator can be used.',
+            'api.key_wrong_toast':'❌ API Key is incorrect. Only a new key provided by the administrator can be used.',
+            'reading.topic_custom_ph':'Enter a topic, or write a one-sentence request, e.g.: football, photography, space exploration… You can also write "Write a story about a boy taking a plane for the first time".',
+            'reading.judge_summary':'🎯 True/False ({done}/{total}) Read each statement and decide whether it matches the article.',
+            'reading.judge_same':'✅ True',
+            'reading.judge_diff':'❌ False',
+            'reading.judge_true':'True',
+            'reading.judge_false':'False',
+            'reading.judge_ok':'✅ Correct! This word has been recorded as "understood".',
+            'reading.judge_no':'❌ Correct answer: ',
+            'reflection.title_chat':'🤔 Mistake reflection: why was this sentence wrong? Do you understand it now?',
+            'reflection.reason_unclear':'What is unclear: ',
+            'reflection.reason_couldnt_say':"Why I couldn't say it: ",
+            'reflection.reason_meaning':'Meaning of the correct sentence: ',
+            'reading.retell_prep_hint':'① Tap "AI keyword suggestions" and pick the words you need (you can also tap words in the article directly — orange box); ② write your outline below; ③ tap "Start Retelling" to switch to the writing mode with only your keywords and outline visible.',
+            'reading.retell_ai_title':'🤖 AI keyword suggestions',
+            'reading.retell_ai_btn':'✨ Get AI suggestions',
+            'reading.retell_ai_loading':'⏳ AI is picking keywords…',
+            'reading.retell_ai_empty':'Tap the words below to select/deselect, then tap "Start Retelling"',
+            'reading.retell_ai_fail':'⚠️ Failed to get suggestions. You can tap words in the article directly.',
+            'reading.retell_ai_no_key':'🔑 Please enter the API Key first',
+            'reading.retell_ai_used':'{n} keywords selected'
+        },
+        'Japanese': {
+            'api.key_placeholder':'先生からもらった DeepSeek APIキーを入力',
+            'api.key_note':'🔑 先生からもらった DeepSeek APIキーを入力してください（保存されません。ページを開くたびに再入力）。',
+            'api.key_note_plain':'🔑 先生からもらった DeepSeek APIキーを入力してください。',
+            'api.key_ok':'✅ APIキーは正しいです。使用できます。',
+            'api.key_bad':'❌ APIキーが正しくありません。管理者の新しいキーのみ使用できます。',
+            'api.key_wrong_toast':'❌ APIキーが正しくありません。管理者の新しいキーのみ使用できます。',
+            'reading.topic_custom_ph':'トピック、または一文のリクエストを入力。例：サッカー、写真、宇宙探査…「男の子が初めて飛行機に乗る話を書いて」もOK',
+            'reading.judge_summary':'🎯 正誤問題（{done}/{total}）各文を読んで、本文の内容と合っているか判断してください',
+            'reading.judge_same':'✅ 正しい',
+            'reading.judge_diff':'❌ 間違い',
+            'reading.judge_true':'正しい',
+            'reading.judge_false':'間違い',
+            'reading.judge_ok':'✅ 正解！この単語を「理解語」に記録しました',
+            'reading.judge_no':'❌ 正解：',
+            'reflection.title_chat':'🤔 間違いの振り返り：なぜ間違えた？もう分かりましたか？',
+            'reflection.reason_unclear':'分からないところ：',
+            'reflection.reason_couldnt_say':'なぜ言えなかったか：',
+            'reflection.reason_meaning':'正しい文の意味：',
+            'reading.retell_prep_hint':'①「AIキーワード候補」を押して、使いたい単語を選ぶ（本文の単語を直接タップしてもOK、オレンジ枠）；② 下にアウトラインを書く；③「再話スタート」で作文モードへ、キーワードとアウトラインだけ見て書きます。',
+            'reading.retell_ai_title':'🤖 AIのキーワード候補',
+            'reading.retell_ai_btn':'✨ AI候補を取得',
+            'reading.retell_ai_loading':'⏳ AIがキーワードを選んでいます…',
+            'reading.retell_ai_empty':'下の単語をタップして選択/解除、「再話スタート」を押す',
+            'reading.retell_ai_fail':'⚠️ 候補の取得に失敗。本文の単語を直接タップできます',
+            'reading.retell_ai_no_key':'🔑 先にAPIキーを入力してください',
+            'reading.retell_ai_used':'{n}個のキーワードを選択済み'
+        },
+        'Korean': {
+            'api.key_placeholder':'선생님이 준 DeepSeek API Key 입력',
+            'api.key_note':'🔑 선생님이 준 DeepSeek API Key를 입력하세요(저장되지 않으며, 페이지를 열 때마다 다시 입력).',
+            'api.key_note_plain':'🔑 선생님이 준 DeepSeek API Key를 입력하세요.',
+            'api.key_ok':'✅ API Key가 올바릅니다. 사용할 수 있습니다.',
+            'api.key_bad':'❌ API Key가 올바르지 않습니다. 관리자가 준 새 키만 사용할 수 있습니다.',
+            'api.key_wrong_toast':'❌ API Key가 올바르지 않습니다. 관리자가 준 새 키만 사용할 수 있습니다.',
+            'reading.topic_custom_ph':'주제 또는 한 문장 요청을 입력하세요. 예: 축구, 사진, 우주 탐사…「한 소년이 처음 비행기를 타는 이야기를 써줘」도 가능',
+            'reading.judge_summary':'🎯 판단 문제({done}/{total}) 각 문장을 읽고 본문 내용과 일치하는지 판단하세요',
+            'reading.judge_same':'✅ 맞음',
+            'reading.judge_diff':'❌ 틀림',
+            'reading.judge_true':'맞음',
+            'reading.judge_false':'틀림',
+            'reading.judge_ok':'✅ 정답! 이 단어를 「이해한 단어」로 기록했습니다',
+            'reading.judge_no':'❌ 정답: ',
+            'reflection.title_chat':'🤔 오답 반성: 이 문장은 왜 틀렸나요? 이제 이해했나요?',
+            'reflection.reason_unclear':'이해 안 되는 부분: ',
+            'reflection.reason_couldnt_say':'왜 말하지 못했나: ',
+            'reflection.reason_meaning':'올바른 문장의 뜻: ',
+            'reading.retell_prep_hint':'①「AI 키워드 추천」을 눌러 쓸 단어를 선택하세요(본문 단어를 직접 눌러도 됩니다, 주황색); ② 아래에 개요를 쓰세요; ③ 「다시 말하기 시작」을 누르면 작문 모드로 이동, 키워드와 개요만 보고 씁니다.',
+            'reading.retell_ai_title':'🤖 AI 키워드 추천',
+            'reading.retell_ai_btn':'✨ AI 추천 받기',
+            'reading.retell_ai_loading':'⏳ AI가 키워드를 고르는 중…',
+            'reading.retell_ai_empty':'아래 단어를 눌러 선택/해제 후 「다시 말하기 시작」을 누르세요',
+            'reading.retell_ai_fail':'⚠️ 추천을 받지 못했습니다. 본문의 단어를 직접 눌러 주세요',
+            'reading.retell_ai_no_key':'🔑 먼저 API Key를 입력하세요',
+            'reading.retell_ai_used':'키워드 {n}개 선택됨'
+        },
+        'French': {
+            'api.key_placeholder':'Entrez la clé API DeepSeek fournie par votre professeur',
+            'api.key_note':"🔑 Entrez la clé API DeepSeek fournie par votre professeur (non enregistrée ; à ressaisir à chaque ouverture de la page).",
+            'api.key_note_plain':'🔑 Entrez la clé API DeepSeek fournie par votre professeur.',
+            'api.key_ok':"✅ Clé API correcte, prête à l'emploi.",
+            'api.key_bad':"❌ Clé API incorrecte. Seule une nouvelle clé fournie par l'administrateur peut être utilisée.",
+            'api.key_wrong_toast':"❌ Clé API incorrecte. Seule une nouvelle clé fournie par l'administrateur peut être utilisée.",
+            'reading.topic_custom_ph':"Saisissez un sujet ou une demande en une phrase, ex. : football, photographie, exploration spatiale… Vous pouvez aussi écrire « Écris l'histoire d'un garçon qui prend l'avion pour la première fois ».",
+            'reading.judge_summary':"🎯 Vrai/Faux ({done}/{total}) Lisez chaque phrase et jugez si elle correspond au contenu de l'article.",
+            'reading.judge_same':'✅ Vrai',
+            'reading.judge_diff':'❌ Faux',
+            'reading.judge_true':'Vrai',
+            'reading.judge_false':'Faux',
+            'reading.judge_ok':'✅ Bonne réponse ! Ce mot a été enregistré comme « compris ».',
+            'reading.judge_no':'❌ Bonne réponse : ',
+            'reflection.title_chat':"🤔 Réflexion sur l'erreur : pourquoi cette phrase était-elle fausse ? Comprenez-vous maintenant ?",
+            'reflection.reason_unclear':"Ce qui n'est pas clair : ",
+            'reflection.reason_couldnt_say':"Pourquoi je n'ai pas su le dire : ",
+            'reflection.reason_meaning':'Sens de la phrase correcte : ',
+            'reading.retell_prep_hint':"① Appuyez sur « Suggestions IA » et choisissez les mots dont vous avez besoin (vous pouvez aussi toucher les mots de l'article — cadre orange) ; ② écrivez votre plan ci-dessous ; ③ appuyez sur « Commencer » pour passer en mode rédaction avec seulement vos mots-clés et votre plan.",
+            'reading.retell_ai_title':"🤖 Mots-clés suggérés par l'IA",
+            'reading.retell_ai_btn':'✨ Obtenir les suggestions',
+            'reading.retell_ai_loading':"⏳ L'IA choisit des mots-clés…",
+            'reading.retell_ai_empty':'Touchez les mots ci-dessous pour les sélectionner, puis « Commencer »',
+            'reading.retell_ai_fail':"⚠️ Échec des suggestions. Touchez directement les mots de l'article.",
+            'reading.retell_ai_no_key':'🔑 Veuillez d’abord entrer la clé API',
+            'reading.retell_ai_used':'{n} mot(s)-clé(s) sélectionné(s)'
+        },
+        'German': {
+            'api.key_placeholder':'DeepSeek-API-Key der Lehrkraft eingeben',
+            'api.key_note':'🔑 Bitte den DeepSeek-API-Key der Lehrkraft eingeben (wird nicht gespeichert; bei jedem Öffnen der Seite erneut eingeben).',
+            'api.key_note_plain':'🔑 Bitte den DeepSeek-API-Key der Lehrkraft eingeben.',
+            'api.key_ok':'✅ API-Key korrekt, einsatzbereit.',
+            'api.key_bad':'❌ API-Key falsch. Nur ein neuer Key des Administrators kann verwendet werden.',
+            'api.key_wrong_toast':'❌ API-Key falsch. Nur ein neuer Key des Administrators kann verwendet werden.',
+            'reading.topic_custom_ph':'Thema oder Wunsch in einem Satz eingeben, z. B.: Fußball, Fotografie, Weltraumforschung… Auch möglich: „Schreib eine Geschichte über einen Jungen, der zum ersten Mal fliegt."',
+            'reading.judge_summary':'🎯 Richtig/Falsch ({done}/{total}) Lies jede Aussage und beurteile, ob sie zum Artikelinhalt passt.',
+            'reading.judge_same':'✅ Richtig',
+            'reading.judge_diff':'❌ Falsch',
+            'reading.judge_true':'Richtig',
+            'reading.judge_false':'Falsch',
+            'reading.judge_ok':'✅ Richtig! Dieses Wort wurde als „verstanden" gespeichert.',
+            'reading.judge_no':'❌ Richtige Antwort: ',
+            'reflection.title_chat':'🤔 Fehler-Reflexion: Warum war dieser Satz falsch? Verstehst du es jetzt?',
+            'reflection.reason_unclear':'Was unklar ist: ',
+            'reflection.reason_couldnt_say':'Warum ich es nicht sagen konnte: ',
+            'reflection.reason_meaning':'Bedeutung des richtigen Satzes: ',
+            'reading.retell_prep_hint':'① Tippe auf „KI-Vorschläge" und wähle die Wörter, die du brauchst (du kannst auch direkt Wörter im Artikel antippen – oranger Rahmen); ② schreibe unten deine Gliederung; ③ tippe auf „Nacherzählen starten" und wechsle in den Aufsatzmodus – sichtbar sind nur Keywords und Gliederung.',
+            'reading.retell_ai_title':'🤖 KI-Keyword-Vorschläge',
+            'reading.retell_ai_btn':'✨ Vorschläge holen',
+            'reading.retell_ai_loading':'⏳ KI wählt Keywords…',
+            'reading.retell_ai_empty':'Wörter unten antippen zum Auswählen, dann „Nacherzählen starten"',
+            'reading.retell_ai_fail':'⚠️ Vorschläge fehlgeschlagen. Du kannst Wörter im Artikel direkt antippen.',
+            'reading.retell_ai_no_key':'🔑 Bitte zuerst den API-Key eingeben',
+            'reading.retell_ai_used':'{n} Keywords ausgewählt'
+        },
+        'Spanish': {
+            'api.key_placeholder':'Introduce la clave API de DeepSeek que te dio tu profesor',
+            'api.key_note':'🔑 Introduce la clave API de DeepSeek que te dio tu profesor (no se guarda; se vuelve a introducir cada vez que abres la página).',
+            'api.key_note_plain':'🔑 Introduce la clave API de DeepSeek que te dio tu profesor.',
+            'api.key_ok':'✅ Clave API correcta, lista para usar.',
+            'api.key_bad':'❌ Clave API incorrecta. Solo se puede usar una clave nueva proporcionada por el administrador.',
+            'api.key_wrong_toast':'❌ Clave API incorrecta. Solo se puede usar una clave nueva proporcionada por el administrador.',
+            'reading.topic_custom_ph':'Escribe un tema o una petición de una frase, p. ej.: fútbol, fotografía, exploración espacial… También puedes escribir «Escribe una historia de un niño que viaja en avión por primera vez».',
+            'reading.judge_summary':'🎯 Verdadero/Falso ({done}/{total}) Lee cada afirmación y juzga si coincide con el contenido del artículo.',
+            'reading.judge_same':'✅ Verdadero',
+            'reading.judge_diff':'❌ Falso',
+            'reading.judge_true':'Verdadero',
+            'reading.judge_false':'Falso',
+            'reading.judge_ok':'✅ ¡Correcto! Esta palabra se ha registrado como «comprendida».',
+            'reading.judge_no':'❌ Respuesta correcta: ',
+            'reflection.title_chat':'🤔 Reflexión sobre el error: ¿por qué estuvo mal esta frase? ¿Ya lo entiendes?',
+            'reflection.reason_unclear':'Qué no está claro: ',
+            'reflection.reason_couldnt_say':'Por qué no supe decirlo: ',
+            'reflection.reason_meaning':'Significado de la frase correcta: ',
+            'reading.retell_prep_hint':'① Pulsa «Sugerencias de IA» y elige las palabras que necesitas (también puedes tocar palabras del artículo, recuadro naranja); ② escribe tu esquema abajo; ③ pulsa «Empezar» para pasar al modo redacción viendo solo palabras clave y esquema.',
+            'reading.retell_ai_title':'🤖 Palabras clave sugeridas por IA',
+            'reading.retell_ai_btn':'✨ Obtener sugerencias',
+            'reading.retell_ai_loading':'⏳ La IA está eligiendo palabras clave…',
+            'reading.retell_ai_empty':'Toca las palabras de abajo para elegirlas y pulsa «Empezar»',
+            'reading.retell_ai_fail':'⚠️ No se pudieron obtener sugerencias. Toca directamente las palabras del artículo.',
+            'reading.retell_ai_no_key':'🔑 Primero introduce la API Key',
+            'reading.retell_ai_used':'{n} palabra(s) clave seleccionada(s)'
+        },
+        'Russian': {
+            'api.key_placeholder':'Введите ключ DeepSeek API, выданный учителем',
+            'api.key_note':'🔑 Введите ключ DeepSeek API, выданный учителем (не сохраняется; вводите заново при каждом открытии страницы).',
+            'api.key_note_plain':'🔑 Введите ключ DeepSeek API, выданный учителем.',
+            'api.key_ok':'✅ API-ключ верный, можно пользоваться.',
+            'api.key_bad':'❌ API-ключ неверный. Можно использовать только новый ключ от администратора.',
+            'api.key_wrong_toast':'❌ API-ключ неверный. Можно использовать только новый ключ от администратора.',
+            'reading.topic_custom_ph':'Введите тему или запрос одним предложением, напр.: футбол, фотография, космос… Можно написать «Напиши историю о мальчике, который впервые летит на самолёте».',
+            'reading.judge_summary':'🎯 Верно/Неверно ({done}/{total}) Прочитайте каждое утверждение и решите, совпадает ли оно с содержанием текста.',
+            'reading.judge_same':'✅ Верно',
+            'reading.judge_diff':'❌ Неверно',
+            'reading.judge_true':'Верно',
+            'reading.judge_false':'Неверно',
+            'reading.judge_ok':'✅ Правильно! Слово записано как «понятое».',
+            'reading.judge_no':'❌ Правильный ответ: ',
+            'reflection.title_chat':'🤔 Анализ ошибки: почему это предложение было неверным? Теперь понятно?',
+            'reflection.reason_unclear':'Что непонятно: ',
+            'reflection.reason_couldnt_say':'Почему не смог сказать: ',
+            'reflection.reason_meaning':'Смысл правильного предложения: ',
+            'reading.retell_prep_hint':'① Нажмите «Подсказки ИИ» и выберите нужные слова (можно также нажимать слова в тексте — оранжевая рамка); ② напишите план ниже; ③ нажмите «Начать пересказ» — откроется режим сочинения, видны только ключевые слова и план.',
+            'reading.retell_ai_title':'🤖 Ключевые слова от ИИ',
+            'reading.retell_ai_btn':'✨ Получить подсказки',
+            'reading.retell_ai_loading':'⏳ ИИ подбирает ключевые слова…',
+            'reading.retell_ai_empty':'Нажимайте слова ниже для выбора, затем «Начать пересказ»',
+            'reading.retell_ai_fail':'⚠️ Не удалось получить подсказки. Нажимайте слова в тексте напрямую.',
+            'reading.retell_ai_no_key':'🔑 Сначала введите API-ключ',
+            'reading.retell_ai_used':'Выбрано ключевых слов: {n}'
+        },
+        'Thai': {
+            'api.key_placeholder':'กรอก DeepSeek API Key ที่ครูให้',
+            'api.key_note':'🔑 กรุณากรอก DeepSeek API Key ที่ครูให้ (ไม่บันทึก ต้องกรอกใหม่ทุกครั้งที่เปิดหน้า)',
+            'api.key_note_plain':'🔑 กรุณากรอก DeepSeek API Key ที่ครูให้',
+            'api.key_ok':'✅ API Key ถูกต้อง ใช้งานได้',
+            'api.key_bad':'❌ API Key ไม่ถูกต้อง ใช้ได้เฉพาะคีย์ใหม่จากผู้ดูแลระบบเท่านั้น',
+            'api.key_wrong_toast':'❌ API Key ไม่ถูกต้อง ใช้ได้เฉพาะคีย์ใหม่จากผู้ดูแลระบบเท่านั้น',
+            'reading.topic_custom_ph':'พิมพ์หัวข้อหรือคำขอหนึ่งประโยค เช่น ฟุตบอล ถ่ายภาพ สำรวจอวกาศ… เขียนว่า "เขียนเรื่องเด็กผู้ชายขึ้นเครื่องบินครั้งแรก" ก็ได้',
+            'reading.judge_summary':'🎯 ถูก/ผิด ({done}/{total}) อ่านแต่ละประโยคแล้วตัดสินว่าตรงกับเนื้อหาบทความหรือไม่',
+            'reading.judge_same':'✅ ถูก',
+            'reading.judge_diff':'❌ ผิด',
+            'reading.judge_true':'ถูก',
+            'reading.judge_false':'ผิด',
+            'reading.judge_ok':'✅ ตอบถูก! บันทึกคำนี้เป็น "คำที่เข้าใจแล้ว"',
+            'reading.judge_no':'❌ คำตอบที่ถูกต้อง: ',
+            'reflection.title_chat':'🤔 ทบทวนข้อผิดพลาด: ประโยคนี้ทำไมถึงผิด ตอนนี้เข้าใจหรือยัง',
+            'reflection.reason_unclear':'ส่วนที่ไม่เข้าใจ: ',
+            'reflection.reason_couldnt_say':'ทำไมพูดไม่ได้: ',
+            'reflection.reason_meaning':'ความหมายของประโยคที่ถูกต้อง: ',
+            'reading.retell_prep_hint':'① กด "คำแนะนำจาก AI" แล้วเลือกคำที่ต้องใช้ (แตะคำในบทความโดยตรงก็ได้ กรอบสีส้ม) ② เขียนโครงเรื่องด้านล่าง ③ กด "เริ่มเล่าใหม่" เพื่อไปโหมดเขียน เห็นเฉพาะคำสำคัญกับโครงเรื่อง',
+            'reading.retell_ai_title':'🤖 คำสำคัญที่ AI แนะนำ',
+            'reading.retell_ai_btn':'✨ รับคำแนะนำจาก AI',
+            'reading.retell_ai_loading':'⏳ AI กำลังเลือกคำสำคัญ…',
+            'reading.retell_ai_empty':'แตะคำด้านล่างเพื่อเลือก/ยกเลิก แล้วกด "เริ่มเล่าใหม่"',
+            'reading.retell_ai_fail':'⚠️ รับคำแนะนำไม่สำเร็จ แตะคำในบทความได้โดยตรง',
+            'reading.retell_ai_no_key':'🔑 กรุณากรอก API Key ก่อน',
+            'reading.retell_ai_used':'เลือกแล้ว {n} คำ'
+        },
+        'Italian': {
+            'api.key_placeholder':"Inserisci la chiave API DeepSeek fornita dall'insegnante",
+            'api.key_note':"🔑 Inserisci la chiave API DeepSeek fornita dall'insegnante (non viene salvata; va reinserita a ogni apertura della pagina).",
+            'api.key_note_plain':"🔑 Inserisci la chiave API DeepSeek fornita dall'insegnante.",
+            'api.key_ok':"✅ Chiave API corretta, pronta all'uso.",
+            'api.key_bad':"❌ Chiave API errata. Può essere usata solo una nuova chiave fornita dall'amministratore.",
+            'api.key_wrong_toast':"❌ Chiave API errata. Può essere usata solo una nuova chiave fornita dall'amministratore.",
+            'reading.topic_custom_ph':"Inserisci un argomento o una richiesta di una frase, es.: calcio, fotografia, esplorazione spaziale… Puoi anche scrivere «Scrivi la storia di un ragazzo che prende l'aereo per la prima volta».",
+            'reading.judge_summary':"🎯 Vero/Falso ({done}/{total}) Leggi ogni affermazione e giudica se corrisponde al contenuto dell'articolo.",
+            'reading.judge_same':'✅ Vero',
+            'reading.judge_diff':'❌ Falso',
+            'reading.judge_true':'Vero',
+            'reading.judge_false':'Falso',
+            'reading.judge_ok':'✅ Corretto! Questa parola è stata registrata come «compresa».',
+            'reading.judge_no':'❌ Risposta corretta: ',
+            'reflection.title_chat':"🤔 Riflessione sull'errore: perché questa frase era sbagliata? Ora è chiaro?",
+            'reflection.reason_unclear':'Cosa non è chiaro: ',
+            'reflection.reason_couldnt_say':'Perché non sono riuscito a dirlo: ',
+            'reflection.reason_meaning':'Significato della frase corretta: ',
+            'reading.retell_prep_hint':"① Premi «Suggerimenti IA» e scegli le parole che ti servono (puoi anche toccare le parole dell'articolo, riquadro arancione); ② scrivi la scaletta qui sotto; ③ premi «Inizia» per passare alla modalità scrittura vedendo solo parole chiave e scaletta.",
+            'reading.retell_ai_title':"🤖 Parole chiave suggerite dall'IA",
+            'reading.retell_ai_btn':'✨ Ottieni suggerimenti',
+            'reading.retell_ai_loading':"⏳ L'IA sta scegliendo le parole chiave…",
+            'reading.retell_ai_empty':'Tocca le parole qui sotto per selezionarle, poi «Inizia»',
+            'reading.retell_ai_fail':"⚠️ Suggerimenti non riusciti. Tocca direttamente le parole dell'articolo.",
+            'reading.retell_ai_no_key':'🔑 Inserisci prima la chiave API',
+            'reading.retell_ai_used':'{n} parole chiave selezionate'
+        },
+        'Vietnamese': {
+            'api.key_placeholder':'Nhập DeepSeek API Key thầy/cô cung cấp',
+            'api.key_note':'🔑 Hãy nhập DeepSeek API Key thầy/cô cung cấp (không lưu, mỗi lần mở trang phải nhập lại).',
+            'api.key_note_plain':'🔑 Hãy nhập DeepSeek API Key thầy/cô cung cấp.',
+            'api.key_ok':'✅ API Key đúng, có thể sử dụng.',
+            'api.key_bad':'❌ API Key không đúng. Chỉ dùng được key mới do quản trị viên cung cấp.',
+            'api.key_wrong_toast':'❌ API Key không đúng. Chỉ dùng được key mới do quản trị viên cung cấp.',
+            'reading.topic_custom_ph':'Nhập chủ đề hoặc một yêu cầu dài một câu, VD: bóng đá, nhiếp ảnh, khám phá vũ trụ… Cũng có thể viết "Hãy viết câu chuyện một cậu bé lần đầu đi máy bay".',
+            'reading.judge_summary':'🎯 Đúng/Sai ({done}/{total}) Đọc từng câu và xét xem câu đó có khớp với nội dung bài không.',
+            'reading.judge_same':'✅ Đúng',
+            'reading.judge_diff':'❌ Sai',
+            'reading.judge_true':'Đúng',
+            'reading.judge_false':'Sai',
+            'reading.judge_ok':'✅ Đúng rồi! Đã ghi từ này vào danh sách "từ đã hiểu".',
+            'reading.judge_no':'❌ Đáp án đúng: ',
+            'reflection.title_chat':'🤔 Suy ngẫm về lỗi sai: Vì sao câu này sai? Giờ bạn đã hiểu chưa?',
+            'reflection.reason_unclear':'Chỗ chưa hiểu: ',
+            'reflection.reason_couldnt_say':'Vì sao không nói được: ',
+            'reflection.reason_meaning':'Nghĩa của câu đúng: ',
+            'reading.retell_prep_hint':'① Bấm "AI gợi ý từ khóa" rồi chọn từ cần dùng (cũng có thể bấm trực tiếp từ trong bài, khung cam); ② viết dàn ý bên dưới; ③ bấm "Bắt đầu kể lại" để sang chế độ viết, chỉ nhìn từ khóa và dàn ý.',
+            'reading.retell_ai_title':'🤖 Từ khóa AI gợi ý',
+            'reading.retell_ai_btn':'✨ Lấy gợi ý AI',
+            'reading.retell_ai_loading':'⏳ AI đang chọn từ khóa…',
+            'reading.retell_ai_empty':'Bấm các từ bên dưới để chọn/bỏ chọn rồi bấm "Bắt đầu kể lại"',
+            'reading.retell_ai_fail':'⚠️ Lấy gợi ý thất bại, bạn có thể bấm trực tiếp từ trong bài',
+            'reading.retell_ai_no_key':'🔑 Hãy nhập API Key trước',
+            'reading.retell_ai_used':'Đã chọn {n} từ khóa'
+        },
+        'Indonesian': {
+            'api.key_placeholder':'Masukkan DeepSeek API Key dari guru',
+            'api.key_note':'🔑 Masukkan DeepSeek API Key dari guru (tidak disimpan; masukkan ulang setiap kali membuka halaman).',
+            'api.key_note_plain':'🔑 Masukkan DeepSeek API Key dari guru.',
+            'api.key_ok':'✅ API Key benar, siap digunakan.',
+            'api.key_bad':'❌ API Key salah. Hanya key baru dari admin yang dapat digunakan.',
+            'api.key_wrong_toast':'❌ API Key salah. Hanya key baru dari admin yang dapat digunakan.',
+            'reading.topic_custom_ph':'Ketik topik atau permintaan satu kalimat, mis.: sepak bola, fotografi, penjelajahan luar angkasa… Bisa juga "Tuliskan cerita anak laki-laki yang pertama kali naik pesawat".',
+            'reading.judge_summary':'🎯 Benar/Salah ({done}/{total}) Baca tiap kalimat dan nilai apakah sesuai dengan isi artikel.',
+            'reading.judge_same':'✅ Benar',
+            'reading.judge_diff':'❌ Salah',
+            'reading.judge_true':'Benar',
+            'reading.judge_false':'Salah',
+            'reading.judge_ok':'✅ Benar! Kata ini dicatat sebagai "kata yang dipahami".',
+            'reading.judge_no':'❌ Jawaban yang benar: ',
+            'reflection.title_chat':'🤔 Refleksi kesalahan: kenapa kalimat ini salah? Sekarang sudah paham?',
+            'reflection.reason_unclear':'Bagian yang belum paham: ',
+            'reflection.reason_couldnt_say':'Kenapa tidak bisa mengatakannya: ',
+            'reflection.reason_meaning':'Arti kalimat yang benar: ',
+            'reading.retell_prep_hint':'① Tekan "Saran kata kunci AI" lalu pilih kata yang dibutuhkan (bisa juga mengetuk kata di artikel langsung, kotak oranye); ② tulis kerangka di bawah; ③ tekan "Mulai menceritakan ulang" untuk pindah ke mode menulis, hanya melihat kata kunci dan kerangka.',
+            'reading.retell_ai_title':'🤖 Saran kata kunci AI',
+            'reading.retell_ai_btn':'✨ Dapatkan saran AI',
+            'reading.retell_ai_loading':'⏳ AI sedang memilih kata kunci…',
+            'reading.retell_ai_empty':'Ketuk kata di bawah untuk memilih, lalu "Mulai menceritakan ulang"',
+            'reading.retell_ai_fail':'⚠️ Gagal mendapatkan saran, kamu bisa mengetuk kata di artikel langsung',
+            'reading.retell_ai_no_key':'🔑 Masukkan API Key dulu',
+            'reading.retell_ai_used':'{n} kata kunci dipilih'
+        },
+        'Slovak': {
+            'api.key_placeholder':'Zadajte DeepSeek API kľúč od učiteľa',
+            'api.key_note':'🔑 Zadajte DeepSeek API kľúč od učiteľa (neukladá sa; pri každom otvorení stránky ho zadajte znova).',
+            'api.key_note_plain':'🔑 Zadajte DeepSeek API kľúč od učiteľa.',
+            'api.key_ok':'✅ API kľúč je správny, môžete ho používať.',
+            'api.key_bad':'❌ API kľúč je nesprávny. Použiť sa dá len nový kľúč od administrátora.',
+            'api.key_wrong_toast':'❌ API kľúč je nesprávny. Použiť sa dá len nový kľúč od administrátora.',
+            'reading.topic_custom_ph':'Zadajte tému alebo požiadavku jednou vetou, napr.: futbal, fotografovanie, vesmír… Môžete napísať aj „Napíš príbeh o chlapcovi, ktorý prvýkrát letí lietadlom".',
+            'reading.judge_summary':'🎯 Pravda/Nepravda ({done}/{total}) Prečítajte si každý výrok a posúďte, či zodpovedá obsahu článku.',
+            'reading.judge_same':'✅ Pravda',
+            'reading.judge_diff':'❌ Nepravda',
+            'reading.judge_true':'Pravda',
+            'reading.judge_false':'Nepravda',
+            'reading.judge_ok':'✅ Správne! Toto slovo bolo zaznamenané ako „pochopené".',
+            'reading.judge_no':'❌ Správna odpoveď: ',
+            'reflection.title_chat':'🤔 Reflexia chyby: prečo bola táto veta nesprávna? Už tomu rozumieš?',
+            'reflection.reason_unclear':'Čomu nerozumiem: ',
+            'reflection.reason_couldnt_say':'Prečo som to nevedel povedať: ',
+            'reflection.reason_meaning':'Význam správnej vety: ',
+            'reading.retell_prep_hint':'① Klikni na „Návrhy AI" a vyber slová, ktoré potrebuješ (môžeš aj priamo klikať na slová v článku, oranžový rámik); ② nižšie napíš osnovu; ③ klikni na „Začať prerozprávanie" a prejdeš do režimu písania, vidíš len kľúčové slová a osnovu.',
+            'reading.retell_ai_title':'🤖 Návrhy kľúčových slov od AI',
+            'reading.retell_ai_btn':'✨ Získať návrhy AI',
+            'reading.retell_ai_loading':'⏳ AI vyberá kľúčové slová…',
+            'reading.retell_ai_empty':'Klikaj na slová nižšie, potom „Začať prerozprávanie"',
+            'reading.retell_ai_fail':'⚠️ Návrhy sa nepodarilo získať. Klikaj priamo na slová v článku.',
+            'reading.retell_ai_no_key':'🔑 Najprv zadajte API kľúč',
+            'reading.retell_ai_used':'Vybraných kľúčových slov: {n}'
+        }
+    };
+
     function t(key) {
         const lang = targetLangSelect ? targetLangSelect.value : 'English';
         const dict = I18N[lang];
-        const extra = Object.assign({}, I18N_EXTRA['Chinese'] || {}, I18N_EXTRA2['Chinese'] || {}, I18N_EXTRA3['Chinese'] || {}, (typeof I18N_GAP !== 'undefined' && I18N_GAP['Chinese']) || {}, (typeof I18N_NEW !== 'undefined' && I18N_NEW['Chinese']) || {}, (typeof I18N_NEW2 !== 'undefined' && I18N_NEW2['Chinese']) || {}, (typeof I18N_NEW3 !== 'undefined' && I18N_NEW3['Chinese']) || {}, (typeof I18N_NEW4 !== 'undefined' && I18N_NEW4['Chinese']) || {}, (typeof I18N_NEW5 !== 'undefined' && I18N_NEW5['Chinese']) || {}, (typeof I18N_NEW6 !== 'undefined' && I18N_NEW6['Chinese']) || {}, (typeof I18N_NEW7 !== 'undefined' && I18N_NEW7['Chinese']) || {}, (typeof I18N_NEW8 !== 'undefined' && I18N_NEW8['Chinese']) || {}, (typeof I18N_NEW9 !== 'undefined' && I18N_NEW9['Chinese']) || {}, I18N_EXTRA[lang] || {}, I18N_EXTRA2[lang] || {}, I18N_EXTRA3[lang] || {}, (typeof I18N_GAP !== 'undefined' && I18N_GAP[lang]) || {}, (typeof I18N_NEW !== 'undefined' && I18N_NEW[lang]) || {}, (typeof I18N_NEW2 !== 'undefined' && I18N_NEW2[lang]) || {}, (typeof I18N_NEW3 !== 'undefined' && I18N_NEW3[lang]) || {}, (typeof I18N_NEW4 !== 'undefined' && I18N_NEW4[lang]) || {}, (typeof I18N_NEW5 !== 'undefined' && I18N_NEW5[lang]) || {}, (typeof I18N_NEW6 !== 'undefined' && I18N_NEW6[lang]) || {}, (typeof I18N_NEW7 !== 'undefined' && I18N_NEW7[lang]) || {}, (typeof I18N_NEW8 !== 'undefined' && I18N_NEW8[lang]) || {}, (typeof I18N_NEW9 !== 'undefined' && I18N_NEW9[lang]) || {});
+        const extra = Object.assign({}, I18N_EXTRA['Chinese'] || {}, I18N_EXTRA2['Chinese'] || {}, I18N_EXTRA3['Chinese'] || {}, (typeof I18N_GAP !== 'undefined' && I18N_GAP['Chinese']) || {}, (typeof I18N_NEW !== 'undefined' && I18N_NEW['Chinese']) || {}, (typeof I18N_NEW2 !== 'undefined' && I18N_NEW2['Chinese']) || {}, (typeof I18N_NEW3 !== 'undefined' && I18N_NEW3['Chinese']) || {}, (typeof I18N_NEW4 !== 'undefined' && I18N_NEW4['Chinese']) || {}, (typeof I18N_NEW5 !== 'undefined' && I18N_NEW5['Chinese']) || {}, (typeof I18N_NEW6 !== 'undefined' && I18N_NEW6['Chinese']) || {}, (typeof I18N_NEW7 !== 'undefined' && I18N_NEW7['Chinese']) || {}, (typeof I18N_NEW8 !== 'undefined' && I18N_NEW8['Chinese']) || {}, (typeof I18N_NEW9 !== 'undefined' && I18N_NEW9['Chinese']) || {}, (typeof I18N_NEW12 !== 'undefined' && I18N_NEW12['Chinese']) || {}, I18N_EXTRA[lang] || {}, I18N_EXTRA2[lang] || {}, I18N_EXTRA3[lang] || {}, (typeof I18N_GAP !== 'undefined' && I18N_GAP[lang]) || {}, (typeof I18N_NEW !== 'undefined' && I18N_NEW[lang]) || {}, (typeof I18N_NEW2 !== 'undefined' && I18N_NEW2[lang]) || {}, (typeof I18N_NEW3 !== 'undefined' && I18N_NEW3[lang]) || {}, (typeof I18N_NEW4 !== 'undefined' && I18N_NEW4[lang]) || {}, (typeof I18N_NEW5 !== 'undefined' && I18N_NEW5[lang]) || {}, (typeof I18N_NEW6 !== 'undefined' && I18N_NEW6[lang]) || {}, (typeof I18N_NEW7 !== 'undefined' && I18N_NEW7[lang]) || {}, (typeof I18N_NEW8 !== 'undefined' && I18N_NEW8[lang]) || {}, (typeof I18N_NEW9 !== 'undefined' && I18N_NEW9[lang]) || {}, (typeof I18N_NEW12 !== 'undefined' && I18N_NEW12[lang]) || {});
         const voice = I18N_VOICE[lang] || I18N_VOICE['Chinese'] || {};
         const translated = (dict && dict[key]) ? dict[key] : (extra[key] || voice[key] || '');
-        const chinese = (ZH && ZH[key]) ? ZH[key] : ((I18N_EXTRA['Chinese'] && I18N_EXTRA['Chinese'][key]) || (I18N_EXTRA2['Chinese'] && I18N_EXTRA2['Chinese'][key]) || (I18N_EXTRA3['Chinese'] && I18N_EXTRA3['Chinese'][key]) || (typeof I18N_GAP !== 'undefined' && I18N_GAP['Chinese'] && I18N_GAP['Chinese'][key]) || (typeof I18N_NEW !== 'undefined' && I18N_NEW['Chinese'] && I18N_NEW['Chinese'][key]) || (typeof I18N_NEW2 !== 'undefined' && I18N_NEW2['Chinese'] && I18N_NEW2['Chinese'][key]) || (typeof I18N_NEW3 !== 'undefined' && I18N_NEW3['Chinese'] && I18N_NEW3['Chinese'][key]) || (typeof I18N_NEW4 !== 'undefined' && I18N_NEW4['Chinese'] && I18N_NEW4['Chinese'][key]) || (typeof I18N_NEW5 !== 'undefined' && I18N_NEW5['Chinese'] && I18N_NEW5['Chinese'][key]) || (typeof I18N_NEW6 !== 'undefined' && I18N_NEW6['Chinese'] && I18N_NEW6['Chinese'][key]) || (typeof I18N_NEW7 !== 'undefined' && I18N_NEW7['Chinese'] && I18N_NEW7['Chinese'][key]) || (typeof I18N_NEW8 !== 'undefined' && I18N_NEW8['Chinese'] && I18N_NEW8['Chinese'][key]) || (typeof I18N_NEW9 !== 'undefined' && I18N_NEW9['Chinese'] && I18N_NEW9['Chinese'][key]) || (I18N_VOICE['Chinese'] && I18N_VOICE['Chinese'][key]) || '');
+        const chinese = (ZH && ZH[key]) ? ZH[key] : ((I18N_EXTRA['Chinese'] && I18N_EXTRA['Chinese'][key]) || (I18N_EXTRA2['Chinese'] && I18N_EXTRA2['Chinese'][key]) || (I18N_EXTRA3['Chinese'] && I18N_EXTRA3['Chinese'][key]) || (typeof I18N_GAP !== 'undefined' && I18N_GAP['Chinese'] && I18N_GAP['Chinese'][key]) || (typeof I18N_NEW !== 'undefined' && I18N_NEW['Chinese'] && I18N_NEW['Chinese'][key]) || (typeof I18N_NEW2 !== 'undefined' && I18N_NEW2['Chinese'] && I18N_NEW2['Chinese'][key]) || (typeof I18N_NEW3 !== 'undefined' && I18N_NEW3['Chinese'] && I18N_NEW3['Chinese'][key]) || (typeof I18N_NEW4 !== 'undefined' && I18N_NEW4['Chinese'] && I18N_NEW4['Chinese'][key]) || (typeof I18N_NEW5 !== 'undefined' && I18N_NEW5['Chinese'] && I18N_NEW5['Chinese'][key]) || (typeof I18N_NEW6 !== 'undefined' && I18N_NEW6['Chinese'] && I18N_NEW6['Chinese'][key]) || (typeof I18N_NEW7 !== 'undefined' && I18N_NEW7['Chinese'] && I18N_NEW7['Chinese'][key]) || (typeof I18N_NEW8 !== 'undefined' && I18N_NEW8['Chinese'] && I18N_NEW8['Chinese'][key]) || (typeof I18N_NEW9 !== 'undefined' && I18N_NEW9['Chinese'] && I18N_NEW9['Chinese'][key]) || (typeof I18N_NEW12 !== 'undefined' && I18N_NEW12['Chinese'] && I18N_NEW12['Chinese'][key]) || (I18N_VOICE['Chinese'] && I18N_VOICE['Chinese'][key]) || '');
         if (!translated) return chinese || key;
         return translated;
     }
@@ -12562,6 +12953,10 @@ const HSK2_VOCAB = [
         if (chatAiLevelLabel) chatAiLevelLabel.textContent = t('panel.ai_level');
         // 面板卡片标题
         updatePanelTitles();
+        // API 设置框指导语
+        const apiKeyEl = document.getElementById('apiKeyInput');
+        if (apiKeyEl) apiKeyEl.placeholder = t('api.key_placeholder');
+        if (typeof refreshApiKeyStatus === 'function') refreshApiKeyStatus();
         const acquiredHint = document.getElementById('acquiredHint');
         if (acquiredHint) acquiredHint.textContent = t('status.acquired_hint');
         // 下载按钮
@@ -13909,7 +14304,22 @@ const HSK2_VOCAB = [
     function getTodayCnDate(offsetDays){
         const d = new Date();
         d.setDate(d.getDate() + (offsetDays || 0));
-        return d.getFullYear() + '年' + (d.getMonth() + 1) + '月' + d.getDate() + '日';
+        const wd = ['日','一','二','三','四','五','六'][d.getDay()];
+        return d.getFullYear() + '年' + (d.getMonth() + 1) + '月' + d.getDate() + '日（星期' + wd + '）';
+    }
+    // 最近约4个月的真实时间范围（用于阅读生成提示词的时效性要求）
+    function getRecentMonthsRangeCn(){
+        const now = new Date();
+        const start = new Date(now.getFullYear(), now.getMonth() - 4, 1);
+        return start.getFullYear() + '年' + (start.getMonth() + 1) + '月到' + getTodayCnDate(0);
+    }
+    // 判断自定义话题是不是“一句话写作要求”（较长、带疑问/祈使语气或含写作要求词），
+    // 是的话就不要求文章里逐字出现这句话，改由 AI 按提示词自检要求是否满足。
+    function isReadingTopicRequirement(topic){
+        const s = String(topic || '').trim();
+        if (!s) return false;
+        if (s.length >= 12) return true;
+        return /[？?。！!]$/.test(s) || /请|写|介绍|说明|描述|讲讲|谈谈|关于|想象|假设|编|故事|作文|文章|一篇|要求|推荐|建议|为什么|怎么|如何|说说/.test(s);
     }
     // 违法/不良话题简单拦截（更全面的判断交给 AI 拒绝）
     function isIllegalReadingTopic(topic){
@@ -14078,12 +14488,16 @@ const HSK2_VOCAB = [
             if (btn) { btn.disabled = true; btn.textContent = t('reading.generating'); }
             const _genHintStart = document.getElementById('readingGeneratingHint');
             if (_genHintStart) { _genHintStart.textContent = t('reading.generating_hint'); _genHintStart.style.display = 'inline'; }
+            // 生成期间不显示图片：AI 正在写文章时，隐藏当前文章里的配图
+            const _genContent = document.getElementById('readingContent');
+            if (_genContent) _genContent.classList.add('reading-generating');
         }
         const targetLang = targetLangSelect.value;
         const mix = computeReadingMix();
         saveReadingLevel();
         saveReadingTopic();
         const customTopic = (document.getElementById('readingTopicInput') ? document.getElementById('readingTopicInput').value : '').trim();
+        const topicIsRequirement = isReadingTopicRequirement(customTopic);
         const customWordsRaw = (document.getElementById('readingWordsInput') ? document.getElementById('readingWordsInput').value : '').trim();
         const mustWords = customWordsRaw ? customWordsRaw.split(/[\s,，、;；]+/).map(w => w.trim()).filter(w => w && !isIllegalReadingTopic(w)).slice(0, 10) : [];
         const topicObj = customTopic ? null : getReadingTopic();
@@ -14094,10 +14508,13 @@ const HSK2_VOCAB = [
                 readingGenerating = false;
                 if (btn) { btn.disabled = false; btn.textContent = readingHistory.length > 0 ? t('reading.regenerate') : t('reading.generate'); }
                 const _ghIllegal = document.getElementById('readingGeneratingHint'); if(_ghIllegal) _ghIllegal.style.display = 'none';
+                const _gcIllegal = document.getElementById('readingContent'); if(_gcIllegal) _gcIllegal.classList.remove('reading-generating');
                 alert(t('reading.topic_illegal'));
                 return;
             }
-            topicInstr = '【唯一主题 - 最高优先级】文章只能围绕这一个主题：' + customTopic + '。全文从头到尾只写这个主题，不要加入任何其他话题、热点、新闻、节日、人物或事件；不要写着写着转到别的主题；搜索素材只能作为这个主题的事实参考。话题必须合法合规、积极健康；如果话题涉及违法、暴力、色情、政治敏感等内容，请拒绝该话题并改写为一个安全、积极、适合语言学习的话题。';
+            topicInstr = topicIsRequirement
+                ? '【写作要求 - 最高优先级】学生用一句话提出了一个写作要求，请严格按这个要求写文章：' + customTopic + '。全文从头到尾都要满足这个要求：标题要点题，每一段都要为实现这个要求服务，不要偏题、不要加入无关话题；写完自检：把要求逐条对照文章，确认每一点都做到了，没做到就重写。要求必须合法合规、积极健康；如果涉及违法、暴力、色情、政治敏感等内容，请拒绝并改写为一个安全、积极、适合语言学习的话题。'
+                : '【唯一主题 - 最高优先级】文章只能围绕这一个主题：' + customTopic + '。全文从头到尾只写这个主题，不要加入任何其他话题、热点、新闻、节日、人物或事件；不要写着写着转到别的主题；搜索素材只能作为这个主题的事实参考。话题必须合法合规、积极健康；如果话题涉及违法、暴力、色情、政治敏感等内容，请拒绝该话题并改写为一个安全、积极、适合语言学习的话题。';
         } else {
             const topic = topicObj;
             topicInstr = String(topic.v).startsWith('fresh_')
@@ -14105,10 +14522,12 @@ const HSK2_VOCAB = [
                 : topic.prompt;
         }
         const todayCnFresh = getTodayCnDate(0);
+        const nowYear = new Date().getFullYear();
+        const recentRange = getRecentMonthsRangeCn();
         const freshRule = customTopic
-            ? '【时效性】如果这个自定义话题与新闻/热点无关（如「我的周末」「介绍一种运动」），按主题正常写即可，不要为了新鲜而硬塞新闻素材或具体日期；如果话题本身要求近期内容，才写近期。'
-            : '【时效性要求 - 必须遵守】现在是' + todayCnFresh + '。文章必须取材于最近几个月（2026年6月到' + todayCnFresh.slice(5, 10) + '）真实、新鲜的话题或作品：近期新闻、抖音/微博/小红书/B站上正在流行的社会热点、刚上映的电影/剧集、新科技产品、最近的节日活动等。写新闻类文章时，正文里必须明确点出事情发生的具体时间（2026年某月或某日）；其他文体也要让读者看得出是2026年最近的内容。严禁写2025年及更早的旧闻，严禁出现“去年”“前年”“2024年”“2025年”这类旧时间表述；如果某件事你无法确认最近是否真实发生，就改写一个时间上明确属于2026年近期的话题（如最近的节日、刚上映的电影、当季活动），不要编造具体可查证的假新闻细节。';
-        const factRule = '【真实信息 - 一票否决】文章中出现的所有地点、时间、人名、机构名、事件、数字、作品名必须是真实、可查证的，严禁编造：\n1. 地名只能用真实存在的国家、城市、景点、学校、公司等；不确定的中文译名宁可写通用说法（如“一家科技公司”），不要生造具体名称。\n2. 时间必须真实：日期、年份、节日、季节要与现实一致；新闻类内容必须有真实发生的时间，不能写“上个月”“前几天”这种模糊且无法核实的表述。\n3. 人名只能用真实公众人物（运动员、演员、科学家等），普通人用“小明”“一位老师”等泛指，不要给普通人编造全名。\n4. 事情必须真实发生过或真实存在（真实比赛、真实电影、真实产品、真实习俗）；搜索结果里没有的事不要写。\n5. 如果搜索结果不足或无法确认某个细节真实，就改写为不依赖具体可查证细节的通用内容（如“最近上映了一部动画电影”），禁止编造具体名称、数字、时间、地点。';
+            ? '【时效性】如果这个自定义话题与新闻/热点无关（如「我的周末」「介绍一种运动」），按主题正常写即可，不要为了新鲜而硬塞新闻素材或具体日期；如果话题本身要求近期内容，才写近期。文章中出现的任何具体日期、星期、年份、季节、节日都必须与“今天”' + todayCnFresh + '一致，不能把还没发生的日期写成已经发生的事实。'
+            : '【时效性要求 - 必须遵守】现在是' + todayCnFresh + '。文章必须取材于最近几个月（' + recentRange + '）真实、新鲜的话题或作品：近期新闻、抖音/微博/小红书/B站上正在流行的社会热点、刚上映的电影/剧集、新科技产品、最近的节日活动等。写新闻类文章时，正文里必须明确点出事情发生的具体时间（' + nowYear + '年某月或某日）；其他文体也要让读者看得出是' + nowYear + '最近的内容。严禁写' + (nowYear - 1) + '年及更早的旧闻，严禁出现“去年”“前年”“' + (nowYear - 2) + '年”“' + (nowYear - 1) + '年”这类旧时间表述；如果某件事你无法确认最近是否真实发生，就改写一个时间上明确属于' + nowYear + '近期的话题（如最近的节日、刚上映的电影、当季活动），不要编造具体可查证的假新闻细节。';
+        const factRule = '【真实信息 - 一票否决】文章中出现的所有地点、时间、人名、机构名、事件、数字、作品名必须是真实、可查证的，严禁编造：\n1. 地名只能用真实存在的国家、城市、景点、学校、公司等；不确定的中文译名宁可写通用说法（如“一家科技公司”），不要生造具体名称。\n2. 时间必须真实且与现实世界一致：今天是' + todayCnFresh + '。文章里出现的日期、年份、星期、节日、季节必须和这个“今天”相符（例如不能把还没到的日期写成已经发生的事实，不能出现“去年/前年”等与今天矛盾的表述）；新闻类内容必须有真实发生的时间，不能写“上个月”“前几天”这种模糊且无法核实的表述。\n3. 人名只能用真实公众人物（运动员、演员、科学家等），普通人用“小明”“一位老师”等泛指，不要给普通人编造全名。\n4. 事情必须真实发生过或真实存在（真实比赛、真实电影、真实产品、真实习俗）；搜索结果里没有的事不要写。\n5. 如果搜索结果不足或无法确认某个细节真实，就改写为不依赖具体可查证细节的通用内容（如“最近上映了一部动画电影”），禁止编造具体名称、数字、时间、地点。';
         // 联网搜索：为 AI 提供真实近期新闻素材
         const searchQuery = customTopic || readingTopicSearchQuery(topicObj ? topicObj.v : 'football');
         let newsContext = '';
@@ -14141,7 +14560,7 @@ const HSK2_VOCAB = [
                 }
             } catch (e) { /* rss2json 失败也继续 */ }
         }
-        const searchRule = newsContext ? newsContext : '【联网搜索素材】本次未搜索到新闻素材，文章可以写一个时间明确属于2026年近期的话题，但不要编造具体可查证的假新闻。';
+        const searchRule = newsContext ? newsContext : '【联网搜索素材】本次未搜索到新闻素材，文章可以写一个时间明确属于' + nowYear + '年近期的话题，但不要编造具体可查证的假新闻。';
         const mustWordsRule = mustWords.length ? '【必用词语 - 最高优先级】以下词语必须全部自然地出现在正文 content 中（每个词至少出现一次，顺序不限，不要改动这些词）：' + mustWords.join('、') + '。写完后逐词自检：如果缺少任何一个，就必须重写正文，直到全部包含为止。' : '';
         const levelCoverageRule = '【等级词汇/语法尽量覆盖 - 不牺牲意思】在句子正确自然的前提下，尽量把 HSK' + mix.level + ' 及以下等级的常用词汇和语法在正文中自然出现一次（能自然用上的就都用上，不要硬塞，也不要为了覆盖写怪句）。';
         const gapWordsArr = readingUseGapWords ? gapActiveItems().slice(0, 10).map(it => it.correct || it.text) : [];
@@ -14261,9 +14680,13 @@ ${searchRule}
             const content = (data.choices[0].message.content || '').replace(/```json/g, '').replace(/```/g, '').trim();
             const result = safeJsonParse(content);
             if (!result.content) throw new Error('empty content');
-            // 时效性校验：出现2025年及更早的旧时间表述就重试
+            // 时效性校验：出现往年旧时间表述（去年/前年/往年）就重试
             const _freshText = (result.title || '') + '\n' + (result.content || '');
-            if (/(202[0-4]年|2020年|2021年|2022年|2023年|2024年|2025年|去年|前年)/.test(_freshText) && retryCount < 2) {
+            const _curYear = new Date().getFullYear();
+            const _oldYears = [];
+            for (let _y = 2020; _y < _curYear; _y++) _oldYears.push(_y + '年');
+            const _oldTimeRe = new RegExp('(' + _oldYears.join('|') + '|去年|前年)');
+            if (_oldTimeRe.test(_freshText) && retryCount < 2) {
                 return generateReading(retryCount + 1);
             }
             const MIN_CHARS = {1:80, 2:120, 3:180, 4:260, 5:320, 6:360};
@@ -14281,7 +14704,8 @@ ${searchRule}
             const usedWords = Object.keys(contentCounts).filter(w => levelVocabSet.has(w)).slice(0, 30);
             // 词汇数量不足、或本等级词+高一级词覆盖比例过低、或话题没扣住时自动重试（最多2次）
             const coverage = measureReadingCoverage(result.content || '', mix.level, mix.nextLevel);
-            const topicCheckSource = customTopic || (topicObj && (topicObj.check || topicObj.labelCn)) || '';
+            // 一句话写作要求不做“逐字出现”校验（由 AI 按提示词自检），普通话题仍要求扣题
+            const topicCheckSource = (!customTopic || topicIsRequirement) ? (customTopic ? '' : ((topicObj && (topicObj.check || topicObj.labelCn)) || '')) : customTopic;
             const topicOk = topicCheckSource ? readingTopicHit(topicCheckSource, (result.title || '') + '\n' + (result.content || '')) : true;
             const wordsOk = mustWords.length === 0 || mustWords.every(w => String(result.content || '').indexOf(w) !== -1);
             const gapWordsOk = gapWordsArr.length === 0 || gapWordsArr.every(w => String(result.content || '').indexOf(w) !== -1);
@@ -14351,6 +14775,7 @@ ${searchRule}
         } finally {
             readingGenerating = false;
             const genHintEnd = document.getElementById('readingGeneratingHint'); if(genHintEnd) genHintEnd.style.display = 'none';
+            const _genContentEnd = document.getElementById('readingContent'); if(_genContentEnd) _genContentEnd.classList.remove('reading-generating');
             btn.disabled = false; btn.textContent = readingHistory.length > 0 ? t('reading.regenerate') : t('reading.generate');
         }
     }
@@ -14841,7 +15266,14 @@ ${searchRule}
     function renderReadingSelectionBar() {
         const bar = document.getElementById('readingSelectionBar');
         if (!bar) return;
-        if (!readingSelectedItems.length) { bar.style.display = 'none'; bar.innerHTML = ''; return; }
+        if (!readingSelectedItems.length) {
+            // 有文章时保留占位（不可见但占空间），避免点击词语后选择栏突然出现把内容顶下去、旁边的窗口跟着动
+            bar.innerHTML = '';
+            if (currentReading) { bar.style.display = 'flex'; bar.classList.add('bar-empty'); }
+            else { bar.style.display = 'none'; bar.classList.remove('bar-empty'); }
+            return;
+        }
+        bar.classList.remove('bar-empty');
         bar.style.display = 'flex';
         const selHtml = readingSelectedItems.map(it => {
             const lvTag = (it.type === 'word' && it.level) ? ' <span class="level-tag">' + escapeHtml(vocabLevelLabel(parseInt(it.level) || 0)) + '</span>' : '';
@@ -14903,7 +15335,11 @@ ${searchRule}
         clearReadingWordHighlight();
         hideReadingTransTooltip();
         const bar = document.getElementById('readingSelectionBar');
-        if (bar) { bar.style.display = 'none'; bar.innerHTML = ''; }
+        if (bar) {
+            bar.innerHTML = '';
+            if (currentReading) { bar.style.display = 'flex'; bar.classList.add('bar-empty'); }
+            else { bar.style.display = 'none'; bar.classList.remove('bar-empty'); }
+        }
     }
     window._readingSpeakSel = function () { if (readingSelectedText) toggleSpeakChinese(readingSelectedText); };
     window._readingFavSel = function () {
@@ -15585,14 +16021,16 @@ ${searchRule}
             const targetLang = targetLangSelect.value;
             // 一个目标词一道题，题目数量完全由目标词数量决定
             const tList = targets.map(t2 => '目标词「' + t2.word + '」（' + vocabLevelLabel(t2.level) + '），原句：' + t2.sentence).join('\n');
-            const prompt = '你是一位HSK汉语教师。学生水平：HSK' + rLevel + '（母语' + targetLang + '）。下面是短文中选出的目标词和它们所在的句子：\n' + tList + '\n\n请为【每一个】目标词出一道判断题（一个词一道题，数量必须与目标词数量完全一致，不要多也不要少）：把原句改写成一个新说法 statement。要求：\n1. statement 必须原样保留目标词；除目标词外的其他词语全部换成比 HSK' + rLevel + ' 更低的简单词语，保证学生能读懂。\n2. 一半题目的 statement 与原句意思一样（isTrue:true），一半不一样（改变关键信息，如人物/时间/地点/动作/结果，isTrue:false），两种随机混合。\n3. why 用' + targetLang + '写一句简短解释（为什么对或错），不超过25个词。\n输出JSON：{"items":[{"word":"目标词","sentence":"原句","statement":"改写说法","isTrue":true或false,"why":"解释"}]}\n只输出 JSON。';
+            const articleText = String(currentReading.content || '');
+            const prompt = '你是一位HSK汉语教师。学生水平：HSK' + rLevel + '（母语' + targetLang + '）。\\n\\n【短文原文】\\n' + articleText + '\\n\\n【目标词列表】\\n' + tList + '\\n\\n请为【每一个】目标词出一道对错判断题（一个词一道题，数量必须与目标词数量完全一致，不要多也不要少）。学生不看原文，只读 statement，判断这个说法和短文内容是否一致（对/错）。要求：\\n1. statement 必须是一句完整、独立、自己就能读懂的话：把时间、人物、地点、动作等必要信息都写进句子里，不能出现没有交代的“他/她/它”，也不能出现“根据原文/文中说”这类依赖上下文的说法。\\n2. statement 必须原样包含目标词（目标词不能写错、不能替换）；如果目标词是人名、地名或专有名词，就跳过这个词，不要为它出题。\\n3. statement 严禁和原文原句一模一样，必须改写成一个新说法。\\n4. 一半题目是对的（isTrue:true）：statement 表达的意思和原文一致，改写时用同义词/更简单的说法替换原文除目标词以外的词语（尽量用 HSK' + rLevel + ' 及以下的简单词），保证学生能读懂。\\n5. 一半题目是错的（isTrue:false）：statement 看起来像真的，但把原文关键信息改成了容易混淆的错误（例如换人物、换时间、换地点、换动作/结果、加否定、把数量或对象对调），让句子与原文明显不符；错误必须明确，不要含糊。\\n6. 对与错随机混合，不要前面的题全对、后面的题全错。\\n7. why 用' + targetLang + '写一句简短解释（为什么对或错），不超过25个词。\\n输出JSON：{\"items\":[{\"word\":\"目标词\",\"sentence\":\"原句\",\"statement\":\"改写说法\",\"isTrue\":true或false,\"why\":\"解释\"}]}\\n只输出 JSON。';
             const resp = await fetch(API_BASE, { method:'POST', headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer '+apiKey }, body: JSON.stringify({ model:'deepseek-v4-flash', thinking:{ type:'disabled' }, max_tokens:4096, messages:[{ role:'user', content:prompt }], temperature:0.8, response_format:{ type:'json_object' } }) });
             const data = await resp.json();
             if (data.error) throw new Error(data.error.message || 'API error');
             let c = String((data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) || '');
             c = c.replace(/```json/g, '').replace(/```/g, '').trim();
             const r = safeJsonParse(c);
-            readingJudgeItems = (Array.isArray(r && r.items) ? r.items : []).filter(it => it && it.word && it.sentence && it.statement);
+            const _pnSet = readingProperNounSet();
+            readingJudgeItems = (Array.isArray(r && r.items) ? r.items : []).filter(it => it && it.word && it.sentence && it.statement && !_pnSet.has(String(it.word).trim()));
             if (!readingJudgeItems.length) throw new Error('AI 没有返回有效题目，请重试');
             readingJudgeDone = 0;
             // 题目缓存到文章上，切走再切回来不用重新出题；阅读历史也一起保存
@@ -15712,12 +16150,75 @@ ${searchRule}
         if (i === -1) { retellState.keywords.push(w); el.classList.add('kw-mark'); }
         else { retellState.keywords.splice(i, 1); el.classList.remove('kw-mark'); }
         renderRetellChips();
+        renderRetellAiChips();
         syncRetellOutlineTextarea();
+    }
+    // ===== AI 推荐复述关键词：学生点选后即可去写作模式复述 =====
+    let retellAiWords = [];
+    function renderRetellAiChips(){
+        const box = document.getElementById('readingRetellAiChips');
+        const used = document.getElementById('readingRetellAiUsed');
+        if (!box) return;
+        if (!retellState) { box.innerHTML = ''; if (used) used.textContent = ''; return; }
+        if (!retellAiWords.length) {
+            box.innerHTML = '<span style="color:#94a3b8;font-size:0.8rem;">' + escapeHtml(t('reading.retell_ai_empty')) + '</span>';
+            if (used) used.textContent = '';
+            return;
+        }
+        box.innerHTML = retellAiWords.map(function(w){
+            const on = retellState.keywords.indexOf(w) !== -1;
+            return '<button type="button" class="rrp-chip rrp-ai-chip' + (on ? ' on' : '') + '" data-word="' + escapeHtml(w) + '">' + (on ? '✓ ' : '') + escapeHtml(w) + '</button>';
+        }).join('');
+        if (used) used.textContent = retellState.keywords.length ? t('reading.retell_ai_used').replace('{n}', retellState.keywords.length) : '';
+    }
+    function toggleRetellAiWord(w){
+        if (!readingRetellPrep || !retellState || !w) return;
+        const i = retellState.keywords.indexOf(w);
+        if (i === -1) retellState.keywords.push(w);
+        else retellState.keywords.splice(i, 1);
+        renderRetellAiChips();
+        renderRetellChips();
+        syncRetellOutlineTextarea();
+    }
+    async function fetchRetellAiKeywords(){
+        const apiKey = apiKeyInput.value.trim();
+        const box = document.getElementById('readingRetellAiChips');
+        const btn = document.getElementById('readingRetellAiBtn');
+        if (!retellState || !currentReading) return;
+        if (!apiKey) {
+            if (box) box.innerHTML = '<span style="color:#c0392b;font-size:0.8rem;">' + escapeHtml(t('reading.retell_ai_no_key')) + '</span>';
+            return;
+        }
+        if (btn) { btn.disabled = true; btn.textContent = t('reading.retell_ai_loading'); }
+        if (box) box.innerHTML = '<span style="color:#94a3b8;font-size:0.8rem;">' + escapeHtml(t('reading.retell_ai_loading')) + '</span>';
+        const rLevel = currentReading.level || getReadingLevel();
+        const targetLang = targetLangSelect.value;
+        const prompt = '你是HSK汉语教师。学生水平HSK' + rLevel + '（母语' + targetLang + '）。下面是一篇学生刚读过的短文，学生要看着关键词复述全文。\\n请从短文中选出8-12个最适合复述的关键词（只选实义词：动作、人物身份、时间、地点（选普通词，如「机场」，不要人名/地名/专有名词）、原因、结果等；优先选比HSK' + rLevel + '高一级的词；每个词尽量2-6个字）。\\n\\n【短文】\\n' + String(currentReading.content || '') + '\\n\\n输出JSON：{\"words\":[\"词1\",\"词2\",...]}，只输出JSON。';
+        try {
+            const resp = await fetch(API_BASE, { method:'POST', headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer ' + apiKey }, body: JSON.stringify({ model:'deepseek-v4-flash', thinking:{ type:'disabled' }, max_tokens:1024, messages:[{ role:'user', content:prompt }], temperature:0.5, response_format:{ type:'json_object' } }) });
+            const data = await resp.json();
+            if (data.error) throw new Error(data.error.message || 'API error');
+            let c = String((data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) || '');
+            c = c.replace(/```json/g, '').replace(/```/g, '').trim();
+            const r = safeJsonParse(c);
+            const content = String(currentReading.content || '');
+            retellAiWords = (Array.isArray(r && r.words) ? r.words : [])
+                .map(function(w){ return String(w || '').trim(); })
+                .filter(function(w){ return /[\u4e00-\u9fff]/.test(w) && content.indexOf(w) !== -1; });
+            if (!retellAiWords.length) throw new Error('empty words');
+            renderRetellAiChips();
+        } catch (e) {
+            retellAiWords = [];
+            if (box) box.innerHTML = '<span style="color:#c0392b;font-size:0.8rem;">' + escapeHtml(t('reading.retell_ai_fail')) + '</span>';
+        } finally {
+            if (btn) { btn.disabled = false; btn.textContent = t('reading.retell_ai_btn'); }
+        }
     }
     function startRetellPrep(){
         if (!currentReading) { showToast(t('reading.no_article')); return; }
         retellState = { title: currentReading.title || '', article: String(currentReading.content || ''), keywords: [], outline: '' };
         document.querySelectorAll('#readingContent .read-word').forEach(el => el.classList.remove('kw-mark'));
+        retellAiWords = [];
         const ta = document.getElementById('readingRetellOutline');
         if (ta) { ta.dataset.touched = ''; ta.value = ''; }
         readingRetellPrep = true;
@@ -15725,13 +16226,19 @@ ${searchRule}
         if (taskArea) taskArea.style.display = 'block';
         setReadingTaskTab('retell');
         renderRetellChips();
+        renderRetellAiChips();
         syncRetellOutlineTextarea();
         showToast(t('reading.retell_prep_toast'));
+        // 进入复述准备时自动让 AI 推荐关键词（有 API Key 时）
+        if (apiKeyInput.value.trim()) fetchRetellAiKeywords();
     }
     function cancelRetellPrep(){
         readingRetellPrep = false;
         document.querySelectorAll('#readingContent .read-word.kw-mark').forEach(el => el.classList.remove('kw-mark'));
         retellState = null;
+        retellAiWords = [];
+        const box = document.getElementById('readingRetellAiChips');
+        if (box) box.innerHTML = '';
         setReadingTaskTab('judge');
     }
     function startRetelling(){
@@ -15807,6 +16314,11 @@ ${searchRule}
         if (we) we.textContent = t('reading.retell_exit_btn');
         const wp = document.getElementById('writingRetellTitlePrefix');
         if (wp) wp.textContent = t('reading.retell_bar_title');
+        const rat = document.getElementById('readingRetellAiTitle');
+        if (rat) rat.textContent = t('reading.retell_ai_title');
+        const rab = document.getElementById('readingRetellAiBtn');
+        if (rab && !rab.disabled) rab.textContent = t('reading.retell_ai_btn');
+        if (typeof renderRetellAiChips === 'function') renderRetellAiChips();
         if (readingJudgeItems && readingJudgeItems.length) renderReadingJudgeArea();
     }
     (function bindReadingNewFeatures(){
@@ -15818,6 +16330,13 @@ ${searchRule}
         if (rGo) rGo.onclick = startRetelling;
         const rCancel = document.getElementById('readingRetellCancelBtn');
         if (rCancel) rCancel.onclick = cancelRetellPrep;
+        const rAiBtn = document.getElementById('readingRetellAiBtn');
+        if (rAiBtn) rAiBtn.onclick = fetchRetellAiKeywords;
+        const rAiChips = document.getElementById('readingRetellAiChips');
+        if (rAiChips) rAiChips.addEventListener('click', function(e){
+            const b = e.target && e.target.closest ? e.target.closest('.rrp-ai-chip') : null;
+            if (b && b.dataset.word) toggleRetellAiWord(b.dataset.word);
+        });
         const rOutline = document.getElementById('readingRetellOutline');
         if (rOutline) rOutline.addEventListener('input', function(){ rOutline.dataset.touched = '1'; });
         const jArea = document.getElementById('readingJudgeArea');
@@ -16194,7 +16713,7 @@ ${searchRule}
     function buildWritingPrompt(text, level, min, charCount, targetLang, session, isRevision) {
         const langName = WRITING_LANG_NAMES[targetLang] || targetLang;
         const lengthRule = '【字数要求】当前 HSK' + level + ' 水平，本次作文要求至少 ' + min + ' 个汉字。学生本次写了 ' + charCount + ' 个汉字。' + (charCount < min ? '字数不达标，必须判为不及格（59分及以下），并在 overall 中明确提示需要扩充到至少 ' + min + ' 字。' : '字数达标。');
-        const heuristic = '【直接改正 - 必须遵守】1. 针对每个错误，只输出有错误的分句（按逗号/分句切分，不要输出整个复句）。2. 每个 hint 输出 original（错误分句，中文原文）和 corrected（AI 直接改好的正确分句），直接给出改正后的句子，不要让学生自己再改。3. 评价要具体、可操作、多鼓励。4. 每个评价字段内用"\\n"分行。5. 【语言要求】所有反馈文字（discourse、syntax、semantic、characters、overall、hints 中每个 issue）必须全部用' + langName + '（' + targetLang + '）撰写，禁止使用中文，只有引用学生错误原文（original）和正确句子（corrected）时才可以保留中文。6. hints 中每个错误必须输出 type 字段，从固定中文错误类型（' + MISTAKE_TYPE_LIST.join('、') + '）中选一个，不要翻译、不要自创。7. corrected 必须与 original 不同：如果原句没有错误，就不要输出这个 hint；标点符号不算错；「的」可加可不加不算错；「的话」已表条件时「如果」可加可不加；承前省略主语不算错。8. 只改真正错误的部分，其余一字不动；数字/日期/时间/数量词原样保留；一个分句里有多个错误要全部改正。9. 常见错误必须纠正：「越来越+形容词（不能说越来越增加）」、「全称范围主语+都」（所有的地方人很多→所有的地方人都很多，缺「都」）、「有点儿+形容词」（气温低一点了→气温有点低）、「经常性情况不用了」（下雨时常常鞋湿了→下雨时常常鞋会湿）、「离开某地」（出中国→离开中国）、「没关系」（带伞了所以没问题了→带伞了所以没关系）、「马上+就」（马上雨停了→雨马上就停了）、「近义词辨析」（垃圾扔掉的方法很难→垃圾的处理方式很复杂：表示事情步骤多、麻烦用「复杂」，「难」多指能力不够；「扔掉的方法」宜说「处理方式/处理方法」）、「把字句+放置处所」（把吸垃圾放在塑料袋→把湿垃圾放在塑料袋里：「吸」是「湿」的错别字；「放」表示使某物处于某处时要用「在+处所」，容器后要加「里」）、「处所表达」（每天在垃圾桶的地方有一个阿姨→每天垃圾桶那里有一个阿姨）、「味道搭配」（味道很好吃→味道很好：「味道」不能说好吃/难吃，只能说好/不好，好吃形容食物本身）、「空间与环境」（餐馆里又宽又干净→餐馆里又宽敞又安静）、「规则与习俗」（我不知道这样的规则→我不知道这样的习俗/规定）、「找工作」（我得找打工→我得找工作：「打工」不能作「找」的宾语）、「睡不着觉」（不能睡觉→睡不着觉）、「开始+在+地方」（向印度开始旅行→开始在印度旅行）、「比较句不用满」（比以前满自信→比以前自信）、「退辞→辞职」（他退辞公司以后→他从公司辞职以后）、「关于+名词+的事」（我问同事关于上海的特产→我问同事关于上海的特产的事）、「土特产」（上海的土产→上海的土特产）、「特别+形容词」（特别的好东西→特别好的东西）、「时量补语后置」（还要几天烦恼→还要烦恼几天）、「告诉+人+有」（她告诉我，五香豆…→她告诉我有五香豆…）。10. 无错不报：分句本身符合现代汉语普通话的词汇、语法、语序和搭配规范，就绝对不要输出这个 hint；禁止改写正确句子，禁止把对的部分改掉，禁止为了“更自然/更地道/换一种说法”改动。例：「我今天遇到了一个外国人」完全正确，不能输出任何 hint，更不能删改「了」或换成别的字。「V+了+数量词+名词」（遇到了一个外国人、吃了一个苹果）完全正确，永远不要动「了」。11. 只报确凿错误：每条 hint 必须能说出依据（现代汉语普通话规则，或HSK作文语料常见偏误类型）；拿不准就不报，宁可漏报不可误报。12. corrected 改完后逐字通读：只要出现现代汉语不存在的词（生造词）就说明改错了，不要输出。';
+        const heuristic = '【直接改正 - 必须遵守】1. 针对每个错误，只输出有错误的分句（按逗号/分句切分，不要输出整个复句）。2. 每个 hint 输出 original（错误分句，中文原文）和 corrected（AI 直接改好的正确分句），直接给出改正后的句子，不要让学生自己再改。3. 评价要具体、可操作、多鼓励。4. 每个评价字段内用"\\n"分行。5. 【语言要求】所有反馈文字（discourse、syntax、semantic、characters、overall、hints 中每个 issue）必须全部用' + langName + '（' + targetLang + '）撰写，禁止使用中文，只有引用学生错误原文（original）和正确句子（corrected）时才可以保留中文。6. hints 中每个错误必须输出 type 字段，从固定中文错误类型（' + MISTAKE_TYPE_LIST.join('、') + '）中选一个，不要翻译、不要自创。7. corrected 必须与 original 不同：如果原句没有错误，就不要输出这个 hint；标点符号不算错；「的」可加可不加不算错；「的话」已表条件时「如果」可加可不加；承前省略主语不算错。8. 只改真正错误的部分，其余一字不动；数字/日期/时间/数量词原样保留；一个分句里有多个错误要全部改正。9. 常见错误必须纠正：「越来越+形容词（不能说越来越增加）」、「全称范围主语+都」（所有的地方人很多→所有的地方人都很多，缺「都」）、「有点儿+形容词」（气温低一点了→气温有点低）、「经常性情况不用了」（下雨时常常鞋湿了→下雨时常常鞋会湿）、「离开某地」（出中国→离开中国）、「没关系」（带伞了所以没问题了→带伞了所以没关系）、「马上+就」（马上雨停了→雨马上就停了）、「近义词辨析」（垃圾扔掉的方法很难→垃圾的处理方式很复杂：表示事情步骤多、麻烦用「复杂」，「难」多指能力不够；「扔掉的方法」宜说「处理方式/处理方法」）、「把字句+放置处所」（把吸垃圾放在塑料袋→把湿垃圾放在塑料袋里：「吸」是「湿」的错别字；「放」表示使某物处于某处时要用「在+处所」，容器后要加「里」）、「处所表达」（每天在垃圾桶的地方有一个阿姨→每天垃圾桶那里有一个阿姨）、「味道搭配」（味道很好吃→味道很好：「味道」不能说好吃/难吃，只能说好/不好，好吃形容食物本身）、「空间与环境」（餐馆里又宽又干净→餐馆里又宽敞又安静）、「规则与习俗」（我不知道这样的规则→我不知道这样的习俗/规定）、「找工作」（我得找打工→我得找工作：「打工」不能作「找」的宾语）、「睡不着觉」（不能睡觉→睡不着觉）、「开始+在+地方」（向印度开始旅行→开始在印度旅行）、「比较句不用满」（比以前满自信→比以前自信）、「退辞→辞职」（他退辞公司以后→他从公司辞职以后）、「关于+名词+的事」（我问同事关于上海的特产→我问同事关于上海的特产的事）、「土特产」（上海的土产→上海的土特产）、「特别+形容词」（特别的好东西→特别好的东西）、「时量补语后置」（还要几天烦恼→还要烦恼几天）、「告诉+人+有」（她告诉我，五香豆…→她告诉我有五香豆…）。10. 无错不报：分句本身符合现代汉语普通话的词汇、语法、语序和搭配规范，就绝对不要输出这个 hint；禁止改写正确句子，禁止把对的部分改掉，禁止为了“更自然/更地道/换一种说法”改动。例：「我今天遇到了一个外国人」完全正确，不能输出任何 hint，更不能删改「了」或换成别的字。「V+了+数量词+名词」（遇到了一个外国人、吃了一个苹果）完全正确，永远不要动「了」。11. 只报确凿错误：每条 hint 必须能说出依据（现代汉语普通话规则，或HSK作文语料常见偏误类型）；拿不准就不报，宁可漏报不可误报。12. corrected 改完后逐字通读：只要出现现代汉语不存在的词（生造词）就说明改错了，不要输出。13. 逐句清点防漏报：先把作文按句号/问号/感叹号/分号/逗号切成分句并编号，逐句判断；凡是确凿有错的分句必须各输出一条 hint，严禁因为错误多就漏掉某些分句；输出前对照原文再逐句数一遍，缺了哪个分句的纠错就补上。';
         const jsonFmt = '输出JSON格式：{"score":整数0-100,"length_chars":' + charCount + ',"length_ok":' + (charCount >= min) + ',"discourse":"' + langName + '语篇结构评价","syntax":"' + langName + '句法语法评价","semantic":"' + langName + '词汇语义评价","characters":"' + langName + '汉字书写评价","overall":"' + langName + '总体评价","hints":[{"original":"错误分句(中文)","corrected":"AI直接改好的正确分句(中文)","type":"固定中文错误类型","issue":"' + langName + '简短说明"}]}';
         const dictHints = buildHskDictHints(text);
         const dictHintText = dictHints ? '\n【HSK语料库高频错误提示 - 逐条检查作文，确实属于这些误用就纠正，不属于不要报】\n' + dictHints : '';
@@ -17827,7 +18346,7 @@ try{ const resp=await fetch(API_BASE,{method:'POST',headers:{'Content-Type':'app
 1. corrected 只改真正错误的部分，其余字词一字不动；句式（陈述/疑问/祈使）和原意完全保持，禁止把陈述句改成疑问句。
 2. 禁止删除语义正确的成分：正确的字、词、结构一个字都不能删；情态动词（应该/可以/一定/会/能/要/想等）有实际语义，不要删。
 3. 改完的句子如果和原句差别很大，说明你在改写而不是纠错，不要输出。
-4. 学生一条消息可能包含多个句子/分句：每个有错误的句子/分句都要单独输出一条记录，不能只改其中一个。同一句内有多个错误（错误类型可能不止一种）必须全部改正，但同一句只输出一条记录——original 写学生原句（或包含错误的主要片段），corrected 写把所有错误都改好的完整句子（数字/日期原样保留），note 里逐条说明每个错误（①…②…），type 填最主要的错误类型；如果确有多个类型，type 用「、」连接两个最主要的类型（如「语序错误、词语错误」）。
+4. 学生一条消息可能包含多个句子/分句：每个有错误的句子/分句都要单独输出一条记录，不能只改其中一个。先在心里给每个句子/分句编号，再逐句判断对错；凡是确凿有错的分句，必须一条不少地输出，严禁因为错误多就只报一部分、漏掉其中一两个。同一句内有多个错误（错误类型可能不止一种）必须全部改正，但同一句只输出一条记录——original 写学生原句（或包含错误的主要片段），corrected 写把所有错误都改好的完整句子（数字/日期原样保留），note 里逐条说明每个错误（①…②…），type 填最主要的错误类型；如果确有多个类型，type 用「、」连接两个最主要的类型（如「语序错误、词语错误」）。输出前必须把学生原文再读一遍，逐句对照已输出的记录，发现有错但漏写记录的分句就补上，直到全部覆盖为止。
 5. 语序颠倒只调换词序、其余不动，note 写明“语序颠倒”，不要虚构字词替换。
 6. 数字、日期、时间、数量词必须原样保留在 corrected 中，只改真正错误的部分；绝不能因为改动语序或用词而把数字/日期丢掉（如「11月初期」→「11月初」，不能变成「月初期」或「月初」丢数字）。
 7. 复句中只改有错误的分句，其余分句一字不动。例：「本来我想去五点半，但是我订了七点半」→「本来我想五点半去，但是我订了七点半」（只改前半句语序，后半句完全保留，不得把「但是」改成「但」，不得把「订了」改成「订成了」）。
@@ -17941,7 +18460,7 @@ uncertain 表示你是否读不懂这个句子/分句、无法可靠推断学生
 - "他的表情比以前满自信"→"他的表情比以前自信"（比较句「比以前」后不用「满」）
 - "我听他说的话，我哦觉得自己想做的事最好做"→"听了他的话，我觉得自己想做的事最好就去做"（「我听他说的话」→「听了他的话」；「我哦」多了「哦」；「最好做」→「最好就去做」）
 - "他退辞公司以后"→"他从公司辞职以后"（「退辞」不是正确的词，离开公司应说「从公司辞职」）
-这类短语/词语性错误也必须纠正，不要漏报。\n\n输出JSON数组：[{"original":"学生原文(片段)","corrected":"改正后(必须与original不同)","uncertain":true或false,"type":"错误类型（必须从上述固定中文类型中选一个）","pattern":"如果这个错误涉及语法格式/框式结构（可以填充其他内容的格式），写出该格式本身（如：要是...就...、越...越...、把字句、被字句、一边...一边...；不涉及就写空字符串）","note":"错误原因（用${targetLang}，具体说明，禁止空话）"}]。无错误返回[]。`; try{ const resp=await fetch(API_BASE,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${apiKey}`}, body:JSON.stringify({model:'deepseek-v4-pro',thinking:{type:'disabled'}, max_tokens:2048, messages:[{role:'system',content:prompt},{role:'user',content:((contextMessages?('【对话上下文】（仅用于理解学生当前句子的意思，不要纠错上下文内容）\n'+contextMessages+'\n\n'):'') + (aiReplyRaw ? ('学生句子: '+JSON.stringify(userMessages)+'\n\nAI对话伙伴的自然回复（仅供参考，可能已包含正确说法）:\n'+String(aiReplyRaw)) : ('学生句子: '+JSON.stringify(userMessages))))}], temperature:0.1, signal: aiFetchSignal(null, 45000)})}); const data=await resp.json(); if(data.error) throw new Error(data.error.message||"API error"); if(!data.choices||!data.choices[0]||!data.choices[0].message) throw new Error("API error"); let content=data.choices[0].message.content; content=content.replace(/```json/g,'').replace(/```/g,'').trim(); let parsed=null; try{ parsed=JSON.parse(content); }catch(e){ const arrM=content.match(/\[[\s\S]*\]/); const objM=content.match(/\{[\s\S]*\}/); const cand=arrM?arrM[0]:(objM?objM[0]:''); if(cand){ try{ parsed=JSON.parse(cand); }catch(e2){ parsed=null; } } } let arr=[]; if(Array.isArray(parsed)) arr=parsed; else if(parsed&&Array.isArray(parsed.mistakes)) arr=parsed.mistakes; else if(parsed&&Array.isArray(parsed.results)) arr=parsed.results; else if(parsed&&Array.isArray(parsed.errors)) arr=parsed.errors; else if(parsed&&typeof parsed.original==='string'&&typeof parsed.corrected==='string') arr=[parsed]; return arr; }catch(e){ return []; } }
+这类短语/词语性错误也必须纠正，不要漏报。\n\n【输出前自检 - 防漏报 - 必须执行】把学生原文按句号/问号/感叹号/分号/逗号断开，逐句重新检查一遍；只要某一句有错而输出列表里没有对应的记录，就必须补上这条记录；严禁因为错误多就只报一部分，严禁漏掉任何一句的错误。\n\n输出JSON数组：[{"original":"学生原文(片段)","corrected":"改正后(必须与original不同)","uncertain":true或false,"type":"错误类型（必须从上述固定中文类型中选一个）","pattern":"如果这个错误涉及语法格式/框式结构（可以填充其他内容的格式），写出该格式本身（如：要是...就...、越...越...、把字句、被字句、一边...一边...；不涉及就写空字符串）","note":"错误原因（用${targetLang}，具体说明，禁止空话）"}]。无错误返回[]。`; try{ const resp=await fetch(API_BASE,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${apiKey}`}, body:JSON.stringify({model:'deepseek-v4-pro',thinking:{type:'disabled'}, max_tokens:4096, messages:[{role:'system',content:prompt},{role:'user',content:((contextMessages?('【对话上下文】（仅用于理解学生当前句子的意思，不要纠错上下文内容）\n'+contextMessages+'\n\n'):'') + (aiReplyRaw ? ('学生句子: '+JSON.stringify(userMessages)+'\n\nAI对话伙伴的自然回复（仅供参考，可能已包含正确说法）:\n'+String(aiReplyRaw)) : ('学生句子: '+JSON.stringify(userMessages))))}], temperature:0.1, signal: aiFetchSignal(null, 45000)})}); const data=await resp.json(); if(data.error) throw new Error(data.error.message||"API error"); if(!data.choices||!data.choices[0]||!data.choices[0].message) throw new Error("API error"); let content=data.choices[0].message.content; content=content.replace(/```json/g,'').replace(/```/g,'').trim(); let parsed=null; try{ parsed=JSON.parse(content); }catch(e){ const arrM=content.match(/\[[\s\S]*\]/); const objM=content.match(/\{[\s\S]*\}/); const cand=arrM?arrM[0]:(objM?objM[0]:''); if(cand){ try{ parsed=JSON.parse(cand); }catch(e2){ parsed=null; } } } let arr=[]; if(Array.isArray(parsed)) arr=parsed; else if(parsed&&Array.isArray(parsed.mistakes)) arr=parsed.mistakes; else if(parsed&&Array.isArray(parsed.results)) arr=parsed.results; else if(parsed&&Array.isArray(parsed.errors)) arr=parsed.errors; else if(parsed&&typeof parsed.original==='string'&&typeof parsed.corrected==='string') arr=[parsed]; return arr; }catch(e){ return []; } }
     function isPunctuationOnlyDiff(a,b){var p='，。、！？；：…—·《》〈〉（）【】,.!?;:()[]{}<> ';var s=function(x){return (x||'').split('').filter(function(c){return p.indexOf(c)<0;}).join('');};return s(a)===s(b);}
     function filterMistakes(mistakes){ if(!mistakes||!mistakes.length) return []; const out=[]; for(const m of mistakes){ if(!m||!m.original||!m.corrected) continue; if(m.original===m.corrected) continue; if(isPunctuationOnlyDiff(m.original,m.corrected)) continue; const _fo=stripForCompare(m.original); const _fc=stripForCompare(m.corrected); if(_fo===_fc) continue; if(_fc.replace(/[吧吗呢啊呀哦嘛咯喽哟]+$/,'')===_fo) continue; if(out.some(x=>x.original===m.original&&x.corrected===m.corrected)) continue; out.push(m); } return out; }
     function charLcsLen(a,b){ const n=a.length,m=b.length; const dp=Array.from({length:n+1},()=>new Array(m+1).fill(0)); for(let i=n-1;i>=0;i--) for(let j=m-1;j>=0;j--) dp[i][j]=a[i]===b[j]?dp[i+1][j+1]+1:Math.max(dp[i+1][j],dp[i][j+1]); return dp[0][0]; }
@@ -18037,9 +18556,9 @@ uncertain 表示你是否读不懂这个句子/分句、无法可靠推断学生
         if(!apiKey || !userMessages || !userMessages.length) return candidates || [];
         const targetLang = targetLangSelect ? targetLangSelect.value : 'English';
         const candDesc = (candidates || []).map(m => '「' + (m.original||'') + '」→「' + (m.corrected||'') + '」(' + (m.type||'') + ')').join('；') || '（无）';
-        const prompt = '你是HSK中文教师。请对第一轮纠错做严格复核，纠错准确率高于一切。\\n\\n【学生句子】\\n' + JSON.stringify(userMessages) + '\\n\\n【第一轮候选纠错】\\n' + candDesc + '\\n\\n【复核标准 - 逐条执行】\\n1. 原句是否真的违反现代汉语普通话的词汇/语法/搭配规范，或真的属于HSK作文语料高频偏误（如离合词直接带宾语、错别字、语序颠倒、缺必要成分）？如果原句本身就是正确的现代汉语句子，或者两种说法母语者都常说，这条就是误报，必须删除。例：「我今天遇到了一个外国人」完全正确，任何人删改「了」或添加原文没有的字都是误报。\\n2. corrected 是否只改了真正错误的部分、改完后是否还是通顺自然的现代汉语？只要 corrected 里出现生造词、把正确部分也改掉、或读起来别扭，就把这条改成正确的最小改动；改不出来就删除。\\n3. 语用复核：结合【对话上下文】判断语用是否成立。话题/对比句（如列举计划时说「北京去了，上海还没去」）、承前省略、口语变体等结构合法且语境成立 → 不报、删掉对应条目。\\n4. 补漏：如果学生句子还有第一轮漏掉的错误，也输出。\\n5. 每条输出 original、corrected、type（固定中文错误类型）、uncertain、pattern、note（用' + targetLang + '具体说明错误原因）。\\n\\n输出JSON数组：确认无误的最终纠错列表；一条都没有就输出[]。';
+        const prompt = '你是HSK中文教师。请对第一轮纠错做严格复核，纠错准确率高于一切。\\n\\n【学生句子】\\n' + JSON.stringify(userMessages) + '\\n\\n【第一轮候选纠错】\\n' + candDesc + '\\n\\n【复核标准 - 逐条执行】\\n1. 原句是否真的违反现代汉语普通话的词汇/语法/搭配规范，或真的属于HSK作文语料高频偏误（如离合词直接带宾语、错别字、语序颠倒、缺必要成分）？如果原句本身就是正确的现代汉语句子，或者两种说法母语者都常说，这条就是误报，必须删除。例：「我今天遇到了一个外国人」完全正确，任何人删改「了」或添加原文没有的字都是误报。\\n2. corrected 是否只改了真正错误的部分、改完后是否还是通顺自然的现代汉语？只要 corrected 里出现生造词、把正确部分也改掉、或读起来别扭，就把这条改成正确的最小改动；改不出来就删除。\\n3. 语用复核：结合【对话上下文】判断语用是否成立。话题/对比句（如列举计划时说「北京去了，上海还没去」）、承前省略、口语变体等结构合法且语境成立 → 不报、删掉对应条目。\\n4. 补漏 - 防漏报 - 必须执行：先按标点把学生句子切成分句并编号，逐句对照第一轮候选；凡是有错但候选里没有的分句，必须补上记录，严禁因为错误多就漏掉其中一两个；输出前再逐句核对一遍，确保每个有错的分句都有一条最终记录。\\n5. 每条输出 original、corrected、type（固定中文错误类型）、uncertain、pattern、note（用' + targetLang + '具体说明错误原因）。\\n\\n输出JSON数组：确认无误的最终纠错列表；一条都没有就输出[]。';
         try{
-            const resp = await fetch(API_BASE, { method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey}, body: JSON.stringify({ model:'deepseek-v4-pro', thinking:{ type:'disabled' }, max_tokens:2048, messages:[{ role:'system', content:prompt },{ role:'user', content: (contextMessages ? ('【对话上下文】（仅用于理解学生当前句子的意思，不要纠错上下文内容）\\n' + contextMessages + '\\n\\n') : '') + JSON.stringify(userMessages) }], temperature:0, signal: aiFetchSignal(null, 45000) }) });
+            const resp = await fetch(API_BASE, { method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey}, body: JSON.stringify({ model:'deepseek-v4-pro', thinking:{ type:'disabled' }, max_tokens:4096, messages:[{ role:'system', content:prompt },{ role:'user', content: (contextMessages ? ('【对话上下文】（仅用于理解学生当前句子的意思，不要纠错上下文内容）\\n' + contextMessages + '\\n\\n') : '') + JSON.stringify(userMessages) }], temperature:0, signal: aiFetchSignal(null, 45000) }) });
             const data = await resp.json();
             if(data.error) return candidates || [];
             if(!data.choices || !data.choices[0] || !data.choices[0].message) return candidates || [];
@@ -22235,12 +22754,12 @@ async function generateAndShowPractice(grammarPattern, grammarLevel, forceNew=fa
             const r = reasons[i] || { choice:'', why:'', meaning:'', native: it.native || '' };
             let reasonText = '';
             if(it.mode === '阅读' && r.why){
-                reasonText = '哪里不明白：' + r.why;
+                reasonText = t('reflection.reason_unclear') + r.why;
             } else if(it.mode === '怎么说' && r.why){
-                reasonText = '为什么不会说：' + r.why;
-                if(r.meaning) reasonText += '｜正确句子的意思：' + r.meaning;
+                reasonText = t('reflection.reason_couldnt_say') + r.why;
+                if(r.meaning) reasonText += '｜' + t('reflection.reason_meaning') + r.meaning;
             } else if(r.choice === 'B'){
-                reasonText = (r.noChoiceLabel ? '' : t('reflection.opt_b') + '｜') + '哪里不明白：' + (r.why || '');
+                reasonText = (r.noChoiceLabel ? '' : t('reflection.opt_b') + '｜') + t('reflection.reason_unclear') + (r.why || '');
             } else if(r.choice === 'A'){
                 reasonText = t('reflection.opt_a');
             } else if(r.choice){
