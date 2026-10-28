@@ -17422,7 +17422,22 @@ function saveFullState(){ if(!currentUser) return; const entries=Array.from(used
     function saveChatHistory(){ if(!currentUser) return; localStorage.setItem(chatHistoryKey(), JSON.stringify(chatHistory)); }
     const APP_VERSION = '2.1';
     function loadChatHistory(){ if(!currentUser) return; const storedVer=localStorage.getItem('app_version'); if(storedVer!==APP_VERSION){ localStorage.removeItem(chatHistoryKey()); localStorage.setItem('app_version',APP_VERSION); chatHistory=[]; return; } const raw=localStorage.getItem(chatHistoryKey()); if(raw){ try{ chatHistory=JSON.parse(raw); }catch(e){ chatHistory=[]; } } if(!Array.isArray(chatHistory)) chatHistory=[]; chatHistory = dedupeChatHistory(chatHistory); }
-    function dedupeChatHistory(list){ if(!list || list.length < 2) return list; const out=[]; for(const msg of list){ const prev=out[out.length-1]; if(prev && prev.role===msg.role && String(prev.content||'')===String(msg.content||'')) continue; out.push(msg); } return out; }
+    function dedupeChatHistory(list){
+        if(!list || list.length < 2) return list;
+        const out=[];
+        for(const msg of list){
+            const prev=out[out.length-1];
+            // 连续两条 AI 消息只保留最后一条：并行纠错聊天时，
+            // 第一条是没有纠错块的初版回复，第二条才是最终显示（含纠错块）的回复。
+            if(prev && prev.role==='assistant' && msg.role==='assistant'){
+                out[out.length-1]=msg;
+                continue;
+            }
+            if(prev && prev.role===msg.role && String(prev.content||'')===String(msg.content||'')) continue;
+            out.push(msg);
+        }
+        return out;
+    }
     function renderChatHistory(){ if(chatHistory.length===0) return; chatMessages.innerHTML=''; for(let msg of chatHistory){ const role=msg.role; const content=msg.content; if(role==='assistant'){ const div=document.createElement('div'); div.className='message assistant-message'; div.innerHTML='<div class="bubble assistant-bubble">'+content+'</div>'; chatMessages.appendChild(div); } else { const div=document.createElement('div'); div.className='message user-message'; div.innerHTML='<div class="bubble user-bubble">'+escapeHtml(content)+'</div>'; chatMessages.appendChild(div); } } chatMessages.scrollTop=chatMessages.scrollHeight; }
     function showChatHistory(){
         if(chatHistory.length===0){ showToast('暂无聊天历史'); return; }
@@ -19155,22 +19170,32 @@ renderVocabLevelProgress(); renderVocabTrackList(); const _userHanzi = sessionUs
         }
         if(!items.length) return r;
         // 正常情况：AI 按提示词只生成一次「哦，你是说……，对吗？」。
-        // 安全网：剥掉回复里所有位置的确认框架/复述，系统统一补一个，保证「，对吗？」只出现一次。
-        // 1) 剥掉「你是说……，对吗？」框架（句首和句中都要剥，含「对吧/对不对/是吧」变体）
+        // 安全网：剥掉回复里所有位置的确认框架/复述，系统统一补一个，
+        // 保证「哦，你是说」「，对吗？」各只出现一次。
+        // 1) 剥掉完整的「你是说……，对吗？」框架（句首和句中都要剥，含「对吧/对不对/是吧」变体）
         r = r.replace(/(?:哦[，,]?\s*)?(?:你是说|你是想说|你想说的是|你的意思是|意思是说|是说)([^。！？!?\n]*?)(?:[，,]?\s*(?:对吗|对吧|对不对|是吧)[？?]?)\s*/g, '');
-        // 2) 复述原句 → 替换为改正句；句中残留的「正确句子，对吗？」只保留句子本身
+        // 1b) 模型偶尔把确认句写两遍、第一遍没有结尾的「，对吗？」（如「哦，你是说我去北京。哦，你是说我去北京，对吗？」），
+        //     第1步只剥掉了第二遍。这里把剩余的所有「哦，你是说」类标记直接剥掉，只留标记后的句子内容。
+        r = r.replace(/(?:哦[，,]?\s*)?(?:你是说|你是想说|你想说的是|你的意思是|意思是说|是说)\s*/g, '');
+        // 2) 复述原句 → 替换为改正句；句中残留的「正确句子，对吗？」只保留句子本身（「。对吗？」这类标点变体也一并处理）
         for(const it of items){
             if(r.includes(it.o)) r = r.split(it.o).join(it.c);
             const esc = it.c.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-            r = r.replace(new RegExp(esc + '[，,]?\\s*(?:对吗|对吧|对不对|是吧)[？?]?', 'g'), it.c + '。');
+            r = r.replace(new RegExp(esc + '[。，,]?\\s*(?:对吗|对吧|对不对|是吧)[？?]?', 'g'), it.c + '。');
         }
-        // 3) 回复以改正句开头时（没有「你是说」前缀），剥掉它，防止和系统框架重复
+        // 3) 同一改正句连续重复（模型复述了两遍）只保留一遍（先于句首剥离执行，
+        //    否则「我去北京。我去北京。」的第二个会被留下）
+        for(const it of items){
+            const esc = it.c.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            r = r.replace(new RegExp('(' + esc + '[。，,]?\\s*){2,}', 'g'), it.c + '。');
+        }
+        // 4) 回复以改正句开头时（没有「你是说」前缀），剥掉它，防止和系统框架重复
         for(const it of items){
             const esc = it.c.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
             const lead = r.match(new RegExp('^\\s*' + esc + '(?=[。，,、\\s]|$)'));
             if(lead){ r = r.slice(lead[0].length); break; }
         }
-        // 4) 压缩任何位置残留的重复「，对吗？」
+        // 5) 压缩任何位置残留的重复「，对吗？」
         r = r.replace(/([，,]\s*(?:对吗|对吧|对不对|是吧)[？?]?\s*){2,}/g, '，对吗？');
         // AI 已经自然说出改正句且紧跟翻译括号时，保留翻译
         let translation = '';
@@ -19188,6 +19213,8 @@ renderVocabLevelProgress(); renderVocabTrackList(); const _userHanzi = sessionUs
         let r = String(raw || '');
         // 剥掉所有位置的「你是说……，对吗？」框架（含「对吧/对不对/是吧」变体）
         let cleaned = r.replace(/(?:哦[，,]?\s*)?(?:你是说|你是想说|你想说的是|你的意思是|意思是说|是说)([^。！？!?\n]*?)(?:[，,]?\s*(?:对吗|对吧|对不对|是吧)[？?]?)\s*/g, '');
+        // 再剥掉没有结尾确认词的「哦，你是说」类标记（模型偶尔连写两个确认句，第一个没有「，对吗？」）
+        cleaned = cleaned.replace(/(?:哦[，,]?\s*)?(?:你是说|你是想说|你想说的是|你的意思是|意思是说|是说)\s*/g, '');
         // 无「你是说」但模型仍写了「改过的句子，对吗？」这类确认句（如「今天去北京游，对吗？」）：
         // 剥掉句首第一个以「，对吗/对吧/对不对/是吧」结尾的小句
         cleaned = cleaned.replace(/^[^。！？!?\n]+?[，,]\s*(?:对吗|对吧|对不对|是吧)[？?]?\s*/, '');
@@ -19195,14 +19222,29 @@ renderVocabLevelProgress(); renderVocabTrackList(); const _userHanzi = sessionUs
         cleaned = cleaned.replace(/([，,]\s*(?:对吗|对吧|对不对|是吧)[？?]?\s*){2,}/g, '，对吗？');
         // 清理句首残留标点
         cleaned = cleaned.replace(/^[。，,、\s]+/, '');
-        return cleaned.trim() || r.trim();
+        if(cleaned.trim()) return cleaned.trim();
+        // 整条回复都只是确认复述：把重复的确认框架压缩成一次，保证「哦，你是说」最多出现一次
+        if(/(?:你是说|你是想说|你想说的是|你的意思是|意思是说|是说)/.test(r)){
+            const one = r.replace(/((?:哦[，,]?\s*)?(?:你是说|你是想说|你想说的是|你的意思是|意思是说|是说)[^。！？!?\n]*?(?:[，,]?\s*(?:对吗|对吧|对不对|是吧)[？?]?)\s*){2,}/g, '$1');
+            return one.trim() || r.trim();
+        }
+        return r.trim();
     }
     // 判断 AI 回复里剥掉所有确认框架后是否还有实际内容（用于决定是否回退到自然回复）
-    function hasFollowUpAfterConfirmation(raw){
-        const r = String(raw || '')
+    function hasFollowUpAfterConfirmation(raw, mistakes){
+        let r = String(raw || '')
             .replace(/(?:哦[，,]?\s*)?(?:你是说|你是想说|你想说的是|你的意思是|意思是说|是说)([^。！？!?\n]*?)(?:[，,]?\s*(?:对吗|对吧|对不对|是吧)[？?]?)\s*/g, '')
+            .replace(/(?:哦[，,]?\s*)?(?:你是说|你是想说|你想说的是|你的意思是|意思是说|是说)\s*/g, '')
             .replace(/^[^。！？!?\n]+?[，,]\s*(?:对吗|对吧|对不对|是吧)[？?]?\s*/, '')
             .replace(/^[。，,、\s]+/, '');
+        // 剥完后剩下的如果只是系统改正句本身（模型把确认句复述了两遍），也不算有后续内容
+        for(const m of (mistakes || [])){
+            const c = String(m.corrected || '').trim().replace(/[。！？!?]+$/,'');
+            if(!c) continue;
+            const esc = c.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            r = r.replace(new RegExp('(?:' + esc + '[。，,]?\\s*)+', 'g'), '');
+        }
+        r = r.replace(/^[。，,、\s]+/, '');
         return !!r.replace(/[。，、！？!?？\s]/g, '');
     }
 
@@ -19383,7 +19425,7 @@ renderVocabLevelProgress(); renderVocabTrackList(); const _userHanzi = sessionUs
                 // 改用并行阶段已生成的自然回复，保证话轮能继续下去。
                 let _chat2 = chat2Early;
                 if(_chat2){
-                    if(!hasFollowUpAfterConfirmation(_chat2.raw)){
+                    if(!hasFollowUpAfterConfirmation(_chat2.raw, batch)){
                         if(reply && reply.raw) _chat2 = null;
                     }
                     if(_chat2) reply = _chat2;
@@ -19451,10 +19493,24 @@ renderVocabLevelProgress(); renderVocabTrackList(); const _userHanzi = sessionUs
                         html = aiHtmlFinal + '<br><br>' + block.html;
                         raw = cleanReplyRaw + '\n' + t('chat.correction') + '\n' + block.rawLines.join('\n');
                         if(window._chatCorrectionData && window._chatCorrectionData[block.token]) window._chatCorrectionData[block.token].oldRaw = raw;
-                        const last = chatHistory[chatHistory.length-1];
-                        if(last && last.role === 'assistant'){ last.content = raw; saveChatHistory(); }
                     }
                 }
+                // 聊天历史本轮只保留最终这一条 AI 回复：并行纠错聊天时可能先写入了
+                // 没有纠错块的初版回复（查看历史/报告时会出现「先无纠错块、后有纠错块」两条回复），
+                // 这里把最终内容同步到最后一条，并删掉它前面同一轮的多余 AI 记录。
+                (function(){
+                    let lastAi = -1;
+                    for(let k = chatHistory.length - 1; k >= 0; k--){
+                        if(chatHistory[k] && chatHistory[k].role === 'assistant'){ lastAi = k; break; }
+                    }
+                    if(lastAi === -1) return;
+                    chatHistory[lastAi].content = raw;
+                    for(let k = lastAi - 1; k >= 0; k--){
+                        if(chatHistory[k] && chatHistory[k].role === 'assistant') chatHistory.splice(k, 1);
+                        else break;
+                    }
+                    saveChatHistory();
+                })();
                 addAssistantMessage(html, true, raw, cleanReplyRaw);
             } else {
                 for(const m of filtered){
