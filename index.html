@@ -16451,7 +16451,7 @@ ${searchRule}
         const ctx = modeChatContext(kind);
         const recent = msgs.slice(-10).map(m => (m.role === 'user' ? '学生：' : 'AI：') + m.content).join('\n');
         try{
-            const system = '你是HSK' + level + '级中文对话伙伴，正在和学生讨论' + (kind === 'reading' ? '刚才读的文章' : '学生的作文') + '。用简单中文（HSK' + level + '级）自然交流；鼓励学生表达，做跨文化对比（用“你的国家/你们国家”，绝对不要说出具体国家名）。学生用中文时你用中文回答；学生用母语提问时，先用简单中文回答，再用' + targetLang + '简短解释一遍。';
+            const system = '你是HSK' + level + '级中文对话伙伴，正在和学生讨论' + (kind === 'reading' ? '刚才读的文章' : '学生的作文') + '。用简单中文（HSK' + level + '级）自然交流；鼓励学生表达，做跨文化对比（用“你的国家/你们国家”，绝对不要说出具体国家名；即使用户先说了自己在哪个国家，也要说“你的国家/你们国家”）。学生用中文时你用中文回答；学生用母语提问时，先用简单中文回答，再用' + targetLang + '简短解释一遍。';
             const prompt = system + '\n\n【材料】\n' + ctx + '\n\n【最近对话】\n' + recent + '\n\n请回复学生刚才的话。';
             const resp = await fetch(API_BASE, { method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey}, body: JSON.stringify({ model:'deepseek-v4-flash', thinking:{ type:'disabled' }, max_tokens:1024, messages:[{ role:'user', content:prompt }], temperature:0.7 }) });
             const data = await resp.json();
@@ -17436,6 +17436,7 @@ ${searchRule}
         if(!items.length) return '';
         let s = '【错误库（错误的词/句子）- 动态运用】学生在以下词/句子上出过错，聊天时围绕话题自然、不着痕迹地用上它们的正确形式（每次选1-2个即可，不要硬塞）。使用时必须沿用所记录改正后句子的句型，只替换其他成分，并保持该词/句子在改正后句子里的意思不变（防止多义词换义）：\n';
         s += items.map(it => '「' + it.text + '」' + (it.correct && it.correct !== it.text ? '（正确：' + it.correct + '）' : '') + '（改正后的句子：' + (it.sentence || it.text) + '）').join('；') + '\n';
+        s += '注意：学生当前这句话如果正是上面某条「改正后的句子」原文（学生原样使用，只是少了句末标点/语气词也算），说明学生已经用对了；绝对不要复述或确认这句话，直接自然回应学生说的内容。\n';
         return s;
     }
     // 测试题库
@@ -18098,7 +18099,7 @@ function saveFullState(){ if(!currentUser) return; const entries=Array.from(used
                     return rows.join('\n');
                 })()
                 + '\n回复开头先写一句「哦，你是说」+ 正确句子 +「，对吗？」确认学生意思，然后简短自然回应学生说的内容（1-3句），可在合适时提一个问题。整个回复「，对吗？」只出现这一次；正确句子照抄「系统纠错结果」里的「正确句子」原文（句末句号不要抄进确认句）。'
-            : '\n【系统纠错结果】\n（本次无纠错结果）\n学生这句话没有偏误。绝对不要使用「哦，你是说……」「你是想说……」「……，对吗？」等任何确认句式，绝对不要重复、改写或复述学生的句子（哪怕你觉得它有错——纠错由系统单独处理），更不许把你擅自改写、或添加原文没有的字的句子塞进确认句式；直接自然回应学生说的内容或问题。';
+            : '\n【系统纠错结果】\n（本次无纠错结果）\n学生这句话没有偏误。绝对不要使用「哦，你是说……」「你是想说……」「……，对吗？」等任何确认句式，绝对不要重复、改写或复述学生的句子（哪怕你觉得它有错——纠错由系统单独处理），更不许把你擅自改写、或添加原文没有的字的句子塞进确认句式；直接自然回应学生说的内容或问题。学生这句话如果和【错误库】里某条「改正后的句子」一模一样（只是少了句末标点或语气词也算），说明学生已经正确使用了这个表达，绝不是错误；绝对不要复述它、不要把它放进引号里确认，直接自然回应学生说的内容。';
         const topicCtx = window._chatTopicContext
             ? '\n【当前话题背景】' + String(window._chatTopicContext).slice(0, 1200) + '\n请始终围绕这个话题和学生聊天，不要跑题；提问时一次只问一个问题，等学生回答后再继续问下一个，不要一次列出多个问题。'
             : '';
@@ -18119,6 +18120,7 @@ ${gapChatGuide()}
 - 对学生的分享表达共鸣和回应（"真的吗？那太有趣了"、"我理解你的感受"）
 - 偶尔轻松地提一个问题，但不要连问两次以上
 - 不要每次都以问题结尾——有时分享完自然结束就好
+- 跨文化对比时只说「你的国家/你们国家」，绝对不要说出具体国家名（即使用户先提到了自己在哪个国家）
 - 绝不要假装自己是人类去编造生活经历（如散步、吃饭、去了某地等）
 【纠错规则】
 系统已经先分析并纠正学生句子的偏误（结果见下方「系统纠错结果」），纠错块会在你的回复之后自动显示（里面是学生的原句和更好的说法）。你不需要在回复中使用 ❌/✅/💡/✏️ 或「订正/纠错」格式纠错，也绝不要输出这些符号和标签——你输出只会造成重复。
@@ -19745,6 +19747,8 @@ renderVocabLevelProgress(); renderVocabTrackList(); const _userHanzi = sessionUs
         let cleaned = r.replace(/(?:哦[，,]?\s*)?(?:你是说|你是想说|你想说的是|你的意思是|意思是说|是说)([^。！？!?\n]*?)(?:[，,]?\s*(?:对吗|对吧|对不对|是吧)[？?]?)\s*/g, '');
         // 再剥掉没有结尾确认词的「哦，你是说」类标记（模型偶尔连写两个确认句，第一个没有「，对吗？」）
         cleaned = cleaned.replace(/(?:哦[，,]?\s*)?(?:你是说|你是想说|你想说的是|你的意思是|意思是说|是说)\s*/g, '');
+        // 剥掉句首「“……”吧？/「……」吧？」式确认复述（模型把学生原句放进引号里确认）
+        cleaned = cleaned.replace(/^[\s\u3000]*[“"「]([^”"」]{2,60})[”"」][\s]*(?:吧|吗)[？?]\s*/, '');
         // 无「你是说」但模型仍写了「改过的句子，对吗？」这类确认句（如「今天去北京游，对吗？」）：
         // 剥掉句首第一个以「，对吗/对吧/对不对/是吧」结尾的小句
         cleaned = cleaned.replace(/^[^。！？!?\n]+?[，,]\s*(?:对吗|对吧|对不对|是吧)[？?]?\s*/, '');
@@ -19853,6 +19857,15 @@ renderVocabLevelProgress(); renderVocabTrackList(); const _userHanzi = sessionUs
         return '（' + escapeHtml(String(e)) + '）';
     }
 
+    // 「怎么说」参考答案是否被学生原样复用：直接使用参考答案不算错
+    function isZmsReferenceEcho(text){
+        const t = stripForCompare(text);
+        if(!t) return false;
+        for(const z of (zmsRecords || [])){
+            if(z && z.reference && stripForCompare(z.reference) === t) return true;
+        }
+        return false;
+    }
     async function finishChatCorrectionFlow(text, baseMistakes, meaning, opts){
         opts = opts || {};
         window._chatBusy = true;
@@ -19862,6 +19875,8 @@ renderVocabLevelProgress(); renderVocabTrackList(); const _userHanzi = sessionUs
         const signal = chatAbortController.signal;
         try{
             let mistakes = baseMistakes || [];
+            // 「怎么说」参考句原样复用不算错：跳过纠错分析，避免 AI 把正确句子当错误复述确认
+            if(isZmsReferenceEcho(text)) opts.analyze = false;
             const now = new Date().toISOString();
             if(opts.nativeNote){
                 chatHistory.push({ role:'user', content: text + '\n🌐 ' + t('chat.meaning_title') + '：' + opts.nativeNote, time: now });
