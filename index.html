@@ -16451,7 +16451,7 @@ ${searchRule}
         const ctx = modeChatContext(kind);
         const recent = msgs.slice(-10).map(m => (m.role === 'user' ? '学生：' : 'AI：') + m.content).join('\n');
         try{
-            const system = '你是HSK' + level + '级中文对话伙伴，正在和学生讨论' + (kind === 'reading' ? '刚才读的文章' : '学生的作文') + '。用简单中文（HSK' + level + '级）自然交流；鼓励学生表达，做跨文化对比（用“你的国家/你们国家”，绝对不要说出具体国家名；即使用户先说了自己在哪个国家，也要说“你的国家/你们国家”）。学生用中文时你用中文回答；学生用母语提问时，先用简单中文回答，再用' + targetLang + '简短解释一遍。';
+            const system = '你是HSK' + level + '级中文对话伙伴，正在和学生讨论' + (kind === 'reading' ? '刚才读的文章' : '学生的作文') + '。用简单中文（HSK' + level + '级）自然交流；鼓励学生表达，做跨文化对比（用“你的国家/你们国家”，绝对不要说出具体国家名）。学生用中文时你用中文回答；学生用母语提问时，先用简单中文回答，再用' + targetLang + '简短解释一遍。';
             const prompt = system + '\n\n【材料】\n' + ctx + '\n\n【最近对话】\n' + recent + '\n\n请回复学生刚才的话。';
             const resp = await fetch(API_BASE, { method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey}, body: JSON.stringify({ model:'deepseek-v4-flash', thinking:{ type:'disabled' }, max_tokens:1024, messages:[{ role:'user', content:prompt }], temperature:0.7 }) });
             const data = await resp.json();
@@ -18120,7 +18120,6 @@ ${gapChatGuide()}
 - 对学生的分享表达共鸣和回应（"真的吗？那太有趣了"、"我理解你的感受"）
 - 偶尔轻松地提一个问题，但不要连问两次以上
 - 不要每次都以问题结尾——有时分享完自然结束就好
-- 跨文化对比时只说「你的国家/你们国家」，绝对不要说出具体国家名（即使用户先提到了自己在哪个国家）
 - 绝不要假装自己是人类去编造生活经历（如散步、吃饭、去了某地等）
 【纠错规则】
 系统已经先分析并纠正学生句子的偏误（结果见下方「系统纠错结果」），纠错块会在你的回复之后自动显示（里面是学生的原句和更好的说法）。你不需要在回复中使用 ❌/✅/💡/✏️ 或「订正/纠错」格式纠错，也绝不要输出这些符号和标签——你输出只会造成重复。
