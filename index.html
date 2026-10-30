@@ -5411,7 +5411,7 @@ const HSK2_VOCAB = [
     const ACQUIRED_THRESHOLD = 3;
     const STORAGE_KEY_PREFIX = 'HSK_GRAMMAR_MASTER_V10_';
     const API_KEY_STORAGE = 'DEEPSEEK_API_KEY';
-    const MISTAKE_TYPE_LIST = ['错字','别字','漏字','多字','词语错误','离合词错误','缺词','多词','语序错误','搭配不当','成分残缺','成分多余','句式杂糅','关联词错误','语义错误','虚词错误'];
+    const MISTAKE_TYPE_LIST = ['错字','别字','漏字','多字','词语错误','离合词错误','缺词','多词','语序错误','搭配不当','成分残缺','成分多余','句式杂糅','关联词错误','语义错误','语义不完整','虚词错误'];
     function normalizeMistakeType(t){
         if(!t) return '';
         t = String(t).trim();
@@ -5421,7 +5421,7 @@ const HSK2_VOCAB = [
             return uniq.join('、');
         }
         if(MISTAKE_TYPE_LIST.indexOf(t) >= 0) return t;
-        const alias = { '错别字':'错字', '语序颠倒':'语序错误', '搭配错误':'搭配不当', '缺字':'漏字', '冗余':'成分多余', '杂糅':'句式杂糅', '关联词':'关联词错误', '语义':'语义错误', '离合词':'离合词错误', '语法错误':'语序错误', '虚词':'虚词错误', '助词':'虚词错误', '介词':'虚词错误', '连词':'虚词错误', 'particle':'虚词错误', 'preposition':'虚词错误', 'function word':'虚词错误', 'vocabulary':'词语错误', 'grammar':'语序错误', 'character':'别字', 'redundant':'成分多余', 'collocation':'搭配不当', 'idiomatic':'语义错误', 'word order':'语序错误', 'typo':'错字', '字/词错误':'字/词错误', '字词错误':'字/词错误' };
+        const alias = { '错别字':'错字', '语序颠倒':'语序错误', '搭配错误':'搭配不当', '缺字':'漏字', '冗余':'成分多余', '杂糅':'句式杂糅', '关联词':'关联词错误', '语义':'语义错误', '离合词':'离合词错误', '语法错误':'语序错误', '虚词':'虚词错误', '助词':'虚词错误', '介词':'虚词错误', '连词':'虚词错误', 'particle':'虚词错误', 'preposition':'虚词错误', 'function word':'虚词错误', 'vocabulary':'词语错误', 'grammar':'语序错误', 'character':'别字', 'redundant':'成分多余', 'collocation':'搭配不当', 'idiomatic':'语义错误', 'word order':'语序错误', 'typo':'错字', '字/词错误':'字/词错误', '字词错误':'字/词错误', '不完整':'语义不完整', '意思不完整':'语义不完整', '表达不完整':'语义不完整', '语义不全':'语义不完整', 'incomplete':'语义不完整' };
         if(alias[t]) return alias[t];
         return '';
     }
@@ -5448,6 +5448,7 @@ const HSK2_VOCAB = [
             ['多余', '成分多余'], ['多词', '多词'], ['redundant', '成分多余'], ['extra', '成分多余'],
             ['别字', '别字'], ['错字', '错字'], ['typo', '错字'], ['character', '错字'],
             ['虚词', '虚词错误'], ['助词', '虚词错误'], ['介词', '虚词错误'], ['连词', '虚词错误'], ['particle', '虚词错误'], ['preposition', '虚词错误'], ['function word', '虚词错误'], ['用词', '词语错误'], ['词语', '词语错误'], ['词性', '词语错误'], ['vocabulary', '词语错误'],
+            ['不完整', '语义不完整'], ['incomplete', '语义不完整'],
             ['否定', '语义错误'], ['逻辑', '语义错误'], ['语义', '语义错误'], ['meaning', '语义错误'], ['表达', '语义错误']
         ];
         for(const [k, v] of kw){ if(n.indexOf(k.toLowerCase()) >= 0) return v; }
@@ -8466,7 +8467,7 @@ const HSK2_VOCAB = [
         'track.tab_chat_word':'💬 聊天出现词语', 'track.tab_practice_word':'🎧 听打听写练习词语', 'track.tab_writing_word':'✏️ 写作出现词语', 'track.tab_reading_word':'📖 阅读出现词语',
         'track.tab_chat_grammar':'💬 聊天出现语法', 'track.tab_practice_grammar':'🎧 听打听写练习语法', 'track.tab_writing_grammar':'✏️ 写作出现语法', 'track.tab_reading_grammar':'📖 阅读出现语法',
         'track.ai_repeat':'⚠️ 重复AI',
-        'mistake.type.字/词错误':'字/词错误', 'mistake.type.错字':'错字', 'mistake.type.别字':'别字', 'mistake.type.漏字':'漏字', 'mistake.type.多字':'多字', 'mistake.type.词语错误':'词语错误', 'mistake.type.离合词错误':'离合词错误', 'mistake.type.缺词':'缺词', 'mistake.type.多词':'多词', 'mistake.type.语序错误':'语序错误', 'mistake.type.搭配不当':'搭配不当', 'mistake.type.成分残缺':'成分残缺', 'mistake.type.成分多余':'成分多余', 'mistake.type.句式杂糅':'句式杂糅', 'mistake.type.关联词错误':'关联词错误', 'mistake.type.语义错误':'语义错误',
+        'mistake.type.字/词错误':'字/词错误', 'mistake.type.错字':'错字', 'mistake.type.别字':'别字', 'mistake.type.漏字':'漏字', 'mistake.type.多字':'多字', 'mistake.type.词语错误':'词语错误', 'mistake.type.离合词错误':'离合词错误', 'mistake.type.缺词':'缺词', 'mistake.type.多词':'多词', 'mistake.type.语序错误':'语序错误', 'mistake.type.搭配不当':'搭配不当', 'mistake.type.成分残缺':'成分残缺', 'mistake.type.成分多余':'成分多余', 'mistake.type.句式杂糅':'句式杂糅', 'mistake.type.关联词错误':'关联词错误', 'mistake.type.语义错误':'语义错误', 'mistake.type.语义不完整':'语义不完整',
         'mistake.type.虚词错误':'虚词错误',
         'track.usage_count':'使用次数', 'track.practice_count':'练习次数',
         'table.practice_examples':'练习例句',
@@ -10583,7 +10584,7 @@ const HSK2_VOCAB = [
             'writing.topic_opening':'📝 Opening suggestion', 'writing.topic_done':'✅ Topic set',
             'track.tab_chat_word':'💬 Chat words', 'track.tab_practice_word':'🎧 Listening/dictation words', 'track.tab_writing_word':'✏️ Writing words', 'track.tab_reading_word':'📖 Reading words', 'track.tab_chat_grammar':'💬 Chat grammar', 'track.tab_practice_grammar':'🎧 Listening/dictation grammar', 'track.tab_writing_grammar':'✏️ Writing grammar', 'track.tab_reading_grammar':'📖 Reading grammar',
             'track.ai_repeat':'⚠️ Repeated from AI',
-            'mistake.type.字/词错误':'Character/word error', 'mistake.type.离合词错误':'Separable verb', 'mistake.type.缺词':'Missing word', 'mistake.type.多词':'Extra word', 'mistake.type.语序错误':'Word order', 'mistake.type.搭配不当':'Collocation', 'mistake.type.成分残缺':'Incomplete element', 'mistake.type.成分多余':'Redundant element', 'mistake.type.句式杂糅':'Mixed patterns', 'mistake.type.关联词错误':'Connective', 'mistake.type.语义错误':'Meaning', 'mistake.type.虚词错误':'Function word',
+            'mistake.type.字/词错误':'Character/word error', 'mistake.type.离合词错误':'Separable verb', 'mistake.type.缺词':'Missing word', 'mistake.type.多词':'Extra word', 'mistake.type.语序错误':'Word order', 'mistake.type.搭配不当':'Collocation', 'mistake.type.成分残缺':'Incomplete element', 'mistake.type.成分多余':'Redundant element', 'mistake.type.句式杂糅':'Mixed patterns', 'mistake.type.关联词错误':'Connective', 'mistake.type.语义错误':'Meaning', 'mistake.type.语义不完整':'Incomplete meaning', 'mistake.type.虚词错误':'Function word',
         },
         'Japanese': {
             'zms.disamb_checking':'⏳ この単語に複数の意味があるか確認中...',
@@ -10618,7 +10619,7 @@ const HSK2_VOCAB = [
             'writing.topic_opening':'📝 書き出しの提案', 'writing.topic_done':'✅ トピック確定',
             'track.tab_chat_word':'💬 チャット出現語', 'track.tab_practice_word':'🎧 聞き取り/書き取り練習語', 'track.tab_writing_word':'✏️ 作文出現語', 'track.tab_reading_word':'📖 読解出現語', 'track.tab_chat_grammar':'💬 チャット出現文法', 'track.tab_practice_grammar':'🎧 聞き取り/書き取り練習文法', 'track.tab_writing_grammar':'✏️ 作文出現文法', 'track.tab_reading_grammar':'📖 読解出現文法',
             'track.ai_repeat':'⚠️ AIの繰り返し',
-            'mistake.type.字/词错误':'文字・語彙ミス', 'mistake.type.错字':'誤字', 'mistake.type.别字':'別字', 'mistake.type.漏字':'文字抜け', 'mistake.type.多字':'余分な文字', 'mistake.type.词语错误':'語彙ミス', 'mistake.type.离合词错误':'離合詞ミス', 'mistake.type.缺词':'語の不足', 'mistake.type.多词':'語の余剰', 'mistake.type.语序错误':'語順ミス', 'mistake.type.搭配不当':'コロケーション', 'mistake.type.成分残缺':'成分不足', 'mistake.type.成分多余':'成分余剰', 'mistake.type.句式杂糅':'文型混在', 'mistake.type.关联词错误':'接続詞ミス', 'mistake.type.语义错误':'意味ミス', 'mistake.type.虚词错误':'虚詞ミス',
+            'mistake.type.字/词错误':'文字・語彙ミス', 'mistake.type.错字':'誤字', 'mistake.type.别字':'別字', 'mistake.type.漏字':'文字抜け', 'mistake.type.多字':'余分な文字', 'mistake.type.词语错误':'語彙ミス', 'mistake.type.离合词错误':'離合詞ミス', 'mistake.type.缺词':'語の不足', 'mistake.type.多词':'語の余剰', 'mistake.type.语序错误':'語順ミス', 'mistake.type.搭配不当':'コロケーション', 'mistake.type.成分残缺':'成分不足', 'mistake.type.成分多余':'成分余剰', 'mistake.type.句式杂糅':'文型混在', 'mistake.type.关联词错误':'接続詞ミス', 'mistake.type.语义错误':'意味ミス', 'mistake.type.语义不完整':'意味が不完全', 'mistake.type.虚词错误':'虚詞ミス',
         },
         'Korean': {
             'zms.disamb_checking':'⏳ 이 단어에 여러 뜻이 있는지 확인 중...',
@@ -10653,7 +10654,7 @@ const HSK2_VOCAB = [
             'writing.topic_opening':'📝 첫 문장 제안', 'writing.topic_done':'✅ 주제 확정',
             'track.tab_chat_word':'💬 채팅 등장 단어', 'track.tab_practice_word':'🎧 받아쓰기/타자 연습 단어', 'track.tab_writing_word':'✏️ 작문 등장 단어', 'track.tab_reading_word':'📖 읽기 등장 단어', 'track.tab_chat_grammar':'💬 채팅 등장 문법', 'track.tab_practice_grammar':'🎧 받아쓰기/타자 연습 문법', 'track.tab_writing_grammar':'✏️ 작문 등장 문법', 'track.tab_reading_grammar':'📖 읽기 등장 문법',
             'track.ai_repeat':'⚠️ AI 반복',
-            'mistake.type.字/词错误':'글자·단어 오류', 'mistake.type.错字':'오자', 'mistake.type.别字':'다른 글자', 'mistake.type.漏字':'빠진 글자', 'mistake.type.多字':'군더더기 글자', 'mistake.type.词语错误':'단어 오류', 'mistake.type.离合词错误':'이합사 오류', 'mistake.type.缺词':'빠진 단어', 'mistake.type.多词':'군더더기 단어', 'mistake.type.语序错误':'어순 오류', 'mistake.type.搭配不当':'연어 오류', 'mistake.type.成分残缺':'성분 부족', 'mistake.type.成分多余':'성분 잉여', 'mistake.type.句式杂糅':'문형 혼재', 'mistake.type.关联词错误':'관련어 오류', 'mistake.type.语义错误':'의미 오류', 'mistake.type.虚词错误':'허사 오류',
+            'mistake.type.字/词错误':'글자·단어 오류', 'mistake.type.错字':'오자', 'mistake.type.别字':'다른 글자', 'mistake.type.漏字':'빠진 글자', 'mistake.type.多字':'군더더기 글자', 'mistake.type.词语错误':'단어 오류', 'mistake.type.离合词错误':'이합사 오류', 'mistake.type.缺词':'빠진 단어', 'mistake.type.多词':'군더더기 단어', 'mistake.type.语序错误':'어순 오류', 'mistake.type.搭配不当':'연어 오류', 'mistake.type.成分残缺':'성분 부족', 'mistake.type.成分多余':'성분 잉여', 'mistake.type.句式杂糅':'문형 혼재', 'mistake.type.关联词错误':'관련어 오류', 'mistake.type.语义错误':'의미 오류', 'mistake.type.语义不完整':'의미 불완전', 'mistake.type.虚词错误':'허사 오류',
         },
         'French': {
             'zms.disamb_checking':'⏳ Vérification si ce mot a plusieurs sens...',
@@ -10688,7 +10689,7 @@ const HSK2_VOCAB = [
             'writing.topic_opening':'📝 Suggestion d\'ouverture', 'writing.topic_done':'✅ Sujet choisi',
             'track.tab_chat_word':'💬 Mots du chat', 'track.tab_practice_word':'🎧 Mots de dictée/frappe', 'track.tab_writing_word':'✏️ Mots d\'écriture', 'track.tab_reading_word':'📖 Mots de lecture', 'track.tab_chat_grammar':'💬 Grammaire du chat', 'track.tab_practice_grammar':'🎧 Grammaire de dictée/frappe', 'track.tab_writing_grammar':'✏️ Grammaire d\'écriture', 'track.tab_reading_grammar':'📖 Grammaire de lecture',
             'track.ai_repeat':'⚠️ Répété de l\'IA',
-            'mistake.type.字/词错误':'Erreur de caractère/mot', 'mistake.type.错字':'Faute de frappe', 'mistake.type.别字':'Mauvais caractère', 'mistake.type.漏字':'Caractère manquant', 'mistake.type.多字':'Caractère en trop', 'mistake.type.词语错误':'Mauvais mot', 'mistake.type.离合词错误':'Verbe séparable', 'mistake.type.缺词':'Mot manquant', 'mistake.type.多词':'Mot en trop', 'mistake.type.语序错误':'Ordre des mots', 'mistake.type.搭配不当':'Collocation', 'mistake.type.成分残缺':'Élément manquant', 'mistake.type.成分多余':'Élément en trop', 'mistake.type.句式杂糅':'Mélange de structures', 'mistake.type.关联词错误':'Connecteur', 'mistake.type.语义错误':'Sens', 'mistake.type.虚词错误':'Mot grammatical',
+            'mistake.type.字/词错误':'Erreur de caractère/mot', 'mistake.type.错字':'Faute de frappe', 'mistake.type.别字':'Mauvais caractère', 'mistake.type.漏字':'Caractère manquant', 'mistake.type.多字':'Caractère en trop', 'mistake.type.词语错误':'Mauvais mot', 'mistake.type.离合词错误':'Verbe séparable', 'mistake.type.缺词':'Mot manquant', 'mistake.type.多词':'Mot en trop', 'mistake.type.语序错误':'Ordre des mots', 'mistake.type.搭配不当':'Collocation', 'mistake.type.成分残缺':'Élément manquant', 'mistake.type.成分多余':'Élément en trop', 'mistake.type.句式杂糅':'Mélange de structures', 'mistake.type.关联词错误':'Connecteur', 'mistake.type.语义错误':'Sens', 'mistake.type.语义不完整':'Sens incomplet', 'mistake.type.虚词错误':'Mot grammatical',
         },
         'German': {
             'zms.disamb_checking':'⏳ Prüfe, ob dieses Wort mehrere Bedeutungen hat...',
@@ -10723,7 +10724,7 @@ const HSK2_VOCAB = [
             'writing.topic_opening':'📝 Einstiegsvorschlag', 'writing.topic_done':'✅ Thema festgelegt',
             'track.tab_chat_word':'💬 Chat-Wörter', 'track.tab_practice_word':'🎧 Diktat-/Tippwörter', 'track.tab_writing_word':'✏️ Schreib-Wörter', 'track.tab_reading_word':'📖 Lese-Wörter', 'track.tab_chat_grammar':'💬 Chat-Grammatik', 'track.tab_practice_grammar':'🎧 Diktat-/Tippgrammatik', 'track.tab_writing_grammar':'✏️ Schreib-Grammatik', 'track.tab_reading_grammar':'📖 Lese-Grammatik',
             'track.ai_repeat':'⚠️ Von KI wiederholt',
-            'mistake.type.字/词错误':'Zeichen-/Wortfehler', 'mistake.type.错字':'Tippfehler', 'mistake.type.别字':'Falsches Zeichen', 'mistake.type.漏字':'Fehlendes Zeichen', 'mistake.type.多字':'Überflüssiges Zeichen', 'mistake.type.词语错误':'Falsches Wort', 'mistake.type.离合词错误':'Trennbares Verb', 'mistake.type.缺词':'Fehlendes Wort', 'mistake.type.多词':'Überflüssiges Wort', 'mistake.type.语序错误':'Wortstellung', 'mistake.type.搭配不当':'Kollokation', 'mistake.type.成分残缺':'Fehlendes Element', 'mistake.type.成分多余':'Überflüssiges Element', 'mistake.type.句式杂糅':'Strukturmischung', 'mistake.type.关联词错误':'Konnektor', 'mistake.type.语义错误':'Bedeutung', 'mistake.type.虚词错误':'Funktionswort',
+            'mistake.type.字/词错误':'Zeichen-/Wortfehler', 'mistake.type.错字':'Tippfehler', 'mistake.type.别字':'Falsches Zeichen', 'mistake.type.漏字':'Fehlendes Zeichen', 'mistake.type.多字':'Überflüssiges Zeichen', 'mistake.type.词语错误':'Falsches Wort', 'mistake.type.离合词错误':'Trennbares Verb', 'mistake.type.缺词':'Fehlendes Wort', 'mistake.type.多词':'Überflüssiges Wort', 'mistake.type.语序错误':'Wortstellung', 'mistake.type.搭配不当':'Kollokation', 'mistake.type.成分残缺':'Fehlendes Element', 'mistake.type.成分多余':'Überflüssiges Element', 'mistake.type.句式杂糅':'Strukturmischung', 'mistake.type.关联词错误':'Konnektor', 'mistake.type.语义错误':'Bedeutung', 'mistake.type.语义不完整':'Unvollständige Bedeutung', 'mistake.type.虚词错误':'Funktionswort',
         },
         'Spanish': {
             'zms.disamb_checking':'⏳ Comprobando si esta palabra tiene varios significados...',
@@ -10758,7 +10759,7 @@ const HSK2_VOCAB = [
             'writing.topic_opening':'📝 Sugerencia de inicio', 'writing.topic_done':'✅ Tema fijado',
             'track.tab_chat_word':'💬 Palabras del chat', 'track.tab_practice_word':'🎧 Palabras de dictado/tecleo', 'track.tab_writing_word':'✏️ Palabras de escritura', 'track.tab_reading_word':'📖 Palabras de lectura', 'track.tab_chat_grammar':'💬 Gramática del chat', 'track.tab_practice_grammar':'🎧 Gramática de dictado/tecleo', 'track.tab_writing_grammar':'✏️ Gramática de escritura', 'track.tab_reading_grammar':'📖 Gramática de lectura',
             'track.ai_repeat':'⚠️ Repetido de la IA',
-            'mistake.type.字/词错误':'Error de carácter/palabra', 'mistake.type.错字':'Error tipográfico', 'mistake.type.别字':'Carácter equivocado', 'mistake.type.漏字':'Carácter faltante', 'mistake.type.多字':'Carácter de más', 'mistake.type.词语错误':'Palabra equivocada', 'mistake.type.离合词错误':'Verbo separable', 'mistake.type.缺词':'Palabra faltante', 'mistake.type.多词':'Palabra de más', 'mistake.type.语序错误':'Orden de palabras', 'mistake.type.搭配不当':'Colocación', 'mistake.type.成分残缺':'Elemento faltante', 'mistake.type.成分多余':'Elemento de más', 'mistake.type.句式杂糅':'Mezcla de estructuras', 'mistake.type.关联词错误':'Conector', 'mistake.type.语义错误':'Significado', 'mistake.type.虚词错误':'Palabra funcional',
+            'mistake.type.字/词错误':'Error de carácter/palabra', 'mistake.type.错字':'Error tipográfico', 'mistake.type.别字':'Carácter equivocado', 'mistake.type.漏字':'Carácter faltante', 'mistake.type.多字':'Carácter de más', 'mistake.type.词语错误':'Palabra equivocada', 'mistake.type.离合词错误':'Verbo separable', 'mistake.type.缺词':'Palabra faltante', 'mistake.type.多词':'Palabra de más', 'mistake.type.语序错误':'Orden de palabras', 'mistake.type.搭配不当':'Colocación', 'mistake.type.成分残缺':'Elemento faltante', 'mistake.type.成分多余':'Elemento de más', 'mistake.type.句式杂糅':'Mezcla de estructuras', 'mistake.type.关联词错误':'Conector', 'mistake.type.语义错误':'Significado', 'mistake.type.语义不完整':'Significado incompleto', 'mistake.type.虚词错误':'Palabra funcional',
         },
         'Russian': {
             'zms.disamb_checking':'⏳ Проверяем, есть ли у слова несколько значений...',
@@ -10793,7 +10794,7 @@ const HSK2_VOCAB = [
             'writing.topic_opening':'📝 Подсказка для начала', 'writing.topic_done':'✅ Тема выбрана',
             'track.tab_chat_word':'💬 Слова из чата', 'track.tab_practice_word':'🎧 Слова из диктанта/набора', 'track.tab_writing_word':'✏️ Слова из письма', 'track.tab_reading_word':'📖 Слова из чтения', 'track.tab_chat_grammar':'💬 Грамматика из чата', 'track.tab_practice_grammar':'🎧 Грамматика из диктанта/набора', 'track.tab_writing_grammar':'✏️ Грамматика из письма', 'track.tab_reading_grammar':'📖 Грамматика из чтения',
             'track.ai_repeat':'⚠️ Повтор из ИИ',
-            'mistake.type.字/词错误':'Ошибка в знаке/слове', 'mistake.type.错字':'Опечатка', 'mistake.type.别字':'Не тот иероглиф', 'mistake.type.漏字':'Пропущен иероглиф', 'mistake.type.多字':'Лишний иероглиф', 'mistake.type.词语错误':'Не то слово', 'mistake.type.离合词错误':'Глагол с разрывом', 'mistake.type.缺词':'Пропущено слово', 'mistake.type.多词':'Лишнее слово', 'mistake.type.语序错误':'Порядок слов', 'mistake.type.搭配不当':'Сочетаемость', 'mistake.type.成分残缺':'Пропущен компонент', 'mistake.type.成分多余':'Лишний компонент', 'mistake.type.句式杂糅':'Смешение конструкций', 'mistake.type.关联词错误':'Союз', 'mistake.type.语义错误':'Смысл', 'mistake.type.虚词错误':'Служебное слово',
+            'mistake.type.字/词错误':'Ошибка в знаке/слове', 'mistake.type.错字':'Опечатка', 'mistake.type.别字':'Не тот иероглиф', 'mistake.type.漏字':'Пропущен иероглиф', 'mistake.type.多字':'Лишний иероглиф', 'mistake.type.词语错误':'Не то слово', 'mistake.type.离合词错误':'Глагол с разрывом', 'mistake.type.缺词':'Пропущено слово', 'mistake.type.多词':'Лишнее слово', 'mistake.type.语序错误':'Порядок слов', 'mistake.type.搭配不当':'Сочетаемость', 'mistake.type.成分残缺':'Пропущен компонент', 'mistake.type.成分多余':'Лишний компонент', 'mistake.type.句式杂糅':'Смешение конструкций', 'mistake.type.关联词错误':'Союз', 'mistake.type.语义错误':'Смысл', 'mistake.type.语义不完整':'Неполный смысл', 'mistake.type.虚词错误':'Служебное слово',
         },
         'Thai': {
             'zms.disamb_checking':'⏳ กำลังตรวจสอบว่าคำนี้มีหลายความหมายหรือไม่...',
@@ -10828,7 +10829,7 @@ const HSK2_VOCAB = [
             'writing.topic_opening':'📝 แนะนำประโยคเริ่มต้น', 'writing.topic_done':'✅ กำหนดหัวข้อแล้ว',
             'track.tab_chat_word':'💬 คำจากแชท', 'track.tab_practice_word':'🎧 คำจากเขียนตามคำบอก/พิมพ์', 'track.tab_writing_word':'✏️ คำจากการเขียน', 'track.tab_reading_word':'📖 คำจากการอ่าน', 'track.tab_chat_grammar':'💬 ไวยากรณ์จากแชท', 'track.tab_practice_grammar':'🎧 ไวยากรณ์จากเขียนตามคำบอก/พิมพ์', 'track.tab_writing_grammar':'✏️ ไวยากรณ์จากการเขียน', 'track.tab_reading_grammar':'📖 ไวยากรณ์จากการอ่าน',
             'track.ai_repeat':'⚠️ ซ้ำจาก AI',
-            'mistake.type.字/词错误':'ตัวอักษร/คำผิด', 'mistake.type.错字':'พิมพ์ผิด', 'mistake.type.别字':'ตัวอักษรผิด', 'mistake.type.漏字':'ตัวอักษรหาย', 'mistake.type.多字':'ตัวอักษรเกิน', 'mistake.type.词语错误':'ใช้คำผิด', 'mistake.type.离合词错误':'คำกริยาแยกได้', 'mistake.type.缺词':'คำหาย', 'mistake.type.多词':'คำเกิน', 'mistake.type.语序错误':'ลำดับคำ', 'mistake.type.搭配不当':'คำคู่กัน', 'mistake.type.成分残缺':'ส่วนประกอบหาย', 'mistake.type.成分多余':'ส่วนประกอบเกิน', 'mistake.type.句式杂糅':'โครงสร้างผสม', 'mistake.type.关联词错误':'คำเชื่อม', 'mistake.type.语义错误':'ความหมาย', 'mistake.type.虚词错误':'คำไวยากรณ์',
+            'mistake.type.字/词错误':'ตัวอักษร/คำผิด', 'mistake.type.错字':'พิมพ์ผิด', 'mistake.type.别字':'ตัวอักษรผิด', 'mistake.type.漏字':'ตัวอักษรหาย', 'mistake.type.多字':'ตัวอักษรเกิน', 'mistake.type.词语错误':'ใช้คำผิด', 'mistake.type.离合词错误':'คำกริยาแยกได้', 'mistake.type.缺词':'คำหาย', 'mistake.type.多词':'คำเกิน', 'mistake.type.语序错误':'ลำดับคำ', 'mistake.type.搭配不当':'คำคู่กัน', 'mistake.type.成分残缺':'ส่วนประกอบหาย', 'mistake.type.成分多余':'ส่วนประกอบเกิน', 'mistake.type.句式杂糅':'โครงสร้างผสม', 'mistake.type.关联词错误':'คำเชื่อม', 'mistake.type.语义错误':'ความหมาย', 'mistake.type.语义不完整':'ความหมายไม่สมบูรณ์', 'mistake.type.虚词错误':'คำไวยากรณ์',
         },
         'Italian': {
             'zms.disamb_checking':'⏳ Verifico se questa parola ha più significati...',
@@ -10863,7 +10864,7 @@ const HSK2_VOCAB = [
             'writing.topic_opening':'📝 Suggerimento di apertura', 'writing.topic_done':'✅ Tema scelto',
             'track.tab_chat_word':'💬 Parole della chat', 'track.tab_practice_word':'🎧 Parole di dettato/digitazione', 'track.tab_writing_word':'✏️ Parole di scrittura', 'track.tab_reading_word':'📖 Parole di lettura', 'track.tab_chat_grammar':'💬 Grammatica della chat', 'track.tab_practice_grammar':'🎧 Grammatica di dettato/digitazione', 'track.tab_writing_grammar':'✏️ Grammatica di scrittura', 'track.tab_reading_grammar':'📖 Grammatica di lettura',
             'track.ai_repeat':'⚠️ Ripetuto dall\'IA',
-            'mistake.type.字/词错误':'Errore di carattere/parola', 'mistake.type.错字':'Refuso', 'mistake.type.别字':'Carattere sbagliato', 'mistake.type.漏字':'Carattere mancante', 'mistake.type.多字':'Carattere in più', 'mistake.type.词语错误':'Parola sbagliata', 'mistake.type.离合词错误':'Verbo separabile', 'mistake.type.缺词':'Parola mancante', 'mistake.type.多词':'Parola in più', 'mistake.type.语序错误':'Ordine delle parole', 'mistake.type.搭配不当':'Collocazione', 'mistake.type.成分残缺':'Elemento mancante', 'mistake.type.成分多余':'Elemento in più', 'mistake.type.句式杂糅':'Strutture miste', 'mistake.type.关联词错误':'Connettivo', 'mistake.type.语义错误':'Significato', 'mistake.type.虚词错误':'Parola funzionale',
+            'mistake.type.字/词错误':'Errore di carattere/parola', 'mistake.type.错字':'Refuso', 'mistake.type.别字':'Carattere sbagliato', 'mistake.type.漏字':'Carattere mancante', 'mistake.type.多字':'Carattere in più', 'mistake.type.词语错误':'Parola sbagliata', 'mistake.type.离合词错误':'Verbo separabile', 'mistake.type.缺词':'Parola mancante', 'mistake.type.多词':'Parola in più', 'mistake.type.语序错误':'Ordine delle parole', 'mistake.type.搭配不当':'Collocazione', 'mistake.type.成分残缺':'Elemento mancante', 'mistake.type.成分多余':'Elemento in più', 'mistake.type.句式杂糅':'Strutture miste', 'mistake.type.关联词错误':'Connettivo', 'mistake.type.语义错误':'Significato', 'mistake.type.语义不完整':'Significato incompleto', 'mistake.type.虚词错误':'Parola funzionale',
         }
 ,
         'Vietnamese': {
@@ -10938,7 +10939,7 @@ const HSK2_VOCAB = [
                         'mistake.type.成分多余':'Thừa thành phần',
                         'mistake.type.句式杂糅':'Lẫn lộn cấu trúc',
                         'mistake.type.关联词错误':'Từ liên kết',
-                        'mistake.type.语义错误':'Ngữ nghĩa',
+                        'mistake.type.语义错误':'Ngữ nghĩa', 'mistake.type.语义不完整':'Nghĩa chưa đầy đủ',
                         'mistake.type.虚词错误':'Hư từ'
         },
         'Indonesian': {
@@ -11013,7 +11014,7 @@ const HSK2_VOCAB = [
                         'mistake.type.成分多余':'Unsur berlebih',
                         'mistake.type.句式杂糅':'Pola campur',
                         'mistake.type.关联词错误':'Kata hubung',
-                        'mistake.type.语义错误':'Makna',
+                        'mistake.type.语义错误':'Makna', 'mistake.type.语义不完整':'Makna tidak lengkap',
                         'mistake.type.虚词错误':'Kata fungsi'
         },
         'Slovak': {
@@ -11088,7 +11089,7 @@ const HSK2_VOCAB = [
                         'mistake.type.成分多余':'Nadbytočný člen',
                         'mistake.type.句式杂糅':'Zmiešané vzory',
                         'mistake.type.关联词错误':'Spojka',
-                        'mistake.type.语义错误':'Význam',
+                        'mistake.type.语义错误':'Význam', 'mistake.type.语义不完整':'Neúplný význam',
                         'mistake.type.虚词错误':'Pomocné slovo'
         },
     };
@@ -11853,7 +11854,7 @@ const HSK2_VOCAB = [
             'reflection2.option_c':'C. 看不懂，不理解',
             'reflection2.option_d':'D. 会用，失误打错了',
             'reflection.q_why_wrong':'🤔 为什么会用错？想一想，写下来：',
-            'reflection.q_why_couldnt_say':'🤔 这句话为什么不会说？想一想，写下来：',
+            'reflection.q_why_couldnt_say':'🤔 为什么这句话不会说，哪个语法或者词语不明白？',
             'reflection.q_meaning':'🌐 正确句子的意思，用你的母语怎么说？',
             'reflection.grammar_point':'📐 语法（AI改动的语法/句式）',
             'reflection.translation_label':'🌐 母语翻译',
@@ -11908,7 +11909,7 @@ const HSK2_VOCAB = [
             'reflection2.option_c':'C. Couldn\'t understand it',
             'reflection2.option_d':'D. I know how to use it; I just typed it wrong by mistake',
             'reflection.q_why_wrong':'🤔 Why did you use it wrong? Think and write it down:',
-            'reflection.q_why_couldnt_say':'🤔 Why couldn\'t you say this sentence? Think and write it down:',
+            'reflection.q_why_couldnt_say':'🤔 Why couldn\'t you say this sentence? Which grammar point or word is unclear?',
             'reflection.q_meaning':'🌐 What does the correct sentence mean in your native language?',
             'reflection.grammar_point':'📐 Grammar (the part AI corrected)',
             'reflection.translation_label':'🌐 Translation',
@@ -11962,7 +11963,7 @@ const HSK2_VOCAB = [
             'reflection2.option_c':'C. 意味がわからなかった',
             'reflection2.option_d':'D. 使い方はわかるが、打ち間違えた',
             'reflection.q_why_wrong':'🤔 なぜ間違えましたか？考えて書いてください：',
-            'reflection.q_why_couldnt_say':'🤔 この文はなぜ言えなかった？考えて書いてください：',
+            'reflection.q_why_couldnt_say':'🤔 なぜこの文が言えなかった？どの文法・どの言葉がわからない？',
             'reflection.q_meaning':'🌐 正しい文の意味を母語でどう言いますか？',
             'reflection.grammar_point':'📐 文法（AIが直した箇所）',
             'reflection.translation_label':'🌐 母語訳',
@@ -12015,7 +12016,7 @@ const HSK2_VOCAB = [
             'reflection2.option_c':'C. 이해하지 못했다',
             'reflection2.option_d':'D. 알지만 실수로 잘못 쳤다',
             'reflection.q_why_wrong':'🤔 왜 틀렸나요? 생각해서 쓰세요:',
-            'reflection.q_why_couldnt_say':'🤔 이 문장을 왜 말하지 못했나요? 생각해서 쓰세요:',
+            'reflection.q_why_couldnt_say':'🤔 왜 이 문장을 말하지 못했나요? 어떤 문법이나 단어가 이해되지 않나요?',
             'reflection.q_meaning':'🌐 올바른 문장의 뜻을 모국어로 어떻게 말하나요?',
             'reflection.grammar_point':'📐 문법 (AI가 고친 부분)',
             'reflection.translation_label':'🌐 번역',
@@ -12068,7 +12069,7 @@ const HSK2_VOCAB = [
             'reflection2.option_c':'C. Ne comprenait pas',
             'reflection2.option_d':'D. Sait l\'utiliser, faute de frappe',
             'reflection.q_why_wrong':'🤔 Pourquoi avez-vous fait l\'erreur ? Écrivez :',
-            'reflection.q_why_couldnt_say':'🤔 Pourquoi n\'avez-vous pas su dire cette phrase ? Écrivez :',
+            'reflection.q_why_couldnt_say':'🤔 Pourquoi n\'avez-vous pas su dire cette phrase ? Quelle grammaire ou quel mot ne comprenez-vous pas ?',
             'reflection.q_meaning':'🌐 Que signifie la phrase correcte dans votre langue ?',
             'reflection.grammar_point':'📐 Grammaire (partie corrigée par l\'IA)',
             'reflection.translation_label':'🌐 Traduction',
@@ -12121,7 +12122,7 @@ const HSK2_VOCAB = [
             'reflection2.option_c':'C. Nicht verstanden',
             'reflection2.option_d':'D. Kann es, nur vertippt',
             'reflection.q_why_wrong':'🤔 Warum war es falsch? Schreiben Sie:',
-            'reflection.q_why_couldnt_say':'🤔 Warum konntest du diesen Satz nicht sagen? Schreiben Sie:',
+            'reflection.q_why_couldnt_say':'🤔 Warum konntest du diesen Satz nicht sagen? Welche Grammatik oder welches Wort verstehst du nicht?',
             'reflection.q_meaning':'🌐 Was bedeutet der richtige Satz in Ihrer Sprache?',
             'reflection.grammar_point':'📐 Grammatik (von KI korrigierter Teil)',
             'reflection.translation_label':'🌐 Übersetzung',
@@ -12174,7 +12175,7 @@ const HSK2_VOCAB = [
             'reflection2.option_c':'C. No lo entendía',
             'reflection2.option_d':'D. Sé usarlo, me equivoqué al escribir',
             'reflection.q_why_wrong':'🤔 ¿Por qué te equivocaste? Escríbelo:',
-            'reflection.q_why_couldnt_say':'🤔 ¿Por qué no pudiste decir esta frase? Escríbelo:',
+            'reflection.q_why_couldnt_say':'🤔 ¿Por qué no pudiste decir esta frase? ¿Qué gramática o palabra no entiendes?',
             'reflection.q_meaning':'🌐 ¿Qué significa la oración correcta en tu idioma?',
             'reflection.grammar_point':'📐 Gramática (parte corregida por la IA)',
             'reflection.translation_label':'🌐 Traducción',
@@ -12227,7 +12228,7 @@ const HSK2_VOCAB = [
             'reflection2.option_c':'C. Не понял',
             'reflection2.option_d':'D. Умею, просто опечатался',
             'reflection.q_why_wrong':'🤔 Почему ошибся? Напишите:',
-            'reflection.q_why_couldnt_say':'🤔 Почему не смог сказать эту фразу? Напишите:',
+            'reflection.q_why_couldnt_say':'🤔 Почему не смог сказать эту фразу? Какая грамматика или какое слово непонятны?',
             'reflection.q_meaning':'🌐 Что значит правильное предложение на вашем языке?',
             'reflection.grammar_point':'📐 Грамматика (исправленная ИИ часть)',
             'reflection.translation_label':'🌐 Перевод',
@@ -12280,7 +12281,7 @@ const HSK2_VOCAB = [
             'reflection2.option_c':'C. ดูไม่เข้าใจ',
             'reflection2.option_d':'D. ใช้เป็นแต่พิมพ์ผิด',
             'reflection.q_why_wrong':'🤔 ทำไมถึงใช้ผิด? คิดแล้วเขียน:',
-            'reflection.q_why_couldnt_say':'🤔 ทำไมถึงพูดประโยคนี้ไม่ได้? คิดแล้วเขียน:',
+            'reflection.q_why_couldnt_say':'🤔 ทำไมถึงพูดประโยคนี้ไม่ได้? ไวยากรณ์หรือคำไหนที่ไม่เข้าใจ?',
             'reflection.q_meaning':'🌐 ประโยคที่ถูกต้องหมายความว่าอะไรในภาษาของคุณ?',
             'reflection.grammar_point':'📐 ไวยากรณ์ (ส่วนที่ AI แก้)',
             'reflection.translation_label':'🌐 คำแปล',
@@ -12333,7 +12334,7 @@ const HSK2_VOCAB = [
             'reflection2.option_c':'C. Non lo capivo',
             'reflection2.option_d':'D. Lo so usare, ho solo digitato male',
             'reflection.q_why_wrong':'🤔 Perché hai sbagliato? Scrivi:',
-            'reflection.q_why_couldnt_say':'🤔 Perché non sei riuscito a dire questa frase? Scrivi:',
+            'reflection.q_why_couldnt_say':'🤔 Perché non sei riuscito a dire questa frase? Quale grammatica o parola non capisci?',
             'reflection.q_meaning':'🌐 Cosa significa la frase corretta nella tua lingua?',
             'reflection.grammar_point':'📐 Grammatica (parte corretta dall\'IA)',
             'reflection.translation_label':'🌐 Traduzione',
@@ -12386,7 +12387,7 @@ const HSK2_VOCAB = [
             'reflection2.option_c':'C. Không hiểu',
             'reflection2.option_d':'D. Biết dùng, chỉ gõ nhầm',
             'reflection.q_why_wrong':'🤔 Vì sao bạn dùng sai? Viết ra:',
-            'reflection.q_why_couldnt_say':'🤔 Vì sao bạn không nói được câu này? Viết ra:',
+            'reflection.q_why_couldnt_say':'🤔 Vì sao bạn không nói được câu này? Ngữ pháp hay từ nào bạn chưa hiểu?',
             'reflection.q_meaning':'🌐 Câu đúng có nghĩa gì trong tiếng mẹ đẻ của bạn?',
             'reflection.grammar_point':'📐 Ngữ pháp (phần AI sửa)',
             'reflection.translation_label':'🌐 Bản dịch',
@@ -12439,7 +12440,7 @@ const HSK2_VOCAB = [
             'reflection2.option_c':'C. Tidak mengerti',
             'reflection2.option_d':'D. Bisa pakai, hanya salah ketik',
             'reflection.q_why_wrong':'🤔 Kenapa salah? Tuliskan:',
-            'reflection.q_why_couldnt_say':'🤔 Kenapa tidak bisa mengucapkan kalimat ini? Tuliskan:',
+            'reflection.q_why_couldnt_say':'🤔 Kenapa tidak bisa mengucapkan kalimat ini? Tata bahasa atau kata mana yang belum dipahami?',
             'reflection.q_meaning':'🌐 Apa arti kalimat yang benar dalam bahasa ibumu?',
             'reflection.grammar_point':'📐 Tata bahasa (bagian yang dikoreksi AI)',
             'reflection.translation_label':'🌐 Terjemahan',
@@ -12492,7 +12493,7 @@ const HSK2_VOCAB = [
             'reflection2.option_c':'C. Nerozumel som',
             'reflection2.option_d':'D. Viem to použiť, len som sa preklepol',
             'reflection.q_why_wrong':'🤔 Prečo to bolo zle? Napíšte:',
-            'reflection.q_why_couldnt_say':'🤔 Prečo si túto vetu nevedel povedať? Napíšte:',
+            'reflection.q_why_couldnt_say':'🤔 Prečo si túto vetu nevedel povedať? Ktorú gramatiku alebo slovo nechápeš?',
             'reflection.q_meaning':'🌐 Čo znamená správna veta vo vašom jazyku?',
             'reflection.grammar_point':'📐 Gramatika (časť opravená AI)',
             'reflection.translation_label':'🌐 Preklad',
@@ -16474,7 +16475,7 @@ ${searchRule}
         if(userClauses.length){
             const el = document.getElementById(kind + 'ChatMessages');
             if(el) el.innerHTML += '<div style="color:#e67e22;font-size:0.82rem;">⏳ 正在分析语法和词汇…</div>';
-            try{ const analysis = await analyzeGrammarBatch(userClauses); if(analysis) mergeAnalysisResults(analysis, 'chat'); }catch(e){}
+            let _modeFoundGrams=[]; try{ const analysis = await analyzeGrammarBatch(userClauses); if(analysis){ for(const item of analysis){ for(const m of (item.matches||[])){ const gm=findMatchingPattern(m.pattern); if(gm&&!_modeFoundGrams.includes(gm.pattern)) _modeFoundGrams.push(gm.pattern); } } mergeAnalysisResults(analysis, 'chat'); } }catch(e){}
             try{ const vocabAnalysis = await analyzeVocabBatch(userClauses); if(vocabAnalysis) mergeVocabResultsFiltered(vocabAnalysis, 'chat'); }catch(e){}
             renderVocabLevelProgress(); renderVocabTrackList(); renderLevelProgress(); renderTrackList();
         }
@@ -16485,7 +16486,7 @@ ${searchRule}
         renderModeChatMessages(kind);
         const qEl = document.getElementById(kind + 'ChatQuestions');
         if(qEl) qEl.innerHTML = '';
-        showToast('✅ 已结束聊天，已计入学习分析');
+        showToast('✅ 已结束聊天，已计入学习分析'+(_modeFoundGrams.length?'：'+_modeFoundGrams.slice(0,8).join('、'):''));
     }
     (function bindModeChats(){
         for(const kind of ['reading', 'writing']){
@@ -16718,7 +16719,7 @@ ${searchRule}
     function buildWritingPrompt(text, level, min, charCount, targetLang, session, isRevision) {
         const langName = WRITING_LANG_NAMES[targetLang] || targetLang;
         const lengthRule = '【字数要求】当前 HSK' + level + ' 水平，本次作文要求至少 ' + min + ' 个汉字。学生本次写了 ' + charCount + ' 个汉字。' + (charCount < min ? '字数不达标，必须判为不及格（59分及以下），并在 overall 中明确提示需要扩充到至少 ' + min + ' 字。' : '字数达标。');
-        const heuristic = '【直接改正 - 必须遵守】1. 针对每个错误，只输出有错误的分句（按逗号/分句切分，不要输出整个复句）。2. 每个 hint 输出 original（错误分句，中文原文）和 corrected（AI 直接改好的正确分句），直接给出改正后的句子，不要让学生自己再改。3. 评价要具体、可操作、多鼓励。4. 每个评价字段内用"\\n"分行。5. 【语言要求】所有反馈文字（discourse、syntax、semantic、characters、overall、hints 中每个 issue）必须全部用' + langName + '（' + targetLang + '）撰写，禁止使用中文，只有引用学生错误原文（original）和正确句子（corrected）时才可以保留中文。6. hints 中每个错误必须输出 type 字段，从固定中文错误类型（' + MISTAKE_TYPE_LIST.join('、') + '）中选一个，不要翻译、不要自创。7. corrected 必须与 original 不同：如果原句没有错误，就不要输出这个 hint；标点符号不算错；「的」可加可不加不算错；「的话」已表条件时「如果」可加可不加；承前省略主语不算错。8. 只改真正错误的部分，其余一字不动；数字/日期/时间/数量词原样保留；一个分句里有多个错误要全部改正。9. 常见错误必须纠正：「越来越+形容词（不能说越来越增加）」、「全称范围主语+都」（所有的地方人很多→所有的地方人都很多，缺「都」）、「有点儿+形容词」（气温低一点了→气温有点低）、「经常性情况不用了」（下雨时常常鞋湿了→下雨时常常鞋会湿）、「离开某地」（出中国→离开中国）、「没关系」（带伞了所以没问题了→带伞了所以没关系）、「马上+就」（马上雨停了→雨马上就停了）、「近义词辨析」（垃圾扔掉的方法很难→垃圾的处理方式很复杂：表示事情步骤多、麻烦用「复杂」，「难」多指能力不够；「扔掉的方法」宜说「处理方式/处理方法」）、「把字句+放置处所」（把吸垃圾放在塑料袋→把湿垃圾放在塑料袋里：「吸」是「湿」的错别字；「放」表示使某物处于某处时要用「在+处所」，容器后要加「里」）、「处所表达」（每天在垃圾桶的地方有一个阿姨→每天垃圾桶那里有一个阿姨）、「味道搭配」（味道很好吃→味道很好：「味道」不能说好吃/难吃，只能说好/不好，好吃形容食物本身）、「空间与环境」（餐馆里又宽又干净→餐馆里又宽敞又安静）、「规则与习俗」（我不知道这样的规则→我不知道这样的习俗/规定）、「找工作」（我得找打工→我得找工作：「打工」不能作「找」的宾语）、「睡不着觉」（不能睡觉→睡不着觉）、「开始+在+地方」（向印度开始旅行→开始在印度旅行）、「比较句不用满」（比以前满自信→比以前自信）、「退辞→辞职」（他退辞公司以后→他从公司辞职以后）、「关于+名词+的事」（我问同事关于上海的特产→我问同事关于上海的特产的事）、「土特产」（上海的土产→上海的土特产）、「特别+形容词」（特别的好东西→特别好的东西）、「时量补语后置」（还要几天烦恼→还要烦恼几天）、「告诉+人+有」（她告诉我，五香豆…→她告诉我有五香豆…）。10. 无错不报：分句本身符合现代汉语普通话的词汇、语法、语序和搭配规范，就绝对不要输出这个 hint；禁止改写正确句子，禁止把对的部分改掉，禁止为了“更自然/更地道/换一种说法”改动。例：「我今天遇到了一个外国人」完全正确，不能输出任何 hint，更不能删改「了」或换成别的字。「V+了+数量词+名词」（遇到了一个外国人、吃了一个苹果）完全正确，永远不要动「了」。11. 只报确凿错误：每条 hint 必须能说出依据（现代汉语普通话规则，或HSK作文语料常见偏误类型）；拿不准就不报，宁可漏报不可误报。12. corrected 改完后逐字通读：只要出现现代汉语不存在的词（生造词）就说明改错了，不要输出。13. 逐句清点防漏报：先把作文按句号/问号/感叹号/分号/逗号切成分句并编号，逐句判断；凡是确凿有错的分句必须各输出一条 hint，严禁因为错误多就漏掉某些分句；输出前对照原文再逐句数一遍，缺了哪个分句的纠错就补上。';
+        const heuristic = '【直接改正 - 必须遵守】1. 针对每个错误，只输出有错误的分句（按逗号/分句切分，不要输出整个复句）。2. 每个 hint 输出 original（错误分句，中文原文）和 corrected（AI 直接改好的正确分句），直接给出改正后的句子，不要让学生自己再改。3. 评价要具体、可操作、多鼓励。4. 每个评价字段内用"\\n"分行。5. 【语言要求】所有反馈文字（discourse、syntax、semantic、characters、overall、hints 中每个 issue）必须全部用' + langName + '（' + targetLang + '）撰写，禁止使用中文，只有引用学生错误原文（original）和正确句子（corrected）时才可以保留中文。6. hints 中每个错误必须输出 type 字段，从固定中文错误类型（' + MISTAKE_TYPE_LIST.join('、') + '）中选一个，不要翻译、不要自创。7. corrected 必须与 original 不同：如果原句没有错误，就不要输出这个 hint；标点符号不算错；「的」可加可不加不算错；「的话」已表条件时「如果」可加可不加；承前省略主语不算错。8. 只改真正错误的部分，其余一字不动；数字/日期/时间/数量词原样保留；一个分句里有多个错误要全部改正。9. 常见错误必须纠正：「越来越+形容词（不能说越来越增加）」、「全称范围主语+都」（所有的地方人很多→所有的地方人都很多，缺「都」）、「有点儿+形容词」（气温低一点了→气温有点低）、「经常性情况不用了」（下雨时常常鞋湿了→下雨时常常鞋会湿）、「离开某地」（出中国→离开中国）、「没关系」（带伞了所以没问题了→带伞了所以没关系）、「马上+就」（马上雨停了→雨马上就停了）、「近义词辨析」（垃圾扔掉的方法很难→垃圾的处理方式很复杂：表示事情步骤多、麻烦用「复杂」，「难」多指能力不够；「扔掉的方法」宜说「处理方式/处理方法」）、「把字句+放置处所」（把吸垃圾放在塑料袋→把湿垃圾放在塑料袋里：「吸」是「湿」的错别字；「放」表示使某物处于某处时要用「在+处所」，容器后要加「里」）、「处所表达」（每天在垃圾桶的地方有一个阿姨→每天垃圾桶那里有一个阿姨）、「味道搭配」（味道很好吃→味道很好：「味道」不能说好吃/难吃，只能说好/不好，好吃形容食物本身）、「空间与环境」（餐馆里又宽又干净→餐馆里又宽敞又安静）、「规则与习俗」（我不知道这样的规则→我不知道这样的习俗/规定）、「找工作」（我得找打工→我得找工作：「打工」不能作「找」的宾语）、「睡不着觉」（不能睡觉→睡不着觉）、「开始+在+地方」（向印度开始旅行→开始在印度旅行）、「比较句不用满」（比以前满自信→比以前自信）、「退辞→辞职」（他退辞公司以后→他从公司辞职以后）、「关于+名词+的事」（我问同事关于上海的特产→我问同事关于上海的特产的事）、「土特产」（上海的土产→上海的土特产）、「特别+形容词」（特别的好东西→特别好的东西）、「时量补语后置」（还要几天烦恼→还要烦恼几天）、「告诉+人+有」（她告诉我，五香豆…→她告诉我有五香豆…）、「应该与会的区别」（我聊天聊了很长时间，所以应该嗓子疼→我聊天聊了很长时间，所以会嗓子疼：客观必然结果用「会」，「应该」表义务/建议/情理）、「一直到」（到刚才我做资料→一直到刚才我都在做资料：固定用法「一直到+时间+主语+都+在+动作」）、「语义不完整」（因为我不习惯吃上海蟹，所以要时间→因为我不习惯吃上海蟹，所以需要花时间：没说清花时间做什么，具体动作不确定时 issue 里说明并让学生补充，type 填「语义不完整」）、「时间词重叠缺字」（我下下月→我下下个月；「上上月」→「上上个月」：「下下/上上」这类重叠时间词后面必须带「个」）、「时间名词直接作定语」（十二月飞机票很便宜→完全正确，不加「的」也对，绝不能改成「十二月的飞机票」）、「宾语从句主语可省略」（我还没决定我要去澳门→「我还没决定要去澳门」和「我还没决定我要去澳门」都对，主语省略不省略都可以；绝不能擅自补加原文没有的内容，如改成「我还没决定要去澳门还是越南」）。10. 无错不报：分句本身符合现代汉语普通话的词汇、语法、语序和搭配规范，就绝对不要输出这个 hint；禁止改写正确句子，禁止把对的部分改掉，禁止为了“更自然/更地道/换一种说法”改动。例：「我今天遇到了一个外国人」完全正确，不能输出任何 hint，更不能删改「了」或换成别的字。「V+了+数量词+名词」（遇到了一个外国人、吃了一个苹果）完全正确，永远不要动「了」。11. 只报确凿错误：每条 hint 必须能说出依据（现代汉语普通话规则，或HSK作文语料常见偏误类型）；拿不准就不报，宁可漏报不可误报。12. corrected 改完后逐字通读：只要出现现代汉语不存在的词（生造词）就说明改错了，不要输出。13. 逐句清点防漏报：先把作文按句号/问号/感叹号/分号/逗号切成分句并编号，逐句判断；凡是确凿有错的分句必须各输出一条 hint，严禁因为错误多就漏掉某些分句；输出前对照原文再逐句数一遍，缺了哪个分句的纠错就补上。';
         const jsonFmt = '输出JSON格式：{"score":整数0-100,"length_chars":' + charCount + ',"length_ok":' + (charCount >= min) + ',"discourse":"' + langName + '语篇结构评价","syntax":"' + langName + '句法语法评价","semantic":"' + langName + '词汇语义评价","characters":"' + langName + '汉字书写评价","overall":"' + langName + '总体评价","hints":[{"original":"错误分句(中文)","corrected":"AI直接改好的正确分句(中文)","type":"固定中文错误类型","issue":"' + langName + '简短说明"}]}';
         const dictHints = buildHskDictHints(text);
         const dictHintText = dictHints ? '\n【HSK语料库高频错误提示 - 逐条检查作文，确实属于这些误用就纠正，不属于不要报】\n' + dictHints : '';
@@ -17967,7 +17968,7 @@ function saveFullState(){ if(!currentUser) return; const entries=Array.from(used
     function updateGrammarDisplayByLevel(level){ const patterns=LEVEL_MAP[level]; if(!patterns){ grammarLibraryList.innerHTML='<div>'+t('status.no_grammar')+'</div>'; return; } const oldScroll=grammarLibraryList.querySelector('.grammar-list-scroll'); const savedScrollTop=oldScroll?oldScroll.scrollTop:0; let html=`<div class="grammar-list-scroll">`; for(let pattern of patterns){ const entry=usedMap.get(pattern); const count=entry?entry.count:0; const pCount=entry?(entry.practiceCount||0):0; const acc=accuracyFor(entry); let status=''; if(count>0) status=`<span class="mastered-tag" style="background:#e3f2fd;">`+t('status.using')+`</span>`; else status=`<span class="not-mastered-tag">`+t('status.unused')+`</span>`; let example=SPECIFIC_EXAMPLE_MAP.get(pattern)||''; if(!example&&entry){ const exs=entry.examples||[]; const pexs=entry.practiceExamples||[]; if(exs.length) example=exs[exs.length-1].sentence||''; else if(pexs.length) example=pexs[pexs.length-1].sentence||''; } let titleText=example; const ruleMap=RULE_MAPS[level]; if(ruleMap){ const ruleT=ruleMap.get(pattern); if(ruleT){ const partsT=[]; if(ruleT.f) partsT.push('功能：'+ruleT.f); if(ruleT.r) partsT.push('限制：'+ruleT.r); if(example) partsT.push('例：'+example); titleText=partsT.join('；'); } } let titleAttr=titleText?` title="${escapeHtml(titleText)}"`:''; html+=`<div class="grammar-list-item" data-pattern="${escapeHtml(pattern)}" data-level="${level}"${titleAttr}><span class="grammar-pattern">${escapeHtml(pattern.length>55?pattern.slice(0,52)+'…':pattern)}</span>${status}</div>`; } html+=`</div>`; grammarLibraryList.innerHTML=html; const newScroll=grammarLibraryList.querySelector('.grammar-list-scroll'); if(newScroll) newScroll.scrollTop=savedScrollTop; document.querySelectorAll('#grammarLibraryList .grammar-list-item').forEach(el=>el.addEventListener('click',()=>{ const p=el.dataset.pattern; const lv=parseInt(el.dataset.level)||1; if(!p) return; window._learnMode=false; window._reviewMode=false; window._currentReviewItem=null; window._pendingLearnWord=null; window._practiceFinished=false; window._dictationMode=false; window._dictationOnly=false; window._selfPractice=false; currentPracticeGrammar={pattern:p, level:lv}; currentPracticeVocab=null; generateAndShowPractice(p, lv, true); })); }
     function renderTrackList(){ const chat=[], practice=[], writing=[]; const gapWords = new Set(gapBank.items.map(it=>stripForCompare(it.correct || it.text))); for(let [pat,entry] of usedMap.entries()){ if(gapWords.has(stripForCompare(pat))) continue; const cCnt=entry.chatCount||0, wCnt=entry.writingCount||0, pCnt=entry.practiceCount||0; if(cCnt>0) chat.push({pattern:pat, level:entry.level, count:cCnt}); if(pCnt>0) practice.push({pattern:pat, level:entry.level, count:pCnt}); if(wCnt>0) writing.push({pattern:pat, level:entry.level, count:wCnt}); } const sorter=(a,b)=>a.level-b.level; chat.sort(sorter); practice.sort(sorter); writing.sort(sorter); const renderCat=(elId, items, isGrammar)=>{const el=document.getElementById(elId);if(!el)return;if(items.length===0){el.innerHTML='';return;}let h='';for(let it of items){const lvLabel=isGrammar?(it.level?'HSK'+it.level:'📖'):vocabLevelLabel(it.level);const name=isGrammar?it.pattern:it.word;const useTimes=it.count||0, pracTimes=it.practiceCount||0;let acquiredBadge='';if(isGrammar){const ge=usedMap.get(name);if(isAcquired(ge))acquiredBadge=' <span class="acquired-badge" style="font-size:0.68rem;padding:1px 6px;border-radius:10px;">'+t('status.acquired')+'</span>';}else{const ve=vocabUsedMap.get(name);if(isVocabAcquired(ve))acquiredBadge=' <span class="acquired-badge" style="font-size:0.68rem;padding:1px 6px;border-radius:10px;">'+t('status.acquired')+'</span>';}let timesHtml=''; if(useTimes>0&&pracTimes===0) timesHtml=acquiredBadge+' <span style="font-size:0.72rem;color:#2e7d32;">'+t('track.usage_count')+': '+useTimes+'</span>'; else if(pracTimes>0&&useTimes===0) timesHtml=acquiredBadge+' <span style="font-size:0.72rem;color:#1565c0;">'+t('track.practice_count')+': '+pracTimes+'</span>'; else if(useTimes>0&&pracTimes>0) timesHtml=acquiredBadge+' <span style="font-size:0.72rem;color:#2e7d32;">'+t('track.usage_count')+': '+useTimes+'</span> <span style="font-size:0.72rem;color:#1565c0;">'+t('track.practice_count')+': '+pracTimes+'</span>';h+='<div class="track-item" data-key="'+escapeHtml(name)+'" data-level="'+it.level+'"><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="'+escapeHtml(name)+'">'+lvLabel+' '+escapeHtml(String(name).length>40?String(name).slice(0,37)+'…':name)+'</span><span style="flex-shrink:0;min-width:55px;text-align:right;">'+timesHtml+'</span></div>';}el.innerHTML=h;el.querySelectorAll('.track-item').forEach(e=>e.addEventListener('click',()=>{const k=e.dataset.key;const entry=isGrammar?usedMap.get(k):vocabUsedMap.get(k);if(entry){if(isGrammar){const e2=usedMap.get(k); const items2=[{pattern:k, level:e2.level, count:e2.count, correctCount:e2.correctCount||0, practiceCount:e2.practiceCount||0, examples:e2.examples, practiceExamples:e2.practiceExamples||[]}]; document.getElementById('modalTitle').textContent='📖 语法点明细'; renderGrammarDetailModal(items2); modal.style.display='block';document.body.style.overflow='hidden';}else{const its=[{word:k,level:entry.level,count:entry.count,practiceCount:entry.practiceCount||0,examples:entry.examples,practiceExamples:entry.practiceExamples||[]}];document.getElementById('modalTitle').textContent=t('modal.vocab_detail');renderVocabDetailModal(its);modal.style.display='block';document.body.style.overflow='hidden';}}}));}; renderCat('grammarUsedOnlyList',chat,true); renderCat('grammarPracticeOnlyList',practice,true); renderCat('grammarBothList',writing,true); const readPat = gapBank.items.filter(it => String(it.source||'').includes('阅读')).map(it => ({pattern: (it.correct||it.text||it.sentence), level: 0, count: it.count||1})); renderCat('grammarReadingList',readPat,true); }
     function openGrammarDetailModalWithEntry(pattern, entry){ currentDetailLevel=null; const items=[{pattern, level:entry.level, count:entry.count, correctCount:entry.correctCount||0, practiceCount:entry.practiceCount||0, examples:entry.examples}]; const title=document.getElementById('modalTitle'); if(title) title.textContent=t('modal.grammar_detail'); renderGrammarDetailModal(items); modal.style.display='block'; document.body.style.overflow='hidden'; }
-    function openGrammarDetailModal(level=null){ currentDetailLevel=level; const items=[]; for(let [pattern,entry] of usedMap.entries()) if((level===null||entry.level===level)&&!isAcquired(entry)) items.push({pattern, level:entry.level, count:entry.count, correctCount:entry.correctCount||0, practiceCount:entry.practiceCount||0, examples:entry.examples}); items.sort((a,b)=>a.level-b.level); const title=document.getElementById('modalTitle'); if(title) title.textContent=t('modal.grammar_detail'); renderGrammarDetailModal(items); modal.style.display='block'; document.body.style.overflow='hidden'; }
+    function openGrammarDetailModal(level=null){ currentDetailLevel=level; const items=[]; for(let [pattern,entry] of usedMap.entries()) if(level===null||entry.level===level) items.push({pattern, level:entry.level, count:entry.count, correctCount:entry.correctCount||0, practiceCount:entry.practiceCount||0, examples:entry.examples}); items.sort((a,b)=>a.level-b.level); const title=document.getElementById('modalTitle'); if(title) title.textContent=t('modal.grammar_detail'); renderGrammarDetailModal(items); modal.style.display='block'; document.body.style.overflow='hidden'; }
     function renderGrammarDetailModal(items){
         if(items.length===0){ modalContentDiv.innerHTML='<div class="empty-detail">'+t('modal.empty')+'</div>'; return; }
         let html='<table class="grammar-detail-table"><thead><tr><th style="width:30%">'+t('table.grammar_pattern')+'</th><th style="width:8%">'+t('table.count')+'</th><th style="width:62%">'+t('table.examples')+'</th></tr></thead><tbody>';
@@ -18160,7 +18161,8 @@ ${gapChatGuide()}
             return null;
         }
     }
-    function extractPatternFixedChars(pattern){ const cleaned=pattern.replace(/[（(][^)）]*[)）]/g,''); const parts=cleaned.split('+'); const fixed=[]; for(const part of parts){ const t=part.trim(); if(!t) continue; const hasLatin=/[a-zA-Z]/.test(t); const hasChinese=/[\u4e00-\u9fff]/.test(t); if(!hasLatin&&hasChinese) fixed.push(t); } return fixed; }
+    const PATTERN_PLACEHOLDER_TOKENS = new Set(['方位词','数词','量词','中心语','疑问代词','离合词','动量补语','时量补语','结果补语','趋向补语','状态补语','补语']);
+    function extractPatternFixedChars(pattern){ const cleaned=pattern.replace(/[（(][^)）]*[)）]/g,''); const parts=cleaned.split('+'); const fixed=[]; for(const part of parts){ const t=part.trim(); if(!t) continue; const hasLatin=/[a-zA-Z]/.test(t); const hasChinese=/[\u4e00-\u9fff]/.test(t); if(!hasLatin&&hasChinese&&!PATTERN_PLACEHOLDER_TOKENS.has(t)) fixed.push(t); } return fixed; }
     function grammarLevelOf(pattern){ for(let lv=1;lv<=5;lv++){ const arr=LEVEL_MAP[lv]; if(arr && arr.indexOf(pattern)>=0) return lv; } return 3; }
     function patternFixedCharsFlat(pattern){
         const cleaned = pattern.replace(/[（(][^)）]*[)）]/g, '');
@@ -18231,7 +18233,7 @@ ${gapChatGuide()}
         return coveredAny;
     }
 function getCandidatePatterns(sentence, allPatterns){ const candidates=[]; let noFixedCount=0; const MAX_NO_FIXED=5; const segTokens=segmentForGrammar(sentence); for(const p of allPatterns){ const groups=extractPatternFixedChars(p.pattern); if(groups.length===0){ if(noFixedCount<MAX_NO_FIXED){ candidates.push(p); noFixedCount++; } continue; } let curPos=0, allOk=true; for(const group of groups){ const alts=group.split('/').map(s=>s.trim()).filter(s=>s); let found=false, bestPos=Infinity; for(const alt of alts){ let searchFrom=curPos; while(searchFrom<=sentence.length){ const pos=indexOfFlexible(sentence,alt,searchFrom); if(pos===-1) break; if(fixedMatchAlignedWithTokens(segTokens,pos,alt.length)){ if(pos<bestPos){ bestPos=pos; found=true; } break; } searchFrom=pos+1; } } if(!found){ allOk=false; break; } curPos=bestPos+1; } if(allOk) candidates.push(p); } return candidates; }
-function validatePracticeSentence(pattern, sentence){ const groups=extractPatternFixedChars(pattern); if(groups.length===0) return {valid:true}; let curPos=0; for(const group of groups){ const alts=group.split('/').map(s=>s.trim()).filter(s=>s); let found=false, bestPos=Infinity; for(const alt of alts){ const pos=indexOfFlexible(sentence,alt,curPos); if(pos!==-1&&pos<bestPos){ bestPos=pos; found=true; } } if(!found) return {valid:false, reason:'missing any of: '+group}; curPos=bestPos+1; } const COMMON_VERBS=new Set(['是','有','去','来','做','说','看','见','吃','喝','走','跑','写','读','听','学','买','卖','给','用','到','出','进','回','过','起','开','关','放','拿','打','想','要','会','能','可','让','叫','问','找','等','坐','住','加','记','忘','帮','送','带','洗','唱','跳','画','拍','讲','知道','觉得','喜欢','希望','开始','准备']); const COMMON_ADJ=new Set(['好','坏','大','小','多','少','快','慢','高','低','长','短','新','旧','热','冷','难','对','错','远','近','贵','便宜','漂亮','美丽','胖','瘦','忙','累','饿','渴','困','高兴','快乐','难过','紧张','轻松','够','全','早','晚','饱','香','甜']); const cleaned=pattern.replace(/[（(][^)）]*[)）]/g,''); if(cleaned==='V+了'||cleaned==='V+了+Number+Measure word'||cleaned==='V+了+O,sentence'){ const liaoPos=sentence.indexOf('了'); if(liaoPos>0){ const prevChar=sentence[liaoPos-1]; if(!COMMON_VERBS.has(prevChar)&&!/[\u4e00-\u9fff]/.test(prevChar)) return {valid:false, reason:'V+了: char before 了 may not be a verb'}; } } if(cleaned==='Adj+了'||cleaned==='Adj（+补语complement）+了'){ const liaoPos=sentence.indexOf('了'); if(liaoPos>0){ const prev=sentence[liaoPos-1]; if(!COMMON_ADJ.has(prev)&&COMMON_VERBS.has(prev)) return {valid:false, reason:'Adj+了: char before 了 may be verb, not adj'}; } } if(cleaned==='V+过（+O）'){ const guoPos=sentence.indexOf('过'); if(guoPos>0&&!COMMON_VERBS.has(sentence[guoPos-1])) return {valid:false, reason:'V+过: char before 过 may not be a verb'}; } return {valid:true}; }
+function validatePracticeSentence(pattern, sentence){ const groups=extractPatternFixedChars(pattern); if(groups.length===0) return {valid:true}; let curPos=0; for(const group of groups){ const alts=group.split('/').map(s=>s.trim()).filter(s=>s); let found=false, bestPos=Infinity; for(const alt of alts){ const pos=indexOfFlexible(sentence,alt,curPos); if(pos!==-1&&pos<bestPos){ bestPos=pos; found=true; } } if(!found) return {valid:false, reason:'missing any of: '+group}; curPos=bestPos+1; } const COMMON_VERBS=new Set(['是','有','去','来','做','说','看','见','吃','喝','走','跑','写','读','听','学','买','卖','给','用','到','出','进','回','过','起','开','关','放','拿','打','想','要','会','能','可','让','叫','问','找','等','坐','住','加','记','忘','帮','送','带','洗','唱','跳','画','拍','讲','知道','觉得','喜欢','希望','开始','准备']); const COMMON_ADJ=new Set(['好','坏','大','小','多','少','快','慢','高','低','长','短','新','旧','热','冷','难','对','错','远','近','贵','便宜','漂亮','美丽','胖','瘦','忙','累','饿','渴','困','高兴','快乐','难过','紧张','轻松','够','全','早','晚','饱','香','甜']); const cleaned=pattern.replace(/[（(][^)）]*[)）]/g,''); if(cleaned==='V+了'||cleaned==='V+了+Number+Measure word'||cleaned==='V+了+O,sentence'||cleaned==='V+了+O，sentence'){ const liaoPos=sentence.indexOf('了'); if(liaoPos>0){ const prevChar=sentence[liaoPos-1]; if(!COMMON_VERBS.has(prevChar)&&!/[\u4e00-\u9fff]/.test(prevChar)) return {valid:false, reason:'V+了: char before 了 may not be a verb'}; } } if(cleaned==='Adj+了'||cleaned==='Adj（+补语complement）+了'){ const liaoPos=sentence.indexOf('了'); if(liaoPos>0){ const prev=sentence[liaoPos-1]; if(!COMMON_ADJ.has(prev)&&COMMON_VERBS.has(prev)) return {valid:false, reason:'Adj+了: char before 了 may be verb, not adj'}; } } if(cleaned==='V+过（+O）'){ const guoPos=sentence.indexOf('过'); if(guoPos>0&&!COMMON_VERBS.has(sentence[guoPos-1])) return {valid:false, reason:'V+过: char before 过 may not be a verb'}; } return {valid:true}; }
     async function analyzeGrammarBatch(clauses){ const apiKey=apiKeyInput.value.trim(); if(!apiKey) return null; const activeList=grammarList; if(activeList.length===0) return []; const sentenceBlocks=[]; for(const clause of clauses){ const candidates=getCandidatePatterns(clause,activeList); if(candidates.length>0) sentenceBlocks.push({sentence:clause, candidates, seg:grammarSegText(clause)}); } if(sentenceBlocks.length===0) return []; const ruleLines=[]; const ruleSeen=new Set(); for(const block of sentenceBlocks){ for(const c of block.candidates){ const ruleKey=c.level+':'+c.pattern; if(ruleSeen.has(ruleKey)) continue; ruleSeen.add(ruleKey); const rm=RULE_MAPS[c.level]; if(!rm) continue; const r=rm.get(c.pattern); if(!r) continue; const bits=[]; if(r.f) bits.push('功能：'+r.f); if(r.r) bits.push('限制：'+r.r); if(r.pos) bits.push('正例：'+r.pos); if(r.neg) bits.push('反例：'+r.neg); ruleLines.push('• HSK'+c.level+' '+r.s+'（'+bits.join('；')+'）'); } } const ruleTable=ruleLines.length?('【规则明细表 - 本次候选中出现过的规则，逐条对照】\n'+ruleLines.join('\n')):''; let blocksText=''; for(const block of sentenceBlocks){ blocksText+=`【句子】${block.sentence}\n【分词（与阅读一致）】${block.seg}\n【候选语法（仅${block.candidates.length}条，必须从这里匹配）】\n${block.candidates.map(g=>g.pattern+'(HSK'+g.level+')').join('\n')}\n\n`; } const prompt=`你是中文语法匹配专家。以下每个句子已经给出了【分词】（与阅读模式一致）和【候选语法】列表——候选语法已按分词边界过滤，你要做的是：检查语法结构的占位符词性是否也匹配，并且固定汉字必须与分词边界对齐。
 
 ${ruleTable}
@@ -18287,9 +18289,9 @@ N=名词, V=动词, Adj=形容词, Adv=副词, Prep=介词, Pron=代词(同Prono
 ❌"我高比他"→"比"在"他"后，语序颠倒→不匹配
 
 输出JSON：{"results":[{"sentence":"句子","matches":[{"pattern":"语法格式","level":等级}]}]}
-没有匹配的句子也要包含，matches为空数组。只输出纯JSON，不要任何解释文字。`;
+sentence 必须逐字照抄输入【句子】的原文（句末标点可有可无），绝对不要改写语序、不要举反例、不要新增输入里没有的句子；每个输入句子最多只输出一条记录。没有匹配的句子也要包含（matches 为空数组）。只输出纯JSON，不要任何解释文字。`;
 
-try{ const resp=await fetch(API_BASE,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${apiKey}`}, body:JSON.stringify({model:'deepseek-v4-pro',thinking:{type:'disabled'}, max_tokens:4096, messages:[{role:'system',content:prompt},{role:'user',content:blocksText}], temperature:0.1})}); const data=await resp.json(); if(data.error) throw new Error(data.error.message||"API error"); if(!data.choices||!data.choices[0]||!data.choices[0].message) throw new Error("API error"); let content=data.choices[0].message.content; content=content.replace(/```json/g,'').replace(/```/g,'').trim(); const parsed=JSON.parse(content); return parsed.results||parsed.matches||parsed||[]; }catch(e){ return null; } }async function analyzeMistakesBatch(userMessages, aiReplyRaw, contextMessages){ const apiKey=apiKeyInput.value.trim(); if(!apiKey||userMessages.length===0) return []; const targetLang = targetLangSelect ? targetLangSelect.value : 'English'; const dictHints = buildHskDictHints((userMessages || []).join(' ')); const prompt=`你是HSK中文教师兼严格的阅卷老师。请逐词逐句分析学生句子的偏误（error analysis）：先判断是否有真实偏误，再给出最小改动的改正和具体原因。纠错准确率是第一要求：有错必报（包括一个字的小错），无错不报。\n\n【逐项检查清单 - 必须逐项过一遍】\n1. 词语意义和词性：单字词、双字词、短语的意思是否用对。\n2. 词语搭配：动宾搭配（如“庆祝节日”不能说“祝节日”）、定中搭配、数量词位置（如“一整天”不能说“整一天”）、介词搭配。\n3. 离合词：见面、帮忙、生气、洗澡等不能直接带宾语。\n4. 虚词：的/地/得/了/着/过/把/被/关于/对于/因为/所以等用对没有。\n5. 语序：时间、地点、方式状语的位置，数量词位置。\n6. 框式结构：要是...就...、虽然...但是...、越...越...等框架完整不完整。\n7. 成分残缺/多余、句式杂糅、关联词错误。\n每类都要检查，确有此类的错误就报告。
+try{ const resp=await fetch(API_BASE,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${apiKey}`}, body:JSON.stringify({model:'deepseek-v4-pro',thinking:{type:'disabled'}, max_tokens:4096, messages:[{role:'system',content:prompt},{role:'user',content:blocksText}], temperature:0.1})}); const data=await resp.json(); if(data.error) throw new Error(data.error.message||"API error"); if(!data.choices||!data.choices[0]||!data.choices[0].message) throw new Error("API error"); let content=data.choices[0].message.content; content=content.replace(/```json/g,'').replace(/```/g,'').trim(); const parsed=JSON.parse(content); let arr=parsed.results||parsed.matches||parsed||[]; if(!Array.isArray(arr)) arr=[]; const inputSet=new Set((clauses||[]).map(c=>stripForCompare(c))); arr=arr.filter(it=>it&&it.sentence&&inputSet.has(stripForCompare(it.sentence))); const bySent=new Map(); for(const it of arr){ const k=stripForCompare(it.sentence); if(!bySent.has(k)) bySent.set(k,{sentence:it.sentence,matches:[]}); const cur=bySent.get(k); for(const mt of (it.matches||[])){ if(mt&&mt.pattern&&!cur.matches.some(x=>x.pattern===mt.pattern)) cur.matches.push(mt); } } return [...bySent.values()]; }catch(e){ return null; } }async function analyzeMistakesBatch(userMessages, aiReplyRaw, contextMessages){ const apiKey=apiKeyInput.value.trim(); if(!apiKey||userMessages.length===0) return []; const targetLang = targetLangSelect ? targetLangSelect.value : 'English'; const dictHints = buildHskDictHints((userMessages || []).join(' ')); const prompt=`你是HSK中文教师兼严格的阅卷老师。请逐词逐句分析学生句子的偏误（error analysis）：先判断是否有真实偏误，再给出最小改动的改正和具体原因。纠错准确率是第一要求：有错必报（包括一个字的小错），无错不报。\n\n【逐项检查清单 - 必须逐项过一遍】\n1. 词语意义和词性：单字词、双字词、短语的意思是否用对。\n2. 词语搭配：动宾搭配（如“庆祝节日”不能说“祝节日”）、定中搭配、数量词位置（如“一整天”不能说“整一天”）、介词搭配。\n3. 离合词：见面、帮忙、生气、洗澡等不能直接带宾语。\n4. 虚词：的/地/得/了/着/过/把/被/关于/对于/因为/所以等用对没有。\n5. 语序：时间、地点、方式状语的位置，数量词位置。\n6. 框式结构：要是...就...、虽然...但是...、越...越...等框架完整不完整。\n7. 成分残缺/多余、句式杂糅、关联词错误。\n每类都要检查，确有此类的错误就报告。
 
 【纠错依据 - 三层】本地规则 + 大模型 + HSK作文偏误句标注：本地规则与语料标注见下方【重点排查】【常见偏误类】【高频漏检示例】【HSK语料库高频错误提示】；大模型负责现代汉语普通话词汇、语法、搭配和语用判断；三层互相印证。
 
@@ -18355,6 +18357,9 @@ try{ const resp=await fetch(API_BASE,{method:'POST',headers:{'Content-Type':'app
 ㉒ 双宾语「送给+人+物」：「送/给/借/教/告诉」等带双宾语时，「了」放在动词后或句末，不能放在「给」后且缺人。例：「昨天我朋友送给了很多月饼」→「昨天我朋友送给我了很多月饼」（补出「我」，「了」移到「给我」后）。
 ㉓ 副词「尤其」：表示「特别、更加」时放在主语之后、谓语之前。例：「尤其我喜欢鲜肉月饼」→「我尤其喜欢鲜肉月饼」。
 ㉔ 「吃不下」和「吃不完」：胃里饱/不舒服用「吃不下」；数量太多、有剩余用「吃不完」。例：「因为我一个人，所以吃不下」→「因为我一个人，所以吃不完」（一个人吃不了那么多，会有剩余）。
+㉕ 「应该」和「会」：「应该」表示义务、建议或情理上应当；表示自然发生的客观结果、推测的必然结果用「会」。例：「我聊天聊了很长时间，所以应该嗓子疼」→「我聊天聊了很长时间，所以会嗓子疼」；「下雨时常常鞋湿了」→「下雨时常常鞋会湿」。
+㉖ 「一直到……」固定用法：「到+时间点」表示动作持续到该时间时，要说「一直到+时间+主语+都+在/还+在+动作」。例：「到刚才我做资料」→「一直到刚才我都在做资料」。
+㉗ 语义不完整：句子缺少表达完整意思必需的信息。例：「因为我不习惯吃上海蟹，所以要时间」→「因为我不习惯吃上海蟹，所以需要花时间」（没说花时间做什么；具体动作无法确定时 corrected 只做最小改动、uncertain 填 true，不要猜词）。
 
 【常见偏误类 - 按类归纳，不是就事论事】
 - 建筑类动词：建房子/花园/楼/公园/学校/医院/桥用「建」，不用「造」（造船、造纸等固定搭配除外）。例：「造了花园」→「建了花园」。
@@ -18383,8 +18388,8 @@ try{ const resp=await fetch(API_BASE,{method:'POST',headers:{'Content-Type':'app
 5. note 结构：先指出错误 → 再说明正确用法规则 → 最后可给一个正确例句（用「」括起）。
 
 【偏误类型 - 必须遵守】
-type 字段必须从以下固定中文类型中选一个（不要自创、不要翻译成其他语言）：错字、别字、漏字、多字、词语错误、离合词错误、缺词、多词、语序错误、搭配不当、成分残缺、成分多余、句式杂糅、关联词错误、语义错误。
-类型定义：错字=写错笔画结构（不存在的字）；别字=同音/形近用错字；漏字=少写字；多字=多写字；词语错误=生造词/近义词误用/词性错误；离合词错误=离合词（见面/帮忙/生气等）用法错误，如直接带宾语；缺词=该用词没写；多词=多了不该有的词；语序错误=词序颠倒；搭配不当=动宾/主谓等搭配不合理；成分残缺=缺主语/谓语/宾语等成分；成分多余=多出不必要的成分；句式杂糅=两个句式搅在一起；关联词错误=关联词搭配或逻辑错误；语义错误=逻辑不通/否定不当等。
+type 字段必须从以下固定中文类型中选一个（不要自创、不要翻译成其他语言）：错字、别字、漏字、多字、词语错误、离合词错误、缺词、多词、语序错误、搭配不当、成分残缺、成分多余、句式杂糅、关联词错误、语义错误、语义不完整。
+类型定义：错字=写错笔画结构（不存在的字）；别字=同音/形近用错字；漏字=少写字；多字=多写字；词语错误=生造词/近义词误用/词性错误；离合词错误=离合词（见面/帮忙/生气等）用法错误，如直接带宾语；缺词=该用词没写；多词=多了不该有的词；语序错误=词序颠倒；搭配不当=动宾/主谓等搭配不合理；成分残缺=缺主语/谓语/宾语等成分；成分多余=多出不必要的成分；句式杂糅=两个句式搅在一起；关联词错误=关联词搭配或逻辑错误；语义错误=逻辑不通/否定不当等；语义不完整=话说了一半，缺少表达完整意思必需的信息（如只说「要时间」没说花时间做什么）。
 
 【uncertain 字段 - 必须遵守】
 uncertain 表示你是否读不懂这个句子/分句、无法可靠推断学生想表达的意思。判断标准：如果只是错字/别字/漏字/多字等能猜到意思的小错，uncertain 填 false；如果句子语义不通、结构混乱，你无法确定学生想说什么，uncertain 填 true。每条记录都必须输出 uncertain。
@@ -18435,7 +18440,7 @@ uncertain 表示你是否读不懂这个句子/分句、无法可靠推断学生
 - "向印度开始旅行"→"开始在印度旅行"（语序：「开始+在+地方+动作」）
 - "他的表情比以前满自信"→"他的表情比以前自信"（比较句「比以前」后不用「满」）
 - "我听他说的话，我哦觉得自己想做的事最好做"→"听了他的话，我觉得自己想做的事最好就去做"（「我听他说的话」→「听了他的话」；「我哦」多了「哦」；「最好做」→「最好就去做」）
-- "他退辞公司以后"→"他从公司辞职以后"（「退辞」不是正确的词，离开公司应说「从公司辞职」）
+- "他退辞公司以后"→"他从公司辞职以后"（「退辞」不是正确的词，离开公司应说「从公司辞职」）\r\n- "我聊天聊了很长时间，所以应该嗓子疼"→"我聊天聊了很长时间，所以会嗓子疼"（客观必然结果用「会」；「应该」表义务/建议/情理）\r\n- "到刚才我做资料"→"一直到刚才我都在做资料"（固定用法「一直到……」+「都+在」）\r\n- "因为我不习惯吃上海蟹，所以要时间"→"因为我不习惯吃上海蟹，所以需要花时间"（「要时间」语义不完整：没说花时间做什么；具体动作不确定时 uncertain 填 true）
 这类短语/词语性错误也必须纠正，不要漏报。\n\n【输出前自检 - 防漏报 - 必须执行】把学生原文按句号/问号/感叹号/分号/逗号断开，逐句重新检查一遍；只要某一句有错而输出列表里没有对应的记录，就必须补上这条记录；严禁因为错误多就只报一部分，严禁漏掉任何一句的错误。\n\n输出JSON数组：[{"original":"学生原文(片段)","corrected":"改正后(必须与original不同)","uncertain":true或false,"type":"错误类型（必须从上述固定中文类型中选一个）","pattern":"如果这个错误涉及语法格式/框式结构（可以填充其他内容的格式），写出该格式本身（如：要是...就...、越...越...、把字句、被字句、一边...一边...；不涉及就写空字符串）","note":"错误原因（用${targetLang}，具体说明，禁止空话）"}]。无错误返回[]。`; try{ const resp=await fetch(API_BASE,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${apiKey}`}, body:JSON.stringify({model:'deepseek-v4-pro',thinking:{type:'disabled'}, max_tokens:4096, messages:[{role:'system',content:prompt},{role:'user',content:((contextMessages?('【对话上下文】（仅用于理解学生当前句子的意思，不要纠错上下文内容）\n'+contextMessages+'\n\n'):'') + (aiReplyRaw ? ('学生句子: '+JSON.stringify(userMessages)+'\n\nAI对话伙伴的自然回复（仅供参考，可能已包含正确说法）:\n'+String(aiReplyRaw)) : ('学生句子: '+JSON.stringify(userMessages))))}], temperature:0.1, signal: aiFetchSignal(null, 45000)})}); const data=await resp.json(); if(data.error) throw new Error(data.error.message||"API error"); if(!data.choices||!data.choices[0]||!data.choices[0].message) throw new Error("API error"); let content=data.choices[0].message.content; content=content.replace(/```json/g,'').replace(/```/g,'').trim(); let parsed=null; try{ parsed=JSON.parse(content); }catch(e){ const arrM=content.match(/\[[\s\S]*\]/); const objM=content.match(/\{[\s\S]*\}/); const cand=arrM?arrM[0]:(objM?objM[0]:''); if(cand){ try{ parsed=JSON.parse(cand); }catch(e2){ parsed=null; } } } let arr=[]; if(Array.isArray(parsed)) arr=parsed; else if(parsed&&Array.isArray(parsed.mistakes)) arr=parsed.mistakes; else if(parsed&&Array.isArray(parsed.results)) arr=parsed.results; else if(parsed&&Array.isArray(parsed.errors)) arr=parsed.errors; else if(parsed&&typeof parsed.original==='string'&&typeof parsed.corrected==='string') arr=[parsed]; return arr; }catch(e){ return []; } }
     function isPunctuationOnlyDiff(a,b){var p='，。、！？；：…—·《》〈〉（）【】,.!?;:()[]{}<> ';var s=function(x){return (x||'').split('').filter(function(c){return p.indexOf(c)<0;}).join('');};return s(a)===s(b);}
     function filterMistakes(mistakes){ if(!mistakes||!mistakes.length) return []; const out=[]; for(const m of mistakes){ if(!m||!m.original||!m.corrected) continue; if(m.original===m.corrected) continue; if(isPunctuationOnlyDiff(m.original,m.corrected)) continue; const _fo=stripForCompare(m.original); const _fc=stripForCompare(m.corrected); if(_fo===_fc) continue; if(_fc.replace(/[吧吗呢啊呀哦嘛咯喽哟]+$/,'')===_fo) continue; if(out.some(x=>x.original===m.original&&x.corrected===m.corrected)) continue; out.push(m); } return out; }
@@ -18451,6 +18456,10 @@ uncertain 表示你是否读不懂这个句子/分句、无法可靠推断学生
         const MODALS = ['应该','可以','一定','必须','需要','会','能','要','想','可能','得'];
         for(const w of MODALS){
             if(o.includes(w) && !c.includes(w)){
+                // 用一个情态动词替换另一个情态动词（如「应该→会」）属于正常纠错，不拦截；
+                // 只有情态动词被整体删除、其余部分几乎没变时才判为误报。
+                const replacedByModal = MODALS.some(x => x !== w && !o.includes(x) && c.includes(x));
+                if(replacedByModal) continue;
                 const rest = o.split(w).join('');
                 const sim = charLcsLen(rest, c) / Math.max(rest.length, c.length);
                 if(sim >= 0.85) return true;
@@ -18483,7 +18492,7 @@ uncertain 表示你是否读不懂这个句子/分句、无法可靠推断学生
         if(!m) return false;
         if(m.uncertain === true || String(m.uncertain) === 'true' || m.uncertain === 1) return true;
         const ty = normalizeMistakeType(m.type);
-        if(ty && ty.split('、').includes('语义错误')) return true;
+        if(ty && ty.split('、').some(x => x === '语义错误' || x === '语义不完整')) return true;
         const o = stripForCompare(String(m.original || ''));
         const c = stripForCompare(String(m.corrected || ''));
         if(o && c && o !== c && o.length >= 4){
@@ -18532,7 +18541,7 @@ uncertain 表示你是否读不懂这个句子/分句、无法可靠推断学生
         if(!apiKey || !userMessages || !userMessages.length) return candidates || [];
         const targetLang = targetLangSelect ? targetLangSelect.value : 'English';
         const candDesc = (candidates || []).map(m => '「' + (m.original||'') + '」→「' + (m.corrected||'') + '」(' + (m.type||'') + ')').join('；') || '（无）';
-        const prompt = '你是HSK中文教师。请对第一轮纠错做严格复核，纠错准确率高于一切。\\n\\n【学生句子】\\n' + JSON.stringify(userMessages) + '\\n\\n【第一轮候选纠错】\\n' + candDesc + '\\n\\n【复核标准 - 逐条执行】\\n1. 原句是否真的违反现代汉语普通话的词汇/语法/搭配规范，或真的属于HSK作文语料高频偏误（如离合词直接带宾语、错别字、语序颠倒、缺必要成分）？如果原句本身就是正确的现代汉语句子，或者两种说法母语者都常说，这条就是误报，必须删除。例：「我今天遇到了一个外国人」完全正确，任何人删改「了」或添加原文没有的字都是误报。\\n2. corrected 是否只改了真正错误的部分、改完后是否还是通顺自然的现代汉语？只要 corrected 里出现生造词、把正确部分也改掉、或读起来别扭，就把这条改成正确的最小改动；改不出来就删除。\\n3. 语用复核：结合【对话上下文】判断语用是否成立。话题/对比句（如列举计划时说「北京去了，上海还没去」）、承前省略、口语变体等结构合法且语境成立 → 不报、删掉对应条目。\\n4. 补漏 - 防漏报 - 必须执行：先按标点把学生句子切成分句并编号，逐句对照第一轮候选；凡是有错但候选里没有的分句，必须补上记录，严禁因为错误多就漏掉其中一两个；输出前再逐句核对一遍，确保每个有错的分句都有一条最终记录。\\n5. 每条输出 original、corrected、type（固定中文错误类型）、uncertain、pattern、note（用' + targetLang + '具体说明错误原因）。\\n\\n输出JSON数组：确认无误的最终纠错列表；一条都没有就输出[]。';
+        const prompt = '你是HSK中文教师。请对第一轮纠错做严格复核，纠错准确率高于一切。\\n\\n【学生句子】\\n' + JSON.stringify(userMessages) + '\\n\\n【第一轮候选纠错】\\n' + candDesc + '\\n\\n【复核标准 - 逐条执行】\\n1. 原句是否真的违反现代汉语普通话的词汇/语法/搭配规范，或真的属于HSK作文语料高频偏误（如离合词直接带宾语、错别字、语序颠倒、缺必要成分）？如果原句本身就是正确的现代汉语句子，或者两种说法母语者都常说，这条就是误报，必须删除。例：「我今天遇到了一个外国人」完全正确，任何人删改「了」或添加原文没有的字都是误报。\\n2. corrected 是否只改了真正错误的部分、改完后是否还是通顺自然的现代汉语？只要 corrected 里出现生造词、把正确部分也改掉、或读起来别扭，就把这条改成正确的最小改动；改不出来就删除。\\n3. 语用复核：结合【对话上下文】判断语用是否成立。话题/对比句（如列举计划时说「北京去了，上海还没去」）、承前省略、口语变体等结构合法且语境成立 → 不报、删掉对应条目。\\n4. 补漏 - 防漏报 - 必须执行：先按标点把学生句子切成分句并编号，逐句对照第一轮候选；凡是有错但候选里没有的分句，必须补上记录，严禁因为错误多就漏掉其中一两个；输出前再逐句核对一遍，确保每个有错的分句都有一条最终记录。另外注意「应该/会」混淆：「所以/因此」后表示客观必然结果时用「会」（例：「我聊天聊了很长时间，所以应该嗓子疼」→「我聊天聊了很长时间，所以会嗓子疼」）。遇到「要时间」这类语义不完整（没说花时间做什么）时，type 填「语义不完整」、uncertain 填 true，不要猜具体动词；「到+时间点」表示动作持续到该时间时，按固定用法补成「一直到+时间+主语+都+在+动作」。\\n5. 每条输出 original、corrected、type（固定中文错误类型）、uncertain、pattern、note（用' + targetLang + '具体说明错误原因）。\\n\\n输出JSON数组：确认无误的最终纠错列表；一条都没有就输出[]。';
         try{
             const resp = await fetch(API_BASE, { method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey}, body: JSON.stringify({ model:'deepseek-v4-pro', thinking:{ type:'disabled' }, max_tokens:4096, messages:[{ role:'system', content:prompt },{ role:'user', content: (contextMessages ? ('【对话上下文】（仅用于理解学生当前句子的意思，不要纠错上下文内容）\\n' + contextMessages + '\\n\\n') : '') + JSON.stringify(userMessages) }], temperature:0, signal: aiFetchSignal(null, 45000) }) });
             const data = await resp.json();
@@ -18569,7 +18578,7 @@ uncertain 表示你是否读不懂这个句子/分句、无法可靠推断学生
             '8. 专有名词（小吃名、菜名、地名、人名、品牌、方言词）保持学生原样，不要改成别的词；母语意思里如果给出了专名的正确写法，按母语写，否则保留原字。\n' +
             '9. 处所歧义以母语意思为准：如学生写「带了公司一些月饼」，母语是「带了一些月饼去公司」，corrected 写「带了一些月饼去公司」，不要写成「带了一些公司的月饼」。\n' +
             '10. 离合词错误必须按离合词规则最小改正并保留原意：例如「我离婚他了」的意思是“I divorced him”，corrected 应为「我跟他离婚了」（或「我和他离婚了」）；绝不能添加原文没有的内容或生造词语。同样「我见面他」→「我跟他见面」。\n' +
-            '7. type 必须从固定中文类型中选一个（错字、别字、漏字、多字、词语错误、离合词错误、缺词、多词、语序错误、搭配不当、成分残缺、成分多余、句式杂糅、关联词错误、语义错误）；note 用' + targetLang + '具体说明错误原因和正确用法。\n' +
+            '7. type 必须从固定中文类型中选一个（错字、别字、漏字、多字、词语错误、离合词错误、缺词、多词、语序错误、搭配不当、成分残缺、成分多余、句式杂糅、关联词错误、语义错误、语义不完整）；note 用' + targetLang + '具体说明错误原因和正确用法。\n' +
             '输出JSON数组：[{"original":"有错误的分句/片段","corrected":"改正后的句子","type":"固定类型","pattern":"框式结构或空字符串","note":"具体说明"}]。\n\n' +
             '【第一轮初步纠错（仅供参考，可能不准确）】\n' + preDesc + '\n\n' +
             '【学生原句】\n' + text + '\n\n' +
@@ -18806,6 +18815,32 @@ uncertain 表示你是否读不懂这个句子/分句、无法可靠推断学生
         if(guoran){
             const right = t.replace('果然', '当然');
             out.push({ original: t, corrected: right, type: '词语错误', note: '「果然」表示“和预料的一样”（如“天气预报说下雨，果然下雨了”）；表示“当然、肯定”应用「当然」。应说：' + right + '。' });
+        }
+        // 「应该」和「会」：表示自然发生的客观结果、必然推测用「会」；「应该」表示义务、建议或情理上应当
+        const yinggaiHui = t.match(/(所以|因此|这样一来|那样的话)([^，。！？!?]{0,12}?)应该(?=[^，。！？!?]{0,6}?(?:嗓子疼|喉咙疼|头疼|牙疼|肚子疼|累|困|饿|渴|生病|感冒|咳嗽|发烧|酸|麻|肿|晕|红|湿|脏|破|坏|迟到|睡不着))/);
+        if(yinggaiHui){
+            const _igIdx = (yinggaiHui.index || 0) + yinggaiHui[0].length - 2;
+            const right = t.slice(0, _igIdx) + '会' + t.slice(_igIdx + 2);
+            out.push({ original: t, corrected: right, type: '词语错误', note: '「应该」表示义务、建议或情理上应当；表示自然发生的客观结果、推测的必然结果用「会」。应说：' + right + '。' });
+        }
+        // 固定用法「一直到……」：「到+刚才/现在+人+动作」→「一直到+时间+人+都/还+在+动作」
+        const daoYiZhi = t.match(/^到(刚才|刚刚|现在)(我|你|他|她|我们|你们|他们|她们)([^，。！？!?]{1,20}?)$/);
+        if(daoYiZhi){
+            const _dzTime = daoYiZhi[1], _dzSubj = daoYiZhi[2], _dzRest = daoYiZhi[3];
+            if(!/已经|完了|好了|了|就|才|没/.test(_dzRest)){
+                let _dzMid = '都在';
+                if(/^都/.test(_dzRest)) _dzMid = '';
+                else if(/^一直/.test(_dzRest)) _dzMid = '';
+                else if(/^在/.test(_dzRest)) _dzMid = '都';
+                else if(/^还/.test(_dzRest)) _dzMid = '';
+                const right = '一直到' + _dzTime + _dzSubj + _dzMid + _dzRest;
+                out.push({ original: t, corrected: right, type: '缺词', note: '固定用法「一直到+时间」表示动作持续到某个时间点，后面一般用「都+在/还+在」。应说：' + right + '。' });
+            }
+        }
+        // 「要时间」：语义不完整——没说清花时间做什么；具体动作不确定时不猜词，交给母语意思确认
+        if(/要时间([，。！？!?]|$)/.test(t) && !/要花时间|需要时间|需要花时间/.test(t)){
+            const right = t.replace(/要时间([，。！？!?]|$)/, '需要花时间$1');
+            out.push({ original: t, corrected: right, type: '语义不完整', uncertain: true, note: '「要时间」语义不完整：没说清花时间做什么（如剥开、吃、整理）。这里无法确定具体动作，先改为「需要花时间」；如果你想补充具体内容，请点“这不是我想表达的意思”用母语说明。' });
         }
         // 副词「尤其」位置：句首的「尤其」要移到主语后、谓语前（「尤其+最喜欢…做的菜是X」已单独处理）
         const youqi = t.match(/^尤其([我你他她我们你们他们它])/);
@@ -19627,10 +19662,10 @@ uncertain 表示你是否读不懂这个句子/分句、无法可靠推断学生
         return map;
     }
     function downloadUnifiedReport(){ let rpt='=== 📚 完整学习报告 ===\n'+new Date().toLocaleString()+'\n\n'; rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n✏️ 作文批改（最终提交文本 + 修改过程）\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(writingEssays.length===0){ rpt+='(暂无作文批改记录)\n\n'; } else { writingEssays.forEach((we,i)=>{ rpt+='📌 作文 '+(i+1)+'（'+formatDate(we.date)+'，最终得分 '+(we.score||'--')+'）\n--- 最终提交文本 ---\n'+(we.original||'')+'\n'; if(we.revisions&&we.revisions.length>0){ rpt+='--- 修改过程 ---\n'; we.revisions.forEach((rv,k)=>{ rpt+='修改'+(k+1)+'（'+formatDate(rv.date)+'，得分 '+(rv.score||'--')+'）\n'+(rv.text||'')+'\n'; }); } rpt+='\n'; }); } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n📝 第一部分：全部聊天记录\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; const _chatMsgs = dedupeChatHistory(chatHistory || []); if(_chatMsgs.length===0){ rpt+='(暂无聊天记录)\n'; } else { const _copiedMap=buildCopiedFromAiMap(_chatMsgs); for(let msg of _chatMsgs){ const roleLabel=msg.role==='user'?'🧑 用户':'🤖 AI'; const timeStr=msg.time?new Date(msg.time).toLocaleString():''; rpt+=roleLabel+' ['+timeStr+']\n'+msg.content+'\n'; const _cp=_copiedMap.get(msg); if(_cp) rpt+='  ⚠️ 注：此句与前面AI说过的「'+_cp.phrase+'」相同/相似，可能不是学生自己生成。\n'; rpt+='\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n💬 阅读模式讨论记录\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; const _rc=(function(){try{return JSON.parse(localStorage.getItem('HSK_MODE_CHAT_READING_'+currentUser)||'[]')||[];}catch(e){return [];}})(); if(_rc.length===0){ rpt+='(暂无阅读讨论记录)\n'; } else { for(const _c of _rc){ rpt+='📌 '+(_c.date||'')+' '+(_c.title||'')+'\n'; for(const _m of (_c.messages||[])){ rpt+=(_m.role==='user'?'🧑 用户':'🤖 AI')+'：'+_m.content+'\n'; } rpt+='\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n💬 写作模式讨论记录\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; const _wc=(function(){try{return JSON.parse(localStorage.getItem('HSK_MODE_CHAT_WRITING_'+currentUser)||'[]')||[];}catch(e){return [];}})(); if(_wc.length===0){ rpt+='(暂无写作讨论记录)\n'; } else { for(const _c of _wc){ rpt+='📌 '+(_c.date||'')+' '+(_c.title||'')+'\n'; for(const _m of (_c.messages||[])){ rpt+=(_m.role==='user'?'🧑 用户':'🤖 AI')+'：'+_m.content+'\n'; } rpt+='\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n🔍 第二部分：查询过的词或句子\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(queriedItems.length===0){ rpt+='(暂无查询记录)\n'; } else { for(let i=0;i<queriedItems.length;i++){ const item=queriedItems[i]; const icon=item.type==='sentence'?'📝 句子':'🔤 词语'; rpt+=icon+' '+item.text+'\n  🌐 '+(item.translation||'')+'\n  📅 '+formatDate(item.date?item.date.slice(0,10):'')+'\n\n'; } }
-rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n🎯 错误库（错误的词/句子，全部来源）\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(gapBank.items.length===0){ rpt+='(暂无错误记录)\n'; } else { const _gi=[...gapBank.items].sort(gapSort); for(const it of _gi){ rpt+=(it.acquired?'✅已习得':'🔴未习得')+' '+it.text+'｜出现'+(it.count||1)+'次｜来源：'+(it.source||'')+'\n'; if(it.correct && it.correct!==it.text) rpt+='  正确：'+it.correct+'\n'; if(it.sentence) rpt+='  改正后的句子：'+it.sentence+'\n'; if(it.translation) rpt+='  母语翻译：'+it.translation+'\n'; if(it.correctUseCount) rpt+='  正确使用：'+it.correctUseCount+'/3\n'; if(it.occurrences&&it.occurrences.length) rpt+='  出现时间：'+it.occurrences.map(o=>o.date).join('、')+'\n'; if(it.usedSentences&&it.usedSentences.length) rpt+='  使用句子（时间）：'+it.usedSentences.map(u=>u.sentence+'('+u.source+' '+(u.time||u.date||'')+')').join('；')+'\n'; rpt+='\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n📝 错句纠错记录（错句本）\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(wrongSentences.length===0){ rpt+='(暂无纠错记录)\n'; } else { for(const _ws of wrongSentences){ rpt+='✏️ 你写的：'+(_ws.userAnswer||'')+'\n'; rpt+='✅ 正确：'+(_ws.sentence||'')+'\n'; if(_ws.note) rpt+='💡 原因：'+(_ws.note||'')+'\n'; if(_ws.errType) rpt+='🏷 类型：'+(mistakeTypeLabel(_ws.errType)||_ws.errType||'')+'\n'; rpt+='📅 '+(_ws.date||'')+'\n\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n💭 第三部分：错句反思记录（全部历史）\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; const _rr=(window._reflectionResults||[]).slice().sort((a,b)=>String(b.date||'').localeCompare(String(a.date||''))); if(_rr.length===0){ rpt+='(暂无反思记录)\n'; } else { for(const r of _rr){ rpt+='['+(r.mode||'')+'] '+(r.text||'')+'\n'; if(r.user) rpt+='  ✏️ 你写的：'+r.user+'\n'; if(r.note) rpt+='  📌 '+(r.note||'')+'\n'; if(r.native) rpt+='  🌐 母语表达：'+r.native+'\n'; rpt+='  💭 反思：'+(r.reason||'（跳过）')+'\\n'; rpt+='  📅 '+(r.date||'')+'\n\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n⭐ 第四部分：收藏句子\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(favoriteSentences.length===0){ rpt+='(暂无收藏)\n'; } else { for(let item of favoriteSentences){ rpt+='🇨🇳 '+item.chinese+'\n🌐 '+(item.translation||'')+'\n📅 '+(item.date||'')+'\n\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n💬 「怎么说」尝试记录\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(zmsRecords.length===0){ rpt+='(暂无尝试记录)\n'; } else { for(var zi=0; zi<zmsRecords.length; zi++){ var zr=zmsRecords[zi]; rpt+='🌐 母语：'+zr.original+'\n'; if(zr.attempt) rpt+='  ✏️ 你的尝试：'+zr.attempt+'\n'; rpt+='  ✅ 参考答案：'+zr.reference+'\n  📅 '+(zr.date||'')+'\n\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n📰 阅读历史\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(readingHistory.length===0){ rpt+='(暂无阅读记录)\n'; } else { readingHistory.forEach((r,i)=>{ rpt+='📌 '+(r.title||('HSK'+r.level))+' [HSK'+r.level+']\n'; rpt+='📅 '+(r.date||'')+' · 主题：'+(r.topic||'')+'\n'; if(r.background) rpt+='背景：'+r.background+'\n'; if(r.sourceUrl) rpt+='🔗 '+r.sourceUrl+'\n'; rpt+='--- 正文 ---\n'+(r.content||'')+'\n\n'; }); } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n🔤 第五部分：音/形/义/用 四维记录（全部，含出现句子）\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; const _fourWords=Object.keys(vocabDimMap||{}).sort((a,b)=>a.localeCompare(b,'zh')); if(!_fourWords.length){ rpt+='(暂无记录)\n'; } else { const _sentMap={}; for(const _u of (window._dimUpdates||[])){ if(_u && _u.sent){ _sentMap[_u.word]=_sentMap[_u.word]||new Set(); _sentMap[_u.word].add(_u.sent); } } rpt+='| 词语 | 音（对/错/共） | 形（对/错/共） | 义（对/错/共） | 用（对/错/共） | 出现句子（最多10条） |\n|---|---|---|---|---|---|\n'; for(const _fw of _fourWords){ const _fd=vocabDimMap[_fw]||{}; const _pc2=(e)=>'对'+(e.c||0)+'/错'+Math.max(0,(e.t||0)-(e.c||0))+'/共'+(e.t||0); const _sents=_sentMap[_fw]; const _sentStr=_sents&&_sents.size?Array.from(_sents).slice(0,10).map(s=>String(s).replace(/\|/g,'｜').replace(/\r?\n/g,' ')).join('；'):''; rpt+='| '+String(_fw).replace(/\|/g,'｜')+' | '+_pc2(_fd['音']||{c:0,t:0})+' | '+_pc2(_fd['形']||{c:0,t:0})+' | '+_pc2(_fd['义']||{c:0,t:0})+' | '+_pc2(_fd['用']||{c:0,t:0})+' | '+_sentStr+' |\n'; } } rpt+='\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n✨ 第六部分：本次新增（按模式标记，含句子）\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; const _upd=(window._dimUpdates||[]).slice(-200); if(!_upd.length){ rpt+='(暂无新增)\n'; } else { for(const _u of _upd){ rpt+='['+(_u.mode||'未标记')+'] '+_u.word+' → '+_u.dims+' ✅ '+(_u.date||'')+(_u.sent?'｜'+_u.sent:'')+'\n'; } }
+rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n🎯 错误库（错误的词/句子，全部来源）\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(gapBank.items.length===0){ rpt+='(暂无错误记录)\n'; } else { const _gi=[...gapBank.items].sort(gapSort); for(const it of _gi){ rpt+=(it.acquired?'✅已习得':'🔴未习得')+' '+it.text+'｜出现'+(it.count||1)+'次｜来源：'+(it.source||'')+'\n'; if(it.correct && it.correct!==it.text) rpt+='  正确：'+it.correct+'\n'; if(it.sentence) rpt+='  改正后的句子：'+it.sentence+'\n'; if(it.translation) rpt+='  母语翻译：'+it.translation+'\n'; if(it.correctUseCount) rpt+='  正确使用：'+it.correctUseCount+'/3\n'; if(it.occurrences&&it.occurrences.length) rpt+='  出现时间：'+it.occurrences.map(o=>o.date).join('、')+'\n'; if(it.usedSentences&&it.usedSentences.length) rpt+='  使用句子（时间）：'+it.usedSentences.map(u=>u.sentence+'('+u.source+' '+(u.time||u.date||'')+')').join('；')+'\n'; rpt+='\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n📝 错句纠错记录（错句本）\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(wrongSentences.length===0){ rpt+='(暂无纠错记录)\n'; } else { for(const _ws of wrongSentences){ rpt+='✏️ 你写的：'+(_ws.userAnswer||'')+'\n'; rpt+='✅ 正确：'+(_ws.sentence||'')+'\n'; if(_ws.note) rpt+='💡 原因：'+(_ws.note||'')+'\n'; if(_ws.errType) rpt+='🏷 类型：'+(mistakeTypeLabel(_ws.errType)||_ws.errType||'')+'\n'; rpt+='📅 '+(_ws.date||'')+'\n\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n💭 第三部分：错句反思记录（全部历史）\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; const _rr=(window._reflectionResults||[]).slice().sort((a,b)=>String(b.date||'').localeCompare(String(a.date||''))); if(_rr.length===0){ rpt+='(暂无反思记录)\n'; } else { for(const r of _rr){ rpt+='['+(r.mode||'')+'] '+(r.text||'')+'\n'; if(r.user) rpt+='  ✏️ 你写的：'+r.user+'\n'; if(r.note) rpt+='  📌 '+(r.note||'')+'\n'; if(r.native) rpt+='  🌐 母语表达：'+r.native+'\n'; rpt+='  💭 反思：'+(r.reason||'（跳过）')+'\n'; rpt+='  📅 '+(r.date||'')+'\n\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n⭐ 第四部分：收藏句子\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(favoriteSentences.length===0){ rpt+='(暂无收藏)\n'; } else { for(let item of favoriteSentences){ rpt+='🇨🇳 '+item.chinese+'\n🌐 '+(item.translation||'')+'\n📅 '+(item.date||'')+'\n\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n💬 「怎么说」尝试记录\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(zmsRecords.length===0){ rpt+='(暂无尝试记录)\n'; } else { for(var zi=0; zi<zmsRecords.length; zi++){ var zr=zmsRecords[zi]; rpt+='🌐 母语：'+zr.original+'\n'; if(zr.attempt) rpt+='  ✏️ 你的尝试：'+zr.attempt+'\n'; rpt+='  ✅ 参考答案：'+zr.reference+'\n  📅 '+(zr.date||'')+'\n\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n📰 阅读历史\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(readingHistory.length===0){ rpt+='(暂无阅读记录)\n'; } else { readingHistory.forEach((r,i)=>{ rpt+='📌 '+(r.title||('HSK'+r.level))+' [HSK'+r.level+']\n'; rpt+='📅 '+(r.date||'')+' · 主题：'+(r.topic||'')+'\n'; if(r.background) rpt+='背景：'+r.background+'\n'; if(r.sourceUrl) rpt+='🔗 '+r.sourceUrl+'\n'; rpt+='--- 正文 ---\n'+(r.content||'')+'\n\n'; }); } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n🔤 第五部分：音/形/义/用 四维记录（全部，含出现句子）\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; const _fourWords=Object.keys(vocabDimMap||{}).sort((a,b)=>a.localeCompare(b,'zh')); if(!_fourWords.length){ rpt+='(暂无记录)\n'; } else { const _sentMap={}; for(const _u of (window._dimUpdates||[])){ if(_u && _u.sent){ _sentMap[_u.word]=_sentMap[_u.word]||new Set(); _sentMap[_u.word].add(_u.sent); } } rpt+='| 词语 | 音（对/错/共） | 形（对/错/共） | 义（对/错/共） | 用（对/错/共） | 出现句子（最多10条） |\n|---|---|---|---|---|---|\n'; for(const _fw of _fourWords){ const _fd=vocabDimMap[_fw]||{}; const _pc2=(e)=>'对'+(e.c||0)+'/错'+Math.max(0,(e.t||0)-(e.c||0))+'/共'+(e.t||0); const _sents=_sentMap[_fw]; const _sentStr=_sents&&_sents.size?Array.from(_sents).slice(0,10).map(s=>String(s).replace(/\|/g,'｜').replace(/\r?\n/g,' ')).join('；'):''; rpt+='| '+String(_fw).replace(/\|/g,'｜')+' | '+_pc2(_fd['音']||{c:0,t:0})+' | '+_pc2(_fd['形']||{c:0,t:0})+' | '+_pc2(_fd['义']||{c:0,t:0})+' | '+_pc2(_fd['用']||{c:0,t:0})+' | '+_sentStr+' |\n'; } } rpt+='\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n✨ 第六部分：本次新增（按模式标记，含句子）\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; const _upd=(window._dimUpdates||[]).slice(-200); if(!_upd.length){ rpt+='(暂无新增)\n'; } else { for(const _u of _upd){ rpt+='['+(_u.mode||'未标记')+'] '+_u.word+' → '+_u.dims+' ✅ '+(_u.date||'')+(_u.sent?'｜'+_u.sent:'')+'\n'; } }
 const ok = downloadTextFile(rpt, 'HSK_Learning_Report_' + getLocalDate() + '.md'); showToast(ok ? t('toast.download_started') : t('toast.download_failed')); }
 
-async function handleEndConversation(){ if(chatAbortController){ chatAbortController.abort(); chatAbortController=null; } if(window._hideReadingForTask) clearReadingTaskLock(); if(window._chatMeaningPending){ window._chatMeaningPending = null; const _mp = document.getElementById("chatMeaningPromptMsg"); if(_mp) _mp.remove(); } if(window._chatCorrectionPending){ window._chatCorrectionPending = null; const _cp = document.getElementById("chatCorrectionConfirmMsg"); if(_cp) _cp.remove(); } if(currentSessionClauses.length===0&&sessionUserMessages.length===0){ const _zmsOnly = (window._zmsWrongAttempts || []).slice(); if(!_zmsOnly.length){ addAssistantMessage(t('analysis.no_sentences')); return; } window._zmsWrongAttempts = []; setTimeout(function(){ startReflection(_zmsOnly); }, 300); return; } const filteredClauses=currentSessionClauses.filter(c=>!isQueriedSentence(c)); const savedClauses=[...filteredClauses]; if(filteredClauses.length===0){ const _zmsOnly2=(window._zmsWrongAttempts||[]).slice(); window._zmsWrongAttempts=[]; if(_zmsOnly2.length){ setTimeout(function(){ startReflection(_zmsOnly2); },300); } else { addAssistantMessage(t('analysis.no_sentences')); } currentSessionClauses=[]; sessionUserMessages=[]; return; } addAssistantMessage(t('analysis.analyzing_prefix')+filteredClauses.length+'...'); try{ const analysis=await analyzeGrammarBatch(filteredClauses); if(analysis) mergeAnalysisResults(analysis, 'chat'); addAssistantMessage(t('analysis.grammar_done')); }catch(e){ addAssistantMessage(t('analysis.grammar_timeout')); } addAssistantMessage(t('analysis.vocab_analyzing')); try{ const vocabAnalysis=await analyzeVocabBatch(savedClauses); if(vocabAnalysis){ mergeVocabResultsFiltered(vocabAnalysis, 'chat'); } const matchCount=vocabAnalysis?vocabAnalysis.reduce((sum,item)=>sum+Object.keys(item.wordCounts||{}).length,0):0; addAssistantMessage(t('analysis.vocab_done')+' 匹配到 '+matchCount+' 个词'); }catch(e){ console.log('Vocab error:',e); addAssistantMessage(t('analysis.vocab_timeout')); } try{
+async function handleEndConversation(){ if(chatAbortController){ chatAbortController.abort(); chatAbortController=null; } if(window._hideReadingForTask) clearReadingTaskLock(); if(window._chatMeaningPending){ window._chatMeaningPending = null; const _mp = document.getElementById("chatMeaningPromptMsg"); if(_mp) _mp.remove(); } if(window._chatCorrectionPending){ window._chatCorrectionPending = null; const _cp = document.getElementById("chatCorrectionConfirmMsg"); if(_cp) _cp.remove(); } if(currentSessionClauses.length===0&&sessionUserMessages.length===0){ const _zmsOnly = (window._zmsWrongAttempts || []).slice(); if(!_zmsOnly.length){ addAssistantMessage(t('analysis.no_sentences')); return; } window._zmsWrongAttempts = []; setTimeout(function(){ startReflection(_zmsOnly); }, 300); return; } const filteredClauses=currentSessionClauses.filter(c=>!isQueriedSentence(c)); const savedClauses=[...filteredClauses]; if(filteredClauses.length===0){ const _zmsOnly2=(window._zmsWrongAttempts||[]).slice(); window._zmsWrongAttempts=[]; if(_zmsOnly2.length){ setTimeout(function(){ startReflection(_zmsOnly2); },300); } else { addAssistantMessage(t('analysis.no_sentences')); } currentSessionClauses=[]; sessionUserMessages=[]; return; } addAssistantMessage(t('analysis.analyzing_prefix')+filteredClauses.length+'...'); try{ const analysis=await analyzeGrammarBatch(filteredClauses); if(analysis){ const foundGrams=[]; for(const item of analysis){ for(const m of (item.matches||[])){ const gm=findMatchingPattern(m.pattern); if(gm&&!foundGrams.includes(gm.pattern)) foundGrams.push(gm.pattern); } } mergeAnalysisResults(analysis, 'chat'); const gSummary=foundGrams.length?(' '+foundGrams.slice(0,10).join('、')+(foundGrams.length>10?' …':'')):''; addAssistantMessage(t('analysis.grammar_done')+gSummary); } else { addAssistantMessage(t('analysis.grammar_done')); } }catch(e){ addAssistantMessage(t('analysis.grammar_timeout')); } addAssistantMessage(t('analysis.vocab_analyzing')); try{ const vocabAnalysis=await analyzeVocabBatch(savedClauses); if(vocabAnalysis){ mergeVocabResultsFiltered(vocabAnalysis, 'chat'); } const matchCount=vocabAnalysis?vocabAnalysis.reduce((sum,item)=>sum+Object.keys(item.wordCounts||{}).length,0):0; addAssistantMessage(t('analysis.vocab_done')+' 匹配到 '+matchCount+' 个词'); }catch(e){ console.log('Vocab error:',e); addAssistantMessage(t('analysis.vocab_timeout')); } try{
     const _exclC = new Set();
     for(const m of (window._chatSessionMistakes || [])){
         const _mc = matchVocabInText(String(m.user || ''));
