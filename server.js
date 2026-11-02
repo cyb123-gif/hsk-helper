@@ -103,7 +103,7 @@ function handleProxy(req, res) {
                 'Authorization': 'Bearer ' + API_KEY,
                 'Content-Length': Buffer.byteLength(body)
             },
-            timeout: 120000
+            timeout: 180000
         };
 
         const proxyReq = https.request(options, (proxyRes) => {
