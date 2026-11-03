@@ -324,9 +324,6 @@
         .writing-submit-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
         .writing-results { flex: 0 0 auto; overflow-y: visible; padding: 12px 16px; display: none; }
         .writing-results.active { display: block; }
-        .writing-score-card { background: linear-gradient(135deg, #1e2b5e, #2a3f7a); color: white; border-radius: 16px; padding: 20px; text-align: center; margin-bottom: 16px; }
-        .writing-score-card .score-number { font-size: 3rem; font-weight: 800; line-height: 1; }
-        .writing-score-card .score-label { font-size: 0.85rem; opacity: 0.8; margin-top: 4px; }
         .writing-section { background: #f8fafc; border: 1px solid #e9eef4; border-radius: 12px; padding: 16px; margin-bottom: 12px; }
         .writing-section h4 { margin: 0 0 8px; color: #1e2b5e; font-size: 0.95rem; }
         .writing-section p { margin: 0; font-size: 0.9rem; line-height: 1.7; color: #475569; white-space: pre-wrap; }
@@ -5821,7 +5818,7 @@ const HSK2_VOCAB = [
             'writing.fail':'Correction failed, please retry.',
             'writing.corrected':'✏️ Corrected Version',
             'writing.use_corrected':'Use Corrected Version & Edit',
-            'writing.back':'← Back to Edit', 'writing.hints':'💡 Heuristic Hints (fix it yourself)', 'writing.length_warn':'⚠️ Too short', 'writing.min_chars_note':'HSK{level} requires at least {min} characters; you wrote {count}', 'writing.length_fail_note':'Length below requirement: this submission fails. Expand the text and resubmit to be re-scored.', 'writing.revision_title':'📌 Revision Submission', 'writing.revision_note':'Revision #{n} · previous score {prev}', 'writing.new_essay':'🆕 New Essay', 'writing.new_confirm':'Start a new essay? The current one will be saved in the report.', 'writing.new_started':'✅ New essay started', 'writing.end':'🏁 End Writing', 'writing.end_nothing':'Submit your essay before ending.', 'writing.end_done':'✅ Writing ended; vocabulary & grammar analyzed', 'toast.writing_done':'✅ Correction complete', 'toast.writing_analyzing':'🔍 Analyzing vocabulary & grammar...', 'toast.writing_analyzed':'✅ Vocabulary & grammar added to progress', 'toast.writing_analysis_fail':'⚠️ Vocabulary/grammar analysis failed',
+            'writing.back':'← Back to Edit', 'writing.hints':'💡 Heuristic Hints (fix it yourself)', 'writing.length_warn':'⚠️ Too short', 'writing.min_chars_note':'HSK{level} requires at least {min} characters; you wrote {count}', 'writing.length_fail_note':'Text too short — please expand it and submit again.', 'writing.revision_title':'📌 Revision Submission', 'writing.revision_note':'Revision #{n}', 'writing.new_essay':'🆕 New Essay', 'writing.new_confirm':'Start a new essay? The current one will be saved in the report.', 'writing.new_started':'✅ New essay started', 'writing.end':'🏁 End Writing', 'writing.end_nothing':'Submit your essay before ending.', 'writing.end_done':'✅ Writing ended; vocabulary & grammar analyzed', 'toast.writing_done':'✅ Correction complete', 'toast.writing_analyzing':'🔍 Analyzing vocabulary & grammar...', 'toast.writing_analyzed':'✅ Vocabulary & grammar added to progress', 'toast.writing_analysis_fail':'⚠️ Vocabulary/grammar analysis failed',
             'reading.tab':'📰 Reading', 'reading.title':'📰 Reading · Comprehensible Input', 'reading.subtitle':'Uses words from the selected level + new words from the next level. Target mix: ~85% in-level words, ~10% next-level new words, at most 3 harder out-of-level words. Fun, real topics that change every time, with optional background. Tap words to multi-select, or drag to select whole clauses, then translate.', 'reading.generate':'✨ Generate Article', 'reading.regenerate':'🔄 New Article', 'reading.generating':'⏳ AI is writing...', 'reading.level':'Level: ', 'reading.new_words':'🆕 New Words', 'reading.used_words':'✅ Review Learned Words', 'reading.topic_label':'📌 News topic: ', 'reading.tap_hint':'💡 Tap a sentence or highlighted word, then tap "Translate"', 'reading.selected':'Selected: ', 'reading.translate':'🌐 Translate', 'reading.speak':'🔊 Read', 'reading.fav':'⭐ Save', 'reading.clear':'✖ Clear', 'reading.translating':'⏳ Translating...', 'reading.translation_fail':'Translation failed, please retry', 'reading.no_api_key':'Please fill in the API Key', 'reading.empty':'No article yet. Choose a level and tap "Generate Article" for a fun article.', 'reading.level_select':'📖 Reading level: ', 'reading.level_hint':'Red = selected level words · Blue = next level words', 'reading.no_known_words':'No words selected for this level in Practice Mode yet. Please select words for this level in Practice Mode first.', 'reading.background_label':'📌 Background: ', 'reading.source_label':'🔗 Source: ', 'reading.history':'📜 Reading History', 'reading.fail':'Failed to generate, please retry', 'reading.example':'Example: ', 'reading.pinyin':'🔤 Pinyin', 'reading.pinyin_hide':'🔤 Hide Pinyin',
         },
         'Japanese': {
@@ -5879,7 +5876,7 @@ const HSK2_VOCAB = [
             'panel.vocab_track':'📋 語彙追跡',
             'panel.wrong_sentences':'❌ 間違い記録',
             'panel.download_vocab':'⬇️ 語彙レポートをダウンロード',
-            'mode.chat':'💬 会話', 'mode.writing':'✏️ 作文', 'writing.placeholder':'ここに中国語の作文を入力してください...', 'writing.submit':'提出して添削', 'writing.submitting':'⏳ AIが添削中...', 'writing.score':'総合評価', 'writing.discourse':'📖 文章構成', 'writing.syntax':'📝 文法・構文', 'writing.semantic':'💡 語彙・意味', 'writing.characters':'🖊️ 漢字の書き方', 'writing.overall':'📋 総評', 'writing.no_text':'先に作文を入力してください。', 'writing.fail':'添削に失敗しました。再試行してください。', 'writing.corrected':'✏️ 修正版', 'writing.use_corrected':'修正版を使って編集を続ける', 'writing.back':'← 編集に戻る', 'writing.hints':'💡 ヒント（自分で直そう）', 'writing.length_warn':'⚠️ 字数不足', 'writing.min_chars_note':'HSK{level}は最低{min}字必要です。今回は{count}字', 'writing.length_fail_note':'字数不足のため不合格です。内容を増やして再提出すると再採点されます。', 'writing.revision_title':'📌 修正提出', 'writing.revision_note':'第{n}回目の修正 · 前回{prev}点', 'writing.new_essay':'🆕 新しい作文', 'writing.new_confirm':'新しい作文を始めますか？現在の作文はレポートに保存されます。', 'writing.new_started':'✅ 新しい作文を開始しました', 'writing.end':'🏁 作文を終了', 'writing.end_nothing':'先に作文を提出してください。', 'writing.end_done':'✅ 作文を終了し、語彙と文法を分析しました', 'toast.writing_done':'✅ 添削が完了しました', 'toast.writing_analyzing':'🔍 語彙と文法を分析中...', 'toast.writing_analyzed':'✅ 語彙と文法を進捗に記録しました', 'toast.writing_analysis_fail':'⚠️ 語彙/文法の分析に失敗しました', 'reading.tab':'📰 読解', 'reading.title':'📰 読解 · 理解可能なインプット', 'reading.subtitle':'選択したレベルの語彙＋1つ上のレベルの新出語を使用。毎回違う面白くてリアルな話題（背景紹介つき）。文やハイライト語をタップで翻訳', 'reading.generate':'✨ 記事を生成', 'reading.regenerate':'🔄 別の記事', 'reading.generating':'⏳ AIが作成中...', 'reading.level':'レベル：', 'reading.new_words':'🆕 新出単語', 'reading.used_words':'✅ 学習済み単語の復習', 'reading.topic_label':'📌 ニューステーマ：', 'reading.tap_hint':'💡 文またはハイライトされた単語をタップして「翻訳」を押す', 'reading.selected':'選択中：', 'reading.translate':'🌐 翻訳', 'reading.speak':'🔊 読み上げ', 'reading.fav':'⭐ 保存', 'reading.clear':'✖ 解除', 'reading.translating':'⏳ 翻訳中...', 'reading.translation_fail':'翻訳に失敗しました。再試行してください', 'reading.no_api_key':'APIキーを入力してください', 'reading.empty':'まだ記事がありません。レベルを選んで「記事を生成」を押すと、面白い記事が作成されます。', 'reading.level_select':'📖 読解レベル：', 'reading.level_hint':'赤 = 選択レベルの語彙 · 青 = 1つ上のレベルの新出語', 'reading.no_known_words':'このレベルの語彙が練習モードでまだ選択されていません。先に「練習モード」でこのレベルの語彙を選択してください。', 'reading.background_label':'📌 背景：', 'reading.history':'📜 読解履歴', 'reading.fail':'生成に失敗しました。再試行してください', 'reading.example':'例文：', 'toast.writing_submitted':'✅ 作文を提出しました。添削中...', 'toast.writing_relang':'🔄 新しい言語で再添削中...',
+            'mode.chat':'💬 会話', 'mode.writing':'✏️ 作文', 'writing.placeholder':'ここに中国語の作文を入力してください...', 'writing.submit':'提出して添削', 'writing.submitting':'⏳ AIが添削中...', 'writing.score':'総合評価', 'writing.discourse':'📖 文章構成', 'writing.syntax':'📝 文法・構文', 'writing.semantic':'💡 語彙・意味', 'writing.characters':'🖊️ 漢字の書き方', 'writing.overall':'📋 総評', 'writing.no_text':'先に作文を入力してください。', 'writing.fail':'添削に失敗しました。再試行してください。', 'writing.corrected':'✏️ 修正版', 'writing.use_corrected':'修正版を使って編集を続ける', 'writing.back':'← 編集に戻る', 'writing.hints':'💡 ヒント（自分で直そう）', 'writing.length_warn':'⚠️ 字数不足', 'writing.min_chars_note':'HSK{level}は最低{min}字必要です。今回は{count}字', 'writing.length_fail_note':'字数不足です。内容を増やして再提出してください。', 'writing.revision_title':'📌 修正提出', 'writing.revision_note':'第{n}回目の修正', 'writing.new_essay':'🆕 新しい作文', 'writing.new_confirm':'新しい作文を始めますか？現在の作文はレポートに保存されます。', 'writing.new_started':'✅ 新しい作文を開始しました', 'writing.end':'🏁 作文を終了', 'writing.end_nothing':'先に作文を提出してください。', 'writing.end_done':'✅ 作文を終了し、語彙と文法を分析しました', 'toast.writing_done':'✅ 添削が完了しました', 'toast.writing_analyzing':'🔍 語彙と文法を分析中...', 'toast.writing_analyzed':'✅ 語彙と文法を進捗に記録しました', 'toast.writing_analysis_fail':'⚠️ 語彙/文法の分析に失敗しました', 'reading.tab':'📰 読解', 'reading.title':'📰 読解 · 理解可能なインプット', 'reading.subtitle':'選択したレベルの語彙＋1つ上のレベルの新出語を使用。毎回違う面白くてリアルな話題（背景紹介つき）。文やハイライト語をタップで翻訳', 'reading.generate':'✨ 記事を生成', 'reading.regenerate':'🔄 別の記事', 'reading.generating':'⏳ AIが作成中...', 'reading.level':'レベル：', 'reading.new_words':'🆕 新出単語', 'reading.used_words':'✅ 学習済み単語の復習', 'reading.topic_label':'📌 ニューステーマ：', 'reading.tap_hint':'💡 文またはハイライトされた単語をタップして「翻訳」を押す', 'reading.selected':'選択中：', 'reading.translate':'🌐 翻訳', 'reading.speak':'🔊 読み上げ', 'reading.fav':'⭐ 保存', 'reading.clear':'✖ 解除', 'reading.translating':'⏳ 翻訳中...', 'reading.translation_fail':'翻訳に失敗しました。再試行してください', 'reading.no_api_key':'APIキーを入力してください', 'reading.empty':'まだ記事がありません。レベルを選んで「記事を生成」を押すと、面白い記事が作成されます。', 'reading.level_select':'📖 読解レベル：', 'reading.level_hint':'赤 = 選択レベルの語彙 · 青 = 1つ上のレベルの新出語', 'reading.no_known_words':'このレベルの語彙が練習モードでまだ選択されていません。先に「練習モード」でこのレベルの語彙を選択してください。', 'reading.background_label':'📌 背景：', 'reading.history':'📜 読解履歴', 'reading.fail':'生成に失敗しました。再試行してください', 'reading.example':'例文：', 'toast.writing_submitted':'✅ 作文を提出しました。添削中...', 'toast.writing_relang':'🔄 新しい言語で再添削中...',
             'panel.empty_favs':'まだお気に入りがありません。「どう言う」で⭐をクリックして保存',
             'panel.note':'💡 「会話を終了」→ 文法を分析して保存 | 「不正確」をクリックして誤一致を削除',
             'panel.auto_read':'🔊 AI応答を自動読み上げ',
@@ -6045,7 +6042,7 @@ const HSK2_VOCAB = [
             'panel.vocab_track':'📋 어휘 추적',
             'panel.wrong_sentences':'❌ 오답 기록',
             'panel.download_vocab':'⬇️ 어휘 보고서 다운로드',
-            'mode.chat':'💬 대화', 'mode.writing':'✏️ 작문', 'writing.placeholder':'여기에 중국어 작문을 입력하세요...', 'writing.submit':'제출하고 첨삭', 'writing.submitting':'⏳ AI가 첨삭 중...', 'writing.score':'종합 점수', 'writing.discourse':'📖 문단 구조', 'writing.syntax':'📝 문법·구문', 'writing.semantic':'💡 어휘·의미', 'writing.characters':'🖊️ 한자 쓰기', 'writing.overall':'📋 총평', 'writing.no_text':'먼저 작문을 입력하세요.', 'writing.fail':'첨삭 실패, 다시 시도하세요.', 'writing.corrected':'✏️ 수정본', 'writing.use_corrected':'수정본으로 계속 편집', 'writing.back':'← 편집으로 돌아가기', 'writing.hints':'💡 스스로 고쳐보는 힌트', 'writing.length_warn':'⚠️ 글자 수 부족', 'writing.min_chars_note':'HSK{level} 최소 {min}자 필요, 이번 {count}자', 'writing.length_fail_note':'분량 미달로 불합격입니다. 내용을 늘려 다시 제출하면 재채점됩니다.', 'writing.revision_title':'📌 수정 제출', 'writing.revision_note':'{n}번째 수정 · 이전 점수 {prev}', 'writing.new_essay':'🆕 새 작문', 'writing.new_confirm':'새 작문을 시작할까요? 현재 작문은 보고서에 저장됩니다.', 'writing.new_started':'✅ 새 작문을 시작했습니다', 'writing.end':'🏁 작문 종료', 'writing.end_nothing':'먼저 작문을 제출하세요.', 'writing.end_done':'✅ 작문 종료, 어휘·문법 분석 완료', 'toast.writing_done':'✅ 첨삭 완료', 'toast.writing_analyzing':'🔍 어휘·문법 분석 중...', 'toast.writing_analyzed':'✅ 어휘·문법이 진행도에 기록됨', 'toast.writing_analysis_fail':'⚠️ 어휘/문법 분석 실패', 'reading.tab':'📰 읽기', 'reading.title':'📰 읽기 · 이해 가능한 입력', 'reading.subtitle':'선택한 레벨 단어 + 다음 레벨 새 단어 사용. 매번 다른 재미있고 생생한 주제(배경 소개 포함). 문장이나 강조 단어를 눌러 번역', 'reading.generate':'✨ 글 생성', 'reading.regenerate':'🔄 다른 글', 'reading.generating':'⏳ AI가 작성 중...', 'reading.level':'레벨: ', 'reading.new_words':'🆕 새 단어', 'reading.used_words':'✅ 배운 단어 복습', 'reading.topic_label':'📌 뉴스 주제: ', 'reading.tap_hint':'💡 문장이나 강조된 단어를 누른 후 "번역"을 누르세요', 'reading.selected':'선택됨: ', 'reading.translate':'🌐 번역', 'reading.speak':'🔊 읽기', 'reading.fav':'⭐ 저장', 'reading.clear':'✖ 취소', 'reading.translating':'⏳ 번역 중...', 'reading.translation_fail':'번역 실패, 다시 시도하세요', 'reading.no_api_key':'API 키를 입력하세요', 'reading.empty':'아직 글이 없습니다. 레벨을 선택하고 "글 생성"을 누르면 재미있는 글을 써줍니다.', 'reading.level_select':'📖 읽기 레벨: ', 'reading.level_hint':'빨강 = 선택한 레벨 단어 · 파랑 = 다음 레벨 단어', 'reading.no_known_words':'이 레벨은 아직 연습 모드에서 선택한 단어가 없습니다. 먼저 연습 모드에서 이 레벨의 단어를 선택하세요.', 'reading.background_label':'📌 배경: ', 'reading.history':'📜 읽기 기록', 'reading.fail':'생성 실패, 다시 시도하세요', 'reading.example':'예문: ', 'toast.writing_submitted':'✅ 작문 제출 완료, 첨삭 중...', 'toast.writing_relang':'🔄 새 언어로 다시 첨삭 중...',
+            'mode.chat':'💬 대화', 'mode.writing':'✏️ 작문', 'writing.placeholder':'여기에 중국어 작문을 입력하세요...', 'writing.submit':'제출하고 첨삭', 'writing.submitting':'⏳ AI가 첨삭 중...', 'writing.score':'종합 점수', 'writing.discourse':'📖 문단 구조', 'writing.syntax':'📝 문법·구문', 'writing.semantic':'💡 어휘·의미', 'writing.characters':'🖊️ 한자 쓰기', 'writing.overall':'📋 총평', 'writing.no_text':'먼저 작문을 입력하세요.', 'writing.fail':'첨삭 실패, 다시 시도하세요.', 'writing.corrected':'✏️ 수정본', 'writing.use_corrected':'수정본으로 계속 편집', 'writing.back':'← 편집으로 돌아가기', 'writing.hints':'💡 스스로 고쳐보는 힌트', 'writing.length_warn':'⚠️ 글자 수 부족', 'writing.min_chars_note':'HSK{level} 최소 {min}자 필요, 이번 {count}자', 'writing.length_fail_note':'분량이 부족합니다. 내용을 늘려 다시 제출하세요.', 'writing.revision_title':'📌 수정 제출', 'writing.revision_note':'{n}번째 수정', 'writing.new_essay':'🆕 새 작문', 'writing.new_confirm':'새 작문을 시작할까요? 현재 작문은 보고서에 저장됩니다.', 'writing.new_started':'✅ 새 작문을 시작했습니다', 'writing.end':'🏁 작문 종료', 'writing.end_nothing':'먼저 작문을 제출하세요.', 'writing.end_done':'✅ 작문 종료, 어휘·문법 분석 완료', 'toast.writing_done':'✅ 첨삭 완료', 'toast.writing_analyzing':'🔍 어휘·문법 분석 중...', 'toast.writing_analyzed':'✅ 어휘·문법이 진행도에 기록됨', 'toast.writing_analysis_fail':'⚠️ 어휘/문법 분석 실패', 'reading.tab':'📰 읽기', 'reading.title':'📰 읽기 · 이해 가능한 입력', 'reading.subtitle':'선택한 레벨 단어 + 다음 레벨 새 단어 사용. 매번 다른 재미있고 생생한 주제(배경 소개 포함). 문장이나 강조 단어를 눌러 번역', 'reading.generate':'✨ 글 생성', 'reading.regenerate':'🔄 다른 글', 'reading.generating':'⏳ AI가 작성 중...', 'reading.level':'레벨: ', 'reading.new_words':'🆕 새 단어', 'reading.used_words':'✅ 배운 단어 복습', 'reading.topic_label':'📌 뉴스 주제: ', 'reading.tap_hint':'💡 문장이나 강조된 단어를 누른 후 "번역"을 누르세요', 'reading.selected':'선택됨: ', 'reading.translate':'🌐 번역', 'reading.speak':'🔊 읽기', 'reading.fav':'⭐ 저장', 'reading.clear':'✖ 취소', 'reading.translating':'⏳ 번역 중...', 'reading.translation_fail':'번역 실패, 다시 시도하세요', 'reading.no_api_key':'API 키를 입력하세요', 'reading.empty':'아직 글이 없습니다. 레벨을 선택하고 "글 생성"을 누르면 재미있는 글을 써줍니다.', 'reading.level_select':'📖 읽기 레벨: ', 'reading.level_hint':'빨강 = 선택한 레벨 단어 · 파랑 = 다음 레벨 단어', 'reading.no_known_words':'이 레벨은 아직 연습 모드에서 선택한 단어가 없습니다. 먼저 연습 모드에서 이 레벨의 단어를 선택하세요.', 'reading.background_label':'📌 배경: ', 'reading.history':'📜 읽기 기록', 'reading.fail':'생성 실패, 다시 시도하세요', 'reading.example':'예문: ', 'toast.writing_submitted':'✅ 작문 제출 완료, 첨삭 중...', 'toast.writing_relang':'🔄 새 언어로 다시 첨삭 중...',
             'panel.empty_favs':'아직 즐겨찾기가 없습니다. "어떻게 말해요"에서 ⭐를 클릭하여 저장하세요',
             'panel.note':'💡 "대화 종료" → 문법 분석 및 저장 | "부정확"을 클릭하여 잘못된 일치 삭제',
             'panel.auto_read':'🔊 AI 응답 자동 읽기',
@@ -6211,7 +6208,7 @@ const HSK2_VOCAB = [
             'panel.vocab_track':'📋 Suivi de vocabulaire',
             'panel.wrong_sentences':'❌ Carnet des erreurs',
             'panel.download_vocab':'⬇️ Télécharger le rapport de vocabulaire',
-            'mode.chat':'💬 Discussion', 'mode.writing':'✏️ Rédaction', 'writing.placeholder':'Écrivez votre composition en chinois ici...', 'writing.submit':'Soumettre pour correction', 'writing.submitting':'⏳ Correction en cours...', 'writing.score':'Note globale', 'writing.discourse':'📖 Structure du discours', 'writing.syntax':'📝 Syntaxe et grammaire', 'writing.semantic':'💡 Choix des mots et sémantique', 'writing.characters':'🖊️ Caractères et écriture', 'writing.overall':'📋 Évaluation globale', 'writing.no_text':'Saisissez votre composition avant de soumettre.', 'writing.fail':'Échec de la correction, réessayez.', 'writing.corrected':'✏️ Version corrigée', 'writing.use_corrected':'Utiliser la version corrigée', 'writing.back':'← Retour à la modification', 'writing.hints':'💡 Indices pour corriger vous-même', 'writing.length_warn':'⚠️ Texte trop court', 'writing.min_chars_note':'HSK{level} : au moins {min} caractères ; vous en avez écrit {count}', 'writing.length_fail_note':'Longueur insuffisante : échec. Étoffez le texte et renvoyez-le.', 'writing.revision_title':'📌 Version révisée', 'writing.revision_note':'Révision n°{n} · score précédent {prev}', 'writing.new_essay':'🆕 Nouvelle rédaction', 'writing.new_confirm':"Commencer une nouvelle rédaction ? L'actuelle sera enregistrée dans le rapport.", 'writing.new_started':'✅ Nouvelle rédaction commencée', 'writing.end':'🏁 Terminer la rédaction', 'writing.end_nothing':"Soumettez d'abord votre rédaction.", 'writing.end_done':'✅ Rédaction terminée ; vocabulaire et grammaire analysés', 'toast.writing_done':'✅ Correction terminée', 'toast.writing_analyzing':'🔍 Analyse du vocabulaire et de la grammaire...', 'toast.writing_analyzed':'✅ Vocabulaire et grammaire ajoutés à la progression', 'toast.writing_analysis_fail':"⚠️ Échec de l'analyse vocabulaire/grammaire", 'reading.tab':'📰 Lecture', 'reading.title':'📰 Lecture · Input compréhensible', 'reading.subtitle':'Utilise les mots du niveau choisi + de nouveaux mots du niveau supérieur. Sujets amusants, réels et différents à chaque fois, avec contexte. Touchez une phrase ou un mot pour traduire.', 'reading.generate':'✨ Générer l\'article', 'reading.regenerate':'🔄 Autre article', 'reading.generating':'⏳ IA en train d\'écrire...', 'reading.level':'Niveau : ', 'reading.new_words':'🆕 Nouveaux mots', 'reading.used_words':'✅ Révision des mots appris', 'reading.topic_label':'📌 Sujet d\'actualité : ', 'reading.tap_hint':'💡 Touchez une phrase ou un mot surligné, puis « Traduire »', 'reading.selected':'Sélectionné : ', 'reading.translate':'🌐 Traduire', 'reading.speak':'🔊 Lire', 'reading.fav':'⭐ Enregistrer', 'reading.clear':'✖ Annuler', 'reading.translating':'⏳ Traduction...', 'reading.translation_fail':'Échec de la traduction, réessayez', 'reading.no_api_key':'Veuillez renseigner la clé API', 'reading.empty':'Pas encore d\'article. Choisissez un niveau puis cliquez sur « Générer l\'article ».', 'reading.level_select':'📖 Niveau de lecture : ', 'reading.level_hint':'Rouge = mots du niveau choisi · Bleu = niveau supérieur', 'reading.no_known_words':'Aucun mot de ce niveau n\'est encore sélectionné dans le mode exercice. Sélectionnez d\'abord des mots de ce niveau dans le mode exercice.', 'reading.background_label':'📌 Contexte : ', 'reading.history':'📜 Historique de lecture', 'reading.fail':'Échec de la génération, réessayez', 'reading.example':'Exemple : ', 'toast.writing_submitted':'✅ Composition soumise, correction...', 'toast.writing_relang':'🔄 Nouvelle correction dans la nouvelle langue...',
+            'mode.chat':'💬 Discussion', 'mode.writing':'✏️ Rédaction', 'writing.placeholder':'Écrivez votre composition en chinois ici...', 'writing.submit':'Soumettre pour correction', 'writing.submitting':'⏳ Correction en cours...', 'writing.score':'Note globale', 'writing.discourse':'📖 Structure du discours', 'writing.syntax':'📝 Syntaxe et grammaire', 'writing.semantic':'💡 Choix des mots et sémantique', 'writing.characters':'🖊️ Caractères et écriture', 'writing.overall':'📋 Évaluation globale', 'writing.no_text':'Saisissez votre composition avant de soumettre.', 'writing.fail':'Échec de la correction, réessayez.', 'writing.corrected':'✏️ Version corrigée', 'writing.use_corrected':'Utiliser la version corrigée', 'writing.back':'← Retour à la modification', 'writing.hints':'💡 Indices pour corriger vous-même', 'writing.length_warn':'⚠️ Texte trop court', 'writing.min_chars_note':'HSK{level} : au moins {min} caractères ; vous en avez écrit {count}', 'writing.length_fail_note':'Texte trop court — étoffez-le et renvoyez-le.', 'writing.revision_title':'📌 Version révisée', 'writing.revision_note':'Révision n°{n}', 'writing.new_essay':'🆕 Nouvelle rédaction', 'writing.new_confirm':"Commencer une nouvelle rédaction ? L'actuelle sera enregistrée dans le rapport.", 'writing.new_started':'✅ Nouvelle rédaction commencée', 'writing.end':'🏁 Terminer la rédaction', 'writing.end_nothing':"Soumettez d'abord votre rédaction.", 'writing.end_done':'✅ Rédaction terminée ; vocabulaire et grammaire analysés', 'toast.writing_done':'✅ Correction terminée', 'toast.writing_analyzing':'🔍 Analyse du vocabulaire et de la grammaire...', 'toast.writing_analyzed':'✅ Vocabulaire et grammaire ajoutés à la progression', 'toast.writing_analysis_fail':"⚠️ Échec de l'analyse vocabulaire/grammaire", 'reading.tab':'📰 Lecture', 'reading.title':'📰 Lecture · Input compréhensible', 'reading.subtitle':'Utilise les mots du niveau choisi + de nouveaux mots du niveau supérieur. Sujets amusants, réels et différents à chaque fois, avec contexte. Touchez une phrase ou un mot pour traduire.', 'reading.generate':'✨ Générer l\'article', 'reading.regenerate':'🔄 Autre article', 'reading.generating':'⏳ IA en train d\'écrire...', 'reading.level':'Niveau : ', 'reading.new_words':'🆕 Nouveaux mots', 'reading.used_words':'✅ Révision des mots appris', 'reading.topic_label':'📌 Sujet d\'actualité : ', 'reading.tap_hint':'💡 Touchez une phrase ou un mot surligné, puis « Traduire »', 'reading.selected':'Sélectionné : ', 'reading.translate':'🌐 Traduire', 'reading.speak':'🔊 Lire', 'reading.fav':'⭐ Enregistrer', 'reading.clear':'✖ Annuler', 'reading.translating':'⏳ Traduction...', 'reading.translation_fail':'Échec de la traduction, réessayez', 'reading.no_api_key':'Veuillez renseigner la clé API', 'reading.empty':'Pas encore d\'article. Choisissez un niveau puis cliquez sur « Générer l\'article ».', 'reading.level_select':'📖 Niveau de lecture : ', 'reading.level_hint':'Rouge = mots du niveau choisi · Bleu = niveau supérieur', 'reading.no_known_words':'Aucun mot de ce niveau n\'est encore sélectionné dans le mode exercice. Sélectionnez d\'abord des mots de ce niveau dans le mode exercice.', 'reading.background_label':'📌 Contexte : ', 'reading.history':'📜 Historique de lecture', 'reading.fail':'Échec de la génération, réessayez', 'reading.example':'Exemple : ', 'toast.writing_submitted':'✅ Composition soumise, correction...', 'toast.writing_relang':'🔄 Nouvelle correction dans la nouvelle langue...',
             'panel.empty_favs':'Pas encore de favoris. Cliquez sur ⭐ dans "Comment dire" pour enregistrer.',
             'panel.note':'💡 "Terminer" → Analyser et enregistrer | Cliquez sur "Inexact" pour supprimer les correspondances erronées',
             'panel.auto_read':'🔊 Lecture automatique des réponses IA',
@@ -6377,7 +6374,7 @@ const HSK2_VOCAB = [
             'panel.vocab_track':'📋 Wortschatzverfolgung',
             'panel.wrong_sentences':'❌ Fehlerprotokoll',
             'panel.download_vocab':'⬇️ Wortschatzbericht herunterladen',
-            'mode.chat':'💬 Chat', 'mode.writing':'✏️ Aufsatz', 'writing.placeholder':'Geben Sie hier Ihren chinesischen Aufsatz ein...', 'writing.submit':'Zur Korrektur einreichen', 'writing.submitting':'⏳ KI korrigiert...', 'writing.score':'Gesamtnote', 'writing.discourse':'📖 Aufbau und Struktur', 'writing.syntax':'📝 Syntax und Grammatik', 'writing.semantic':'💡 Wortwahl und Semantik', 'writing.characters':'🖊️ Schriftzeichen', 'writing.overall':'📋 Gesamtbewertung', 'writing.no_text':'Bitte geben Sie zuerst Ihren Aufsatz ein.', 'writing.fail':'Korrektur fehlgeschlagen, bitte erneut versuchen.', 'writing.corrected':'✏️ Korrigierte Fassung', 'writing.use_corrected':'Korrigierte Fassung verwenden', 'writing.back':'← Zurück zum Bearbeiten', 'writing.hints':'💡 Hinweise zum Selbstkorrigieren', 'writing.length_warn':'⚠️ Zu kurz', 'writing.min_chars_note':'HSK{level} erfordert mind. {min} Zeichen; geschrieben: {count}', 'writing.length_fail_note':'Zu kurz – nicht bestanden. Text erweitern und erneut einreichen.', 'writing.revision_title':'📌 Überarbeitete Fassung', 'writing.revision_note':'Überarbeitung Nr. {n} · vorherige Punktzahl {prev}', 'writing.new_essay':'🆕 Neuer Aufsatz', 'writing.new_confirm':'Neuen Aufsatz beginnen? Der aktuelle wird im Bericht gespeichert.', 'writing.new_started':'✅ Neuer Aufsatz begonnen', 'writing.end':'🏁 Aufsatz beenden', 'writing.end_nothing':'Bitte zuerst den Aufsatz einreichen.', 'writing.end_done':'✅ Aufsatz beendet; Wortschatz & Grammatik analysiert', 'toast.writing_done':'✅ Korrektur abgeschlossen', 'toast.writing_analyzing':'🔍 Wortschatz & Grammatik werden analysiert...', 'toast.writing_analyzed':'✅ Wortschatz & Grammatik im Fortschritt erfasst', 'toast.writing_analysis_fail':'⚠️ Wortschatz-/Grammatikanalyse fehlgeschlagen', 'reading.tab':'📰 Lesen', 'reading.title':'📰 Lesen · Verständlicher Input', 'reading.subtitle':'Verwendet Wörter der gewählten Stufe + neue Wörter der nächsten Stufe. Jedes Mal andere, echte Themen mit Hintergrund. Satz oder Wort antippen zum Übersetzen.', 'reading.generate':'✨ Artikel erstellen', 'reading.regenerate':'🔄 Neuer Artikel', 'reading.generating':'⏳ KI schreibt...', 'reading.level':'Stufe: ', 'reading.new_words':'🆕 Neue Wörter', 'reading.used_words':'✅ Gelernte Wörter wiederholen', 'reading.topic_label':'📌 Nachrichtenthema: ', 'reading.tap_hint':'💡 Satz oder markiertes Wort antippen, dann „Übersetzen"', 'reading.selected':'Ausgewählt: ', 'reading.translate':'🌐 Übersetzen', 'reading.speak':'🔊 Vorlesen', 'reading.fav':'⭐ Speichern', 'reading.clear':'✖ Abbrechen', 'reading.translating':'⏳ Übersetzung...', 'reading.translation_fail':'Übersetzung fehlgeschlagen, bitte erneut versuchen', 'reading.no_api_key':'Bitte API-Key eingeben', 'reading.empty':'Noch kein Artikel. Stufe wählen und auf „Artikel erstellen" tippen.', 'reading.level_select':'📖 Lesestufe: ', 'reading.level_hint':'Rot = Wörter der gewählten Stufe · Blau = nächste Stufe', 'reading.no_known_words':'Für diese Stufe wurden im Übungsmodus noch keine Wörter ausgewählt. Bitte wählen Sie zuerst Wörter dieser Stufe im Übungsmodus.', 'reading.background_label':'📌 Hintergrund: ', 'reading.history':'📜 Leseverlauf', 'reading.fail':'Erstellung fehlgeschlagen, bitte erneut versuchen', 'reading.example':'Beispiel: ', 'toast.writing_submitted':'✅ Aufsatz eingereicht, Korrektur läuft...', 'toast.writing_relang':'🔄 Neue Korrektur in neuer Sprache...',
+            'mode.chat':'💬 Chat', 'mode.writing':'✏️ Aufsatz', 'writing.placeholder':'Geben Sie hier Ihren chinesischen Aufsatz ein...', 'writing.submit':'Zur Korrektur einreichen', 'writing.submitting':'⏳ KI korrigiert...', 'writing.score':'Gesamtnote', 'writing.discourse':'📖 Aufbau und Struktur', 'writing.syntax':'📝 Syntax und Grammatik', 'writing.semantic':'💡 Wortwahl und Semantik', 'writing.characters':'🖊️ Schriftzeichen', 'writing.overall':'📋 Gesamtbewertung', 'writing.no_text':'Bitte geben Sie zuerst Ihren Aufsatz ein.', 'writing.fail':'Korrektur fehlgeschlagen, bitte erneut versuchen.', 'writing.corrected':'✏️ Korrigierte Fassung', 'writing.use_corrected':'Korrigierte Fassung verwenden', 'writing.back':'← Zurück zum Bearbeiten', 'writing.hints':'💡 Hinweise zum Selbstkorrigieren', 'writing.length_warn':'⚠️ Zu kurz', 'writing.min_chars_note':'HSK{level} erfordert mind. {min} Zeichen; geschrieben: {count}', 'writing.length_fail_note':'Zu kurz – bitte Text erweitern und erneut einreichen.', 'writing.revision_title':'📌 Überarbeitete Fassung', 'writing.revision_note':'Überarbeitung Nr. {n}', 'writing.new_essay':'🆕 Neuer Aufsatz', 'writing.new_confirm':'Neuen Aufsatz beginnen? Der aktuelle wird im Bericht gespeichert.', 'writing.new_started':'✅ Neuer Aufsatz begonnen', 'writing.end':'🏁 Aufsatz beenden', 'writing.end_nothing':'Bitte zuerst den Aufsatz einreichen.', 'writing.end_done':'✅ Aufsatz beendet; Wortschatz & Grammatik analysiert', 'toast.writing_done':'✅ Korrektur abgeschlossen', 'toast.writing_analyzing':'🔍 Wortschatz & Grammatik werden analysiert...', 'toast.writing_analyzed':'✅ Wortschatz & Grammatik im Fortschritt erfasst', 'toast.writing_analysis_fail':'⚠️ Wortschatz-/Grammatikanalyse fehlgeschlagen', 'reading.tab':'📰 Lesen', 'reading.title':'📰 Lesen · Verständlicher Input', 'reading.subtitle':'Verwendet Wörter der gewählten Stufe + neue Wörter der nächsten Stufe. Jedes Mal andere, echte Themen mit Hintergrund. Satz oder Wort antippen zum Übersetzen.', 'reading.generate':'✨ Artikel erstellen', 'reading.regenerate':'🔄 Neuer Artikel', 'reading.generating':'⏳ KI schreibt...', 'reading.level':'Stufe: ', 'reading.new_words':'🆕 Neue Wörter', 'reading.used_words':'✅ Gelernte Wörter wiederholen', 'reading.topic_label':'📌 Nachrichtenthema: ', 'reading.tap_hint':'💡 Satz oder markiertes Wort antippen, dann „Übersetzen"', 'reading.selected':'Ausgewählt: ', 'reading.translate':'🌐 Übersetzen', 'reading.speak':'🔊 Vorlesen', 'reading.fav':'⭐ Speichern', 'reading.clear':'✖ Abbrechen', 'reading.translating':'⏳ Übersetzung...', 'reading.translation_fail':'Übersetzung fehlgeschlagen, bitte erneut versuchen', 'reading.no_api_key':'Bitte API-Key eingeben', 'reading.empty':'Noch kein Artikel. Stufe wählen und auf „Artikel erstellen" tippen.', 'reading.level_select':'📖 Lesestufe: ', 'reading.level_hint':'Rot = Wörter der gewählten Stufe · Blau = nächste Stufe', 'reading.no_known_words':'Für diese Stufe wurden im Übungsmodus noch keine Wörter ausgewählt. Bitte wählen Sie zuerst Wörter dieser Stufe im Übungsmodus.', 'reading.background_label':'📌 Hintergrund: ', 'reading.history':'📜 Leseverlauf', 'reading.fail':'Erstellung fehlgeschlagen, bitte erneut versuchen', 'reading.example':'Beispiel: ', 'toast.writing_submitted':'✅ Aufsatz eingereicht, Korrektur läuft...', 'toast.writing_relang':'🔄 Neue Korrektur in neuer Sprache...',
             'panel.empty_favs':'Noch keine Favoriten. Klicke ⭐ in "Wie sagt man" zum Speichern.',
             'panel.note':'💡 "Beenden" → Grammatik analysieren & speichern | "Ungenau" klicken zum Löschen falscher Treffer',
             'panel.auto_read':'🔊 KI-Antworten automatisch vorlesen',
@@ -6543,7 +6540,7 @@ const HSK2_VOCAB = [
             'panel.vocab_track':'📋 Seguimiento de vocabulario',
             'panel.wrong_sentences':'❌ Registro de errores',
             'panel.download_vocab':'⬇️ Descargar informe de vocabulario',
-            'mode.chat':'💬 Conversación', 'mode.writing':'✏️ Redacción', 'writing.placeholder':'Escribe aquí tu redacción en chino...', 'writing.submit':'Enviar para corregir', 'writing.submitting':'⏳ La IA está corrigiendo...', 'writing.score':'Nota global', 'writing.discourse':'📖 Estructura del discurso', 'writing.syntax':'📝 Sintaxis y gramática', 'writing.semantic':'💡 Elección de palabras', 'writing.characters':'🖊️ Caracteres y escritura', 'writing.overall':'📋 Evaluación global', 'writing.no_text':'Primero escribe tu redacción.', 'writing.fail':'La corrección falló, inténtalo de nuevo.', 'writing.corrected':'✏️ Versión corregida', 'writing.use_corrected':'Usar la versión corregida', 'writing.back':'← Volver a editar', 'writing.hints':'💡 Pistas para corregirlo tú mismo', 'writing.length_warn':'⚠️ Demasiado corto', 'writing.min_chars_note':'HSK{level} requiere al menos {min} caracteres; has escrito {count}', 'writing.length_fail_note':'No alcanza la extensión: suspenso. Amplía el texto y vuelve a enviarlo.', 'writing.revision_title':'📌 Entrega revisada', 'writing.revision_note':'Revisión n.º {n} · nota anterior {prev}', 'writing.new_essay':'🆕 Nueva redacción', 'writing.new_confirm':'¿Empezar una nueva redacción? La actual se guardará en el informe.', 'writing.new_started':'✅ Nueva redacción iniciada', 'writing.end':'🏁 Terminar redacción', 'writing.end_nothing':'Primero envía tu redacción.', 'writing.end_done':'✅ Redacción terminada; vocabulario y gramática analizados', 'toast.writing_done':'✅ Corrección completada', 'toast.writing_analyzing':'🔍 Analizando vocabulario y gramática...', 'toast.writing_analyzed':'✅ Vocabulario y gramática añadidos al progreso', 'toast.writing_analysis_fail':'⚠️ Falló el análisis de vocabulario/gramática', 'reading.tab':'📰 Lectura', 'reading.title':'📰 Lectura · Input comprensible', 'reading.subtitle':'Usa palabras del nivel elegido + palabras nuevas del nivel superior. Temas reales, divertidos y distintos cada vez, con contexto. Toca una frase o palabra para traducir.', 'reading.generate':'✨ Generar artículo', 'reading.regenerate':'🔄 Otro artículo', 'reading.generating':'⏳ La IA está escribiendo...', 'reading.level':'Nivel: ', 'reading.new_words':'🆕 Palabras nuevas', 'reading.used_words':'✅ Repasar palabras aprendidas', 'reading.topic_label':'📌 Tema de noticias: ', 'reading.tap_hint':'💡 Toca una frase o palabra resaltada y luego «Traducir»', 'reading.selected':'Seleccionado: ', 'reading.translate':'🌐 Traducir', 'reading.speak':'🔊 Leer', 'reading.fav':'⭐ Guardar', 'reading.clear':'✖ Cancelar', 'reading.translating':'⏳ Traduciendo...', 'reading.translation_fail':'La traducción falló, inténtalo de nuevo', 'reading.no_api_key':'Introduce la API Key', 'reading.empty':'Aún no hay artículo. Elige un nivel y toca «Generar artículo».', 'reading.level_select':'📖 Nivel de lectura: ', 'reading.level_hint':'Rojo = palabras del nivel elegido · Azul = nivel superior', 'reading.no_known_words':'Aún no hay palabras de este nivel seleccionadas en el modo práctica. Selecciona primero palabras de este nivel en el modo práctica.', 'reading.background_label':'📌 Contexto: ', 'reading.history':'📜 Historial de lectura', 'reading.fail':'Falló la generación, inténtalo de nuevo', 'reading.example':'Ejemplo: ', 'toast.writing_submitted':'✅ Redacción enviada, corrigiendo...', 'toast.writing_relang':'🔄 Corrigiendo de nuevo en el nuevo idioma...',
+            'mode.chat':'💬 Conversación', 'mode.writing':'✏️ Redacción', 'writing.placeholder':'Escribe aquí tu redacción en chino...', 'writing.submit':'Enviar para corregir', 'writing.submitting':'⏳ La IA está corrigiendo...', 'writing.score':'Nota global', 'writing.discourse':'📖 Estructura del discurso', 'writing.syntax':'📝 Sintaxis y gramática', 'writing.semantic':'💡 Elección de palabras', 'writing.characters':'🖊️ Caracteres y escritura', 'writing.overall':'📋 Evaluación global', 'writing.no_text':'Primero escribe tu redacción.', 'writing.fail':'La corrección falló, inténtalo de nuevo.', 'writing.corrected':'✏️ Versión corregida', 'writing.use_corrected':'Usar la versión corregida', 'writing.back':'← Volver a editar', 'writing.hints':'💡 Pistas para corregirlo tú mismo', 'writing.length_warn':'⚠️ Demasiado corto', 'writing.min_chars_note':'HSK{level} requiere al menos {min} caracteres; has escrito {count}', 'writing.length_fail_note':'No alcanza la extensión: amplía el texto y vuelve a enviarlo.', 'writing.revision_title':'📌 Entrega revisada', 'writing.revision_note':'Revisión n.º {n}', 'writing.new_essay':'🆕 Nueva redacción', 'writing.new_confirm':'¿Empezar una nueva redacción? La actual se guardará en el informe.', 'writing.new_started':'✅ Nueva redacción iniciada', 'writing.end':'🏁 Terminar redacción', 'writing.end_nothing':'Primero envía tu redacción.', 'writing.end_done':'✅ Redacción terminada; vocabulario y gramática analizados', 'toast.writing_done':'✅ Corrección completada', 'toast.writing_analyzing':'🔍 Analizando vocabulario y gramática...', 'toast.writing_analyzed':'✅ Vocabulario y gramática añadidos al progreso', 'toast.writing_analysis_fail':'⚠️ Falló el análisis de vocabulario/gramática', 'reading.tab':'📰 Lectura', 'reading.title':'📰 Lectura · Input comprensible', 'reading.subtitle':'Usa palabras del nivel elegido + palabras nuevas del nivel superior. Temas reales, divertidos y distintos cada vez, con contexto. Toca una frase o palabra para traducir.', 'reading.generate':'✨ Generar artículo', 'reading.regenerate':'🔄 Otro artículo', 'reading.generating':'⏳ La IA está escribiendo...', 'reading.level':'Nivel: ', 'reading.new_words':'🆕 Palabras nuevas', 'reading.used_words':'✅ Repasar palabras aprendidas', 'reading.topic_label':'📌 Tema de noticias: ', 'reading.tap_hint':'💡 Toca una frase o palabra resaltada y luego «Traducir»', 'reading.selected':'Seleccionado: ', 'reading.translate':'🌐 Traducir', 'reading.speak':'🔊 Leer', 'reading.fav':'⭐ Guardar', 'reading.clear':'✖ Cancelar', 'reading.translating':'⏳ Traduciendo...', 'reading.translation_fail':'La traducción falló, inténtalo de nuevo', 'reading.no_api_key':'Introduce la API Key', 'reading.empty':'Aún no hay artículo. Elige un nivel y toca «Generar artículo».', 'reading.level_select':'📖 Nivel de lectura: ', 'reading.level_hint':'Rojo = palabras del nivel elegido · Azul = nivel superior', 'reading.no_known_words':'Aún no hay palabras de este nivel seleccionadas en el modo práctica. Selecciona primero palabras de este nivel en el modo práctica.', 'reading.background_label':'📌 Contexto: ', 'reading.history':'📜 Historial de lectura', 'reading.fail':'Falló la generación, inténtalo de nuevo', 'reading.example':'Ejemplo: ', 'toast.writing_submitted':'✅ Redacción enviada, corrigiendo...', 'toast.writing_relang':'🔄 Corrigiendo de nuevo en el nuevo idioma...',
             'panel.empty_favs':'Aún no hay favoritos. Haz clic en ⭐ en "Cómo se dice" para guardar.',
             'panel.note':'💡 "Terminar" → Analizar gramática y guardar | Clic en "Inexacto" para eliminar coincidencias erróneas',
             'panel.auto_read':'🔊 Leer respuestas de IA automáticamente',
@@ -6710,7 +6707,7 @@ const HSK2_VOCAB = [
             'panel.wrong_sentences':'❌ Журнал ошибок',
             'panel.download_vocab':'⬇️ Скачать отчёт по лексике',
             'panel.download_unified':'⬇️ Скачать полный отчёт об обучении',
-            'mode.chat':'💬 Диалог', 'mode.writing':'✏️ Сочинение', 'writing.placeholder':'Введите ваше сочинение на китайском...', 'writing.submit':'Отправить на проверку', 'writing.submitting':'⏳ ИИ проверяет...', 'writing.score':'Общая оценка', 'writing.discourse':'📖 Структура текста', 'writing.syntax':'📝 Синтаксис и грамматика', 'writing.semantic':'💡 Выбор слов и семантика', 'writing.characters':'🖊️ Иероглифы и письмо', 'writing.overall':'📋 Общая оценка', 'writing.no_text':'Сначала введите сочинение.', 'writing.fail':'Проверка не удалась, попробуйте ещё раз.', 'writing.corrected':'✏️ Исправленная версия', 'writing.use_corrected':'Использовать исправленную версию', 'writing.back':'← Вернуться к редактированию', 'writing.hints':'💡 Подсказки для самостоятельного исправления', 'writing.length_warn':'⚠️ Слишком коротко', 'writing.min_chars_note':'HSK{level}: нужно не менее {min} знаков, написано {count}', 'writing.length_fail_note':'Мало слов — не зачёт. Дополните текст и отправьте снова.', 'writing.revision_title':'📌 Исправленная версия', 'writing.revision_note':'Правка №{n} · прошлый балл {prev}', 'writing.new_essay':'🆕 Новое сочинение', 'writing.new_confirm':'Начать новое сочинение? Текущее сохранится в отчёте.', 'writing.new_started':'✅ Начато новое сочинение', 'writing.end':'🏁 Завершить сочинение', 'writing.end_nothing':'Сначала отправьте сочинение.', 'writing.end_done':'✅ Сочинение завершено, лексика и грамматика проанализированы', 'toast.writing_done':'✅ Проверка завершена', 'toast.writing_analyzing':'🔍 Анализ лексики и грамматики...', 'toast.writing_analyzed':'✅ Лексика и грамматика добавлены в прогресс', 'toast.writing_analysis_fail':'⚠️ Не удалось проанализировать лексику/грамматику', 'reading.tab':'📰 Чтение', 'reading.title':'📰 Чтение · Понятный ввод', 'reading.subtitle':'Использует слова выбранного уровня + новые слова следующего уровня. Интересные реальные темы, каждый раз разные, с контекстом. Нажмите на фразу или слово для перевода.', 'reading.generate':'✨ Создать текст', 'reading.regenerate':'🔄 Другой текст', 'reading.generating':'⏳ ИИ пишет...', 'reading.level':'Уровень: ', 'reading.new_words':'🆕 Новые слова', 'reading.used_words':'✅ Повторение изученных слов', 'reading.topic_label':'📌 Тема новости: ', 'reading.tap_hint':'💡 Нажмите на предложение или выделенное слово, затем «Перевести»', 'reading.selected':'Выбрано: ', 'reading.translate':'🌐 Перевести', 'reading.speak':'🔊 Читать', 'reading.fav':'⭐ Сохранить', 'reading.clear':'✖ Отмена', 'reading.translating':'⏳ Перевод...', 'reading.translation_fail':'Перевод не удался, попробуйте ещё раз', 'reading.no_api_key':'Введите API-ключ', 'reading.empty':'Пока нет текста. Выберите уровень и нажмите «Создать текст».', 'reading.level_select':'📖 Уровень чтения: ', 'reading.level_hint':'Красный = слова выбранного уровня · Синий = следующий уровень', 'reading.no_known_words':'Для этого уровня ещё не выбраны слова в режиме практики. Сначала выберите слова этого уровня в режиме практики.', 'reading.background_label':'📌 Контекст: ', 'reading.history':'📜 История чтения', 'reading.fail':'Не удалось создать, попробуйте ещё раз', 'reading.example':'Пример: ', 'toast.writing_submitted':'✅ Сочинение отправлено, проверка...', 'toast.writing_relang':'🔄 Повторная проверка на новом языке...',
+            'mode.chat':'💬 Диалог', 'mode.writing':'✏️ Сочинение', 'writing.placeholder':'Введите ваше сочинение на китайском...', 'writing.submit':'Отправить на проверку', 'writing.submitting':'⏳ ИИ проверяет...', 'writing.score':'Общая оценка', 'writing.discourse':'📖 Структура текста', 'writing.syntax':'📝 Синтаксис и грамматика', 'writing.semantic':'💡 Выбор слов и семантика', 'writing.characters':'🖊️ Иероглифы и письмо', 'writing.overall':'📋 Общая оценка', 'writing.no_text':'Сначала введите сочинение.', 'writing.fail':'Проверка не удалась, попробуйте ещё раз.', 'writing.corrected':'✏️ Исправленная версия', 'writing.use_corrected':'Использовать исправленную версию', 'writing.back':'← Вернуться к редактированию', 'writing.hints':'💡 Подсказки для самостоятельного исправления', 'writing.length_warn':'⚠️ Слишком коротко', 'writing.min_chars_note':'HSK{level}: нужно не менее {min} знаков, написано {count}', 'writing.length_fail_note':'Текст слишком короткий — дополните его и отправьте снова.', 'writing.revision_title':'📌 Исправленная версия', 'writing.revision_note':'Правка №{n}', 'writing.new_essay':'🆕 Новое сочинение', 'writing.new_confirm':'Начать новое сочинение? Текущее сохранится в отчёте.', 'writing.new_started':'✅ Начато новое сочинение', 'writing.end':'🏁 Завершить сочинение', 'writing.end_nothing':'Сначала отправьте сочинение.', 'writing.end_done':'✅ Сочинение завершено, лексика и грамматика проанализированы', 'toast.writing_done':'✅ Проверка завершена', 'toast.writing_analyzing':'🔍 Анализ лексики и грамматики...', 'toast.writing_analyzed':'✅ Лексика и грамматика добавлены в прогресс', 'toast.writing_analysis_fail':'⚠️ Не удалось проанализировать лексику/грамматику', 'reading.tab':'📰 Чтение', 'reading.title':'📰 Чтение · Понятный ввод', 'reading.subtitle':'Использует слова выбранного уровня + новые слова следующего уровня. Интересные реальные темы, каждый раз разные, с контекстом. Нажмите на фразу или слово для перевода.', 'reading.generate':'✨ Создать текст', 'reading.regenerate':'🔄 Другой текст', 'reading.generating':'⏳ ИИ пишет...', 'reading.level':'Уровень: ', 'reading.new_words':'🆕 Новые слова', 'reading.used_words':'✅ Повторение изученных слов', 'reading.topic_label':'📌 Тема новости: ', 'reading.tap_hint':'💡 Нажмите на предложение или выделенное слово, затем «Перевести»', 'reading.selected':'Выбрано: ', 'reading.translate':'🌐 Перевести', 'reading.speak':'🔊 Читать', 'reading.fav':'⭐ Сохранить', 'reading.clear':'✖ Отмена', 'reading.translating':'⏳ Перевод...', 'reading.translation_fail':'Перевод не удался, попробуйте ещё раз', 'reading.no_api_key':'Введите API-ключ', 'reading.empty':'Пока нет текста. Выберите уровень и нажмите «Создать текст».', 'reading.level_select':'📖 Уровень чтения: ', 'reading.level_hint':'Красный = слова выбранного уровня · Синий = следующий уровень', 'reading.no_known_words':'Для этого уровня ещё не выбраны слова в режиме практики. Сначала выберите слова этого уровня в режиме практики.', 'reading.background_label':'📌 Контекст: ', 'reading.history':'📜 История чтения', 'reading.fail':'Не удалось создать, попробуйте ещё раз', 'reading.example':'Пример: ', 'toast.writing_submitted':'✅ Сочинение отправлено, проверка...', 'toast.writing_relang':'🔄 Повторная проверка на новом языке...',
             'panel.empty_favs':'Избранного пока нет. Нажмите ⭐ в "Как сказать" чтобы сохранить.',
             'panel.note':'💡 "Завершить" → Анализ грамматики и сохранение | Нажмите "Неточно" для удаления ошибочных совпадений',
             'panel.auto_read':'🔊 Авточтение ответов ИИ',
@@ -6876,7 +6873,7 @@ const HSK2_VOCAB = [
             'panel.vocab_track':'📋 การติดตามคำศัพท์',
             'panel.wrong_sentences':'❌ บันทึกข้อผิดพลาด',
             'panel.download_vocab':'⬇️ ดาวน์โหลดรายงานคำศัพท์',
-            'mode.chat':'💬 สนทนา', 'mode.writing':'✏️ การเขียน', 'writing.placeholder':'เขียนเรียงความภาษาจีนที่นี่...', 'writing.submit':'ส่งเพื่อตรวจแก้', 'writing.submitting':'⏳ AI กำลังตรวจแก้...', 'writing.score':'คะแนนรวม', 'writing.discourse':'📖 โครงสร้างบทความ', 'writing.syntax':'📝 ไวยากรณ์และโครงสร้างประโยค', 'writing.semantic':'💡 การเลือกคำและความหมาย', 'writing.characters':'🖊️ ตัวอักษรและการเขียน', 'writing.overall':'📋 การประเมินโดยรวม', 'writing.no_text':'กรุณาเขียนเรียงความก่อน', 'writing.fail':'ตรวจแก้ไม่สำเร็จ โปรดลองใหม่', 'writing.corrected':'✏️ ฉบับแก้ไข', 'writing.use_corrected':'ใช้ฉบับแก้ไขแล้วแก้ต่อ', 'writing.back':'← กลับไปแก้ไข', 'writing.hints':'💡 คำใบ้ให้แก้ด้วยตัวเอง', 'writing.length_warn':'⚠️ สั้นเกินไป', 'writing.min_chars_note':'HSK{level} ต้องอย่างน้อย {min} ตัว เขียน {count} ตัว', 'writing.length_fail_note':'ความยาวไม่ถึงเกณฑ์: ไม่ผ่าน เพิ่มเนื้อหาแล้วส่งใหม่', 'writing.revision_title':'📌 ส่งฉบับแก้ไข', 'writing.revision_note':'แก้ครั้งที่ {n} · คะแนนก่อนหน้า {prev}', 'writing.new_essay':'🆕 เรียงความใหม่', 'writing.new_confirm':'เริ่มเรียงความใหม่หรือไม่ บทความปัจจุบันจะถูกบันทึกในรายงาน', 'writing.new_started':'✅ เริ่มเรียงความใหม่แล้ว', 'writing.end':'🏁 จบการเขียน', 'writing.end_nothing':'กรุณาส่งเรียงความก่อน', 'writing.end_done':'✅ จบการเขียน วิเคราะห์คำศัพท์และไวยากรณ์แล้ว', 'toast.writing_done':'✅ ตรวจแก้เสร็จแล้ว', 'toast.writing_analyzing':'🔍 กำลังวิเคราะห์คำศัพท์และไวยากรณ์...', 'toast.writing_analyzed':'✅ บันทึกคำศัพท์และไวยากรณ์แล้ว', 'toast.writing_analysis_fail':'⚠️ วิเคราะห์คำศัพท์/ไวยากรณ์ไม่สำเร็จ', 'reading.tab':'📰 การอ่าน', 'reading.title':'📰 การอ่าน · ข้อมูลที่เข้าใจได้', 'reading.subtitle':'ใช้คำระดับที่เลือก + คำใหม่ระดับถัดไป หัวข้อสนุกและจริง เปลี่ยนทุกครั้ง มีข้อมูลเบื้องหลัง แตะประโยคหรือคำเพื่อแปล', 'reading.generate':'✨ สร้างบทความ', 'reading.regenerate':'🔄 บทความใหม่', 'reading.generating':'⏳ AI กำลังเขียน...', 'reading.level':'ระดับ: ', 'reading.new_words':'🆕 คำศัพท์ใหม่', 'reading.used_words':'✅ ทบทวนคำที่เรียนแล้ว', 'reading.topic_label':'📌 หัวข้อข่าว: ', 'reading.tap_hint':'💡 แตะประโยคหรือคำที่ไฮไลต์ แล้วกด "แปล"', 'reading.selected':'เลือก: ', 'reading.translate':'🌐 แปล', 'reading.speak':'🔊 อ่านออกเสียง', 'reading.fav':'⭐ บันทึก', 'reading.clear':'✖ ยกเลิก', 'reading.translating':'⏳ กำลังแปล...', 'reading.translation_fail':'แปลไม่สำเร็จ โปรดลองใหม่', 'reading.no_api_key':'กรุณากรอก API Key', 'reading.empty':'ยังไม่มีบทความ เลือกระดับแล้วกด "สร้างบทความ"', 'reading.level_select':'📖 ระดับการอ่าน: ', 'reading.level_hint':'แดง = คำระดับที่เลือก · น้ำเงิน = ระดับถัดไป', 'reading.no_known_words':'ยังไม่ได้เลือกคำศัพท์ระดับนี้ในโหมดฝึก กรุณาเลือกคำศัพท์ระดับนี้ในโหมดฝึกก่อน', 'reading.background_label':'📌 ภูมิหลัง: ', 'reading.history':'📜 ประวัติการอ่าน', 'reading.fail':'สร้างไม่สำเร็จ โปรดลองใหม่', 'reading.example':'ตัวอย่าง: ', 'toast.writing_submitted':'✅ ส่งเรียงความแล้ว กำลังตรวจแก้...', 'toast.writing_relang':'🔄 กำลังตรวจแก้อีกครั้งด้วยภาษาใหม่...',
+            'mode.chat':'💬 สนทนา', 'mode.writing':'✏️ การเขียน', 'writing.placeholder':'เขียนเรียงความภาษาจีนที่นี่...', 'writing.submit':'ส่งเพื่อตรวจแก้', 'writing.submitting':'⏳ AI กำลังตรวจแก้...', 'writing.score':'คะแนนรวม', 'writing.discourse':'📖 โครงสร้างบทความ', 'writing.syntax':'📝 ไวยากรณ์และโครงสร้างประโยค', 'writing.semantic':'💡 การเลือกคำและความหมาย', 'writing.characters':'🖊️ ตัวอักษรและการเขียน', 'writing.overall':'📋 การประเมินโดยรวม', 'writing.no_text':'กรุณาเขียนเรียงความก่อน', 'writing.fail':'ตรวจแก้ไม่สำเร็จ โปรดลองใหม่', 'writing.corrected':'✏️ ฉบับแก้ไข', 'writing.use_corrected':'ใช้ฉบับแก้ไขแล้วแก้ต่อ', 'writing.back':'← กลับไปแก้ไข', 'writing.hints':'💡 คำใบ้ให้แก้ด้วยตัวเอง', 'writing.length_warn':'⚠️ สั้นเกินไป', 'writing.min_chars_note':'HSK{level} ต้องอย่างน้อย {min} ตัว เขียน {count} ตัว', 'writing.length_fail_note':'สั้นเกินไป: กรุณาเพิ่มเนื้อหาแล้วส่งใหม่', 'writing.revision_title':'📌 ส่งฉบับแก้ไข', 'writing.revision_note':'แก้ครั้งที่ {n}', 'writing.new_essay':'🆕 เรียงความใหม่', 'writing.new_confirm':'เริ่มเรียงความใหม่หรือไม่ บทความปัจจุบันจะถูกบันทึกในรายงาน', 'writing.new_started':'✅ เริ่มเรียงความใหม่แล้ว', 'writing.end':'🏁 จบการเขียน', 'writing.end_nothing':'กรุณาส่งเรียงความก่อน', 'writing.end_done':'✅ จบการเขียน วิเคราะห์คำศัพท์และไวยากรณ์แล้ว', 'toast.writing_done':'✅ ตรวจแก้เสร็จแล้ว', 'toast.writing_analyzing':'🔍 กำลังวิเคราะห์คำศัพท์และไวยากรณ์...', 'toast.writing_analyzed':'✅ บันทึกคำศัพท์และไวยากรณ์แล้ว', 'toast.writing_analysis_fail':'⚠️ วิเคราะห์คำศัพท์/ไวยากรณ์ไม่สำเร็จ', 'reading.tab':'📰 การอ่าน', 'reading.title':'📰 การอ่าน · ข้อมูลที่เข้าใจได้', 'reading.subtitle':'ใช้คำระดับที่เลือก + คำใหม่ระดับถัดไป หัวข้อสนุกและจริง เปลี่ยนทุกครั้ง มีข้อมูลเบื้องหลัง แตะประโยคหรือคำเพื่อแปล', 'reading.generate':'✨ สร้างบทความ', 'reading.regenerate':'🔄 บทความใหม่', 'reading.generating':'⏳ AI กำลังเขียน...', 'reading.level':'ระดับ: ', 'reading.new_words':'🆕 คำศัพท์ใหม่', 'reading.used_words':'✅ ทบทวนคำที่เรียนแล้ว', 'reading.topic_label':'📌 หัวข้อข่าว: ', 'reading.tap_hint':'💡 แตะประโยคหรือคำที่ไฮไลต์ แล้วกด "แปล"', 'reading.selected':'เลือก: ', 'reading.translate':'🌐 แปล', 'reading.speak':'🔊 อ่านออกเสียง', 'reading.fav':'⭐ บันทึก', 'reading.clear':'✖ ยกเลิก', 'reading.translating':'⏳ กำลังแปล...', 'reading.translation_fail':'แปลไม่สำเร็จ โปรดลองใหม่', 'reading.no_api_key':'กรุณากรอก API Key', 'reading.empty':'ยังไม่มีบทความ เลือกระดับแล้วกด "สร้างบทความ"', 'reading.level_select':'📖 ระดับการอ่าน: ', 'reading.level_hint':'แดง = คำระดับที่เลือก · น้ำเงิน = ระดับถัดไป', 'reading.no_known_words':'ยังไม่ได้เลือกคำศัพท์ระดับนี้ในโหมดฝึก กรุณาเลือกคำศัพท์ระดับนี้ในโหมดฝึกก่อน', 'reading.background_label':'📌 ภูมิหลัง: ', 'reading.history':'📜 ประวัติการอ่าน', 'reading.fail':'สร้างไม่สำเร็จ โปรดลองใหม่', 'reading.example':'ตัวอย่าง: ', 'toast.writing_submitted':'✅ ส่งเรียงความแล้ว กำลังตรวจแก้...', 'toast.writing_relang':'🔄 กำลังตรวจแก้อีกครั้งด้วยภาษาใหม่...',
             'panel.empty_favs':'ยังไม่มีรายการโปรด คลิก ⭐ ใน "พูดอย่างไร" เพื่อบันทึก',
             'panel.note':'💡 "จบการสนทนา" → วิเคราะห์ไวยากรณ์และบันทึก | คลิก "ไม่ถูกต้อง" เพื่อลบการจับคู่ที่ผิด',
             'panel.auto_read':'🔊 อ่านข้อความ AI อัตโนมัติ',
@@ -7043,7 +7040,7 @@ const HSK2_VOCAB = [
             'panel.wrong_sentences':'❌ Registro errori',
             'panel.download_vocab':'⬇️ Scarica rapporto vocabolario',
             'panel.download_unified':'⬇️ Scarica rapporto completo',
-            'mode.chat':'💬 Conversazione', 'mode.writing':'✏️ Composizione', 'writing.placeholder':'Scrivi qui la tua composizione in cinese...', 'writing.submit':'Invia per correzione', 'writing.submitting':'⏳ IA sta correggendo...', 'writing.score':'Punteggio complessivo', 'writing.discourse':'📖 Struttura del discorso', 'writing.syntax':'📝 Sintassi e grammatica', 'writing.semantic':'💡 Scelta delle parole', 'writing.characters':'🖊️ Caratteri e scrittura', 'writing.overall':'📋 Valutazione complessiva', 'writing.no_text':'Prima scrivi la tua composizione.', 'writing.fail':'Correzione non riuscita, riprova.', 'writing.corrected':'✏️ Versione corretta', 'writing.use_corrected':'Usa la versione corretta', 'writing.back':'← Torna alla modifica', 'writing.hints':'💡 Suggerimenti per correggere da solo', 'writing.length_warn':'⚠️ Troppo corto', 'writing.min_chars_note':'HSK{level}: almeno {min} caratteri; ne hai scritti {count}', 'writing.length_fail_note':'Lunghezza insufficiente: bocciato. Amplia e invia di nuovo.', 'writing.revision_title':'📌 Invio revisionato', 'writing.revision_note':'Revisione n. {n} · punteggio precedente {prev}', 'writing.new_essay':'🆕 Nuovo tema', 'writing.new_confirm':'Iniziare un nuovo tema? Quello attuale verrà salvato nel rapporto.', 'writing.new_started':'✅ Nuovo tema iniziato', 'writing.end':'🏁 Termina il tema', 'writing.end_nothing':'Prima invia il tema.', 'writing.end_done':'✅ Tema terminato; vocaboli e grammatica analizzati', 'toast.writing_done':'✅ Correzione completata', 'toast.writing_analyzing':'🔍 Analisi di vocabolario e grammatica...', 'toast.writing_analyzed':'✅ Vocabolario e grammatica aggiunti ai progressi', 'toast.writing_analysis_fail':'⚠️ Analisi vocaboli/grammatica non riuscita', 'reading.tab':'📰 Lettura', 'reading.title':'📰 Lettura · Input comprensibile', 'reading.subtitle':'Usa le parole del livello scelto + nuove parole del livello successivo. Temi divertenti, reali e diversi ogni volta, con contesto. Tocca una frase o una parola per tradurre.', 'reading.generate':'✨ Genera articolo', 'reading.regenerate':'🔄 Altro articolo', 'reading.generating':'⏳ L\'IA sta scrivendo...', 'reading.level':'Livello: ', 'reading.new_words':'🆕 Parole nuove', 'reading.used_words':'✅ Ripasso parole apprese', 'reading.topic_label':'📌 Tema di attualità: ', 'reading.tap_hint':'💡 Tocca una frase o una parola evidenziata, poi «Traduci»', 'reading.selected':'Selezionato: ', 'reading.translate':'🌐 Traduci', 'reading.speak':'🔊 Leggi', 'reading.fav':'⭐ Salva', 'reading.clear':'✖ Annulla', 'reading.translating':'⏳ Traduzione...', 'reading.translation_fail':'Traduzione non riuscita, riprova', 'reading.no_api_key':'Inserisci la API Key', 'reading.empty':'Nessun articolo ancora. Scegli un livello e tocca «Genera articolo».', 'reading.level_select':'📖 Livello di lettura: ', 'reading.level_hint':'Rosso = parole del livello scelto · Blu = livello successivo', 'reading.no_known_words':'Nessuna parola di questo livello è ancora selezionata nella modalità esercizio. Seleziona prima le parole di questo livello nella modalità esercizio.', 'reading.background_label':'📌 Contesto: ', 'reading.history':'📜 Cronologia lettura', 'reading.fail':'Generazione non riuscita, riprova', 'reading.example':'Esempio: ', 'toast.writing_submitted':'✅ Composizione inviata, correzione...', 'toast.writing_relang':'🔄 Nuova correzione nella nuova lingua...',
+            'mode.chat':'💬 Conversazione', 'mode.writing':'✏️ Composizione', 'writing.placeholder':'Scrivi qui la tua composizione in cinese...', 'writing.submit':'Invia per correzione', 'writing.submitting':'⏳ IA sta correggendo...', 'writing.score':'Punteggio complessivo', 'writing.discourse':'📖 Struttura del discorso', 'writing.syntax':'📝 Sintassi e grammatica', 'writing.semantic':'💡 Scelta delle parole', 'writing.characters':'🖊️ Caratteri e scrittura', 'writing.overall':'📋 Valutazione complessiva', 'writing.no_text':'Prima scrivi la tua composizione.', 'writing.fail':'Correzione non riuscita, riprova.', 'writing.corrected':'✏️ Versione corretta', 'writing.use_corrected':'Usa la versione corretta', 'writing.back':'← Torna alla modifica', 'writing.hints':'💡 Suggerimenti per correggere da solo', 'writing.length_warn':'⚠️ Troppo corto', 'writing.min_chars_note':'HSK{level}: almeno {min} caratteri; ne hai scritti {count}', 'writing.length_fail_note':'Testo troppo corto: amplialo e invialo di nuovo.', 'writing.revision_title':'📌 Invio revisionato', 'writing.revision_note':'Revisione n. {n}', 'writing.new_essay':'🆕 Nuovo tema', 'writing.new_confirm':'Iniziare un nuovo tema? Quello attuale verrà salvato nel rapporto.', 'writing.new_started':'✅ Nuovo tema iniziato', 'writing.end':'🏁 Termina il tema', 'writing.end_nothing':'Prima invia il tema.', 'writing.end_done':'✅ Tema terminato; vocaboli e grammatica analizzati', 'toast.writing_done':'✅ Correzione completata', 'toast.writing_analyzing':'🔍 Analisi di vocabolario e grammatica...', 'toast.writing_analyzed':'✅ Vocabolario e grammatica aggiunti ai progressi', 'toast.writing_analysis_fail':'⚠️ Analisi vocaboli/grammatica non riuscita', 'reading.tab':'📰 Lettura', 'reading.title':'📰 Lettura · Input comprensibile', 'reading.subtitle':'Usa le parole del livello scelto + nuove parole del livello successivo. Temi divertenti, reali e diversi ogni volta, con contesto. Tocca una frase o una parola per tradurre.', 'reading.generate':'✨ Genera articolo', 'reading.regenerate':'🔄 Altro articolo', 'reading.generating':'⏳ L\'IA sta scrivendo...', 'reading.level':'Livello: ', 'reading.new_words':'🆕 Parole nuove', 'reading.used_words':'✅ Ripasso parole apprese', 'reading.topic_label':'📌 Tema di attualità: ', 'reading.tap_hint':'💡 Tocca una frase o una parola evidenziata, poi «Traduci»', 'reading.selected':'Selezionato: ', 'reading.translate':'🌐 Traduci', 'reading.speak':'🔊 Leggi', 'reading.fav':'⭐ Salva', 'reading.clear':'✖ Annulla', 'reading.translating':'⏳ Traduzione...', 'reading.translation_fail':'Traduzione non riuscita, riprova', 'reading.no_api_key':'Inserisci la API Key', 'reading.empty':'Nessun articolo ancora. Scegli un livello e tocca «Genera articolo».', 'reading.level_select':'📖 Livello di lettura: ', 'reading.level_hint':'Rosso = parole del livello scelto · Blu = livello successivo', 'reading.no_known_words':'Nessuna parola di questo livello è ancora selezionata nella modalità esercizio. Seleziona prima le parole di questo livello nella modalità esercizio.', 'reading.background_label':'📌 Contesto: ', 'reading.history':'📜 Cronologia lettura', 'reading.fail':'Generazione non riuscita, riprova', 'reading.example':'Esempio: ', 'toast.writing_submitted':'✅ Composizione inviata, correzione...', 'toast.writing_relang':'🔄 Nuova correzione nella nuova lingua...',
             'panel.empty_favs':'Ancora nessun preferito. Clicca ⭐ in "Come si dice" per salvare.',
             'panel.note':'💡 "Termina" → Analizza grammatica e salva | Clicca "Impreciso" per eliminare corrispondenze errate',
             'panel.auto_read':'🔊 Leggi automaticamente le risposte IA',
@@ -7387,9 +7384,9 @@ const HSK2_VOCAB = [
                         'writing.hints':'💡 Gợi ý tự sửa',
                         'writing.length_warn':'⚠️ Quá ngắn',
                         'writing.min_chars_note':'HSK{level} yêu cầu ít nhất {min} chữ; bạn đã viết {count}',
-                        'writing.length_fail_note':'Chưa đủ độ dài: bài nộp này không đạt. Hãy mở rộng và nộp lại để chấm lại.',
+                        'writing.length_fail_note':'Chưa đủ độ dài: hãy mở rộng và nộp lại.',
                         'writing.revision_title':'📌 Nộp bản sửa',
-                        'writing.revision_note':'Bản sửa #{n} · điểm trước {prev}',
+                        'writing.revision_note':'Bản sửa #{n}',
                         'writing.new_essay':'🆕 Bài mới',
                         'writing.new_confirm':'Bắt đầu bài mới? Bài hiện tại sẽ được lưu trong báo cáo.',
                         'writing.new_started':'✅ Đã bắt đầu bài mới',
@@ -7663,9 +7660,9 @@ const HSK2_VOCAB = [
                         'writing.hints':'💡 Petunjuk Perbaikan Mandiri',
                         'writing.length_warn':'⚠️ Terlalu pendek',
                         'writing.min_chars_note':'HSK{level} butuh minimal {min} karakter; kamu menulis {count}',
-                        'writing.length_fail_note':'Panjang belum cukup: kiriman ini gagal. Perpanjang teks lalu kirim ulang untuk dinilai lagi.',
+                        'writing.length_fail_note':'Panjang belum cukup: perpanjang teks lalu kirim ulang.',
                         'writing.revision_title':'📌 Kiriman Revisi',
-                        'writing.revision_note':'Revisi #{n} · skor sebelumnya {prev}',
+                        'writing.revision_note':'Revisi #{n}',
                         'writing.new_essay':'🆕 Esai Baru',
                         'writing.new_confirm':'Mulai esai baru? Esai saat ini akan disimpan dalam laporan.',
                         'writing.new_started':'✅ Esai baru dimulai',
@@ -7939,9 +7936,9 @@ const HSK2_VOCAB = [
                         'writing.hints':'💡 Heuristické rady (oprav si sám)',
                         'writing.length_warn':'⚠️ Príliš krátke',
                         'writing.min_chars_note':'HSK{level} vyžaduje aspoň {min} znakov; napísal si {count}',
-                        'writing.length_fail_note':'Dĺžka nespĺňa požiadavku: toto odovzdanie neprešlo. Rozšír text a odošli znova na prehodnotenie.',
+                        'writing.length_fail_note':'Dĺžka nespĺňa požiadavku: rozšír text a odošli znova.',
                         'writing.revision_title':'📌 Odovzdanie revízie',
-                        'writing.revision_note':'Revízia č. {n} · predchádzajúce skóre {prev}',
+                        'writing.revision_note':'Revízia č. {n}',
                         'writing.new_essay':'🆕 Nový sloh',
                         'writing.new_confirm':'Začať nový sloh? Aktuálny sa uloží do reportu.',
                         'writing.new_started':'✅ Nový sloh začatý',
@@ -8575,9 +8572,9 @@ const HSK2_VOCAB = [
         'writing.hints':'💡 启发式修改提示',
         'writing.length_warn':'⚠️ 字数不足',
         'writing.min_chars_note':'HSK{level} 要求至少 {min} 字，本次写了 {count} 字',
-        'writing.length_fail_note':'篇幅未达标，本次批改不及格。请扩充内容后再次提交，分数会重新评定。',
+        'writing.length_fail_note':'篇幅未达标，请扩充内容后再次提交。',
         'writing.revision_title':'📌 修改提交',
-        'writing.revision_note':'第 {n} 次修改提交 · 上次得分 {prev}',
+        'writing.revision_note':'第 {n} 次修改提交',
         'writing.new_essay':'🆕 新作文',
         'writing.new_confirm':'确定开始一篇新作文吗？当前这篇的批改记录会保存在学习报告中。',
         'writing.new_started':'✅ 已开始新作文',
@@ -8596,12 +8593,12 @@ const HSK2_VOCAB = [
         'Chinese': {
             'writing.status_idle':'✍️ 写作进行中：请在上方输入作文，然后点「提交批改」',
             'writing.status_submitting':'⏳ AI 正在批改作文，请稍候...',
-            'writing.status_graded':'✅ 已提交批改：可修改后再次提交（会重新评分），或点「结束写作」保存并分析词语语法',
+            'writing.status_graded':'✅ 已提交批改：可修改后再次提交，或点「结束写作」保存并分析词语语法',
             'writing.status_ended':'🏁 写作已结束：词语和语法已计入进度。点「新作文」开始下一篇',
             'writing.status_analyzing':'🔍 写作已结束，正在分析词语和语法...',
             'writing.status_analyzed':'✅ 写作已结束，词语和语法已计入进度',
             'writing.flow_hint':'流程：① 输入作文 → ② 提交批改 → ③ 修改后再提交（可选） → ④ 结束写作',
-            'writing.cache_hit':'📋 相同作文已批改过，直接显示上次结果（分数一致）',
+            'writing.cache_hit':'📋 相同作文已批改过，直接显示上次结果',
             'toast.download_started':'⬇️ 已开始下载，请查看浏览器下载列表',
             'toast.download_failed':'⚠️ 下载失败，请重试',
             'cand.title':'💡 候选词（还没用过/练过的词，试试用它们造句）', 'cand.level':'候选词等级：', 'cand.refresh':'🔄 换一批', 'cand.hint':'点击候选词填入输入框', 'cand.empty':'该等级暂无可用的候选词', 'cand.inserted':'已填入：',
@@ -8612,12 +8609,12 @@ const HSK2_VOCAB = [
         'English': {
             'writing.status_idle':'✍️ Writing in progress: enter your essay above, then tap "Submit for Correction".',
             'writing.status_submitting':'⏳ AI is correcting your essay, please wait...',
-            'writing.status_graded':'✅ Submitted & corrected. You can edit and resubmit (it will be re-scored), or tap "End Writing" to save and analyze.',
+            'writing.status_graded':'✅ Submitted & corrected. You can edit and resubmit, or tap "End Writing" to save and analyze.',
             'writing.status_ended':'🏁 Writing ended: vocabulary & grammar have been added to your progress. Tap "New Essay" to start a new one.',
             'writing.status_analyzing':'🔍 Writing ended. Analyzing vocabulary & grammar...',
             'writing.status_analyzed':'✅ Writing ended. Vocabulary & grammar added to your progress.',
             'writing.flow_hint':'Steps: ① Enter essay → ② Submit for correction → ③ Edit & resubmit (optional) → ④ End writing',
-            'writing.cache_hit':'📋 This essay was already corrected — showing the previous result with the same score.',
+            'writing.cache_hit':'📋 This essay was already corrected — showing the previous result.',
             'toast.download_started':'⬇️ Download started. Check your browser downloads.',
             'toast.download_failed':'⚠️ Download failed, please try again.',
             'cand.title':'💡 Word Bank (unused words — try using them!)', 'cand.level':'Word level: ', 'cand.refresh':'🔄 Refresh', 'cand.hint':'Tap a word to insert it', 'cand.empty':'No more unused words at this level', 'cand.inserted':'Inserted: ',
@@ -8630,12 +8627,12 @@ const HSK2_VOCAB = [
         'Japanese': {
             'writing.status_idle':'✍️ 作文作成中：上に入力して「提出して添削」を押してください。',
             'writing.status_submitting':'⏳ AIが作文を添削中です。お待ちください...',
-            'writing.status_graded':'✅ 提出・添削済み。修正して再提出するか（再採点されます）、「作文を終了」で保存・分析できます。',
+            'writing.status_graded':'✅ 提出・添削済み。修正して再提出するか、「作文を終了」で保存・分析できます。',
             'writing.status_ended':'🏁 作文終了：語彙と文法を進捗に記録しました。「新しい作文」で次を始められます。',
             'writing.status_analyzing':'🔍 作文終了。語彙と文法を分析中...',
             'writing.status_analyzed':'✅ 作文終了。語彙と文法を進捗に記録しました。',
             'writing.flow_hint':'手順：① 作文入力 → ② 提出して添削 → ③ 修正して再提出（任意） → ④ 作文を終了',
-            'writing.cache_hit':'📋 同じ作文は添削済みです。前回と同じ点数で表示します。',
+            'writing.cache_hit':'📋 同じ作文は添削済みです。前回の結果を表示します。',
             'toast.download_started':'⬇️ ダウンロードを開始しました。ブラウザのダウンロード一覧をご確認ください',
             'toast.download_failed':'⚠️ ダウンロードに失敗しました。もう一度お試しください',
             'cand.title':'💡 候補ワード（まだ使っていない単語、使って文を作ろう）', 'cand.level':'候補レベル：', 'cand.refresh':'🔄 入れ替え', 'cand.hint':'タップで入力欄に入力', 'cand.empty':'このレベルに未使用の単語はありません', 'cand.inserted':'入力済み：',
@@ -8667,12 +8664,12 @@ const HSK2_VOCAB = [
         'Korean': {
             'writing.status_idle':'✍️ 작문 작성 중: 위에 입력 후 "제출하고 첨삭"을 누르세요.',
             'writing.status_submitting':'⏳ AI가 작문을 첨삭 중입니다. 잠시만 기다려 주세요...',
-            'writing.status_graded':'✅ 제출·첨삭 완료. 수정 후 다시 제출하거나(재채점됨) "작문 종료"로 저장·분석할 수 있습니다.',
+            'writing.status_graded':'✅ 제출·첨삭 완료. 수정 후 다시 제출하거나 "작문 종료"로 저장·분석할 수 있습니다.',
             'writing.status_ended':'🏁 작문 종료: 어휘·문법이 진행도에 기록되었습니다. "새 작문"으로 다음 글을 시작하세요.',
             'writing.status_analyzing':'🔍 작문 종료. 어휘·문법 분석 중...',
             'writing.status_analyzed':'✅ 작문 종료. 어휘·문법이 진행도에 기록되었습니다.',
             'writing.flow_hint':'순서: ① 작문 입력 → ② 제출하고 첨삭 → ③ 수정 후 재제출(선택) → ④ 작문 종료',
-            'writing.cache_hit':'📋 같은 작문은 이미 첨삭했습니다. 이전과 같은 점수로 표시합니다.',
+            'writing.cache_hit':'📋 같은 작문은 이미 첨삭했습니다. 이전 결과를 표시합니다.',
             'toast.download_started':'⬇️ 다운로드를 시작했습니다. 브라우저 다운로드 목록을 확인하세요',
             'toast.download_failed':'⚠️ 다운로드 실패, 다시 시도하세요',
             'cand.title':'💡 추천 단어 (안 써본 단어로 문장을 만들어 보세요)', 'cand.level':'추천 단어 레벨: ', 'cand.refresh':'🔄 새로고침', 'cand.hint':'눌러서 입력칸에 넣기', 'cand.empty':'이 레벨에 안 쓴 단어가 없습니다', 'cand.inserted':'입력됨: ',
@@ -8704,12 +8701,12 @@ const HSK2_VOCAB = [
         'French': {
             'writing.status_idle':'✍️ Rédaction en cours : saisissez votre texte ci-dessus puis « Soumettre pour correction ».',
             'writing.status_submitting':"⏳ L'IA corrige votre rédaction, veuillez patienter...",
-            'writing.status_graded':'✅ Soumise et corrigée. Modifiez puis renvoyez (la note sera réévaluée), ou « Terminer la rédaction » pour enregistrer et analyser.',
+            'writing.status_graded':'✅ Soumise et corrigée. Modifiez puis renvoyez, ou « Terminer la rédaction » pour enregistrer et analyser.',
             'writing.status_ended':'🏁 Rédaction terminée : vocabulaire et grammaire ajoutés à votre progression. « Nouvelle rédaction » pour commencer.',
             'writing.status_analyzing':'🔍 Rédaction terminée. Analyse du vocabulaire et de la grammaire...',
             'writing.status_analyzed':'✅ Rédaction terminée. Vocabulaire et grammaire ajoutés à la progression.',
             'writing.flow_hint':'Étapes : ① Saisir → ② Soumettre → ③ Modifier et renvoyer (facultatif) → ④ Terminer',
-            'writing.cache_hit':'📋 Cette rédaction a déjà été corrigée — résultat précédent affiché avec la même note.',
+            'writing.cache_hit':'📋 Cette rédaction a déjà été corrigée — résultat précédent affiché.',
             'toast.download_started':'⬇️ Téléchargement lancé. Consultez les téléchargements du navigateur.',
             'toast.download_failed':'⚠️ Échec du téléchargement, réessayez.',
             'cand.title':'💡 Mots suggérés (pas encore utilisés — essayez !)', 'cand.level':'Niveau des mots : ', 'cand.refresh':'🔄 Autres mots', 'cand.hint':'Touchez pour insérer', 'cand.empty':'Plus de mots inutilisés à ce niveau', 'cand.inserted':'Inséré : ',
@@ -8741,12 +8738,12 @@ const HSK2_VOCAB = [
         'German': {
             'writing.status_idle':'✍️ Aufsatz in Arbeit: oben eingeben und „Zur Korrektur einreichen" tippen.',
             'writing.status_submitting':'⏳ KI korrigiert Ihren Aufsatz, bitte warten...',
-            'writing.status_graded':'✅ Eingereicht & korrigiert. Sie können bearbeiten und erneut einreichen (neue Bewertung) oder „Aufsatz beenden" zum Speichern & Analysieren.',
+            'writing.status_graded':'✅ Eingereicht & korrigiert. Sie können bearbeiten und erneut einreichen oder „Aufsatz beenden" zum Speichern & Analysieren.',
             'writing.status_ended':'🏁 Aufsatz beendet: Wortschatz & Grammatik im Fortschritt erfasst. „Neuer Aufsatz" startet den nächsten.',
             'writing.status_analyzing':'🔍 Aufsatz beendet. Wortschatz & Grammatik werden analysiert...',
             'writing.status_analyzed':'✅ Aufsatz beendet. Wortschatz & Grammatik im Fortschritt erfasst.',
             'writing.flow_hint':'Ablauf: ① Eingeben → ② Einreichen → ③ Bearbeiten & erneut einreichen (optional) → ④ Beenden',
-            'writing.cache_hit':'📋 Dieser Aufsatz wurde bereits korrigiert — vorheriges Ergebnis mit gleicher Punktzahl.',
+            'writing.cache_hit':'📋 Dieser Aufsatz wurde bereits korrigiert — vorheriges Ergebnis wird angezeigt.',
             'toast.download_started':'⬇️ Download gestartet. Bitte prüfen Sie die Browser-Downloads.',
             'toast.download_failed':'⚠️ Download fehlgeschlagen, bitte erneut versuchen.',
             'cand.title':'💡 Wortvorschläge (noch nicht benutzt — probier sie!)', 'cand.level':'Wortstufe: ', 'cand.refresh':'🔄 Neu', 'cand.hint':'Tippen zum Einfügen', 'cand.empty':'Keine unbenutzten Wörter auf dieser Stufe', 'cand.inserted':'Eingefügt: ',
@@ -8778,12 +8775,12 @@ const HSK2_VOCAB = [
         'Spanish': {
             'writing.status_idle':'✍️ Redacción en curso: escribe arriba y pulsa «Enviar para corregir».',
             'writing.status_submitting':'⏳ La IA está corrigiendo tu redacción, espera...',
-            'writing.status_graded':'✅ Enviada y corregida. Puedes editar y reenviar (se recalificará) o «Terminar redacción» para guardar y analizar.',
+            'writing.status_graded':'✅ Enviada y corregida. Puedes editar y reenviar o «Terminar redacción» para guardar y analizar.',
             'writing.status_ended':'🏁 Redacción terminada: vocabulario y gramática añadidos al progreso. «Nueva redacción» para empezar otra.',
             'writing.status_analyzing':'🔍 Redacción terminada. Analizando vocabulario y gramática...',
             'writing.status_analyzed':'✅ Redacción terminada. Vocabulario y gramática añadidos al progreso.',
             'writing.flow_hint':'Pasos: ① Escribir → ② Enviar → ③ Editar y reenviar (opcional) → ④ Terminar',
-            'writing.cache_hit':'📋 Esta redacción ya fue corregida; se muestra el resultado anterior con la misma nota.',
+            'writing.cache_hit':'📋 Esta redacción ya fue corregida; se muestra el resultado anterior.',
             'toast.download_started':'⬇️ Descarga iniciada. Revisa las descargas del navegador.',
             'toast.download_failed':'⚠️ Falló la descarga, inténtalo de nuevo.',
             'cand.title':'💡 Palabras sugeridas (¡aún sin usar — pruébalas!)', 'cand.level':'Nivel de palabras: ', 'cand.refresh':'🔄 Cambiar', 'cand.hint':'Toca para insertar', 'cand.empty':'No quedan palabras sin usar en este nivel', 'cand.inserted':'Insertado: ',
@@ -8815,12 +8812,12 @@ const HSK2_VOCAB = [
         'Russian': {
             'writing.status_idle':'✍️ Сочинение в работе: введите текст выше и нажмите «Отправить на проверку».',
             'writing.status_submitting':'⏳ ИИ проверяет ваше сочинение, подождите...',
-            'writing.status_graded':'✅ Отправлено и проверено. Можно изменить и отправить снова (оценка пересчитается) или «Завершить сочинение» для сохранения и анализа.',
+            'writing.status_graded':'✅ Отправлено и проверено. Можно изменить и отправить снова или «Завершить сочинение» для сохранения и анализа.',
             'writing.status_ended':'🏁 Сочинение завершено: лексика и грамматика добавлены в прогресс. «Новое сочинение» — начать следующее.',
             'writing.status_analyzing':'🔍 Сочинение завершено. Анализ лексики и грамматики...',
             'writing.status_analyzed':'✅ Сочинение завершено. Лексика и грамматика добавлены в прогресс.',
             'writing.flow_hint':'Шаги: ① Написать → ② Отправить → ③ Изменить и отправить снова (необязательно) → ④ Завершить',
-            'writing.cache_hit':'📋 Это сочинение уже проверялось — показан прошлый результат с той же оценкой.',
+            'writing.cache_hit':'📋 Это сочинение уже проверялось — показан прошлый результат.',
             'toast.download_started':'⬇️ Загрузка началась. Проверьте загрузки браузера.',
             'toast.download_failed':'⚠️ Не удалось загрузить, попробуйте ещё раз.',
             'cand.title':'💡 Слова-кандидаты (ещё не использованные — попробуйте!)', 'cand.level':'Уровень слов: ', 'cand.refresh':'🔄 Обновить', 'cand.hint':'Нажмите, чтобы вставить', 'cand.empty':'На этом уровне больше нет неиспользованных слов', 'cand.inserted':'Вставлено: ',
@@ -8852,12 +8849,12 @@ const HSK2_VOCAB = [
         'Thai': {
             'writing.status_idle':'✍️ กำลังเขียน: พิมพ์เรียงความด้านบนแล้วกด "ส่งเพื่อตรวจแก้"',
             'writing.status_submitting':'⏳ AI กำลังตรวจแก้เรียงความ โปรดรอ...',
-            'writing.status_graded':'✅ ส่งและตรวจแก้แล้ว แก้ไขแล้วส่งใหม่ได้ (จะให้คะแนนใหม่) หรือกด "จบการเขียน" เพื่อบันทึกและวิเคราะห์',
+            'writing.status_graded':'✅ ส่งและตรวจแก้แล้ว แก้ไขแล้วส่งใหม่ได้ หรือกด "จบการเขียน" เพื่อบันทึกและวิเคราะห์',
             'writing.status_ended':'🏁 จบการเขียน: บันทึกคำศัพท์และไวยากรณ์แล้ว กด "เรียงความใหม่" เพื่อเริ่มบทต่อไป',
             'writing.status_analyzing':'🔍 จบการเขียน กำลังวิเคราะห์คำศัพท์และไวยากรณ์...',
             'writing.status_analyzed':'✅ จบการเขียน บันทึกคำศัพท์และไวยากรณ์แล้ว',
             'writing.flow_hint':'ขั้นตอน: ① เขียน → ② ส่งตรวจแก้ → ③ แก้ไขและส่งใหม่ (ไม่บังคับ) → ④ จบการเขียน',
-            'writing.cache_hit':'📋 เรียงความนี้ตรวจแก้แล้ว แสดงผลเดิมด้วยคะแนนเท่าเดิม',
+            'writing.cache_hit':'📋 เรียงความนี้ตรวจแก้แล้ว แสดงผลเดิม',
             'toast.download_started':'⬇️ เริ่มดาวน์โหลดแล้ว โปรดดูรายการดาวน์โหลดของเบราว์เซอร์',
             'toast.download_failed':'⚠️ ดาวน์โหลดไม่สำเร็จ โปรดลองใหม่',
             'cand.title':'💡 คำแนะนำ (คำที่ยังไม่เคยใช้ ลองนำไปแต่งประโยค!)', 'cand.level':'ระดับคำ: ', 'cand.refresh':'🔄 เปลี่ยนชุด', 'cand.hint':'แตะเพื่อใส่ในช่องพิมพ์', 'cand.empty':'ไม่มีคำที่ยังไม่ใช้ในระดับนี้', 'cand.inserted':'ใส่แล้ว: ',
@@ -8889,12 +8886,12 @@ const HSK2_VOCAB = [
         'Italian': {
             'writing.status_idle':'✍️ Composizione in corso: scrivi sopra e tocca «Invia per correzione».',
             'writing.status_submitting':"⏳ L'IA sta correggendo la composizione, attendi...",
-            'writing.status_graded':'✅ Inviata e corretta. Puoi modificare e reinviare (verrà rivalutata) o «Termina il tema» per salvare e analizzare.',
+            'writing.status_graded':'✅ Inviata e corretta. Puoi modificare e reinviare o «Termina il tema» per salvare e analizzare.',
             'writing.status_ended':'🏁 Tema terminato: vocaboli e grammatica aggiunti ai progressi. «Nuovo tema» per iniziarne un altro.',
             'writing.status_analyzing':'🔍 Tema terminato. Analisi di vocaboli e grammatica...',
             'writing.status_analyzed':'✅ Tema terminato. Vocaboli e grammatica aggiunti ai progressi.',
             'writing.flow_hint':'Passi: ① Scrivi → ② Invia → ③ Modifica e reinvia (facoltativo) → ④ Termina',
-            'writing.cache_hit':'📋 Questa composizione è già stata corretta — mostro il risultato precedente con lo stesso punteggio.',
+            'writing.cache_hit':'📋 Questa composizione è già stata corretta — mostro il risultato precedente.',
             'toast.download_started':'⬇️ Download avviato. Controlla i download del browser.',
             'toast.download_failed':'⚠️ Download non riuscito, riprova.',
             'cand.title':'💡 Parole suggerite (non ancora usate — provale!)', 'cand.level':'Livello parole: ', 'cand.refresh':'🔄 Cambia', 'cand.hint':'Tocca per inserire', 'cand.empty':'Nessuna parola inutilizzata a questo livello', 'cand.inserted':'Inserito: ',
@@ -8932,12 +8929,12 @@ const HSK2_VOCAB = [
 ,
             'writing.status_idle':'✍️ Đang viết: hãy nhập bài ở trên rồi bấm "Nộp để chấm"',
                         'writing.status_submitting':'⏳ AI đang chấm bài, chờ chút...',
-                        'writing.status_graded':'✅ Đã nộp và chấm: có thể sửa rồi nộp lại (sẽ chấm lại điểm), hoặc bấm "Kết thúc viết" để lưu và phân tích từ/ngữ pháp',
+                        'writing.status_graded':'✅ Đã nộp và chấm: có thể sửa rồi nộp lại, hoặc bấm "Kết thúc viết" để lưu và phân tích từ/ngữ pháp',
                         'writing.status_ended':'🏁 Đã kết thúc viết: từ vựng và ngữ pháp đã vào tiến độ. Bấm "Bài mới" để viết bài tiếp',
                         'writing.status_analyzing':'🔍 Đã kết thúc viết, đang phân tích từ vựng và ngữ pháp...',
                         'writing.status_analyzed':'✅ Đã kết thúc viết, từ vựng và ngữ pháp đã vào tiến độ',
                         'writing.flow_hint':'Quy trình: ① Nhập bài → ② Nộp chấm → ③ Sửa rồi nộp lại (tùy chọn) → ④ Kết thúc viết',
-                        'writing.cache_hit':'📋 Bài giống đã chấm rồi, hiển thị kết quả trước (cùng điểm)',
+                        'writing.cache_hit':'📋 Bài giống đã chấm rồi, hiển thị kết quả trước',
                         'toast.download_started':'⬇️ Đã bắt đầu tải, hãy xem danh sách tải của trình duyệt',
                         'toast.download_failed':'⚠️ Tải thất bại, hãy thử lại',
                         'cand.title':'💡 Từ gợi ý (chưa dùng/luyện, thử đặt câu nhé)',
@@ -8980,12 +8977,12 @@ const HSK2_VOCAB = [
 ,
             'writing.status_idle':'✍️ Sedang menulis: masukkan esai di atas lalu klik "Kirim untuk Dikoreksi"',
                         'writing.status_submitting':'⏳ AI sedang mengoreksi esai, tunggu sebentar...',
-                        'writing.status_graded':'✅ Sudah dikirim & dikoreksi: bisa diedit lalu kirim ulang (dinilai ulang), atau klik "Akhiri Menulis" untuk simpan dan analisis kata/tata bahasa',
+                        'writing.status_graded':'✅ Sudah dikirim & dikoreksi: bisa diedit lalu kirim ulang, atau klik "Akhiri Menulis" untuk simpan dan analisis kata/tata bahasa',
                         'writing.status_ended':'🏁 Menulis diakhiri: kosakata & tata bahasa masuk progres. Klik "Esai Baru" untuk mulai lagi',
                         'writing.status_analyzing':'🔍 Menulis diakhiri, menganalisis kosakata & tata bahasa...',
                         'writing.status_analyzed':'✅ Menulis diakhiri, kosakata & tata bahasa masuk progres',
                         'writing.flow_hint':'Alur: ① Masukkan esai → ② Kirim koreksi → ③ Edit & kirim ulang (opsional) → ④ Akhiri menulis',
-                        'writing.cache_hit':'📋 Esai yang sama sudah dikoreksi, menampilkan hasil sebelumnya (skor sama)',
+                        'writing.cache_hit':'📋 Esai yang sama sudah dikoreksi, menampilkan hasil sebelumnya',
                         'toast.download_started':'⬇️ Unduhan dimulai, cek daftar unduhan browser',
                         'toast.download_failed':'⚠️ Unduhan gagal, coba lagi',
                         'cand.title':'💡 Kata Kandidat (belum dipakai/dilatih, coba buat kalimat)',
@@ -9028,12 +9025,12 @@ const HSK2_VOCAB = [
 ,
             'writing.status_idle':'✍️ Písanie prebieha: zadaj text hore a klikni na „Odoslať na opravu"',
                         'writing.status_submitting':'⏳ AI opravuje sloh, počkaj...',
-                        'writing.status_graded':'✅ Odoslané a opravené: môžeš upraviť a odoslať znova (prehodnotí sa), alebo klikni na „Ukončiť písanie" pre uloženie a analýzu',
+                        'writing.status_graded':'✅ Odoslané a opravené: môžeš upraviť a odoslať znova, alebo klikni na „Ukončiť písanie" pre uloženie a analýzu',
                         'writing.status_ended':'🏁 Písanie ukončené: slovná zásoba a gramatika pridané do pokroku. Klikni na „Nový sloh"',
                         'writing.status_analyzing':'🔍 Písanie ukončené, analyzujem slovnú zásobu a gramatiku...',
                         'writing.status_analyzed':'✅ Písanie ukončené, slovná zásoba a gramatika pridané do pokroku',
                         'writing.flow_hint':'Postup: ① Zadaj sloh → ② Odošli na opravu → ③ Uprav a odošli znova (voliteľné) → ④ Ukonči písanie',
-                        'writing.cache_hit':'📋 Rovnaký sloh už bol opravený, zobrazujem predchádzajúci výsledok (rovnaké skóre)',
+                        'writing.cache_hit':'📋 Rovnaký sloh už bol opravený, zobrazujem predchádzajúci výsledok',
                         'toast.download_started':'⬇️ Sťahovanie začalo, skontroluj zoznam stiahnutých súborov',
                         'toast.download_failed':'⚠️ Sťahovanie zlyhalo, skús znova',
                         'cand.title':'💡 Kandidátske slová (ešte nepoužité/neprecvičené, skús z nich vety)',
@@ -14651,7 +14648,6 @@ const HSK2_VOCAB = [
         for(const w of Object.keys(counts)){
             const lv = vocabLevelOfWord(w);
             if(!lv) continue;
-            if ((readingTrack.comprehension.in || {})[w]) continue; // 判断题已记入理解词，只记一次
             const c = counts[w] || 0;
             if(unknownInSet.has(w)){
                 const obj = readingTrack.unknownIn[w] || { level: lv, count: 0 };
@@ -14680,7 +14676,6 @@ const HSK2_VOCAB = [
         for(const u of readingSessionUnknowns){
             const isInVocab = (u.type === 'word') && (vocabLevelOfWord(u.text) > 0);
             if(isInVocab) continue;
-            if ((readingTrack.comprehension.out || {})[u.text]) continue; // 判断题已记入理解词，只记一次
             const occ = countOccurrences(content, u.text) || 1;
             const obj = readingTrack.unknownOut[u.text] || { type: u.type || 'phrase', count: 0 };
             obj.type = u.type || 'phrase';
@@ -16981,7 +16976,7 @@ ${searchRule}
         }
         renderReadingHistory();
         // 清空写作面板旧状态，进入复述写作
-        writingSession = null; writingTopic = ''; writingRequiredWords = [];
+        writingSession = null; writingTopic = '';
         const wta = document.getElementById('writingTextarea');
         if (wta) { wta.value = ''; wta.placeholder = t('reading.retell_placeholder').replace('{title}', retellState.title || ''); }
         const wr = document.getElementById('writingResults');
@@ -17120,8 +17115,7 @@ ${searchRule}
             return '文章标题：' + (currentReading.title || '') + '\n文章主题：' + (currentReading.topic || '') + '\n文章内容：\n' + String(currentReading.content || '').slice(0, 1200);
         }
         const lastText = (writingSession && writingSession.lastText) ? writingSession.lastText : '';
-        const lastScore = (writingSession && writingSession.lastScore) ? writingSession.lastScore : '';
-        return '学生作文：\n' + String(lastText).slice(0, 1200) + (lastScore !== '' ? '\n最近评分：' + lastScore : '');
+        return '学生作文：\n' + String(lastText).slice(0, 1200);
     }
     async function generateModeQuestions(kind){
         const apiKey = apiKeyInput.value.trim();
@@ -17260,7 +17254,7 @@ ${searchRule}
         } else {
             const text = (writingSession && writingSession.lastText) ? String(writingSession.lastText).trim() : '';
             if(!text){ showToast('请先写作文并提交批改，再生成聊天问题'); return; }
-            ctx = '学生刚写完一篇作文（已提交批改）。\n作文：\n' + text.slice(0, 1200) + '\n最近得分：' + (writingSession.lastScore || '');
+            ctx = '学生刚写完一篇作文（已提交批改）。\n作文：\n' + text.slice(0, 1200);
             window._chatTopicContext = '学生刚写完一篇作文。作文：' + String(text).slice(0, 1000);
         }
         switchMode('chat');
@@ -17433,13 +17427,13 @@ ${searchRule}
 
     function buildWritingPrompt(text, level, min, charCount, targetLang, session, isRevision) {
         const langName = WRITING_LANG_NAMES[targetLang] || targetLang;
-        const lengthRule = '【字数要求】当前 HSK' + level + ' 水平，本次作文要求至少 ' + min + ' 个汉字。学生本次写了 ' + charCount + ' 个汉字。' + (charCount < min ? '字数不达标，必须判为不及格（59分及以下），并在 overall 中明确提示需要扩充到至少 ' + min + ' 字。' : '字数达标。');
+        const lengthRule = '【字数要求】当前 HSK' + level + ' 水平，本次作文要求至少 ' + min + ' 个汉字。学生本次写了 ' + charCount + ' 个汉字。' + (charCount < min ? '字数不达标，请在 overall 中明确提示需要扩充到至少 ' + min + ' 字。' : '字数达标。');
         const heuristic = '【直接改正 - 必须遵守】1. 针对每个错误，只输出有错误的分句（按逗号/分句切分，不要输出整个复句）。2. 每个 hint 输出 original（错误分句，中文原文）和 corrected（AI 直接改好的正确分句），直接给出改正后的句子，不要让学生自己再改。3. 评价要具体、可操作、多鼓励。4. 每个评价字段内用"\\n"分行。5. 【语言要求】所有反馈文字（discourse、syntax、semantic、characters、overall、hints 中每个 issue）必须全部用' + langName + '（' + targetLang + '）撰写，禁止使用中文，只有引用学生错误原文（original）和正确句子（corrected）时才可以保留中文。6. hints 中每个错误必须输出 type 字段，从固定中文错误类型（' + MISTAKE_TYPE_LIST.join('、') + '）中选一个，不要翻译、不要自创。7. corrected 必须与 original 不同：如果原句没有错误，就不要输出这个 hint；标点符号不算错；「的」可加可不加不算错；「的话」已表条件时「如果」可加可不加；承前省略主语不算错。8. 只改真正错误的部分，其余一字不动；数字/日期/时间/数量词原样保留；一个分句里有多个错误要全部改正。9. 常见错误必须纠正：「越来越+形容词（不能说越来越增加）」、「全称范围主语+都」（所有的地方人很多→所有的地方人都很多，缺「都」）、「有点儿+形容词」（气温低一点了→气温有点低）、「经常性情况不用了」（下雨时常常鞋湿了→下雨时常常鞋会湿）、「离开某地」（出中国→离开中国）、「没关系」（带伞了所以没问题了→带伞了所以没关系）、「马上+就」（马上雨停了→雨马上就停了）、「近义词辨析」（垃圾扔掉的方法很难→垃圾的处理方式很复杂：表示事情步骤多、麻烦用「复杂」，「难」多指能力不够；「扔掉的方法」宜说「处理方式/处理方法」）、「把字句+放置处所」（把吸垃圾放在塑料袋→把湿垃圾放在塑料袋里：「吸」是「湿」的错别字；「放」表示使某物处于某处时要用「在+处所」，容器后要加「里」）、「处所表达」（每天在垃圾桶的地方有一个阿姨→每天垃圾桶那里有一个阿姨）、「味道搭配」（味道很好吃→味道很好：「味道」不能说好吃/难吃，只能说好/不好，好吃形容食物本身）、「空间与环境」（餐馆里又宽又干净→餐馆里又宽敞又安静）、「规则与习俗」（我不知道这样的规则→我不知道这样的习俗/规定）、「找工作」（我得找打工→我得找工作：「打工」不能作「找」的宾语）、「睡不着觉」（不能睡觉→睡不着觉）、「开始+在+地方」（向印度开始旅行→开始在印度旅行）、「比较句不用满」（比以前满自信→比以前自信）、「退辞→辞职」（他退辞公司以后→他从公司辞职以后）、「关于+名词+的事」（我问同事关于上海的特产→我问同事关于上海的特产的事）、「土特产」（上海的土产→上海的土特产）、「特别+形容词」（特别的好东西→特别好的东西）、「时量补语后置」（还要几天烦恼→还要烦恼几天）、「告诉+人+有」（她告诉我，五香豆…→她告诉我有五香豆…）、「应该与会的区别」（我聊天聊了很长时间，所以应该嗓子疼→我聊天聊了很长时间，所以会嗓子疼：客观必然结果用「会」，「应该」表义务/建议/情理）、「一直到」（到刚才我做资料→一直到刚才我都在做资料：固定用法「一直到+时间+主语+都+在+动作」）、「语义不完整」（因为我不习惯吃上海蟹，所以要时间→因为我不习惯吃上海蟹，所以需要花时间：没说清花时间做什么，具体动作不确定时 issue 里说明并让学生补充，type 填「语义不完整」）、「时间词重叠缺字」（我下下月→我下下个月；「上上月」→「上上个月」：「下下/上上」这类重叠时间词后面必须带「个」）、「时间名词直接作定语」（十二月飞机票很便宜→完全正确，不加「的」也对，绝不能改成「十二月的飞机票」）、「宾语从句主语可省略」（我还没决定我要去澳门→「我还没决定要去澳门」和「我还没决定我要去澳门」都对，主语省略不省略都可以；绝不能擅自补加原文没有的内容，如改成「我还没决定要去澳门还是越南」）。10. 无错不报：分句本身符合现代汉语普通话的词汇、语法、语序和搭配规范，就绝对不要输出这个 hint；禁止改写正确句子，禁止把对的部分改掉，禁止为了“更自然/更地道/换一种说法”改动。例：「我今天遇到了一个外国人」完全正确，不能输出任何 hint，更不能删改「了」或换成别的字。「V+了+数量词+名词」（遇到了一个外国人、吃了一个苹果）完全正确，永远不要动「了」。11. 只报确凿错误：每条 hint 必须能说出依据（现代汉语普通话规则，或HSK作文语料常见偏误类型）；拿不准就不报，宁可漏报不可误报。12. corrected 改完后逐字通读：只要出现现代汉语不存在的词（生造词）就说明改错了，不要输出。13. 逐句清点防漏报：先把作文按句号/问号/感叹号/分号/逗号切成分句并编号，逐句判断；凡是确凿有错的分句必须各输出一条 hint，严禁因为错误多就漏掉某些分句；输出前对照原文再逐句数一遍，缺了哪个分句的纠错就补上。';
-        const jsonFmt = '输出JSON格式：{"score":整数0-100,"length_chars":' + charCount + ',"length_ok":' + (charCount >= min) + ',"discourse":"' + langName + '语篇结构评价","syntax":"' + langName + '句法语法评价","semantic":"' + langName + '词汇语义评价","characters":"' + langName + '汉字书写评价","overall":"' + langName + '总体评价","hints":[{"original":"错误分句(中文)","corrected":"AI直接改好的正确分句(中文)","type":"固定中文错误类型","issue":"' + langName + '简短说明"}]}';
-        const compactHeuristic = '【直接改正 - 必须遵守】1. 针对每个错误，只输出有错误的分句（按逗号/分句切分，不要输出整个复句）。2. 每个 hint 输出 original（错误分句，中文原文）和 corrected（AI 直接改好的正确分句），直接给出改正后的句子，不要让学生自己再改。3. 评价要具体、可操作、多鼓励。4. 每个评价字段内部用换行符分行。5. 【语言要求】所有反馈文字（discourse、syntax、semantic、characters、overall、hints 中每个 issue）必须全部用' + langName + '（' + targetLang + '）撰写，禁止使用中文，只有引用学生错误原文（original）和正确句子（corrected）时才可以保留中文。6. hints 中每个错误必须输出 type 字段，从固定中文错误类型（' + MISTAKE_TYPE_LIST.join('、') + '）中选一个，不要翻译、不要自创。7. corrected 必须与 original 不同：如果原句没有错误，就不要输出这个 hint；「的」可加可不加不算错；「的话」已表条件时「如果」可加可不加；承前省略主语不算错。8. 只改真正错误的部分，其余一字不动；数字/日期/时间/数量词原样保留；一个分句里有多个错误要全部改正。9. 判断标准分四个层面，每一层都要检查：①语法层面：单句词汇、语法、语序、虚词是否规范；②语义层面：意思是否清楚、完整、符合逻辑；③语用层面：说法是否符合语境、场合和交际意图；④篇章层面：前后句衔接、指代、话题连贯是否自然。10. 重点检查语序和虚词：时间/地点/方式状语位置、数量词位置、补语位置；「的/地/得/了/着/过/把/被/就/才/都/还/会/要/和/跟/对/从/在/比/关于/对于」等用对没有，该加就加、该删就删。11. 标点符号一般不算错，但明显重复的标点（如「，，」「。。」）要合并成单个。12. 无错不报：分句本身符合现代汉语普通话的词汇、语法、语序和搭配规范，就绝对不要输出这个 hint；禁止改写正确句子，禁止把对的部分改掉，禁止为了“更自然/更地道/换一种说法”改动。13. 只报确凿错误：每条 hint 必须能说出依据；拿不准的不要报。';
+        const jsonFmt = '输出JSON格式：{"length_chars":' + charCount + ',"length_ok":' + (charCount >= min) + ',"discourse":"' + langName + '语篇结构评价","syntax":"' + langName + '句法语法评价","semantic":"' + langName + '词汇语义评价","characters":"' + langName + '汉字书写评价","overall":"' + langName + '总体评价","hints":[{"original":"错误分句(中文)","corrected":"AI直接改好的正确分句(中文)","type":"固定中文错误类型","issue":"' + langName + '简短说明"}]}';
+        const compactHeuristic = '【直接改正 - 必须遵守】1. 针对每个错误，只输出有错误的分句（按逗号/分句切分，不要输出整个复句）。2. 每个 hint 输出 original（错误分句，中文原文）和 corrected（AI 直接改好的正确分句），直接给出改正后的句子，不要让学生自己再改。3. 评价要具体、可操作、多鼓励。4. 每个评价字段内部用换行符分行。5. 【语言要求】所有反馈文字（discourse、syntax、semantic、characters、overall、hints 中每个 issue）必须全部用' + langName + '（' + targetLang + '）撰写，禁止使用中文，只有引用学生错误原文（original）和正确句子（corrected）时才可以保留中文。6. hints 中每个错误必须输出 type 字段，从固定中文错误类型（' + MISTAKE_TYPE_LIST.join('、') + '）中选一个，不要翻译、不要自创。7. corrected 必须与 original 不同：如果原句没有错误，就不要输出这个 hint；「的」可加可不加不算错；「的话」已表条件时「如果」可加可不加；承前省略主语不算错。8. 只改真正错误的部分，其余一字不动；数字/日期/时间/数量词原样保留；一个分句里有多个错误要全部改正。9. 判断标准分四个层面，每一层都要检查：①语法层面：单句词汇、语法、语序、虚词是否规范；②语义层面：意思是否清楚、完整、符合逻辑；③语用层面：说法是否符合语境、场合和交际意图；④篇章层面：前后句衔接、指代、话题连贯是否自然，意思是否跳跃、句子意思是否完整。10. 重点检查语序和虚词：时间/地点/方式状语位置、数量词位置、补语位置；「的/地/得/了/着/过/把/被/就/才/都/还/会/要/和/跟/对/从/在/比/关于/对于」等用对没有，该加就加、该删就删。11. 标点符号一般不算错，但明显重复的标点（如「，，」「。。」）要合并成单个。12. 无错不报：分句本身符合现代汉语普通话的词汇、语法、语序和搭配规范，就绝对不要输出这个 hint；禁止改写正确句子，禁止把对的部分改掉，禁止为了“更自然/更地道/换一种说法”改动。13. 只报确凿错误：每条 hint 必须能说出依据；拿不准的不要报。14. 【篇章连贯 - 必须检查】前后句话题不连贯、意思跳跃、句子意思不完整时，必须报告并补足衔接与缺失信息：在意思没说完的分句后补出必要内容（如检查之后补「发现没问题」），句间加衔接词（如「最后」「否则」）。type 选择：「语义不完整」（意思没说完）、「缺词」（缺衔接词）、「搭配不当」（固定搭配错误）、「词语错误」（语体不当/同义词误用）。corrected 要在不改变学生原意的前提下把分句补完整，允许补出缺失的衔接词和必要信息。已由系统本地自动纠正的固定错误（如「辛亏→幸亏」「加入保险→买保险」「对+人+开药→给+人+开药」「口语中渐渐→慢慢」）不必再输出 hint。';
         const retellCtx = window._retellContext ? ('\n\n【本次任务：课文复述】学生不看原文，只根据自己选的关键词和提纲复述了下面这篇文章。批改要求：\n1. 语言纠错照常进行（语法、用词、搭配、汉字）。\n2. overall 里必须评价复述内容：哪些要点讲到了、哪些要点漏掉了、有没有与原文事实不符的地方。\n3. 学生正确使用了关键词时在 overall 里点名表扬；关键词用错（意思/搭配不对）时也要指出。\n4. 内容评价用' + langName + '写，引用原文和学生句子时保留中文。\n【原文】\n' + String(window._retellContext.article || '') + '\n【学生关键词】' + (Array.isArray(window._retellContext.keywords) ? window._retellContext.keywords.join('、') : '') + '\n【学生提纲】\n' + String(window._retellContext.outline || '')) : '';
         if (!isRevision) {
-            return '你是一位资深中文写作教师。请批改以下学生作文，并用' + langName + '（' + targetLang + '）撰写全部反馈。\n\n【学生当前水平】HSK' + level + '\n' + lengthRule + '\n\n【评分规则】1. 长度达标是及格前提，字数不足时总分≤59。2. 字数达标后，评分核心是"正确性"和"地道性"（语法、用词、是否自然），不要因为内容简单而压分。3. 分数档位：90-100优秀，80-89良好，70-79一般，60-69需努力，60以下错误很多。4. 评分要稳定一致：同一篇作文、同样的问题应给出相同分数，不要出现随机波动。' + retellCtx + '\n\n【学生作文】\n' + text + '\n\n' + compactHeuristic + '\n\n' + jsonFmt + '\n只用JSON回复。';
+            return '你是一位资深中文写作教师。请批改以下学生作文，并用' + langName + '（' + targetLang + '）撰写全部反馈。\n\n【学生当前水平】HSK' + level + '\n' + lengthRule + '\n\n【批改要求】1. 批改核心是"正确性"和"地道性"（语法、用词、是否自然），不要因为内容简单而批评。2. 反馈要稳定一致：同一篇作文、同样的问题应给出相同的修改建议。' + retellCtx + '\n\n【学生作文】\n' + text + '\n\n' + compactHeuristic + '\n\n' + jsonFmt + '\n只用JSON回复。';
         }
         const prevHints = (session.lastHints && session.lastHints.length > 0)
             ? session.lastHints.map((h, i) => {
@@ -17448,7 +17442,7 @@ ${searchRule}
                 return (i + 1) + '. ' + (orig ? '原文「' + orig + '」：' : '') + issue;
             }).join('\n')
             : '（无）';
-        return '你是一位资深中文写作教师。学生根据你上次的启发式反馈修改后再次提交，请继续用' + langName + '（' + targetLang + '）批改。\n\n【学生当前水平】HSK' + level + '\n' + lengthRule + '\n\n【首次提交原文】\n' + (session.firstText || '') + '\n\n【上次提交文本】\n' + (session.lastText || '') + '\n\n【上次得分】' + (session.lastScore != null ? session.lastScore : '--') + '\n\n【上次反馈（总体评价）】\n' + (session.lastFeedback || '（无）') + '\n\n【上次给出的启发式提示（逐条检查是否已改正）】\n' + prevHints + '\n\n【本次提交文本】\n' + text + '\n\n【评分规则】\n1. 对比上次提交：上次启发式提示中指出的错误，本次已改正 → 分数相应提升；未修改或改错 → 分数保持不变或降低；出现新错误 → 扣分。\n2. 长度不达标时总分≤59。\n3. 分数档位：90-100优秀，80-89良好，70-79一般，60-69需努力，60以下错误很多。\n4. 在 overall 中先说明：哪些上次问题已改正、哪些还没改，再给出进一步建议。\n5. 评分要稳定一致：同样的修改情况应给出相同分数。\n\n' + compactHeuristic + '\n\n' + jsonFmt + '\n只用JSON回复。';
+        return '你是一位资深中文写作教师。学生根据你上次的启发式反馈修改后再次提交，请继续用' + langName + '（' + targetLang + '）批改。\n\n【学生当前水平】HSK' + level + '\n' + lengthRule + '\n\n【首次提交原文】\n' + (session.firstText || '') + '\n\n【上次提交文本】\n' + (session.lastText || '') + '\n\n【上次反馈（总体评价）】\n' + (session.lastFeedback || '（无）') + '\n\n【上次给出的启发式提示（逐条检查是否已改正）】\n' + prevHints + '\n\n【本次提交文本】\n' + text + '\n\n【批改要求】\n1. 对比上次提交：上次启发式提示中指出的错误，本次已改正 → 在 overall 中点名表扬；未修改或改错 → 指出并再次给出改正；出现新错误 → 照常指出。\n2. 在 overall 中先说明：哪些上次问题已改正、哪些还没改，再给出进一步建议。\n\n' + compactHeuristic + '\n\n' + jsonFmt + '\n只用JSON回复。';
     }
 
     async function runWritingAnalysis(text) {
@@ -17456,7 +17450,7 @@ ${searchRule}
         const bar = document.getElementById('writingStatusBar');
         if (bar) { bar.dataset.state = 'ended'; bar.textContent = t('writing.status_analyzing'); }
         try {
-            const clauses = splitClauses(text).filter(c => !isQueriedSentence(c));
+            const clauses = splitClauses(text).filter(c => !isQueriedSentence(c) && !isZmsUsedSentence(c));
             if (clauses.length > 0) {
                 const analysis = await analyzeGrammarBatch(clauses, 'medium');
                 if (analysis) mergeAnalysisResults(analysis, 'writing');
@@ -17490,6 +17484,68 @@ ${searchRule}
         return out;
     }
 
+    // 本地确定性纠错表：这些固定错误不需要 AI 判断，也不占提示词篇幅；
+    // AI 漏报时由本地补一条 hint（AI 已报同一分句时不重复加）
+    // 常见错别字对照表：测试用词固定、不会误伤正确用法才收录
+    const LOCAL_TYPO_FIXES = [
+        ['辛亏','幸亏'], ['己经','已经'], ['以经','已经'], ['因该','应该'], ['辛福','幸福'],
+        ['决对','绝对'], ['知到','知道'], ['由其','尤其'], ['既使','即使'], ['即然','既然'],
+        ['好象','好像'], ['座车','坐车'], ['旁晚','傍晚'], ['打蓝球','打篮球'], ['目地','目的']
+    ];
+    const LOCAL_WRITING_CORRECTIONS = [
+        { test: function(c){ return c.includes('辛亏'); }, fix: function(c){ return c.replace(/辛亏/g, '幸亏'); }, type: '错字', issue: '「辛亏」应写作「幸亏」。' },
+        { test: function(c){ return /对(我|你|他|她|您)开药/.test(c); }, fix: function(c){ return c.replace(/对(我|你|他|她|您)开药/g, '给$1开药'); }, type: '搭配不当', issue: '「开药」前应说「给+人」，如「医生给我开药」。' },
+        { test: function(c){ return /加入(了)?保险/.test(c) && !/加入(了)?保险(公司|行业|业)/.test(c); }, fix: function(c){ return c.replace(/加入(了)?保险/g, '买$1保险'); }, type: '搭配不当', issue: '「加入保险」应说「买保险」。' },
+        { test: function(c){ return c.includes('渐渐'); }, fix: function(c){ return c.replace(/渐渐/g, '慢慢'); }, type: '词语错误', issue: '口语里「渐渐」比较书面，宜用「慢慢」。', spokenOnly: true }
+    ];
+    function applyLocalWritingCorrections(hints, fullText){
+        const out = (hints || []).slice();
+        const covered = new Set();
+        for(const h of out){ const o = typeof h === 'string' ? '' : (h.original || ''); if(o) covered.add(stripForCompare(o)); }
+        // 口语语体判断：出现典型口语标记才启用「渐渐→慢慢」这类语体替换
+        const spoken = /然后|挺|呗|啦|嘛|呀|哦|吧/.test(fullText);
+        const clauses = splitClauses(fullText);
+        for(const c of clauses){
+            const sc = stripForCompare(c);
+            if(sc.length < 2) continue;
+            // 先查常见错别字对照表：一个分句内所有错别字一起改，合并成一条 hint（不占提示词篇幅）
+            let fixedC = c;
+            const foundPairs = [];
+            for(const pair of LOCAL_TYPO_FIXES){
+                const wrong = pair[0], right = pair[1];
+                if(!c.includes(wrong)) continue;
+                fixedC = fixedC.split(wrong).join(right);
+                foundPairs.push('「' + wrong + '」→「' + right + '」');
+            }
+            if(foundPairs.length){
+                let already = false;
+                for(const k of covered){
+                    if(k === sc || (k.length > 3 && sc.includes(k)) || (sc.length > 3 && k.includes(sc))){ already = true; break; }
+                }
+                if(!already){
+                    out.push({ original: c.trim(), corrected: fixedC, type: '错字', issue: '错别字改正：' + foundPairs.join('、') + '。' });
+                    covered.add(sc);
+                }
+                continue;
+            }
+            for(const rule of LOCAL_WRITING_CORRECTIONS){
+                if(rule.spokenOnly && !spoken) continue;
+                if(!rule.test(c)) continue;
+                const fixed = rule.fix(c);
+                if(!fixed || fixed === c) continue;
+                let already = false;
+                for(const k of covered){
+                    if(k === sc || (k.length > 3 && sc.includes(k)) || (sc.length > 3 && k.includes(sc))){ already = true; break; }
+                }
+                if(already) break;
+                out.push({ original: c.trim(), corrected: fixed, type: rule.type, issue: rule.issue });
+                covered.add(sc);
+                break;
+            }
+        }
+        return out;
+    }
+
     async function handleWritingSubmit(skipAnalysis = false) {
         const textarea = document.getElementById('writingTextarea');
         const text = textarea.value.trim();
@@ -17507,22 +17563,22 @@ ${searchRule}
         const charCount = countChineseChars(text);
         const cacheKey = writingCacheKey(info.level, targetLang, text);
 
-        // 相同作文重复提交：直接复用上次批改结果，保证两次分数完全一致
+        // 相同作文重复提交：直接复用上次批改结果
         if (!isRelang && writingResultCache.has(cacheKey)) {
             const cached = writingResultCache.get(cacheKey);
             resultsDiv.innerHTML = cached.html;
             resultsDiv.classList.add('active');
             const now = getLocalDate();
             if (firstSubmit) {
-                writingSession = { firstText: text, lastText: text, lastScore: cached.score, lastFeedback: cached.result.overall || '', lastHints: filterWritingHints(cached.result.hints, text), count: 0, history: [{ text, score: cached.score, date: now }], lastResult: cached.result, lastHtml: cached.html };
+                writingSession = { firstText: text, lastText: text, lastScore: null, lastFeedback: cached.result.overall || '', lastHints: filterWritingHints(cached.result.hints, text), count: 0, history: [{ text, date: now }], lastResult: cached.result, lastHtml: cached.html };
             } else {
                 writingSession.count = (writingSession.count || 0) + 1;
                 writingSession.lastText = text;
-                writingSession.lastScore = cached.score;
+                writingSession.lastScore = null;
                 writingSession.lastFeedback = cached.result.overall || '';
                 writingSession.lastHints = filterWritingHints(cached.result.hints, text);
                 writingSession.history = writingSession.history || [];
-                writingSession.history.push({ text, score: cached.score, date: now });
+                writingSession.history.push({ text, date: now });
                 writingSession.lastResult = cached.result;
                 writingSession.lastHtml = cached.html;
             }
@@ -17544,11 +17600,8 @@ ${searchRule}
             if (data.error) throw new Error(data.error.message || 'API error');
             const content = (data.choices[0].message.content || data.choices[0].message.reasoning_content || '').replace(/```json/g, '').replace(/```/g, '').trim();
             const result = JSON.parse(content);
-            let score = parseInt(result.score) || 0;
-            if (!lengthOk && score >= 60) score = 59;
-            result.score = score;
-            result.hints = filterWritingHints(result.hints, text);
-            let html = `<div class="writing-score-card"><div class="score-number"${score < 60 ? ' style="color:#ffb3b3;"' : ''}>${score}</div><div class="score-label">${t('writing.score')}</div></div>`;
+            result.hints = applyLocalWritingCorrections(filterWritingHints(result.hints, text), text);
+            let html = '';
             if (!lengthOk) html += `<div class="writing-section" style="border-left:4px solid #e74c3c;"><h4>${t('writing.length_warn')}</h4><p>${t('writing.min_chars_note').replace('{level}', info.level).replace('{min}', info.min).replace('{count}', charCount)}<br>${t('writing.length_fail_note')}</p></div>`;
             if (isRevision && writingSession) html += `<div class="writing-section" style="border-left:4px solid #1e2b5e;"><h4>${t('writing.revision_title')}</h4><p>${t('writing.revision_note').replace('{n}', writingSession.count + 1).replace('{prev}', writingSession.lastScore != null ? writingSession.lastScore : '--')}</p></div>`;
             const fmt = (s) => escapeHtml(String(s||'')).replace(/\n/g, '<br>');
@@ -17579,19 +17632,19 @@ ${searchRule}
             }
             resultsDiv.innerHTML = html;
             resultsDiv.classList.add('active');
-            writingResultCache.set(cacheKey, { score, result, html });
+            writingResultCache.set(cacheKey, { result, html });
             if (!isRelang) {
                 const now = getLocalDate();
                 if (firstSubmit) {
-                    writingSession = { firstText: text, lastText: text, lastScore: score, lastFeedback: result.overall || '', lastHints: result.hints || [], count: 0, history: [{ text, score, date: now }], lastResult: result, lastHtml: html };
+                    writingSession = { firstText: text, lastText: text, lastScore: null, lastFeedback: result.overall || '', lastHints: result.hints || [], count: 0, history: [{ text, date: now }], lastResult: result, lastHtml: html };
                 } else {
                     writingSession.count = (writingSession.count || 0) + 1;
                     writingSession.lastText = text;
-                    writingSession.lastScore = score;
+                    writingSession.lastScore = null;
                     writingSession.lastFeedback = result.overall || '';
                     writingSession.lastHints = result.hints || [];
                     writingSession.history = writingSession.history || [];
-                    writingSession.history.push({ text, score, date: now });
+                    writingSession.history.push({ text, date: now });
                     writingSession.lastResult = result;
                     writingSession.lastHtml = html;
                 }
@@ -17612,13 +17665,14 @@ ${searchRule}
     function endWritingSession(){
         if (!writingSession || !writingSession.lastText) { showToast(t('writing.end_nothing')); return; }
         const finalText = writingSession.lastText;
-        const finalScore = writingSession.lastScore != null ? writingSession.lastScore : 0;
         const history = writingSession.history || [];
-        const previous = history.slice(0, -1).map(r => ({ text: r.text, score: r.score, date: r.date || getLocalDate() }));
-        writingEssays.unshift({ original: finalText, score: finalScore, date: getLocalDate(), revisions: previous });
+        const previous = history.slice(0, -1).map(r => ({ text: r.text, date: r.date || getLocalDate() }));
+        writingEssays.unshift({ original: finalText, date: getLocalDate(), revisions: previous });
         if (writingEssays.length > 50) writingEssays.pop();
         saveWritingEssays();
         // 写作/口语四维统计（点「结束写作」后）：写对的词 → 形声/形义/音义/用都对；被纠错的词不纳入
+        // 用户直接使用「怎么说」参考答案的句子不进行四维分析、不计入统计
+        const _wsClauses = splitClauses(finalText).filter(c => !isZmsUsedSentence(c));
         try{
             const _excl = new Set();
             for(const h of (writingSession && writingSession.lastHints) || []){
@@ -17626,7 +17680,7 @@ ${searchRule}
                 const _c = matchVocabInText(_o);
                 for(const w of Object.keys(_c)) _excl.add(stripForCompare(w));
             }
-            const _counts = matchVocabInText(finalText);
+            const _counts = matchVocabInText(_wsClauses.join('，'));
             for(const w of Object.keys(_counts)){
                 if(!vocabLevelOfWord(w)) continue;
                 if(_excl.has(stripForCompare(w))) continue;
@@ -17634,11 +17688,11 @@ ${searchRule}
                 recordFourDim(w, ['音','形','义','用'], true);
             }
         }catch(e){}
-        // 词语状态卡：作文里出现的词逐词 AI 判定产出对错与语义（后台执行）
+        // 词语状态卡：作文里出现的词逐词 AI 判定产出对错与语义（后台执行）；每个产出事件记录所在分句
         wsSnapshotUpdates();
         (async function(){
             try{
-                const _n = await wsJudgeAndRecord('writing', [finalText]);
+                const _n = await wsJudgeAndRecord('writing', _wsClauses);
                 if(_n > 0){ showToast(t('ws.judge_writing_done').replace('{n}', _n)); wsShowUpdatesModal(); }
             }catch(e){}
         })();
@@ -17671,7 +17725,6 @@ ${searchRule}
         if (writingSession && !confirm(t('writing.new_confirm'))) return;
         writingSession = null;
         writingTopic = '';
-        writingRequiredWords = [];
         sentenceRows = [];
         const _wti2 = document.getElementById('writingTopicInput');
         if(_wti2) _wti2.value = '';
@@ -20320,41 +20373,19 @@ async function analyzeMistakesBatch(userMessages, aiReplyRaw, contextMessages){ 
         const clean = stripInlineCorrectionBlock(content);
         return String(clean||'').split(/[\n。！？!?；;，,]+/).map(s => chatContentCmp(s)).filter(s => s.length >= 2);
     }
-    function buildCopiedFromAiMap(chatHistory){
-        const map = new Map(); // user msg object -> { phrase }
-        const aiClauses = [];
-        for(const msg of (chatHistory || [])){
-            if(msg.role === 'assistant'){
-                for(const c of chatClauseList(msg.content)){ if(!aiClauses.includes(c)) aiClauses.push(c); }
-            } else if(msg.role === 'user'){
-                let hit = null;
-                const uClauses = chatClauseList(msg.content);
-                for(const u of uClauses){
-                    if(isOnlyFunctionWords(u)) continue;
-                    for(const a of aiClauses){
-                        if(a === u){ hit = { phrase: a }; break; }
-                        if(u.length >= 4 && u.includes(a) && a.length >= 4 && !isOnlyFunctionWords(a)){ hit = { phrase: a }; break; }
-                        if(a.length >= 4 && a.includes(u) && u.length >= 4 && !isOnlyFunctionWords(u)){ hit = { phrase: u }; break; }
-                    }
-                    if(hit) break;
-                }
-                if(hit) map.set(msg, hit);
-            }
-        }
-        return map;
-    }
-    function downloadUnifiedReport(){ let rpt='=== 📚 完整学习报告 ===\n'+new Date().toLocaleString()+'\n\n'; rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n✏️ 作文批改（最终提交文本 + 修改过程）\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(writingEssays.length===0){ rpt+='(暂无作文批改记录)\n\n'; } else { writingEssays.forEach((we,i)=>{ rpt+='📌 作文 '+(i+1)+'（'+formatDate(we.date)+'，最终得分 '+(we.score||'--')+'）\n--- 最终提交文本 ---\n'+(we.original||'')+'\n'; if(we.revisions&&we.revisions.length>0){ rpt+='--- 修改过程 ---\n'; we.revisions.forEach((rv,k)=>{ rpt+='修改'+(k+1)+'（'+formatDate(rv.date)+'，得分 '+(rv.score||'--')+'）\n'+(rv.text||'')+'\n'; }); } rpt+='\n'; }); } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n📝 第一部分：全部聊天记录\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; const _chatMsgs = dedupeChatHistory(chatHistory || []); if(_chatMsgs.length===0){ rpt+='(暂无聊天记录)\n'; } else { const _copiedMap=buildCopiedFromAiMap(_chatMsgs); for(let msg of _chatMsgs){ const roleLabel=msg.role==='user'?'🧑 用户':'🤖 AI'; const timeStr=msg.time?new Date(msg.time).toLocaleString():''; rpt+=roleLabel+' ['+timeStr+']\n'+msg.content+'\n'; const _cp=_copiedMap.get(msg); if(_cp) rpt+='  ⚠️ 注：此句与前面AI说过的「'+_cp.phrase+'」相同/相似，可能不是学生自己生成。\n'; rpt+='\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n💬 阅读模式讨论记录\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; const _rc=(function(){try{return JSON.parse(localStorage.getItem('HSK_MODE_CHAT_READING_'+currentUser)||'[]')||[];}catch(e){return [];}})(); if(_rc.length===0){ rpt+='(暂无阅读讨论记录)\n'; } else { for(const _c of _rc){ rpt+='📌 '+(_c.date||'')+' '+(_c.title||'')+'\n'; for(const _m of (_c.messages||[])){ rpt+=(_m.role==='user'?'🧑 用户':'🤖 AI')+'：'+_m.content+'\n'; } rpt+='\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n💬 写作模式讨论记录\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; const _wc=(function(){try{return JSON.parse(localStorage.getItem('HSK_MODE_CHAT_WRITING_'+currentUser)||'[]')||[];}catch(e){return [];}})(); if(_wc.length===0){ rpt+='(暂无写作讨论记录)\n'; } else { for(const _c of _wc){ rpt+='📌 '+(_c.date||'')+' '+(_c.title||'')+'\n'; for(const _m of (_c.messages||[])){ rpt+=(_m.role==='user'?'🧑 用户':'🤖 AI')+'：'+_m.content+'\n'; } rpt+='\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n🔍 第二部分：查询过的词或句子\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(queriedItems.length===0){ rpt+='(暂无查询记录)\n'; } else { for(let i=0;i<queriedItems.length;i++){ const item=queriedItems[i]; const icon=item.type==='sentence'?'📝 句子':'🔤 词语'; rpt+=icon+' '+item.text+'\n  🌐 '+(item.translation||'')+'\n  📅 '+formatDate(item.date?item.date.slice(0,10):'')+'\n\n'; } }
+    function downloadUnifiedReport(){ let rpt='=== 📚 完整学习报告 ===\n'+new Date().toLocaleString()+'\n\n'; rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n✏️ 作文批改（最终提交文本 + 修改过程）\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(writingEssays.length===0){ rpt+='(暂无作文批改记录)\n\n'; } else { writingEssays.forEach((we,i)=>{ rpt+='📌 作文 '+(i+1)+'（'+formatDate(we.date)+'）\n--- 最终提交文本 ---\n'+(we.original||'')+'\n'; if(we.revisions&&we.revisions.length>0){ rpt+='--- 修改过程 ---\n'; we.revisions.forEach((rv,k)=>{ rpt+='修改'+(k+1)+'（'+formatDate(rv.date)+'）\n'+(rv.text||'')+'\n'; }); } rpt+='\n'; }); } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n📝 第一部分：全部聊天记录\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; const _chatMsgs = dedupeChatHistory(chatHistory || []); if(_chatMsgs.length===0){ rpt+='(暂无聊天记录)\n'; } else { for(let msg of _chatMsgs){ const roleLabel=msg.role==='user'?'🧑 用户':'🤖 AI'; const timeStr=msg.time?new Date(msg.time).toLocaleString():''; rpt+=roleLabel+' ['+timeStr+']\n'+msg.content+'\n\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n💬 阅读模式讨论记录\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; const _rc=(function(){try{return JSON.parse(localStorage.getItem('HSK_MODE_CHAT_READING_'+currentUser)||'[]')||[];}catch(e){return [];}})(); if(_rc.length===0){ rpt+='(暂无阅读讨论记录)\n'; } else { for(const _c of _rc){ rpt+='📌 '+(_c.date||'')+' '+(_c.title||'')+'\n'; for(const _m of (_c.messages||[])){ rpt+=(_m.role==='user'?'🧑 用户':'🤖 AI')+'：'+_m.content+'\n'; } rpt+='\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n💬 写作模式讨论记录\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; const _wc=(function(){try{return JSON.parse(localStorage.getItem('HSK_MODE_CHAT_WRITING_'+currentUser)||'[]')||[];}catch(e){return [];}})(); if(_wc.length===0){ rpt+='(暂无写作讨论记录)\n'; } else { for(const _c of _wc){ rpt+='📌 '+(_c.date||'')+' '+(_c.title||'')+'\n'; for(const _m of (_c.messages||[])){ rpt+=(_m.role==='user'?'🧑 用户':'🤖 AI')+'：'+_m.content+'\n'; } rpt+='\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n🔍 第二部分：查询过的词或句子\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(queriedItems.length===0){ rpt+='(暂无查询记录)\n'; } else { for(let i=0;i<queriedItems.length;i++){ const item=queriedItems[i]; const icon=item.type==='sentence'?'📝 句子':'🔤 词语'; rpt+=icon+' '+item.text+'\n  🌐 '+(item.translation||'')+'\n  📅 '+formatDate(item.date?item.date.slice(0,10):'')+'\n\n'; } }
 rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n🎯 错误库（错误的词/句子，全部来源）\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(gapBank.items.length===0){ rpt+='(暂无错误记录)\n'; } else { const _gi=[...gapBank.items].sort(gapSort); for(const it of _gi){ rpt+=(it.acquired?'✅已习得':'🔴未习得')+' '+it.text+'｜出现'+(it.count||1)+'次｜来源：'+(it.source||'')+'\n'; if(it.correct && it.correct!==it.text) rpt+='  正确：'+it.correct+'\n'; if(it.sentence) rpt+='  改正后的句子：'+it.sentence+'\n'; if(it.translation) rpt+='  母语翻译：'+it.translation+'\n'; if(it.correctUseCount) rpt+='  正确使用：'+it.correctUseCount+'/3\n'; if(it.occurrences&&it.occurrences.length) rpt+='  出现时间：'+it.occurrences.map(o=>o.date).join('、')+'\n'; if(it.usedSentences&&it.usedSentences.length) rpt+='  使用句子（时间）：'+it.usedSentences.map(u=>u.sentence+'('+u.source+' '+(u.time||u.date||'')+')').join('；')+'\n'; rpt+='\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n📝 错句纠错记录（错句本）\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(wrongSentences.length===0){ rpt+='(暂无纠错记录)\n'; } else { for(const _ws of wrongSentences){ rpt+='✏️ 你写的：'+(_ws.userAnswer||'')+'\n'; rpt+='✅ 正确：'+(_ws.sentence||'')+'\n'; if(_ws.note) rpt+='💡 原因：'+(_ws.note||'')+'\n'; if(_ws.errType) rpt+='🏷 类型：'+(mistakeTypeLabel(_ws.errType)||_ws.errType||'')+'\n'; rpt+='📅 '+(_ws.date||'')+'\n\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n💭 第三部分：错句反思记录（全部历史）\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; const _rr=(window._reflectionResults||[]).slice().sort((a,b)=>String(b.date||'').localeCompare(String(a.date||''))); if(_rr.length===0){ rpt+='(暂无反思记录)\n'; } else { for(const r of _rr){ rpt+='['+(r.mode||'')+'] '+(r.text||'')+'\n'; if(r.user) rpt+='  ✏️ 你写的：'+r.user+'\n'; if(r.note) rpt+='  📌 '+(r.note||'')+'\n'; if(r.native) rpt+='  🌐 母语表达：'+r.native+'\n'; rpt+='  💭 反思：'+(r.reason||'（跳过）')+'\n'; rpt+='  📅 '+(r.date||'')+'\n\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n⭐ 第四部分：收藏句子\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(favoriteSentences.length===0){ rpt+='(暂无收藏)\n'; } else { for(let item of favoriteSentences){ rpt+='🇨🇳 '+item.chinese+'\n🌐 '+(item.translation||'')+'\n📅 '+(item.date||'')+'\n\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n💬 「怎么说」尝试记录\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(zmsRecords.length===0){ rpt+='(暂无尝试记录)\n'; } else { for(var zi=0; zi<zmsRecords.length; zi++){ var zr=zmsRecords[zi]; rpt+='🌐 母语：'+zr.original+'\n'; if(zr.attempt) rpt+='  ✏️ 你的尝试：'+zr.attempt+'\n'; rpt+='  ✅ 参考答案：'+zr.reference+'\n  📅 '+(zr.date||'')+'\n\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n📰 阅读历史\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(readingHistory.length===0){ rpt+='(暂无阅读记录)\n'; } else { readingHistory.forEach((r,i)=>{ rpt+='📌 '+(r.title||('HSK'+r.level))+' [HSK'+r.level+']\n'; rpt+='📅 '+(r.date||'')+' · 主题：'+(r.topic||'')+'\n'; if(r.background) rpt+='背景：'+r.background+'\n'; if(r.sourceUrl) rpt+='🔗 '+r.sourceUrl+'\n'; rpt+='--- 正文 ---\n'+(r.content||'')+'\n\n'; }); } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n🔤 第五部分：音/形/义/用 四维记录（全部，含出现句子）\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; const _fourWords=Object.keys(vocabDimMap||{}).sort((a,b)=>a.localeCompare(b,'zh')); if(!_fourWords.length){ rpt+='(暂无记录)\n'; } else { const _sentMap={}; for(const _u of (window._dimUpdates||[])){ if(_u && _u.sent){ _sentMap[_u.word]=_sentMap[_u.word]||new Set(); _sentMap[_u.word].add(_u.sent); } } rpt+='| 词语 | 音（对/错/共） | 形（对/错/共） | 义（对/错/共） | 用（对/错/共） | 出现句子（最多10条） |\n|---|---|---|---|---|---|\n'; for(const _fw of _fourWords){ const _fd=vocabDimMap[_fw]||{}; const _pc2=(e)=>'对'+(e.c||0)+'/错'+Math.max(0,(e.t||0)-(e.c||0))+'/共'+(e.t||0); const _sents=_sentMap[_fw]; const _sentStr=_sents&&_sents.size?Array.from(_sents).slice(0,10).map(s=>String(s).replace(/\|/g,'｜').replace(/\r?\n/g,' ')).join('；'):''; rpt+='| '+String(_fw).replace(/\|/g,'｜')+' | '+_pc2(_fd['音']||{c:0,t:0})+' | '+_pc2(_fd['形']||{c:0,t:0})+' | '+_pc2(_fd['义']||{c:0,t:0})+' | '+_pc2(_fd['用']||{c:0,t:0})+' | '+_sentStr+' |\n'; } } rpt+='\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n✨ 第六部分：本次新增（按模式标记，含句子）\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; const _upd=(window._dimUpdates||[]).slice(-200); if(!_upd.length){ rpt+='(暂无新增)\n'; } else { for(const _u of _upd){ rpt+='['+(_u.mode||'未标记')+'] '+_u.word+' → '+_u.dims+' ✅ '+(_u.date||'')+(_u.sent?'｜'+_u.sent:'')+'\n'; } }
-rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n📊 ' + t('ws.board_title') + '\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; rpt+=t('ws.target_label') + '：'+(function(){ try{ return vocabLevelLabel(wsTargetLevel()); }catch(e){ return '—'; } })()+'\n'; (function(){ try{ const _words=Object.keys(wordStatusData.words||{}).sort((a,b)=>a.localeCompare(b,'zh')); if(!_words.length){ rpt+='(暂无词语状态记录)\n'; return; } rpt+='| 词语 | 等级 | 阶梯 | ' + t('ws.layer_knowledge_short') + ' | ' + t('ws.layer_listening_short') + ' | ' + t('ws.layer_reading_short') + ' | ' + t('ws.layer_production_short') + '(对/错/未判) | 即时 | 延时 | 首次产出 | 最近产出 |\n|---|---|---|---|---|---|---|---|---|---|---|\n'; for(const w of _words){ const s=wsStatus(w); const lv=(wordStatusData.words[w]&&wordStatusData.words[w].level)||0; rpt+='| '+String(w).replace(/\|/g,'｜')+' | '+(lv||'')+' | '+wsStageLabel(s.stage)+' | '+(s.knowledge?'✅':'❌')+' | '+(s.listening?'✅':'—')+' | '+(s.reading?'✅':'—')+' | '+s.prod.count+'（'+s.prod.correct+'/'+s.prod.wrong+'/'+s.prod.unknown+'） | '+s.prod.immediate+' | '+s.prod.delayed+' | '+(s.prod.firstDate||'—')+' | '+(s.prod.lastDate||'—')+' |\n'; } rpt+='\n词语状态卡事件明细（按词）：\n'; for(const w of _words){ const card=wordStatusData.words[w]; rpt+='\n📇 '+w+(card.note?'（评语：'+card.note+'）':'')+'\n'; const evs=(card.events||[]).slice().reverse(); for(const e of evs){ rpt+='  '+e.date+' ['+wsLayerShortLabel(e.layer)+'] '+wsSourceLabel(e.source)+(e.dim?'·'+wsDimLabel(e.dim):'')+' → '+(e.correct===true?t('ws.correct'):(e.correct===false?t('ws.wrong'):t('ws.unknown')))+(e.semantic===true?'（'+t('ws.sem_err')+'）':(e.semantic===false?'（'+t('ws.sem_ok')+'）':''))+(e.sentence?'｜'+e.sentence:'')+(e.meaningUsed?'｜'+t('ws.meaning_used')+e.meaningUsed:'')+(e.meaningExpected?'｜'+t('ws.meaning_exp')+e.meaningExpected:'')+'\n'; } } }catch(e){ rpt+='(词语状态输出失败)\n'; } })();
+rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n📊 ' + t('ws.board_title') + '\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; rpt+=t('ws.target_label') + '：'+(function(){ try{ return vocabLevelLabel(wsTargetLevel()); }catch(e){ return '—'; } })()+'\n'; (function(){ try{ const _words=Object.keys(wordStatusData.words||{}).sort((a,b)=>a.localeCompare(b,'zh')); if(!_words.length){ rpt+='(暂无词语状态记录)\n'; return; } rpt+='| 词语 | 等级 | 阶梯 | ' + t('ws.layer_knowledge_short') + ' | ' + t('ws.layer_listening_short') + ' | ' + t('ws.layer_reading_short') + ' | ' + t('ws.layer_production_short') + '(对/错/未判) | 即时 | 延时 | 首次产出 | 最近产出 |\n|---|---|---|---|---|---|---|---|---|---|---|\n'; for(const w of _words){ const s=wsStatus(w); const lv=(wordStatusData.words[w]&&wordStatusData.words[w].level)||0; rpt+='| '+String(w).replace(/\|/g,'｜')+' | '+(lv||'')+' | '+wsStageLabel(s.stage)+' | '+(s.knowledge?'✅':'❌')+' | '+(s.listening?'✅':'—')+' | '+(s.reading?'✅':'—')+' | '+s.prod.count+'（'+s.prod.correct+'/'+s.prod.wrong+'/'+s.prod.unknown+'） | '+s.prod.immediate+' | '+s.prod.delayed+' | '+(s.prod.firstDate||'—')+' | '+(s.prod.lastDate||'—')+' |\n'; } rpt+='\n词语状态卡事件明细（按词）：\n'; for(const w of _words){ const card=wordStatusData.words[w]; rpt+='\n📇 '+w+(card.note?'（评语：'+card.note+'）':'')+'\n'; const evs=(card.events||[]).slice().reverse(); for(const e of evs){ rpt+='  '+e.date+' ['+wsLayerShortLabel(e.layer)+'] '+wsSourceLabel(e.source)+(e.dim?'·'+wsDimLabel(e.dim):'')+' → '+(e.correct===true?t('ws.correct'):(e.correct===false?t('ws.wrong'):t('ws.unknown')))+(e.semantic===true?'（'+t('ws.sem_err')+'）':(e.semantic===false?'（'+t('ws.sem_ok')+'）':''))+(e.sentence?'｜'+(e.layer==='production'?'产出句：':'')+e.sentence:'')+(e.meaningUsed?'｜'+t('ws.meaning_used')+e.meaningUsed:'')+(e.meaningExpected?'｜'+t('ws.meaning_exp')+e.meaningExpected:'')+'\n'; } } }catch(e){ rpt+='(词语状态输出失败)\n'; } })();
 const ok = downloadTextFile(rpt, 'HSK_Learning_Report_' + getLocalDate() + '.md'); showToast(ok ? t('toast.download_started') : t('toast.download_failed')); }
 
-async function handleEndConversation(){ if(chatAbortController){ chatAbortController.abort(); chatAbortController=null; } if(window._hideReadingForTask) clearReadingTaskLock(); if(window._chatMeaningPending){ window._chatMeaningPending = null; const _mp = document.getElementById("chatMeaningPromptMsg"); if(_mp) _mp.remove(); } if(window._chatCorrectionPending){ window._chatCorrectionPending = null; const _cp = document.getElementById("chatCorrectionConfirmMsg"); if(_cp) _cp.remove(); } if(currentSessionClauses.length===0&&sessionUserMessages.length===0){ const _zmsOnly = (window._zmsWrongAttempts || []).slice(); if(!_zmsOnly.length){ addAssistantMessage(t('analysis.no_sentences'), false, '', '', true); return; } window._zmsWrongAttempts = []; setTimeout(function(){ startReflection(_zmsOnly); }, 300); return; } const filteredClauses=currentSessionClauses.filter(c=>!isQueriedSentence(c)); const savedClauses=[...filteredClauses]; if(filteredClauses.length===0){ const _zmsOnly2=(window._zmsWrongAttempts||[]).slice(); window._zmsWrongAttempts=[]; if(_zmsOnly2.length){ setTimeout(function(){ startReflection(_zmsOnly2); },300); } else { addAssistantMessage(t('analysis.no_sentences'), false, '', '', true); } currentSessionClauses=[]; sessionUserMessages=[]; return; } addAssistantMessage(t('analysis.analyzing_prefix')+filteredClauses.length+'...', false, '', '', true); wsSnapshotUpdates(); (async function(){ try{ const _n = await wsJudgeAndRecord('chat', sessionUserMessages.slice()); if(_n > 0){ addAssistantMessage(t('ws.judge_chat_done').replace('{n}', _n), false, '', '', true); wsShowUpdatesModal(); } }catch(e){} })(); try{ const analysis=await analyzeGrammarBatch(filteredClauses,'medium'); if(analysis){ const foundGrams=[]; for(const item of analysis){ for(const m of (item.matches||[])){ const gm=findMatchingPattern(m.pattern); if(gm&&!foundGrams.includes(gm.pattern)) foundGrams.push(gm.pattern); } } mergeAnalysisResults(analysis, 'chat'); const gSummary=' '+foundGrams.length+' 个'; addAssistantMessage(t('analysis.grammar_done')+gSummary, false, '', '', true); } else { addAssistantMessage(t('analysis.grammar_done'), false, '', '', true); } }catch(e){ addAssistantMessage(t('analysis.grammar_timeout'), false, '', '', true); } addAssistantMessage(t('analysis.vocab_analyzing'), false, '', '', true); try{ const vocabAnalysis=await analyzeVocabBatch(savedClauses); if(vocabAnalysis){ mergeVocabResultsFiltered(vocabAnalysis, 'chat'); } const matchCount=vocabAnalysis?vocabAnalysis.reduce((sum,item)=>sum+Object.keys(item.wordCounts||{}).length,0):0; addAssistantMessage(t('analysis.vocab_done')+' 匹配到 '+matchCount+' 个词', false, '', '', true); }catch(e){ console.log('Vocab error:',e); addAssistantMessage(t('analysis.vocab_timeout'), false, '', '', true); } try{
+async function handleEndConversation(){ if(chatAbortController){ chatAbortController.abort(); chatAbortController=null; } if(window._hideReadingForTask) clearReadingTaskLock(); if(window._chatMeaningPending){ window._chatMeaningPending = null; const _mp = document.getElementById("chatMeaningPromptMsg"); if(_mp) _mp.remove(); } if(window._chatCorrectionPending){ window._chatCorrectionPending = null; const _cp = document.getElementById("chatCorrectionConfirmMsg"); if(_cp) _cp.remove(); } if(currentSessionClauses.length===0&&sessionUserMessages.length===0){ const _zmsOnly = (window._zmsWrongAttempts || []).slice(); if(!_zmsOnly.length){ addAssistantMessage(t('analysis.no_sentences'), false, '', '', true); return; } window._zmsWrongAttempts = []; setTimeout(function(){ startReflection(_zmsOnly); }, 300); return; } const filteredClauses=currentSessionClauses.filter(c=>!isQueriedSentence(c)&&!isZmsUsedSentence(c)); const savedClauses=[...filteredClauses]; if(filteredClauses.length===0){ const _zmsOnly2=(window._zmsWrongAttempts||[]).slice(); window._zmsWrongAttempts=[]; if(_zmsOnly2.length){ setTimeout(function(){ startReflection(_zmsOnly2); },300); } else { addAssistantMessage(t('analysis.no_sentences'), false, '', '', true); } currentSessionClauses=[]; sessionUserMessages=[]; return; } addAssistantMessage(t('analysis.analyzing_prefix')+filteredClauses.length+'...', false, '', '', true); wsSnapshotUpdates(); (async function(){ try{ const _n = await wsJudgeAndRecord('chat', sessionUserMessages.filter(u=>!isZmsUsedSentence(u))); if(_n > 0){ addAssistantMessage(t('ws.judge_chat_done').replace('{n}', _n), false, '', '', true); wsShowUpdatesModal(); } }catch(e){} })(); try{ const analysis=await analyzeGrammarBatch(filteredClauses,'medium'); if(analysis){ const foundGrams=[]; for(const item of analysis){ for(const m of (item.matches||[])){ const gm=findMatchingPattern(m.pattern); if(gm&&!foundGrams.includes(gm.pattern)) foundGrams.push(gm.pattern); } } mergeAnalysisResults(analysis, 'chat'); const gSummary=' '+foundGrams.length+' 个'; addAssistantMessage(t('analysis.grammar_done')+gSummary, false, '', '', true); } else { addAssistantMessage(t('analysis.grammar_done'), false, '', '', true); } }catch(e){ addAssistantMessage(t('analysis.grammar_timeout'), false, '', '', true); } addAssistantMessage(t('analysis.vocab_analyzing'), false, '', '', true); try{ const vocabAnalysis=await analyzeVocabBatch(savedClauses); if(vocabAnalysis){ mergeVocabResultsFiltered(vocabAnalysis, 'chat'); } const matchCount=vocabAnalysis?vocabAnalysis.reduce((sum,item)=>sum+Object.keys(item.wordCounts||{}).length,0):0; addAssistantMessage(t('analysis.vocab_done')+' 匹配到 '+matchCount+' 个词', false, '', '', true); }catch(e){ console.log('Vocab error:',e); addAssistantMessage(t('analysis.vocab_timeout'), false, '', '', true); } try{
     const _exclC = new Set();
     for(const m of (window._chatSessionMistakes || [])){
         const _mc = matchVocabInText(String(m.user || ''));
         for(const w of Object.keys(_mc)) _exclC.add(stripForCompare(w));
     }
     for(const u of sessionUserMessages){
+        if(isZmsUsedSentence(u)) continue; // 使用「怎么说」参考答案的句子不进行四维分析、不计入统计
         const _uc = matchVocabInText(String(u || ''));
         for(const w of Object.keys(_uc)){
             if(!vocabLevelOfWord(w)) continue;
@@ -21082,8 +21113,8 @@ renderVocabLevelProgress(); renderVocabTrackList(); const _userHanzi = sessionUs
             addMessage('user', text);
             currentSessionClauses.push(...splitClauses(text));
             sessionUserMessages.push(text);
-            // 词语追踪实时更新：这句话用到的词立即计入 count 和 usage examples（不等结束对话）
-            trackVocabUsageRealtime(text);
+            // 词语追踪实时更新：这句话用到的词立即计入 count 和 usage examples（不等结束对话）；「怎么说」参考答案不计入
+            if(!isZmsUsedSentence(text)){ trackVocabUsageRealtime(text); }
             // 英语/外语输入：不纠错，直接正常聊天
             if(!/[\u4e00-\u9fff]/.test(text)){
                 await finishChatCorrectionFlow(text, [], '');
@@ -22069,6 +22100,9 @@ async function generateAndShowPractice(grammarPattern, grammarLevel, forceNew=fa
     // ===== 「怎么说」引导式流程：先让学生尝试写中文，再给参考答案 =====
     let zmsAttemptState = {}; // mode -> { original, targetLang, ctx, ctxLabel }
     let zmsRecords = []; // { original, attempt, reference, pinyin, mode, date }
+    // 用户点击「使用此句」后的句子集合：这些句子不进行四维分析、不计入产出与词汇/语法统计
+    const zmsUsedSentenceSet = new Set();
+    function isZmsUsedSentence(s){ try{ return zmsUsedSentenceSet.has(stripForCompare(String(s || ''))); }catch(e){ return false; } }
     function zmsRecordKey(){ return 'HSK_ZMS_RECORDS_' + currentUser; }
     function saveZmsRecords(){ if(!currentUser) return; localStorage.setItem(zmsRecordKey(), JSON.stringify(zmsRecords)); }
     function loadZmsRecords(){ if(!currentUser){ zmsRecords = []; return; } const raw = localStorage.getItem(zmsRecordKey()); try{ zmsRecords = raw ? JSON.parse(raw) : []; }catch(e){ zmsRecords = []; } }
@@ -22336,6 +22370,7 @@ async function generateAndShowPractice(grammarPattern, grammarLevel, forceNew=fa
         res.querySelector('#zmSpeakBtn').onclick = function(){ speakChinese(chinese); };
         res.querySelector('#zmExplainBtn').onclick = function(){ showZmsExplain(chinese, zmsBox); };
         res.querySelector('#zmUseBtn').onclick = function(){
+            try{ zmsUsedSentenceSet.add(stripForCompare(chinese)); }catch(e){}
             if(mode === 'writing'){ document.getElementById('writingTextarea').value = chinese; }
             else { userInput.value = chinese; userInput.focus(); }
         };
@@ -22394,7 +22429,7 @@ async function generateAndShowPractice(grammarPattern, grammarLevel, forceNew=fa
     function saveUsers(users){ localStorage.setItem(USERS_STORAGE, JSON.stringify(users)); }
     function updateHeaderUser(){ const el=document.getElementById('headerUsername'); if(currentUser){ el.innerHTML=t('user.welcome')+escapeHtml(currentUser)+' <span class="logout-link" id="logoutLink">'+t('user.logout')+'</span>'; document.getElementById('logoutLink').onclick=handleLogout; } else { el.innerHTML=''; } }
     async function handleLogin(){ const username=document.getElementById('loginUsername').value.trim(); const password=document.getElementById('loginPassword').value.trim(); const errorEl=document.getElementById('loginError'); const btn=document.getElementById('loginBtn'); if(!username||!password){ errorEl.textContent=t('login.error_empty'); return; } btn.disabled=true; btn.textContent=t('login.verifying'); errorEl.textContent=''; try { const users=getUsers(); const fast=hashPassword(password,username); const stored=users[username]; if(stored){ if(fast===stored){ /* new format match */ } else if(!stored.startsWith('fallback_')&&/^[0-9a-f]{64}$/.test(stored)){ const cryptoHash=await tryCryptoHash(password,username); if(cryptoHash!==stored){ errorEl.textContent=t('login.error_wrong'); btn.disabled=false; btn.textContent=t('login.button'); return; } } else { errorEl.textContent=t('login.error_wrong'); btn.disabled=false; btn.textContent=t('login.button'); return; } } else { users[username]=fast; saveUsers(users); } currentUser=username; localStorage.setItem(CURRENT_USER_STORAGE,username); document.getElementById('loginOverlay').classList.add('hidden'); updateHeaderUser(); finishInit(); } catch(e) { errorEl.textContent=t('login.error_fail'); btn.disabled=false; btn.textContent=t('login.button'); } }
-    function handleLogout(){ if(confirm(t('logout.confirm'))){ usedMap.clear(); favoriteSentences=[]; queriedItems=[]; chatHistory=[]; currentSessionClauses=[]; sessionUserMessages=[]; window._chatSessionMistakes=[]; learnPlan={}; vocabUsedMap.clear(); vocabCorrectList=[]; lastGeneratedVocabSentences.clear(); allGeneratedVocabSet.clear(); lastGeneratedSentences.clear(); lastGrammarMeta.clear(); lastGeneratedCollocations.clear(); usedPracticeStructures.clear(); wrongSentences=[]; writingEssays=[]; writingTopic=''; window._learnCustomData={}; currentLearnTab=null; window._hideReadingForTask = null; readingTrack={unknownIn:{},knownIn:{},unknownOut:{},comprehension:{in:{},out:{}}}; readingSessionUnknowns=[]; readingClickedSentences=[]; currentReadingAnalyzed=false; zmsRecords=[]; zmsAttemptState={}; window._zmsWrongAttempts=[]; window._reflectionResults=[]; window._reflectionQueue=[]; window._reflectionReasons=[]; window._reflectionDoneCallback=null; window._sentenceState=null; window._sentenceMistakes=[]; vocabDimMap={}; writingRequiredWords=[]; sentenceRows=[]; gapBank={words:[],patterns:[]}; wordStatusData={targetLevel:0,words:{},migrated:false}; renderGapBankUI(); totalMinutes=0; currentUser=null; localStorage.removeItem(CURRENT_USER_STORAGE); document.getElementById('loginOverlay').classList.remove('hidden'); document.getElementById('loginPassword').value=''; document.getElementById('loginError').textContent=''; document.getElementById('loginBtn').disabled=false; document.getElementById('loginBtn').textContent=t('login.button'); document.getElementById('chatMessages').innerHTML='<div class="message assistant-message"><div class="bubble assistant-bubble">'+t('chat.greeting')+'</div><div class="timestamp">'+t('chat.just_now')+'</div></div>'; updateHeaderUser(); grammarList=buildFullGrammarList(); renderLevelProgress(); updateGrammarDisplayByLevel(parseInt(grammarViewLevel.value)); renderTrackList(); renderVocabLevelProgress(); renderVocabLibrary(parseInt(document.getElementById('vocabViewLevel')?.value)||1); renderVocabTrackList(); renderQueriedBook(); renderFavoriteBook(); renderWrongSentences(); renderLearnTasks(); } }
+    function handleLogout(){ if(confirm(t('logout.confirm'))){ usedMap.clear(); favoriteSentences=[]; queriedItems=[]; chatHistory=[]; currentSessionClauses=[]; sessionUserMessages=[]; window._chatSessionMistakes=[]; learnPlan={}; vocabUsedMap.clear(); vocabCorrectList=[]; lastGeneratedVocabSentences.clear(); allGeneratedVocabSet.clear(); lastGeneratedSentences.clear(); lastGrammarMeta.clear(); lastGeneratedCollocations.clear(); usedPracticeStructures.clear(); wrongSentences=[]; writingEssays=[]; writingTopic=''; writingSession=null; lastWritingText=''; writingState='idle'; window._learnCustomData={}; currentLearnTab=null; window._hideReadingForTask = null; readingTrack={unknownIn:{},knownIn:{},unknownOut:{},comprehension:{in:{},out:{}}}; readingSessionUnknowns=[]; readingClickedSentences=[]; currentReadingAnalyzed=false; readingHistory=[]; currentReading=null; zmsRecords=[]; zmsAttemptState={}; window._zmsWrongAttempts=[]; window._reflectionResults=[]; window._reflectionQueue=[]; window._reflectionReasons=[]; window._reflectionDoneCallback=null; window._sentenceState=null; window._sentenceMistakes=[]; vocabDimMap={}; sentenceRows=[]; gapBank={items:[]}; wordStatusData={targetLevel:0,words:{},migrated:false}; window._dimUpdates=[]; zmsUsedSentenceSet.clear(); writingResultCache.clear(); _chatMistakeCache.clear(); window._retellContext=null; retellState=null; wlSession=null; currentPracticeVocab=null; currentPracticeGrammar=null; candidateLevel=3; currentCandidates=[]; window._readingChatMsgs=[]; window._writingChatMsgs=[]; window._chatTopicContext=null; window._wsSnapshot={}; window._wsBoardFilter=null; window._wsCardTab=null; window._dictationMode=false; window._dictationOnly=false; window._dictationTestState=null; window._dictationReflectQueue=[]; window._dictationReflectDone=null; window._reviewMode=false; window._reviewQueue=null; window._learnMode=false; window._learnQueue=null; window._currentReviewItem=null; window._reviewRound=0; window._practiceRevealed=false; window._practiceFinished=false; window._pendingLearnWord=null; window._learnRound=0; window._selfPractice=false; window._practiceCanAdvance=false; const _dro=document.getElementById('dictationReflectOverlay'); if(_dro) _dro.remove(); try{ unbindDictReflectKeys(); }catch(_e){} if(practiceModal) practiceModal.style.display='none'; if(modal) modal.style.display='none'; const _wsm=document.getElementById('wordStatusModal'); if(_wsm) _wsm.style.display='none'; const _wcm=document.getElementById('wordCardModal'); if(_wcm) _wcm.style.display='none'; document.body.style.overflow=''; renderGapBankUI(); totalMinutes=0; currentUser=null; localStorage.removeItem(CURRENT_USER_STORAGE); const _wsFirst=document.getElementById('wsFirstTargetModal'); if(_wsFirst) _wsFirst.remove(); document.getElementById('loginOverlay').classList.remove('hidden'); document.getElementById('loginPassword').value=''; document.getElementById('loginError').textContent=''; document.getElementById('loginBtn').disabled=false; document.getElementById('loginBtn').textContent=t('login.button'); document.getElementById('chatMessages').innerHTML='<div class="message assistant-message"><div class="bubble assistant-bubble">'+t('chat.greeting')+'</div><div class="timestamp">'+t('chat.just_now')+'</div></div>'; updateHeaderUser(); grammarList=buildFullGrammarList(); renderLevelProgress(); updateGrammarDisplayByLevel(parseInt(grammarViewLevel.value)); renderTrackList(); renderVocabLevelProgress(); renderVocabLibrary(parseInt(document.getElementById('vocabViewLevel')?.value)||1); renderVocabTrackList(); renderQueriedBook(); renderFavoriteBook(); renderWrongSentences(); renderLearnTasks(); } }
     function switchGrammarTab(id, btn){ const tabs=btn.parentElement; tabs.querySelectorAll('.browser-tab').forEach(t=>t.classList.remove('active')); btn.classList.add('active'); const card=tabs.parentElement; const content=card.querySelector('.browser-tab-content'); if(content){ content.querySelectorAll('.track-list').forEach(l=>l.style.display='none'); const target=document.getElementById(id); if(target){target.style.display=''; target.style.display='block';} } }
     function switchVocabTab(id, btn){ const tabs=btn.parentElement; tabs.querySelectorAll('.browser-tab').forEach(t=>t.classList.remove('active')); btn.classList.add('active'); const card=tabs.parentElement; const content=card.querySelector('.browser-tab-content'); if(content){ content.querySelectorAll('.track-list').forEach(l=>l.style.display='none'); const target=document.getElementById(id); if(target){target.style.display=''; target.style.display='block';} } }
     function initTrackTabs(){}
@@ -24433,13 +24468,11 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
         }catch(e){ return null; }
     }
     window._wlSpeak = function(text){ if(text) speakChinese(text); };
-    // ========== 写作模式改造：自由使用 / 强制使用 / 造句，话题可选 ==========
+    // ========== 写作模式：自由写作（必用词/强制使用模式已移除） ==========
     let writingMode = 'free';
-    let writingRequiredWords = [];
     let sentenceRows = [];
     function setWritingMode(mode){
         writingMode = mode;
-        document.querySelectorAll('.writing-mode-row .wm-tab').forEach(function(b){ b.classList.toggle('active', b.dataset.mode === mode); });
         const ta = document.getElementById('writingTextarea');
         const sa = document.getElementById('sentenceArea');
         const tr = document.getElementById('writingTopicRow');
@@ -24460,18 +24493,9 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
             if(tr) tr.style.display = '';
             if(sb) sb.style.display = '';
             if(eb) eb.style.display = '';
-            if(hint) hint.textContent = (mode === 'forced') ? '🎯 已选必用词：' + (writingRequiredWords.join('、') || '（点击下方词语卡片添加）') : '';
-            markRequiredChips();
+            if(hint) hint.textContent = '';
             updateWritingStatus();
         }
-    }
-    function markRequiredChips(){
-        const wrap = document.querySelector('#writingCandidates .cand-chips[data-target="writing"]');
-        if(!wrap) return;
-        wrap.querySelectorAll('.cand-chip').forEach(function(c){
-            const w = c.textContent.trim();
-            c.style.background = writingRequiredWords.includes(w) ? '#fff7ed' : '';
-        });
     }
     window._sentenceAddWord = function(word){
         if(!word) return;
@@ -24527,7 +24551,7 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
             try{
                 const _wv2 = vocabEntryForWord(row.word);
                 wsRecord(row.word, 'production', {
-                    source: 'writing_check',
+                    source: 'sentence',
                     correct: r.correct === true,
                     semantic: r.correct ? false : (r.meaningMatches === false ? true : (r.meaningMatches === true ? false : null)),
                     sentence: val,
@@ -24551,19 +24575,12 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
         let base = _origBuildWritingPrompt(text, level, min, charCount, targetLang, session, isRevision);
         let extra = '';
         if(writingTopic && String(writingTopic).trim()) extra += '【作文话题】' + String(writingTopic).trim() + '。';
-        if(writingMode === 'forced' && writingRequiredWords.length) extra += '【必用词语】这篇作文必须使用以下词语：' + writingRequiredWords.join('、') + '。批改时请逐一检查这些词语是否都正确使用了；漏用或使用错误要在 overall 和 hints 中指出。';
         if(extra) base = base.replace('【学生当前水平】', extra + '\n【学生当前水平】');
         return base;
     };
     const _origHandleWritingSubmit = handleWritingSubmit;
     handleWritingSubmit = async function(skipAnalysis){
         if(writingMode === 'sentence'){ showToast('造句模式请用下方「检查」按钮逐个提交'); return; }
-        if(writingMode === 'forced' && !skipAnalysis){
-            const ta = document.getElementById('writingTextarea');
-            const text = ta ? ta.value.trim() : '';
-            const missing = writingRequiredWords.filter(function(w){ return !stripForCompare(text).includes(stripForCompare(w)); });
-            if(missing.length){ alert('以下必用词语没有出现在作文中：' + missing.join('、')); return; }
-        }
         if(!writingTopic) writingTopic = '自由写作';
         return _origHandleWritingSubmit(skipAnalysis);
     };
@@ -24600,14 +24617,6 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
         if(target === 'sentence'){ window._sentenceAddWord(word); return; }
         if(target === 'writing'){
             if(writingMode === 'sentence'){ window._sentenceAddWord(word); return; }
-            if(writingMode === 'forced'){
-                if(!writingRequiredWords.includes(word)) writingRequiredWords.push(word);
-                const hint = document.getElementById('writingRequiredHint');
-                if(hint) hint.textContent = '🎯 已选必用词：' + writingRequiredWords.join('、');
-                markRequiredChips();
-                showToast('已加入必用词：' + word);
-                return;
-            }
             const input = document.getElementById('writingTextarea');
             if(!input) return;
             input.value = (input.value ? input.value : '') + word;
@@ -24711,7 +24720,6 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
         for(const e of events){
             if(e.layer === 'knowledge'){
                 if(e.correct === true) knowledge = true;
-                else if(e.correct === false && e.manual) knowledge = false;
                 if(e.source === 'mcq' || e.source === '知识练习'){ mcqT++; if(e.correct === true) mcqC++; }
             } else if(e.layer === 'listening'){
                 lisT++;
@@ -24893,10 +24901,7 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
                 }
             }
             const rt = readingTrack || {};
-            for(const w of Object.keys((rt.comprehension || {}).in || {})){
-                wsRecord(w, 'reading', { source: 'mig_reading', correct: true, migrated: true });
-                any = true;
-            }
+            // 阅读判断题只记录在阅读追踪里，不迁移为词语状态的「阅读理解」事件
             for(const w of Object.keys(rt.unknownIn || {})){
                 wsRecord(w, 'reading', { source: 'mig_read_unknown', correct: false, migrated: true });
                 any = true;
@@ -24968,26 +24973,80 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
             const ov = document.createElement('div');
             ov.id = 'wsFirstTargetModal';
             ov.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,0.6);z-index:10001;display:flex;align-items:center;justify-content:center;padding:16px;';
-            let btns = '';
-            for(let lv = 1; lv <= 6; lv++){
-                btns += '<button data-lv="' + lv + '" style="padding:12px 18px;border-radius:12px;border:1.5px solid #cbd5e1;background:#f8fafc;cursor:pointer;font-size:0.95rem;font-weight:700;color:#1e2b5e;">' + escapeHtml(vocabLevelLabel(lv)) + '</button>';
+            const langSel = document.getElementById('targetLanguageSelect');
+            const langOpts = langSel ? langSel.innerHTML : '';
+            const btnStyleBase = 'padding:12px 18px;border-radius:12px;border:1.5px solid #cbd5e1;background:#f8fafc;cursor:pointer;font-size:0.95rem;font-weight:700;color:#1e2b5e;';
+            const btnStyleOn = 'padding:12px 18px;border-radius:12px;border:1.5px solid #1565c0;background:#1565c0;cursor:pointer;font-size:0.95rem;font-weight:700;color:#fff;';
+            let chosen = 0;
+            function firstLevelBtns(){
+                let h = '';
+                for(let lv = 1; lv <= 6; lv++){
+                    h += '<button data-lv="' + lv + '" style="' + (chosen === lv ? btnStyleOn : btnStyleBase) + '">' + escapeHtml(vocabLevelLabel(lv)) + '</button>';
+                }
+                return h;
+            }
+            function renderFirstBtns(){
+                const box = document.getElementById('wsFirstBtns');
+                if(!box) return;
+                box.innerHTML = firstLevelBtns();
+                box.querySelectorAll('button[data-lv]').forEach(function(b){
+                    b.onclick = function(){
+                        chosen = parseInt(b.dataset.lv) || 0;
+                        box.querySelectorAll('button[data-lv]').forEach(function(x){ x.style.cssText = btnStyleBase; });
+                        b.style.cssText = btnStyleOn;
+                        const done = document.getElementById('wsFirstTargetDone');
+                        if(done) done.style.display = 'inline-block';
+                    };
+                });
+            }
+            function applyFirstLang(){
+                const sel = document.getElementById('wsFirstTargetLang');
+                if(sel){
+                    const top = document.getElementById('targetLanguageSelect');
+                    if(top) top.value = sel.value;
+                }
+                try{ applyLanguage(); }catch(_e){}
+                const t1 = document.getElementById('wsFirstTitle');
+                if(t1) t1.textContent = t('ws.first_target_title');
+                const d1 = document.getElementById('wsFirstDesc');
+                if(d1) d1.textContent = t('ws.first_target_desc');
+                const b1 = document.getElementById('wsFirstTargetDone');
+                if(b1) b1.textContent = t('ws.first_target_done');
+                renderFirstBtns();
             }
             ov.innerHTML = '<div style="background:#fff;border-radius:20px;max-width:560px;width:100%;padding:26px;box-shadow:0 10px 40px rgba(0,0,0,0.3);">' +
-                '<div style="font-size:1.15rem;font-weight:800;color:#1e2b5e;margin-bottom:8px;">' + escapeHtml(t('ws.first_target_title')) + '</div>' +
-                '<div style="color:#64748b;font-size:0.85rem;margin-bottom:16px;line-height:1.6;">' + escapeHtml(t('ws.first_target_desc')) + '</div>' +
-                '<div style="display:flex;gap:8px;flex-wrap:wrap;">' + btns + '</div>' +
+                '<div style="display:flex;align-items:center;justify-content:flex-end;margin-bottom:10px;"><label style="font-size:0.78rem;color:#64748b;margin-right:8px;">🌐</label><select id="wsFirstTargetLang" style="padding:4px 10px;border-radius:10px;border:1.5px solid #cbd5e1;font-size:0.8rem;background:#fff;color:#1e2b5e;">' + langOpts + '</select></div>' +
+                '<div id="wsFirstTitle" style="font-size:1.15rem;font-weight:800;color:#1e2b5e;margin-bottom:8px;">' + escapeHtml(t('ws.first_target_title')) + '</div>' +
+                '<div id="wsFirstDesc" style="color:#64748b;font-size:0.85rem;margin-bottom:16px;line-height:1.6;">' + escapeHtml(t('ws.first_target_desc')) + '</div>' +
+                '<div id="wsFirstBtns" style="display:flex;gap:8px;flex-wrap:wrap;">' + firstLevelBtns() + '</div>' +
                 '<div style="margin-top:16px;text-align:right;"><button id="wsFirstTargetDone" class="btn" style="background:#1565c0;color:#fff;border:none;padding:9px 20px;border-radius:10px;cursor:pointer;display:none;">' + escapeHtml(t('ws.first_target_done')) + '</button></div>' +
                 '</div>';
             document.body.appendChild(ov);
-            let chosen = 0;
+            // 弹窗内可直接切换界面语言（首次使用时顶部语言选择器被弹窗挡住）
+            const _fls = document.getElementById('wsFirstTargetLang');
+            if(_fls) _fls.onchange = applyFirstLang;
             ov.querySelectorAll('button[data-lv]').forEach(function(b){
                 b.onclick = function(){
                     chosen = parseInt(b.dataset.lv) || 0;
-                    ov.querySelectorAll('button[data-lv]').forEach(function(x){ x.style.background = '#f8fafc'; x.style.color = '#1e2b5e'; x.style.borderColor = '#cbd5e1'; });
-                    b.style.background = '#1565c0'; b.style.color = '#fff'; b.style.borderColor = '#1565c0';
+                    ov.querySelectorAll('button[data-lv]').forEach(function(x){ x.style.cssText = btnStyleBase; });
+                    b.style.cssText = btnStyleOn;
                     const done = document.getElementById('wsFirstTargetDone');
                     if(done) done.style.display = 'inline-block';
                 };
+            });
+            // 点击遮罩空白处 = 稍后再说：按默认 HSK3 处理并标记已选择，避免挡住退出登录等操作
+            ov.addEventListener('click', function(e){
+                if(e.target !== ov) return;
+                wordStatusData.targetLevel = 3;
+                wordStatusData.targetSet = true;
+                wsSave();
+                ov.remove();
+                const topSel = document.getElementById('targetLevelSelect');
+                if(topSel) topSel.value = '3';
+                wsSyncTargetToModules();
+                try{ renderWsSummary(); }catch(_e){}
+                try{ renderWordStatusBoard(); }catch(_e){}
+                showToast(t('ws.target_changed').replace('{level}', vocabLevelLabel(3)));
             });
             const done = document.getElementById('wsFirstTargetDone');
             if(done) done.onclick = function(){
@@ -25339,7 +25398,7 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
         let k = false, l = false, r = false;
         const states = { knowledge: [], listening: [], reading: [], production: [] };
         for(const e of evs){
-            if(e.layer === 'knowledge'){ if(e.correct === true) k = true; else if(e.correct === false && e.manual) k = false; }
+            if(e.layer === 'knowledge'){ if(e.correct === true) k = true; }
             else if(e.layer === 'listening'){ if(e.correct === true){ k = true; l = true; } }
             else if(e.layer === 'reading'){ if(e.correct === true){ k = true; r = true; } }
             else if(e.layer === 'production'){
@@ -25530,19 +25589,6 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
         }catch(e){}
     }
     window._wsShowUpdatesModal = wsShowUpdatesModal;
-    window._wsManualLayer = function(word, layer, correct){
-        const dimMap = { knowledge: '', listening: '', reading: '' };
-        if(layer === 'production') return;
-        wsRecord(word, layer, { source: 'manual', dim: dimMap[layer] || '', correct: !!correct, manual: true });
-        renderWordCard(word);
-        try{ renderWsSummary(); }catch(_){}
-        showToast(t('ws.manual_recorded'));
-    };
-    window._wsSaveNote = function(word){
-        const card = wsGetCard(word);
-        const ta = document.getElementById('wsNoteInput');
-        if(card && ta){ card.note = ta.value; wsSave(); showToast(t('ws.note_saved')); }
-    };
 
     // ========== 词语练习模块事件绑定 ==========
     document.getElementById('modeTabWordLab').onclick = function(){ switchMode('wordlab'); };
@@ -25563,8 +25609,6 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
     };
     const _wmf = document.getElementById('writingModeFreeBtn');
     if(_wmf) _wmf.onclick = function(){ setWritingMode('free'); };
-    const _wmq = document.getElementById('writingModeForcedBtn');
-    if(_wmq) _wmq.onclick = function(){ setWritingMode('forced'); };
     const _wms = document.getElementById('writingModeSentenceBtn');
     if(_wms) _wms.onclick = function(){ setWritingMode('sentence'); };
     loadWordPinyinCache();
