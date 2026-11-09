@@ -30,6 +30,9 @@ fi
 cd /opt/hsk-helper
 sudo git pull origin master
 
+echo "===== 3.5/6 安装服务器依赖 ====="
+sudo npm install --omit=dev
+
 echo "===== 4/6 填写密钥（只需要这一次，存在服务器上） ====="
 printf "请粘贴 DeepSeek API Key 后回车: "
 read -r DEEPSEEK_KEY
