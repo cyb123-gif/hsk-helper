@@ -18742,7 +18742,6 @@ ${searchRule}
                 const prev = userInput.value.trim();
                 userInput.value = prev ? prev + '，' + text : text;
                 userInput.focus();
-                showToast('✅ 识别：' + text);
                 outcomeNote = '✅ 识别成功';
             } else {
                 const info = window._lastTencentAudioInfo || {};
@@ -19110,14 +19109,11 @@ ${searchRule}
             return;
         }catch(e){}
         if(myChatToken !== chatTtsToken) return;
-        // 2) 北语 TTS
+        // 2) 北语 TTS（直接用 <audio> 播放，不 fetch，绕开 CORS——微信/QQ 内置浏览器也能出声）
         try{
-            const resp = await fetch(dictationTtsBase() + '?text=' + encodeURIComponent(clean) + '&speed=5&voice=1');
-            const ct = resp.headers.get('content-type') || '';
-            if(!resp.ok || !/audio|mpeg|wav|mp3/i.test(ct)) throw new Error('tts unavailable');
-            const blob = await resp.blob();
+            const url = dictationTtsBase() + '?text=' + encodeURIComponent(clean) + '&speed=5&voice=1';
             if(myChatToken !== chatTtsToken) return;
-            playChatTtsUrl(URL.createObjectURL(blob), true);
+            playChatTtsUrl(url, false);
             return;
         }catch(e){}
         if(myChatToken !== chatTtsToken) return;
@@ -22503,7 +22499,7 @@ renderVocabLevelProgress(); renderVocabTrackList(); const _userHanzi = sessionUs
     }
     function speakChinese(text, retry, voicePref){
         const edgeOk = ('WebSocket' in window);
-        if(!edgeOk && !('speechSynthesis' in window)){ practiceIsSpeaking=false; currentSpeakingText=''; showToast(t('toast.no_speech_support')); return; }
+        if(!edgeOk && !('speechSynthesis' in window)){ practiceIsSpeaking=false; currentSpeakingText=''; showToast(t('toast.no_speech_support') + (/MicroMessenger/i.test(navigator.userAgent) ? '｜微信内置浏览器没有语音引擎，请点右上角 ⋯ 用系统浏览器（Chrome/Edge/Safari）打开' : '')); return; }
         if(practiceAutoSpeakTimer){ clearTimeout(practiceAutoSpeakTimer); practiceAutoSpeakTimer=null; }
         const rawText = stripEmojiForSpeech(text);
         const cleanText = normalizeErhuaForTts(rawText);   // 浏览器语音不认儿化，Edge 用保留儿化的原文
@@ -22527,9 +22523,9 @@ renderVocabLevelProgress(); renderVocabTrackList(); const _userHanzi = sessionUs
     }
     // 浏览器自带语音合成（Edge TTS 失败时的兜底）
     function speakWithBrowser(cleanText, retry, voicePref, myToken){
-        if(!('speechSynthesis' in window)){ practiceIsSpeaking=false; currentSpeakingText=''; showToast(t('toast.no_speech_support')); return; }
+        if(!('speechSynthesis' in window)){ practiceIsSpeaking=false; currentSpeakingText=''; showToast(t('toast.no_speech_support') + (/MicroMessenger/i.test(navigator.userAgent) ? '｜微信内置浏览器没有语音引擎，请点右上角 ⋯ 用系统浏览器（Chrome/Edge/Safari）打开' : '')); return; }
         const synth = window.speechSynthesis;
-        if(!synth){ practiceIsSpeaking=false; currentSpeakingText=''; showToast(t('toast.no_speech_support')); return; }
+        if(!synth){ practiceIsSpeaking=false; currentSpeakingText=''; showToast(t('toast.no_speech_support') + (/MicroMessenger/i.test(navigator.userAgent) ? '｜微信内置浏览器没有语音引擎，请点右上角 ⋯ 用系统浏览器（Chrome/Edge/Safari）打开' : '')); return; }
         if(myToken !== speechToken) return;
         const utter=new SpeechSynthesisUtterance(cleanText);
         utter.lang='zh-CN';
