@@ -21479,22 +21479,26 @@ renderVocabLevelProgress(); renderVocabTrackList(); const _userHanzi = sessionUs
 
     // ========== AI 外教 2D 数字人（pixi-live2d-display + shizuku 模型，国内镜像兜底） ==========
     const LIVE2D_SCRIPT_URLS = [
-        // [PixiJS v6]（pixi-live2d-display 0.4.0 只兼容 v6）；gcore 是 jsdelivr 国内可访问镜像
-        ['https://gcore.jsdelivr.net/npm/pixi.js@6.5.10/dist/browser/pixi.min.js',
+        // [PixiJS v6]（pixi-live2d-display 0.4.0 只兼容 v6）；优先用本站自带的文件，不依赖第三方 CDN
+        ['vendor/pixi.min.js',
+         'https://gcore.jsdelivr.net/npm/pixi.js@6.5.10/dist/browser/pixi.min.js',
          'https://cdn.jsdelivr.net/npm/pixi.js@6.5.10/dist/browser/pixi.min.js',
          'https://registry.npmmirror.com/pixi.js/6.5.10/files/dist/browser/pixi.min.js',
          'https://unpkg.com/pixi.js@6.5.10/dist/browser/pixi.min.js'],
         // [Cubism 2.1 核心]
-        ['https://gcore.jsdelivr.net/gh/dylanNew/live2d/webgl/Live2D/lib/live2d.min.js',
+        ['vendor/live2d.min.js',
+         'https://gcore.jsdelivr.net/gh/dylanNew/live2d/webgl/Live2D/lib/live2d.min.js',
          'https://cdn.jsdelivr.net/gh/dylanNew/live2d/webgl/Live2D/lib/live2d.min.js',
          'https://fastly.jsdelivr.net/gh/dylanNew/live2d/webgl/Live2D/lib/live2d.min.js'],
         // [pixi-live2d-display cubism2 打包]
-        ['https://gcore.jsdelivr.net/npm/pixi-live2d-display@0.4.0/dist/cubism2.min.js',
+        ['vendor/cubism2.min.js',
+         'https://gcore.jsdelivr.net/npm/pixi-live2d-display@0.4.0/dist/cubism2.min.js',
          'https://cdn.jsdelivr.net/npm/pixi-live2d-display@0.4.0/dist/cubism2.min.js',
          'https://unpkg.com/pixi-live2d-display@0.4.0/dist/cubism2.min.js',
          'https://fastly.jsdelivr.net/npm/pixi-live2d-display@0.4.0/dist/cubism2.min.js']
     ];
     const LIVE2D_MODEL_URLS = [
+        'live2d/shizuku/shizuku.model.json',
         'https://gcore.jsdelivr.net/gh/guansss/pixi-live2d-display@master/test/assets/shizuku/shizuku.model.json',
         'https://cdn.jsdelivr.net/gh/guansss/pixi-live2d-display@master/test/assets/shizuku/shizuku.model.json',
         'https://fastly.jsdelivr.net/gh/guansss/pixi-live2d-display@master/test/assets/shizuku/shizuku.model.json',
