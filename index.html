@@ -21535,6 +21535,29 @@ renderVocabLevelProgress(); renderVocabTrackList(); const _userHanzi = sessionUs
             tryNext();
         });
     }
+    function loadLibByFetchEval(urls){
+        // 救援通道：fetch 文本后 eval 执行（兼容限制动态 <script> 的浏览器，如 QQ 浏览器部分版本）
+        return (async function(){
+            let lastErr = null;
+            for(const u of urls){
+                try{
+                    let signal, timer;
+                    if(typeof AbortController !== 'undefined'){
+                        const ctrl = new AbortController();
+                        signal = ctrl.signal;
+                        timer = setTimeout(function(){ ctrl.abort(); }, 6000);
+                    }
+                    const r = await fetch(u, { cache: 'no-cache', signal: signal });
+                    if(timer) clearTimeout(timer);
+                    if(!r.ok) continue;
+                    const code = await r.text();
+                    (0, eval)(code);   // 间接 eval：在全局作用域执行，等同 <script> 加载
+                    return true;
+                }catch(e){ lastErr = e; }
+            }
+            throw lastErr || new Error('fetch-eval 失败');
+        })();
+    }
     let live2dApp = null, live2dModelRef = null, live2dInitPromise = null;
     async function initLive2DTeacher(){
         if(live2dInitPromise) return live2dInitPromise;
@@ -21551,20 +21574,21 @@ renderVocabLevelProgress(); renderVocabTrackList(); const _userHanzi = sessionUs
             live2dModelRef = null; window._live2dModel = null;
             stage.querySelectorAll('canvas').forEach(function(c){ c.remove(); });
             live2dSetStatus('⏳ 数字人加载中…');
-            if(!window.PIXI){
-                for(const urls of LIVE2D_SCRIPT_URLS){
-                    try{ await loadScriptSeq(urls); break; }catch(e){}
-                }
+            // 依次加载三组依赖：Pixi → Live2D 核心 → Live2DModel 插件。
+            // 每组先试动态 <script>，失败再用 fetch+eval 救援（兼容 QQ 浏览器等对动态脚本的限制）。
+            const live2dNeedGroups = [
+                [function(){ return !window.PIXI; }, LIVE2D_SCRIPT_URLS[0]],
+                [function(){ return !window.Live2D; }, LIVE2D_SCRIPT_URLS[1]],
+                [function(){ return !window.Live2DModel; }, LIVE2D_SCRIPT_URLS[2]]
+            ];
+            for(const item of live2dNeedGroups){
+                if(!item[0]()) continue;
+                try{ await loadScriptSeq(item[1]); }catch(e){}
+                if(item[0]()){ try{ await loadLibByFetchEval(item[1]); }catch(e){} }
             }
-            if(!window.PIXI || !window.Live2DModel){
-                // 诊断：报告本地文件状态和当前页面地址，方便定位是缓存、代理还是网络问题
-                let detail = '本页 ' + location.host + location.pathname + '｜本地 vendor 文件：';
-                try{
-                    const r = await fetch('vendor/pixi.min.js?v=20261109', { method: 'GET' });
-                    detail += 'HTTP ' + r.status;
-                }catch(e){ detail += '请求失败（' + String((e && e.message) || e) + '）'; }
-                detail += '｜CDN 均被网络屏蔽';
-                live2dSetStatus('⚠️ 数字人加载失败｜' + detail + '｜请确认从 https://cyb123-gif.github.io/hsk-helper/ 打开（点击重试）');
+            if(!window.PIXI || !window.Live2D || !window.Live2DModel){
+                const l2dDetail = 'PIXI:' + !!window.PIXI + '｜Live2D核心:' + !!window.Live2D + '｜Live2DModel:' + !!window.Live2DModel + '｜本页 ' + location.host;
+                live2dSetStatus('⚠️ 数字人加载失败｜' + l2dDetail + '｜请点击此处重试');
                 return;
             }
             let modelUrl = null;
