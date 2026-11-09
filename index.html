@@ -815,7 +815,6 @@
                 <button id="voiceBtn" class="voice-btn" type="button" title="🎤 语音输入">🎤</button>
             </div>
             <div id="voiceInputHint" class="voice-input-hint">🎤 点击麦克风开始语音输入</div>
-            <div id="voiceDebugInfo" class="small-note" style="display:none;margin-top:4px;word-break:break-all;background:#0f172a;color:#7dd3fc;padding:6px 8px;border-radius:6px;font-size:0.78rem;line-height:1.5;"></div>
             <div class="button-group">
                 <button id="sendBtn">发送</button>
                 <button id="endConversationBtn">结束对话</button>
@@ -18679,23 +18678,8 @@ ${searchRule}
     function updateTencentDebugPanel(rawBlob, note){
         const dbg = document.getElementById('voiceDebugInfo');
         if(!dbg) return;
-        if(note === '✅ 识别成功'){
-            // 成功时自动隐藏调试面板
-            dbg.style.display = 'none';
-            dbg.innerHTML = '';
-            return;
-        }
-        const info = window._lastTencentAudioInfo || {};
-        let html = '🎤 录音 ' + (info.dur ? info.dur.toFixed(1) : '?') + ' 秒｜音量峰值 ' + Math.round((info.peak || 0) * 100) + '%';
-        if(note) html += '｜' + note;
-        html += '<br>服务器最后返回：' + escapeHtml(String(window._lastTencentAsrMsg || '（无）')).slice(0, 400);
-        if(rawBlob){
-            try{ if(tencentLastPlaybackUrl) URL.revokeObjectURL(tencentLastPlaybackUrl); }catch(e){}
-            tencentLastPlaybackUrl = URL.createObjectURL(rawBlob);
-            html += '<br><audio controls="controls" src="' + tencentLastPlaybackUrl + '" style="width:100%;margin-top:4px;"></audio>';
-        }
-        dbg.style.display = 'block';
-        dbg.innerHTML = html;
+        dbg.style.display = 'none';
+        dbg.innerHTML = '';
     }
     async function transcribeTencentRecording(){
         const hint = document.getElementById('voiceInputHint');
@@ -18725,6 +18709,15 @@ ${searchRule}
             for(let i = 0; i < floats.length; i++){ const a = Math.abs(floats[i]); if(a > peak) peak = a; }
             if(peak < 0.001) throw new Error('录音没有声音：请检查麦克风是否被占用或静音、系统输入设备是否选对，说话时靠近麦克风再试一次');
             if(peak < 0.12){ const gain = Math.min(20, 0.12 / peak); for(let i = 0; i < floats.length; i++) floats[i] *= gain; }
+            // 去掉首尾静音（保留 200ms 余量），缩短发送与识别时间
+            const trimThr = Math.max(0.005, peak * 0.02);
+            let tS = 0, tE = floats.length - 1;
+            while(tS < floats.length && Math.abs(floats[tS]) < trimThr) tS++;
+            while(tE > tS && Math.abs(floats[tE]) < trimThr) tE--;
+            const padS = Math.min(tS, Math.round(0.2 * 16000));
+            const padE = Math.min(floats.length - 1 - tE, Math.round(0.2 * 16000));
+            tS -= padS; tE += padE;
+            if(tE > tS) floats = floats.slice(tS, tE + 1);
             window._lastTencentAudioInfo = { dur: floats.length / 16000, peak: Math.min(1, peak) };
             // float → 16bit 小端 PCM
             const pcm = new Uint8Array(floats.length * 2);
@@ -18733,8 +18726,6 @@ ${searchRule}
                 const s = Math.max(-1, Math.min(1, floats[i]));
                 dv.setInt16(i * 2, s < 0 ? Math.round(s * 0x8000) : Math.round(s * 0x7FFF), true);
             }
-            // 供回放调试用的 WAV
-            wavBlobForDebug = encodeWav16kFromFloats(floats);
             const keys = tencentAsrKeys();
             if(!keys) throw new Error('缺少腾讯云密钥');
             const text = await tencentAsrRecognize(pcm, keys);
@@ -18831,7 +18822,7 @@ ${searchRule}
                         }
                         try{ ws.send(pcmU8.subarray(off, Math.min(off + step, pcmU8.length))); }catch(e){}
                         off += step;
-                    }, 40);
+                    }, 20); // 2 倍实时率，加快识别速度
                 }
                 ws.onopen = function(){
                     // 等服务器的握手成功消息（code=0）再发音频；1.5 秒没等到就直接发
@@ -19072,6 +19063,7 @@ ${searchRule}
             try{ old.onended=null; old.onerror=null; old.pause(); old.src=''; }catch(e){}
         }
         const audio = new Audio(url);
+        try{ audio.referrerPolicy = 'no-referrer'; }catch(e){}
         chatTtsAudio = audio;
         audio.onended = function(){
             chatTtsAudio = null; chatTtsText = '';
