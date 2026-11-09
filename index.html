@@ -221,6 +221,10 @@
         .whisper-progress-track { height: 12px; background: #e2e8f0; border-radius: 12px; overflow: hidden; }
         .whisper-progress-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #1e2b5e, #3b82f6); border-radius: 12px; transition: width .25s; }
         .whisper-progress-text { margin-top: 8px; font-size: 0.8rem; color: #64748b; }
+        /* AI 外教 2D 数字人 */
+        .live2d-stage { height: 250px; display: flex; align-items: center; justify-content: center; background: linear-gradient(180deg, #eef2ff 0%, #f8fafc 100%); overflow: hidden; position: relative; flex-shrink: 0; }
+        .live2d-stage canvas { display: block; }
+        .live2d-fallback { font-size: 92px; opacity: .45; pointer-events: none; }
         .browser-tabs { display: flex; gap: 0; padding: 0 8px; background: transparent; }
         .browser-tab { padding: 7px 14px; border: 1px solid #d0dae8; border-bottom: none; background: #e8ecf2; cursor: pointer; font-size: 0.75rem; font-weight: 600; color: #64748b; border-radius: 8px 8px 0 0; margin-right: -1px; position: relative; z-index: 0; transition: 0.15s; }
         .browser-tab:hover { background: #dce3ed; color: #334155; }
@@ -748,6 +752,9 @@
             <h2>🤖 汉语学习助手</h2>
             <p><span id="headerUsername" class="user-welcome"></span><span id="usageTimer" style="margin-left:12px;opacity:0.8;font-size:0.82rem;"></span><button id="chatHistoryBtn" style="margin-left:12px;background:rgba(255,255,255,0.2);color:#fff;border:1px solid rgba(255,255,255,0.4);border-radius:12px;padding:2px 10px;cursor:pointer;font-size:0.75rem;">📜 历史</button><span class="target-level-wrap" title="练习前选择目标 HSK 等级"><span id="targetLevelLabel">🎯 目标 HSK 等级</span><select id="targetLevelSelect"></select></span></p>
         </div>
+        <div id="live2dStage" class="live2d-stage" title="AI 外教">
+            <div class="live2d-fallback" id="live2dFallback">👩‍🏫</div>
+        </div>
         <div class="mode-tabs" id="modeTabs">
             <button class="mode-tab active" data-group="knowledge" id="modeTabKnowledge">🎯 知识练习</button>
             <button class="mode-tab" data-group="usage" id="modeTabUsage">✍️ 用法练习</button>
@@ -797,12 +804,8 @@
                     </select>
                     <span id="chatVoiceHint" style="font-size:0.7rem;color:#94a3b8;"></span>
                 </label>
-                <label style="display:flex;align-items:center;gap:6px;color:#475569;" title="语音输入引擎：在线=浏览器云端识别；本地 Whisper=完全在本地识别（首次需下载模型）">
-                    <span>🎤 语音输入</span>
-                    <select id="voiceInputEngineSelect" style="padding:3px 10px;border-radius:12px;border:1.5px solid #d0dae8;font-size:0.8rem;outline:none;background:white;">
-                        <option value="online">在线（浏览器）</option>
-                        <option value="whisper">本地 Whisper</option>
-                    </select>
+                <label style="display:flex;align-items:center;gap:6px;color:#475569;" title="语音输入使用腾讯云实时语音识别（免费额度），需在右侧「腾讯云语音识别」填写密钥">
+                    <span>🎤 语音输入：腾讯云</span>
                 </label>
             </div>
             <div class="input-group">
@@ -1152,6 +1155,11 @@
             <div class="stat-title"><span>📚 API 设置</span><span class="level-badge">🔑</span></div>
             <input type="password" class="api-key-input" id="apiKeyInput" placeholder="请输入老师提供的 DeepSeek API Key" value="" autocomplete="off">
             <div class="small-note" id="apiKeyStatus">🔑 请输入老师提供的 DeepSeek API Key（不会保存，每次打开页面重新输入）。</div>
+            <div class="stat-title" style="margin-top:10px;"><span>🎤 腾讯云语音识别（可选）</span></div>
+            <input type="text" class="api-key-input" id="tencentSecretId" placeholder="腾讯云 SecretId" value="" autocomplete="off" style="margin-bottom:8px;">
+            <input type="password" class="api-key-input" id="tencentSecretKey" placeholder="腾讯云 SecretKey" value="" autocomplete="off" style="margin-bottom:8px;">
+            <input type="text" class="api-key-input" id="tencentAppId" placeholder="腾讯云 AppID（数字）" value="" autocomplete="off" style="margin-bottom:8px;">
+            <div class="small-note">🎤 在腾讯云开通「语音识别」后，从控制台获取以上三项（有免费额度）。仅保存在你自己的浏览器本地；不填则麦克风按钮会提示先填写密钥。</div>
             <div class="stat-title"><span>📊 语法点明细 (点击查看明细)</span></div>
             <div class="progress-grid" id="levelProgress"></div>
         </div>
@@ -14035,6 +14043,7 @@ const HSK2_VOCAB = [
     }
     function stopDictationAudio(){
         dictationPlayToken++;
+        stopLive2DMouth();
         if(dictationSource){ try{ dictationSource.onended = null; dictationSource.onerror = null; dictationSource.pause(); dictationSource.src = ''; }catch(e){} dictationSource = null; }
         const st = dictationEl('dictationAudioStatus'); if(st) st.textContent = '';
     }
@@ -14061,8 +14070,9 @@ const HSK2_VOCAB = [
             if(myPlayToken !== dictationPlayToken) return;
             const audio = new Audio(url);
             dictationSource = audio;
-            audio.onended = () => { dictationSource = null; if(status) status.textContent = t('dictation.stopped'); };
-            audio.onerror = () => { dictationSource = null; if(myPlayToken === dictationPlayToken) speakWithBrowser(browserText, undefined, voicePref, speechToken); if(status) status.textContent = t('dictation.stopped'); };
+            audio.onended = () => { dictationSource = null; stopLive2DMouth(); if(status) status.textContent = t('dictation.stopped'); };
+            audio.onerror = () => { dictationSource = null; stopLive2DMouth(); if(myPlayToken === dictationPlayToken) speakWithBrowser(browserText, undefined, voicePref, speechToken); if(status) status.textContent = t('dictation.stopped'); };
+            startLive2DMouth();
             audio.play();
             return;
         }catch(e){}
@@ -14082,8 +14092,9 @@ const HSK2_VOCAB = [
             if(myPlayToken !== dictationPlayToken) return;
             const audio = new Audio(url);
             dictationSource = audio;
-            audio.onended = () => { dictationSource = null; if(status) status.textContent = t('dictation.stopped'); };
-            audio.onerror = () => { dictationSource = null; if(myPlayToken === dictationPlayToken) speakWithBrowser(browserText, undefined, voicePref, speechToken); if(status) status.textContent = t('dictation.stopped'); };
+            audio.onended = () => { dictationSource = null; stopLive2DMouth(); if(status) status.textContent = t('dictation.stopped'); };
+            audio.onerror = () => { dictationSource = null; stopLive2DMouth(); if(myPlayToken === dictationPlayToken) speakWithBrowser(browserText, undefined, voicePref, speechToken); if(status) status.textContent = t('dictation.stopped'); };
+            startLive2DMouth();
             audio.play();
         }catch(e){
             // 网络/接口不可用时退回浏览器自带中文语音合成
@@ -18354,189 +18365,233 @@ ${searchRule}
     }
 
     // ========== 语音输入（桌面端实时识别 + 移动端键盘麦克风引导） ==========
-    let voiceRecognition = null, voiceIsSupported = false, voiceIsRecording = false;
-    let voiceInputEngine = 'online';
-    try{ const _vie = localStorage.getItem('VOICE_INPUT_ENGINE'); if(_vie === 'whisper' || _vie === 'online') voiceInputEngine = _vie; }catch(e){}
+    // ========== 语音输入：腾讯云实时语音识别（手动输入密钥，WebSocket 直连） ==========
+    let voiceRecognition = null, voiceIsRecording = false;
 
     function updateVoiceHint() {
         const hintEl = document.getElementById('voiceInputHint');
         if (!hintEl) return;
-        if (voiceInputEngine === 'whisper') {
-            hintEl.textContent = whisperWorkerReady
-                ? '🎤 本地 Whisper：点击麦克风开始录音，再点一次停止并识别（离线可用）'
-                : '🎤 本地 Whisper：点击麦克风开始录音（首次使用需下载模型，约 40MB）';
-            return;
-        }
-        const isIOS2 = /iPhone|iPad|iPod/i.test(navigator.userAgent);
-        const isAndroid = /Android/i.test(navigator.userAgent);
-        if (!voiceIsSupported) {
-            hintEl.textContent = (isIOS2 || isAndroid) ? t('chat.voice_hint_keyboard') : t('chat.voice_hint_desktop_bad');
-        } else {
-            hintEl.textContent = t('chat.voice_hint_desktop_ok');
-        }
+        hintEl.textContent = '🎤 点击麦克风说话（腾讯云识别），再点一次停止并识别。需先在右侧填写腾讯云 SecretId/SecretKey/AppID';
     }
 
     function initVoiceRecognition() {
         if(!voiceBtn) return;
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        voiceIsSupported = !!SpeechRecognition;
         voiceBtn.classList.remove('unsupported');
         voiceBtn.onclick = toggleVoiceRecording;
-        const engineSel = document.getElementById('voiceInputEngineSelect');
-        if(engineSel){
-            engineSel.value = voiceInputEngine;
-            engineSel.addEventListener('change', function(){
-                voiceInputEngine = engineSel.value;
-                try{ localStorage.setItem('VOICE_INPUT_ENGINE', voiceInputEngine); }catch(e){}
-                // 引擎切换时把两套录音都停掉，避免旧引擎的录音残留
-                stopVoiceRecognitionInstance();
-                stopWhisperRecording(true);
-                updateVoiceHint();
-                showToast(voiceInputEngine === 'whisper' ? '🎤 已切换：本地 Whisper（离线识别）' : '🎤 已切换：在线语音识别（浏览器）');
-            });
-        }
         updateVoiceHint();
     }
 
     function toggleVoiceRecording() {
         if (voiceIsRecording) {
-            stopVoiceRecording();
-            return;
-        }
-        if (voiceInputEngine === 'whisper') {
-            startWhisperRecording();
-            return;
-        }
-        if (voiceIsSupported) {
-            startVoiceRecording();
+            stopTencentRecording();
         } else {
-            // 在线识别不可用：如果浏览器支持录音（MediaRecorder），自动切到本地 Whisper
-            const whisperCapable = typeof MediaRecorder !== 'undefined' && navigator.mediaDevices && navigator.mediaDevices.getUserMedia;
-            if(whisperCapable){
-                voiceInputEngine = 'whisper';
-                const sel = document.getElementById('voiceInputEngineSelect');
-                if(sel) sel.value = 'whisper';
-                try{ localStorage.setItem('VOICE_INPUT_ENGINE', 'whisper'); }catch(e){}
-                updateVoiceHint();
-                showToast('当前浏览器不支持在线语音识别，已自动切换为本地 Whisper');
-                startWhisperRecording();
-                return;
-            }
-            if(/MicroMessenger/i.test(navigator.userAgent)) showToast('微信内置浏览器不支持语音输入，请用手机自带的 Chrome/Edge/Safari 浏览器打开本页');
-            else {
-                const isIOS2 = /iPhone|iPad|iPod/i.test(navigator.userAgent);
-                const isAndroid = /Android/i.test(navigator.userAgent);
-                if (isIOS2) showToast(t('chat.voice_hint_keyboard'));
-                else if (isAndroid) showToast(t('chat.voice_android'));
-                else showToast(t('chat.voice_desktop_unsupported'));
-            }
+            startTencentRecording();
         }
     }
 
-    function startVoiceRecording() {
-        if (voiceIsRecording) return;
-        if (voiceRecognition) {
-            try { voiceRecognition.abort(); } catch(_) {}
-            voiceRecognition.onresult = null;
-            voiceRecognition.onerror = null;
-            voiceRecognition.onend = null;
-            voiceRecognition = null;
+    // ===== 腾讯云密钥（保存在本机浏览器 localStorage） =====
+    function tencentAsrInputs(){
+        return {
+            idEl: document.getElementById('tencentSecretId'),
+            keyEl: document.getElementById('tencentSecretKey'),
+            appEl: document.getElementById('tencentAppId')
+        };
+    }
+    function loadTencentAsrKeys(){
+        try{
+            const el = tencentAsrInputs();
+            if(el.idEl) el.idEl.value = localStorage.getItem('TENCENT_ASR_SECRET_ID') || '';
+            if(el.keyEl) el.keyEl.value = localStorage.getItem('TENCENT_ASR_SECRET_KEY') || '';
+            if(el.appEl) el.appEl.value = localStorage.getItem('TENCENT_ASR_APP_ID') || '';
+        }catch(e){}
+    }
+    function saveTencentAsrKeys(){
+        try{
+            const el = tencentAsrInputs();
+            localStorage.setItem('TENCENT_ASR_SECRET_ID', (el.idEl ? el.idEl.value : '').trim());
+            localStorage.setItem('TENCENT_ASR_SECRET_KEY', (el.keyEl ? el.keyEl.value : '').trim());
+            localStorage.setItem('TENCENT_ASR_APP_ID', (el.appEl ? el.appEl.value : '').trim());
+        }catch(e){}
+    }
+    function bindTencentAsrKeyInputs(){
+        const el = tencentAsrInputs();
+        [el.idEl, el.keyEl, el.appEl].forEach(function(inp){
+            if(inp && !inp._tencentBound){ inp._tencentBound = true; inp.addEventListener('change', saveTencentAsrKeys); }
+        });
+    }
+    function tencentAsrKeys(){
+        const el = tencentAsrInputs();
+        const secretId = (el.idEl ? el.idEl.value : '').trim();
+        const secretKey = (el.keyEl ? el.keyEl.value : '').trim();
+        const appId = (el.appEl ? el.appEl.value : '').trim();
+        if(!secretId || !secretKey || !appId){
+            showToast('请先在右侧「腾讯云语音识别」填写 SecretId / SecretKey / AppID');
+            return null;
         }
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (!SpeechRecognition) { showToast(t('chat.voice_start_fail')); return; }
-        voiceRecognition = new SpeechRecognition();
-        voiceRecognition.lang = 'zh-CN';
-        voiceRecognition.interimResults = true;
-        voiceRecognition.continuous = true;
-        voiceRecognition.maxAlternatives = 1;
-
-        voiceRecognition.onresult = function(event) {
-            // 收集所有结果（包括 interim 和 final）实时显示
-            let finalText = '', interimText = '';
-            for (let i = event.resultIndex; i < event.results.length; i++) {
-                if (event.results[i].isFinal) {
-                    finalText += event.results[i][0].transcript;
-                } else {
-                    interimText += event.results[i][0].transcript;
-                }
-            }
-            const prev = userInput.value.trim();
-            const displayText = (prev ? prev + '，' : '') + finalText + (interimText ? ' …' + interimText + '…' : '');
-            userInput.value = displayText;
-            userInput.focus();
-            // 有最终结果时更新已确认文本
-            if (finalText) {
-                userInput.value = (prev ? prev + '，' : '') + finalText;
-            }
-        };
-
-        voiceRecognition.onerror = function(event) {
-            const wasRecording = voiceIsRecording;
-            stopVoiceRecognitionInstance();
-            switch(event.error) {
-                case 'not-allowed':
-                    showToast(t('chat.voice_denied'));
-                    break;
-                case 'no-speech':
-                    if (wasRecording) showToast(t('chat.voice_no_speech'));
-                    break;
-                case 'audio-capture':
-                    showToast(t('chat.voice_no_mic'));
-                    break;
-                case 'network':
-                    showToast(t('chat.voice_network'));
-                    break;
-                case 'aborted':
-                    break;
-                default:
-                    if (wasRecording) showToast(t('chat.voice_error'));
-            }
-        };
-
-        voiceRecognition.onend = function() {
-            stopVoiceRecognitionInstance();
-        };
-
-        try {
-            voiceRecognition.start();
-            voiceIsRecording = true;
-            voiceBtn.classList.add('recording');
-            voiceBtn.textContent = '🔴';
-            voiceBtn.title = t('chat.voice_recording');
-            showToast(t('chat.voice_listening'));
-        } catch(e) {
-            voiceIsRecording = false;
-            showToast(t('chat.voice_start_fail'));
-        }
+        return { secretId: secretId, secretKey: secretKey, appId: appId };
     }
 
-    function stopVoiceRecognitionInstance() {
-        voiceIsRecording = false;
-        if(voiceBtn){ voiceBtn.classList.remove('recording'); voiceBtn.textContent = '🎤'; voiceBtn.title = t('chat.voice_title'); }
-        if (voiceRecognition) {
-            // 清除所有回调，防止异步 onend 误停新的识别实例
-            voiceRecognition.onresult = null;
-            voiceRecognition.onerror = null;
-            voiceRecognition.onend = null;
-            try { voiceRecognition.stop(); } catch(_) {}
-            voiceRecognition = null;
-        }
-    }
-
-    function stopVoiceRecording() {
-        if (voiceInputEngine === 'whisper') {
-            stopWhisperRecording();
+    // ===== 录音 → 16kHz 单声道 PCM → 腾讯云识别 → 填入输入框 =====
+    let tencentRecorder = null;
+    let tencentStream = null;
+    let tencentChunks = [];
+    let tencentAutoStopTimer = null;
+    async function startTencentRecording(){
+        const keys = tencentAsrKeys();
+        if(!keys) return;
+        if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+            if(/MicroMessenger/i.test(navigator.userAgent)) showToast('微信内置浏览器不支持录音，请用手机自带的 Chrome/Edge/Safari 浏览器打开本页');
+            else showToast(t('chat.voice_no_mic'));
             return;
         }
-        stopVoiceRecognitionInstance();
+        if(typeof MediaRecorder === 'undefined'){ showToast('当前浏览器不支持录音，请换 Edge/Chrome 浏览器'); return; }
+        let stream;
+        try{
+            // 8 秒超时保护：有些内置浏览器会卡住权限弹窗，避免点了完全没反应
+            stream = await Promise.race([
+                navigator.mediaDevices.getUserMedia({audio:true}),
+                new Promise(function(_, rej){ setTimeout(function(){ rej(new Error('mic-timeout')); }, 8000); })
+            ]);
+        }catch(e){
+            if(e && e.message === 'mic-timeout') showToast('没有收到麦克风权限响应：请在浏览器设置里允许本网站使用麦克风后重试');
+            else if(e && (e.name === 'NotAllowedError' || e.name === 'SecurityError')) showToast(t('chat.voice_denied') + '（请在浏览器设置里允许麦克风）');
+            else if(e && e.name === 'NotFoundError') showToast(t('chat.voice_no_mic'));
+            else showToast('无法启动麦克风：' + String((e && e.message) || e));
+            return;
+        }
+        let rec;
+        try{ rec = new MediaRecorder(stream); }
+        catch(e){ try{ stream.getTracks().forEach(t => t.stop()); }catch(_){} showToast('当前浏览器不支持录音，请换 Edge/Chrome'); return; }
+        tencentStream = stream;
+        tencentRecorder = rec;
+        tencentChunks = [];
+        rec.ondataavailable = function(ev){ if(ev.data && ev.data.size) tencentChunks.push(ev.data); };
+        rec.onstop = function(){ transcribeTencentRecording(); };
+        try{ rec.start(); }
+        catch(e){
+            releaseTencentMedia();
+            showToast(t('chat.voice_start_fail'));
+            return;
+        }
+        voiceIsRecording = true;
+        if(voiceBtn){ voiceBtn.classList.add('recording'); voiceBtn.textContent = '🔴'; voiceBtn.title = '录音中，点击停止并识别'; }
+        const hint = document.getElementById('voiceInputHint');
+        if(hint) hint.textContent = '🎙️ 正在录音…再点一次 🎤 停止并识别（最长 55 秒）';
+        tencentAutoStopTimer = setTimeout(function(){ if(voiceIsRecording) stopTencentRecording(); }, 55000);
+    }
+    function stopTencentRecording(){
+        if(!tencentRecorder) return;
+        voiceIsRecording = false;
+        if(tencentAutoStopTimer){ clearTimeout(tencentAutoStopTimer); tencentAutoStopTimer = null; }
+        if(voiceBtn){ voiceBtn.classList.remove('recording'); voiceBtn.textContent = '🎤'; voiceBtn.title = '🎤 语音输入'; }
+        try{ if(tencentRecorder.state !== 'inactive') tencentRecorder.stop(); }catch(e){}
+        // 麦克风轨道在 transcribeTencentRecording 处理完后释放
+    }
+    function releaseTencentMedia(){
+        if(tencentAutoStopTimer){ clearTimeout(tencentAutoStopTimer); tencentAutoStopTimer = null; }
+        try{ if(tencentStream) tencentStream.getTracks().forEach(t => t.stop()); }catch(e){}
+        tencentStream = null; tencentRecorder = null; tencentChunks = [];
+    }
+    async function transcribeTencentRecording(){
+        const hint = document.getElementById('voiceInputHint');
+        if(hint) hint.textContent = '⏳ 正在用腾讯云识别…';
+        try{
+            if(!tencentChunks.length) throw new Error('没有录到声音');
+            const mime = (tencentRecorder && tencentRecorder.mimeType) || 'audio/webm';
+            const rawBlob = new Blob(tencentChunks, { type: mime });
+            const wavBlob = await encodeWav16kFromBlob(rawBlob);
+            const wavBuf = new Uint8Array(await wavBlob.arrayBuffer());
+            const pcm = wavBuf.subarray(44); // 去掉 44 字节 WAV 头：16kHz/16bit/单声道 PCM
+            if(!pcm.length) throw new Error('录音数据为空');
+            const keys = tencentAsrKeys();
+            if(!keys) throw new Error('缺少腾讯云密钥');
+            const text = await tencentAsrRecognize(pcm, keys);
+            if(text){
+                const prev = userInput.value.trim();
+                userInput.value = prev ? prev + '，' + text : text;
+                userInput.focus();
+                showToast('✅ 识别：' + text);
+            } else {
+                showToast('未识别到内容，请再试一次（靠近麦克风、说慢一点）');
+            }
+        }catch(e){
+            showToast('腾讯云识别失败：' + String((e && e.message) || e));
+        }finally{
+            releaseTencentMedia();
+            updateVoiceHint();
+        }
     }
 
-    // ========== 本地 Whisper 语音输入（复用听写模式的 whisper-tiny 引擎） ==========
-    let whisperMediaRecorder = null;
-    let whisperMediaStream = null;
-    let whisperMediaChunks = [];
-    function updateWhisperHintText(s){ const h = document.getElementById('voiceInputHint'); if(h) h.textContent = s; }
-    // ===== 本地 Whisper 模型下载进度卡片（语音输入/听写共用） =====
+    // 腾讯云实时语音识别 WebSocket：签名 = Base64(HMAC-SHA1(SecretKey, 排序后的参数字符串))
+    function tencentAsrRecognize(pcmU8, keys){
+        return new Promise(function(resolve, reject){
+            const host = 'asr.cloud.tencent.com';
+            const path = '/asr/v2/' + encodeURIComponent(String(keys.appId));
+            const ts = Math.floor(Date.now() / 1000);
+            const params = {
+                secretid: keys.secretId,
+                timestamp: String(ts),
+                expired: String(ts + 300),
+                nonce: String(Math.floor(Math.random() * 1000000000)),
+                voice_id: 'hsk' + Date.now() + Math.random().toString(36).slice(2, 8),
+                engine_model_type: '16k_zh',
+                voice_format: '1',
+                needvad: '1',
+                filter_dirty: '0',
+                filter_modal: '0',
+                filter_punc: '0',
+                convert_num_mode: '1',
+                word_info: '0'
+            };
+            const sorted = Object.keys(params).sort();
+            const signStr = sorted.map(function(k){ return k + '=' + params[k]; }).join('&');
+            (async function(){
+                let sig;
+                try{
+                    const keyBuf = new TextEncoder().encode(keys.secretKey);
+                    const cryptoKey = await crypto.subtle.importKey('raw', keyBuf, { name:'HMAC', hash:'SHA-1' }, false, ['sign']);
+                    const raw = await crypto.subtle.sign('HMAC', cryptoKey, new TextEncoder().encode(signStr));
+                    const bytes = new Uint8Array(raw);
+                    let bin = '';
+                    for(let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+                    sig = btoa(bin);
+                }catch(e){ reject(new Error('签名失败：' + e.message)); return; }
+                const query = sorted.map(function(k){ return k + '=' + encodeURIComponent(params[k]); }).join('&') + '&signature=' + encodeURIComponent(sig);
+                let ws;
+                try{ ws = new WebSocket('wss://' + host + path + '?' + query); }
+                catch(e){ reject(new Error('连接腾讯云失败')); return; }
+                ws.binaryType = 'arraybuffer';
+                let finalText = '';
+                let finished = false;
+                const timer = setTimeout(function(){ if(!finished){ finished = true; cleanup(); reject(new Error('识别超时，请重试')); } }, 20000);
+                function cleanup(){ clearTimeout(timer); try{ if(ws && (ws.readyState === 0 || ws.readyState === 1)) ws.close(); }catch(e){} }
+                ws.onopen = function(){
+                    try{
+                        const step = 1280; // 每 40ms 一帧
+                        for(let off = 0; off < pcmU8.length; off += step){
+                            ws.send(pcmU8.subarray(off, Math.min(off + step, pcmU8.length)));
+                        }
+                        ws.send('{"type":"end"}');
+                    }catch(e){ if(!finished){ finished = true; cleanup(); reject(new Error('发送音频失败')); } }
+                };
+                ws.onmessage = function(ev){
+                    if(typeof ev.data !== 'string') return;
+                    try{
+                        const d = JSON.parse(ev.data);
+                        if(d && d.code !== 0){ if(!finished){ finished = true; cleanup(); reject(new Error(d.message || ('腾讯云错误码 ' + d.code))); } return; }
+                        if(d && d.final === 1 && d.result && d.result.voice_text_str){
+                            finalText = String(d.result.voice_text_str).trim();
+                            if(!finished){ finished = true; cleanup(); resolve(finalText); }
+                        }
+                    }catch(e){}
+                };
+                ws.onerror = function(){ if(!finished){ finished = true; cleanup(); reject(new Error('腾讯云连接出错')); } };
+                ws.onclose = function(){ if(!finished){ finished = true; if(finalText){ resolve(finalText); } else { reject(new Error('连接已关闭，未收到识别结果')); } } };
+            })();
+        });
+    }
+
+    // ===== 本地 Whisper 模型下载进度卡片（听写模式上传音频仍使用本地 Whisper） =====
     function showWhisperProgress(title, text, pct){
         const el = document.getElementById('whisperProgress');
         if(!el) return;
@@ -18551,66 +18606,6 @@ ${searchRule}
     function hideWhisperProgress(){
         const el = document.getElementById('whisperProgress');
         if(el) el.style.display = 'none';
-    }
-    function releaseWhisperMedia(){
-        try{ if(whisperMediaStream) whisperMediaStream.getTracks().forEach(t => t.stop()); }catch(e){}
-        whisperMediaStream = null; whisperMediaRecorder = null; whisperMediaChunks = [];
-    }
-    async function startWhisperRecording(){
-        if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
-            if(/MicroMessenger/i.test(navigator.userAgent)) showToast('微信内置浏览器不支持录音，请用手机自带的 Chrome/Edge/Safari 浏览器打开本页');
-            else showToast(t('chat.voice_no_mic'));
-            return;
-        }
-        if(typeof MediaRecorder === 'undefined'){
-            showToast('当前浏览器不支持录音（本地 Whisper 需要 MediaRecorder）。请换 Edge/Chrome，或改用「在线」模式');
-            return;
-        }
-        let stream;
-        try{
-            // 8 秒超时保护：有些内置浏览器会卡住权限弹窗，避免点了完全没反应
-            stream = await Promise.race([
-                navigator.mediaDevices.getUserMedia({audio:true}),
-                new Promise(function(_, rej){ setTimeout(function(){ rej(new Error('mic-timeout')); }, 8000); })
-            ]);
-        }
-        catch(e){
-            if(e && e.message === 'mic-timeout') showToast('没有收到麦克风权限响应：请在浏览器设置里允许本网站使用麦克风，然后重试');
-            else if(e && (e.name === 'NotAllowedError' || e.name === 'SecurityError')) showToast(t('chat.voice_denied') + '（请在浏览器设置里允许麦克风）');
-            else if(e && e.name === 'NotFoundError') showToast(t('chat.voice_no_mic'));
-            else showToast('无法启动麦克风：' + String((e && e.message) || e));
-            return;
-        }
-        let rec;
-        try{ rec = new MediaRecorder(stream); }
-        catch(e){ try{ stream.getTracks().forEach(t => t.stop()); }catch(_){} showToast('当前浏览器不支持录音（本地 Whisper 需要 MediaRecorder，建议用 Edge/Chrome）'); return; }
-        whisperMediaStream = stream;
-        whisperMediaRecorder = rec;
-        whisperMediaChunks = [];
-        rec.ondataavailable = function(ev){ if(ev.data && ev.data.size) whisperMediaChunks.push(ev.data); };
-        rec.onstop = function(){ transcribeWhisperRecording(); };
-        try{ rec.start(); }
-        catch(e){
-            releaseWhisperMedia();
-            showToast(t('chat.voice_start_fail'));
-            return;
-        }
-        voiceIsRecording = true;
-        if(voiceBtn){ voiceBtn.classList.add('recording'); voiceBtn.textContent = '🔴'; voiceBtn.title = '录音中，点击停止并识别'; }
-        updateWhisperHintText('🎙️ 正在录音（本地 Whisper）…再点一次 🎤 停止并识别');
-    }
-    function stopWhisperRecording(abandon){
-        if(!whisperMediaRecorder) return;
-        voiceIsRecording = false;
-        if(voiceBtn){ voiceBtn.classList.remove('recording'); voiceBtn.textContent = '🎤'; voiceBtn.title = '🎤 语音输入'; }
-        if(abandon){
-            // 切换引擎/放弃本次录音：不触发识别
-            try{ whisperMediaRecorder.onstop = null; }catch(e){}
-            whisperMediaChunks = [];
-        }
-        try{ if(whisperMediaRecorder.state !== 'inactive') whisperMediaRecorder.stop(); }catch(e){}
-        if(abandon) releaseWhisperMedia();
-        // 正常停止时：麦克风轨道在 transcribeWhisperRecording 处理完后释放
     }
     // MediaRecorder 输出（webm/mp4）→ 解码 → 重采样 16kHz 单声道 → 16-bit PCM WAV
     async function encodeWav16kFromBlob(blob){
@@ -18639,51 +18634,11 @@ ${searchRule}
         writeStr(12, 'fmt '); view.setUint32(16, 16, true); view.setUint16(20, 1, true); view.setUint16(22, 1, true);
         view.setUint32(24, targetRate, true); view.setUint32(28, targetRate * 2, true); view.setUint16(32, 2, true); view.setUint16(34, 16, true);
         writeStr(36, 'data'); view.setUint32(40, samples.length * 2, true);
-        let off = 44;
         for(let i = 0; i < samples.length; i++){
             let s = Math.max(-1, Math.min(1, samples[i]));
-            view.setInt16(off, s < 0 ? Math.round(s * 0x8000) : Math.round(s * 0x7FFF), true);
-            off += 2;
+            view.setInt16(44 + i * 2, s < 0 ? Math.round(s * 0x8000) : Math.round(s * 0x7FFF), true);
         }
         return new Blob([view], { type: 'audio/wav' });
-    }
-    async function transcribeWhisperRecording(){
-        updateWhisperHintText('⏳ 正在用本地 Whisper 识别…');
-        let url = null;
-        try{
-            if(!whisperMediaChunks.length) throw new Error('没有录到声音');
-            const mime = (whisperMediaRecorder && whisperMediaRecorder.mimeType) || 'audio/webm';
-            const rawBlob = new Blob(whisperMediaChunks, { type: mime });
-            const wavBlob = await encodeWav16kFromBlob(rawBlob);
-            url = URL.createObjectURL(wavBlob);
-            if(!whisperWorker){
-                updateWhisperHintText('⏳ 首次使用：正在下载本地 Whisper 模型（约 40MB）…');
-                await loadWhisperRecognizer();
-            }
-            if(!whisperWorkerReady){
-                await whisperWorkerLoad(function(p){ updateWhisperHintText('⏳ 正在下载模型 ' + p + '%（下载一次后离线可用）…'); });
-            }
-            const out = await whisperWorkerTranscribe(url);
-            const text = String((out && out.text) || '').replace(/[。！？!?.]+$/, '').trim();
-            if(text){
-                const prev = userInput.value.trim();
-                userInput.value = prev ? prev + '，' + text : text;
-                userInput.focus();
-                showToast('✅ 本地识别：' + text);
-            } else {
-                showToast('未识别到内容，请再试一次');
-            }
-        }catch(e){
-            const msg = String((e && e.message) || e);
-            let hintNet = /failed to fetch|load fail|NetworkError|fetch/i.test(msg) ? '（模型下载需要联网，下载一次后离线可用）' : '';
-            if(/Worker/.test(msg) && /iPhone|iPad|iPod/i.test(navigator.userAgent)) hintNet += '（iPhone 需要 iOS 15 以上，或改用 Chrome/Edge 浏览器）';
-            showToast('本地识别失败：' + msg + hintNet);
-        }finally{
-            releaseWhisperMedia();
-            hideWhisperProgress();
-            try{ if(url) URL.revokeObjectURL(url); }catch(e){}
-            updateVoiceHint();
-        }
     }
     function escapeHtml(s){ return String(s).replace(/[&<>]/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])); }
     function vocabHoverTitle(v){ if(!v) return ''; const m=String(v.m||'').trim(); const e=String(v.e||'').trim(); const s=(m&&e)?(m+' | '+e):(m||e); return escapeHtml(s).replace(/"/g,'&quot;'); }
@@ -18838,12 +18793,15 @@ ${searchRule}
         chatTtsAudio = audio;
         audio.onended = function(){
             chatTtsAudio = null; chatTtsText = '';
+            stopLive2DMouth();
             if(isBlobUrl){ try{ URL.revokeObjectURL(url); }catch(e){} }
         };
         audio.onerror = function(){
             chatTtsAudio = null; chatTtsText = '';
+            stopLive2DMouth();
             if(isBlobUrl){ try{ URL.revokeObjectURL(url); }catch(e){} }
         };
+        startLive2DMouth();
         audio.play();
     }
     async function speakChatTextWithTts(text){
@@ -18854,10 +18812,10 @@ ${searchRule}
             const old = chatTtsAudio;
             chatTtsAudio = null;
             try{ old.onended=null; old.onerror=null; old.pause(); old.src = ''; }catch(e){}
-            if(chatTtsText === clean){ chatTtsText = ''; chatTtsToken++; return; }
+            if(chatTtsText === clean){ chatTtsText = ''; chatTtsToken++; stopLive2DMouth(); return; }
         }
         // 正在请求中再点一次 → 取消
-        if(!chatTtsAudio && chatTtsText === clean){ chatTtsToken++; chatTtsText = ''; return; }
+        if(!chatTtsAudio && chatTtsText === clean){ chatTtsToken++; chatTtsText = ''; stopLive2DMouth(); return; }
         chatTtsText = clean;
         const myChatToken = ++chatTtsToken;
         const chatVoice = getChatEdgeVoice();
@@ -21517,6 +21475,117 @@ renderVocabLevelProgress(); renderVocabTrackList(); const _userHanzi = sessionUs
         }
     }
 
+    // ========== AI 外教 2D 数字人（pixi-live2d-display + shizuku 模型，国内镜像兜底） ==========
+    const LIVE2D_SCRIPT_URLS = [
+        // [PixiJS v6]（pixi-live2d-display 0.4.0 只兼容 v6）
+        ['https://cdn.jsdelivr.net/npm/pixi.js@6.5.10/dist/browser/pixi.min.js',
+         'https://registry.npmmirror.com/pixi.js/6.5.10/files/dist/browser/pixi.min.js',
+         'https://unpkg.com/pixi.js@6.5.10/dist/browser/pixi.min.js'],
+        // [Cubism 2.1 核心]
+        ['https://cdn.jsdelivr.net/gh/dylanNew/live2d/webgl/Live2D/lib/live2d.min.js',
+         'https://fastly.jsdelivr.net/gh/dylanNew/live2d/webgl/Live2D/lib/live2d.min.js'],
+        // [pixi-live2d-display cubism2 打包]
+        ['https://unpkg.com/pixi-live2d-display@0.4.0/dist/cubism2.min.js',
+         'https://cdn.jsdelivr.net/npm/pixi-live2d-display@0.4.0/dist/cubism2.min.js',
+         'https://fastly.jsdelivr.net/npm/pixi-live2d-display@0.4.0/dist/cubism2.min.js']
+    ];
+    const LIVE2D_MODEL_URLS = [
+        'https://cdn.jsdelivr.net/gh/guansss/pixi-live2d-display@master/test/assets/shizuku/shizuku.model.json',
+        'https://fastly.jsdelivr.net/gh/guansss/pixi-live2d-display@master/test/assets/shizuku/shizuku.model.json'
+    ];
+    function loadScriptSeq(urls){
+        return new Promise(function(resolve, reject){
+            let i = 0;
+            const tryNext = function(){
+                if(i >= urls.length){ reject(new Error('CDN 加载失败')); return; }
+                const s = document.createElement('script');
+                s.src = urls[i++];
+                s.onload = function(){ resolve(); };
+                s.onerror = function(){ s.remove(); tryNext(); };
+                document.head.appendChild(s);
+            };
+            tryNext();
+        });
+    }
+    let live2dApp = null, live2dModelRef = null, live2dInitPromise = null;
+    async function initLive2DTeacher(){
+        if(live2dInitPromise) return live2dInitPromise;
+        live2dInitPromise = (async function(){
+            const stage = document.getElementById('live2dStage');
+            if(!stage) return;
+            if(!window.PIXI){
+                for(const urls of LIVE2D_SCRIPT_URLS){
+                    try{ await loadScriptSeq(urls); break; }catch(e){}
+                }
+            }
+            if(!window.PIXI || !window.Live2DModel){ return; } // 加载失败：保留 👩‍🏫 占位
+            let modelUrl = null;
+            for(const u of LIVE2D_MODEL_URLS){
+                try{
+                    const r = await fetch(u, { method: 'HEAD' });
+                    if(r.ok){ modelUrl = u; break; }
+                }catch(e){}
+            }
+            if(!modelUrl) return;
+            try{
+                live2dApp = new PIXI.Application({ backgroundAlpha: 0, width: stage.clientWidth || 400, height: 250, antialias: true });
+                stage.appendChild(live2dApp.view);
+                const model = await window.Live2DModel.from(modelUrl);
+                model.fit(250, 250, false, { x: 0.5, y: 0.5 });
+                model.x = (stage.clientWidth || 400) / 2;
+                model.y = 130;
+                live2dApp.stage.addChild(model);
+                live2dModelRef = model;
+                window._live2dModel = model;
+                const fb = document.getElementById('live2dFallback');
+                if(fb) fb.style.display = 'none';
+                // 呼吸浮动
+                let t = 0;
+                live2dApp.ticker.add(function(){
+                    t += 0.025;
+                    model.y = 130 + Math.sin(t) * 3;
+                });
+                // 自动待机动作循环（idle_00/01/02：自带眨眼、甩头等）
+                (async function idleLoop(){
+                    while(live2dModelRef === model){
+                        try{
+                            const m = model.motion('idle');
+                            if(m){ await m.play(); }
+                            await new Promise(function(r){ setTimeout(r, 900); });
+                        }catch(e){ await new Promise(function(r){ setTimeout(r, 2000); }); }
+                    }
+                })();
+            }catch(e){
+                console.warn('[live2d] 模型加载失败', e);
+            }
+        })();
+        return live2dInitPromise;
+    }
+    // 嘴型：0=闭嘴，1=最大张嘴（Cubism 2 参数 PARAM_MOUTH_OPEN_Y）
+    window.setLive2DMouth = function(v){
+        try{
+            const m = window._live2dModel;
+            if(!m || !m.internalModel || !m.internalModel.coreModel) return;
+            const core = m.internalModel.coreModel;
+            if(core.setParamFloat) core.setParamFloat('PARAM_MOUTH_OPEN_Y', Math.max(0, Math.min(1, Number(v) || 0)));
+        }catch(e){}
+    };
+    let live2dMouthTimer = null;
+    function startLive2DMouth(){
+        stopLive2DMouth();
+        const t0 = Date.now();
+        live2dMouthTimer = setInterval(function(){
+            const t = (Date.now() - t0) / 1000;
+            // 5~6Hz 节奏 + 随机抖动，模拟说话
+            const v = 0.22 + 0.78 * Math.abs(Math.sin(t * Math.PI * 5.6)) * (0.65 + 0.35 * Math.abs(Math.sin(t * 2.31 + 1.7)));
+            if(window.setLive2DMouth) window.setLive2DMouth(v);
+        }, 100);
+    }
+    function stopLive2DMouth(){
+        if(live2dMouthTimer){ clearInterval(live2dMouthTimer); live2dMouthTimer = null; }
+        if(window.setLive2DMouth) window.setLive2DMouth(0);
+    }
+
     let practiceIsSpeaking=false;
     // ========== 语音朗读 ==========
     // 解锁移动端音频播放（微信等WebView首次需用户手势激活AudioContext）
@@ -21964,9 +22033,10 @@ renderVocabLevelProgress(); renderVocabTrackList(); const _userHanzi = sessionUs
                 if(currentSpeakingText === cleanText) currentSpeakingText = '';
             }
         };
-        audio.onended = () => { if(edgeSpeakAudio === audio) edgeSpeakAudio = null; runNext(); };
+        audio.onended = () => { if(edgeSpeakAudio === audio) edgeSpeakAudio = null; stopLive2DMouth(); runNext(); };
         audio.onerror = () => {
             if(edgeSpeakAudio === audio) edgeSpeakAudio = null;
+            stopLive2DMouth();
             if(myToken === speechToken && !edgeSpeakNext){
                 practiceIsSpeaking = false;
                 if(currentSpeakingText === cleanText) currentSpeakingText = '';
@@ -21975,9 +22045,11 @@ renderVocabLevelProgress(); renderVocabTrackList(); const _userHanzi = sessionUs
             runNext();
         };
         try{
+            startLive2DMouth();
             const p = audio.play();
             if(p && p.catch) p.catch(() => {
                 if(edgeSpeakAudio === audio) edgeSpeakAudio = null;
+                stopLive2DMouth();
                 if(myToken === speechToken && !edgeSpeakNext){
                     practiceIsSpeaking = false;
                     if(currentSpeakingText === cleanText) currentSpeakingText = '';
@@ -21987,6 +22059,7 @@ renderVocabLevelProgress(); renderVocabTrackList(); const _userHanzi = sessionUs
             });
         }catch(e){
             if(edgeSpeakAudio === audio) edgeSpeakAudio = null;
+            stopLive2DMouth();
             if(myToken === speechToken){ practiceIsSpeaking = false; if(currentSpeakingText === cleanText) currentSpeakingText=''; speakWithBrowser(cleanText, retry, voicePref, myToken); }
             runNext();
         }
@@ -22027,17 +22100,17 @@ renderVocabLevelProgress(); renderVocabTrackList(); const _userHanzi = sessionUs
         if(v) utter.voice = v;
         utter.rate=speechRateValue;
         let started=false;
-        utter.onstart=()=>{ started=true; };
-        utter.onend=()=>{ practiceIsSpeaking=false; if(currentSpeakingText === cleanText) currentSpeakingText=''; };
-        utter.onerror=()=>{ practiceIsSpeaking=false; if(currentSpeakingText === cleanText) currentSpeakingText=''; if(!started&&!retry){ synth.cancel(); if(myToken===speechToken) setTimeout(()=>speakWithBrowser(cleanText,true,voicePref,myToken),100); } else if(!started) showToast(t('toast.no_speech_support')); };
+        utter.onstart=()=>{ started=true; startLive2DMouth(); };
+        utter.onend=()=>{ practiceIsSpeaking=false; if(currentSpeakingText === cleanText) currentSpeakingText=''; stopLive2DMouth(); };
+        utter.onerror=()=>{ practiceIsSpeaking=false; if(currentSpeakingText === cleanText) currentSpeakingText=''; stopLive2DMouth(); if(!started&&!retry){ synth.cancel(); if(myToken===speechToken) setTimeout(()=>speakWithBrowser(cleanText,true,voicePref,myToken),100); } else if(!started) showToast(t('toast.no_speech_support')); };
         setTimeout(()=>{
             if(!started&&practiceIsSpeaking&&myToken===speechToken){
-                synth.cancel(); practiceIsSpeaking=false; if(currentSpeakingText === cleanText) currentSpeakingText='';
+                synth.cancel(); practiceIsSpeaking=false; if(currentSpeakingText === cleanText) currentSpeakingText=''; stopLive2DMouth();
                 if(!retry){ setTimeout(()=>speakWithBrowser(cleanText,true,voicePref,myToken),100); }
                 else showToast(t('toast.no_speech_support'));
             }
         },1500);
-        try { synth.speak(utter); } catch(_) { practiceIsSpeaking=false; if(currentSpeakingText === cleanText) currentSpeakingText=''; if(!retry&&myToken===speechToken) setTimeout(()=>speakWithBrowser(cleanText,true,voicePref,myToken),100); else if(!retry) showToast(t('toast.no_speech_support')); }
+        try { synth.speak(utter); } catch(_) { practiceIsSpeaking=false; if(currentSpeakingText === cleanText) currentSpeakingText=''; stopLive2DMouth(); if(!retry&&myToken===speechToken) setTimeout(()=>speakWithBrowser(cleanText,true,voicePref,myToken),100); else if(!retry) showToast(t('toast.no_speech_support')); }
     }
     function toggleSpeakChinese(text){
         const cleanText = stripEmojiForSpeech(normalizeErhuaForTts(text));
@@ -22045,7 +22118,7 @@ renderVocabLevelProgress(); renderVocabTrackList(); const _userHanzi = sessionUs
         stopAllSpeech();
         speakChinese(cleanText);
     }
-    function stopAllSpeech(){ speechToken++; if(practiceAutoSpeakTimer){ clearTimeout(practiceAutoSpeakTimer); practiceAutoSpeakTimer=null; } edgeSpeakNext=null; if(edgeSpeakAudio){ const a=edgeSpeakAudio; edgeSpeakAudio=null; try{ a.onended=null; a.onerror=null; a.pause(); a.src=''; }catch(e){} } try{ edgeOpenSockets.forEach(ws=>{ try{ ws.close(); }catch(e){} }); }catch(e){} try{ const synth=window.speechSynthesis; if(synth){ synth.cancel(); } }catch(_){} practiceIsSpeaking=false; currentSpeakingText=''; }
+    function stopAllSpeech(){ speechToken++; if(practiceAutoSpeakTimer){ clearTimeout(practiceAutoSpeakTimer); practiceAutoSpeakTimer=null; } stopLive2DMouth(); edgeSpeakNext=null; if(edgeSpeakAudio){ const a=edgeSpeakAudio; edgeSpeakAudio=null; try{ a.onended=null; a.onerror=null; a.pause(); a.src=''; }catch(e){} } try{ edgeOpenSockets.forEach(ws=>{ try{ ws.close(); }catch(e){} }); }catch(e){} try{ const synth=window.speechSynthesis; if(synth){ synth.cancel(); } }catch(_){} practiceIsSpeaking=false; currentSpeakingText=''; }
     function parsePinyinString(str){ const chars=[], pinyins=[]; let i=0; while(i<str.length){ const ch=str[i]; if(ch.match(/[\u4e00-\u9fff]/)){ if(i+1<str.length && str[i+1]==='('){ const close=str.indexOf(')',i+2); if(close!==-1){ const rawPinyin=str.substring(i+2,close); let gStart=i, gEnd=i+1; while(gEnd<str.length&&str[gEnd].match(/[\u4e00-\u9fff]/)&&gEnd+1<str.length&&str[gEnd+1]!=='('){ gEnd++; } const cnGroup=str.substring(gStart,gEnd); if(cnGroup.length>1){ const syllables=rawPinyin.match(/(?:[bpmfdtnlgkhjqxzcsryw](?:h)?|[aeiouü])[aeiouü]*[āáǎàēéěèīíǐìōóǒòūúǔùǖǘǚǜ][aeiouü]*(?:ng?)?/gi); if(syllables&&syllables.length===cnGroup.length){ for(let k=0;k<cnGroup.length;k++){ chars.push(cnGroup[k]); pinyins.push(syllables[k]); } i=close+1; continue; } } chars.push(ch); pinyins.push(rawPinyin); i=close+1; continue; } } chars.push(ch); pinyins.push(null); i++; } else i++; } return {chars, pinyins}; }
     // ========== 听打错词反思（A/B/C）+ 四维记录 + 复习队列 ==========
     function segmentRefWords(text){
@@ -26580,7 +26653,7 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
         if(wlSession && wlSession.current) window._wlSpeak(wlSession.current.word);
     });
 
-    function finishInit(){ detectSpeechSupport(); primeSpeechSynthesis(); loadFullState(); maybeMarkNewChatSession(); renderChatHistory(); sessionStart = Date.now(); loadCandidateLevel(); pickCandidateWords(); updateStatsUI(); applyLanguage(); refreshAll(); try{ wsInitUI(); wsSyncTargetToModules(); renderWsSummary(); }catch(e){} sendBtn.onclick=handleUserMessage; endBtn.onclick=handleEndConversation;
+    function finishInit(){ detectSpeechSupport(); primeSpeechSynthesis(); loadFullState(); maybeMarkNewChatSession(); renderChatHistory(); loadTencentAsrKeys(); bindTencentAsrKeyInputs(); initLive2DTeacher(); sessionStart = Date.now(); loadCandidateLevel(); pickCandidateWords(); updateStatsUI(); applyLanguage(); refreshAll(); try{ wsInitUI(); wsSyncTargetToModules(); renderWsSummary(); }catch(e){} sendBtn.onclick=handleUserMessage; endBtn.onclick=handleEndConversation;
             initVoiceRecognition();
         bindReadingEvents();
         document.getElementById('chatHistoryBtn').onclick = showChatHistory;
