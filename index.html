@@ -18410,11 +18410,26 @@ ${searchRule}
         if (voiceIsSupported) {
             startVoiceRecording();
         } else {
-            const isIOS2 = /iPhone|iPad|iPod/i.test(navigator.userAgent);
-            const isAndroid = /Android/i.test(navigator.userAgent);
-            if (isIOS2) showToast(t('chat.voice_hint_keyboard'));
-            else if (isAndroid) showToast(t('chat.voice_android'));
-            else showToast(t('chat.voice_desktop_unsupported'));
+            // 在线识别不可用：如果浏览器支持录音（MediaRecorder），自动切到本地 Whisper
+            const whisperCapable = typeof MediaRecorder !== 'undefined' && navigator.mediaDevices && navigator.mediaDevices.getUserMedia;
+            if(whisperCapable){
+                voiceInputEngine = 'whisper';
+                const sel = document.getElementById('voiceInputEngineSelect');
+                if(sel) sel.value = 'whisper';
+                try{ localStorage.setItem('VOICE_INPUT_ENGINE', 'whisper'); }catch(e){}
+                updateVoiceHint();
+                showToast('当前浏览器不支持在线语音识别，已自动切换为本地 Whisper');
+                startWhisperRecording();
+                return;
+            }
+            if(/MicroMessenger/i.test(navigator.userAgent)) showToast('微信内置浏览器不支持语音输入，请用手机自带的 Chrome/Edge/Safari 浏览器打开本页');
+            else {
+                const isIOS2 = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+                const isAndroid = /Android/i.test(navigator.userAgent);
+                if (isIOS2) showToast(t('chat.voice_hint_keyboard'));
+                else if (isAndroid) showToast(t('chat.voice_android'));
+                else showToast(t('chat.voice_desktop_unsupported'));
+            }
         }
     }
 
@@ -18542,10 +18557,30 @@ ${searchRule}
         whisperMediaStream = null; whisperMediaRecorder = null; whisperMediaChunks = [];
     }
     async function startWhisperRecording(){
-        if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){ showToast(t('chat.voice_no_mic')); return; }
+        if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+            if(/MicroMessenger/i.test(navigator.userAgent)) showToast('微信内置浏览器不支持录音，请用手机自带的 Chrome/Edge/Safari 浏览器打开本页');
+            else showToast(t('chat.voice_no_mic'));
+            return;
+        }
+        if(typeof MediaRecorder === 'undefined'){
+            showToast('当前浏览器不支持录音（本地 Whisper 需要 MediaRecorder）。请换 Edge/Chrome，或改用「在线」模式');
+            return;
+        }
         let stream;
-        try{ stream = await navigator.mediaDevices.getUserMedia({audio:true}); }
-        catch(e){ showToast(t('chat.voice_denied')); return; }
+        try{
+            // 8 秒超时保护：有些内置浏览器会卡住权限弹窗，避免点了完全没反应
+            stream = await Promise.race([
+                navigator.mediaDevices.getUserMedia({audio:true}),
+                new Promise(function(_, rej){ setTimeout(function(){ rej(new Error('mic-timeout')); }, 8000); })
+            ]);
+        }
+        catch(e){
+            if(e && e.message === 'mic-timeout') showToast('没有收到麦克风权限响应：请在浏览器设置里允许本网站使用麦克风，然后重试');
+            else if(e && (e.name === 'NotAllowedError' || e.name === 'SecurityError')) showToast(t('chat.voice_denied') + '（请在浏览器设置里允许麦克风）');
+            else if(e && e.name === 'NotFoundError') showToast(t('chat.voice_no_mic'));
+            else showToast('无法启动麦克风：' + String((e && e.message) || e));
+            return;
+        }
         let rec;
         try{ rec = new MediaRecorder(stream); }
         catch(e){ try{ stream.getTracks().forEach(t => t.stop()); }catch(_){} showToast('当前浏览器不支持录音（本地 Whisper 需要 MediaRecorder，建议用 Edge/Chrome）'); return; }
@@ -18640,7 +18675,8 @@ ${searchRule}
             }
         }catch(e){
             const msg = String((e && e.message) || e);
-            const hintNet = /failed to fetch|load fail|NetworkError|fetch/i.test(msg) ? '（模型下载需要联网，下载一次后离线可用）' : '';
+            let hintNet = /failed to fetch|load fail|NetworkError|fetch/i.test(msg) ? '（模型下载需要联网，下载一次后离线可用）' : '';
+            if(/Worker/.test(msg) && /iPhone|iPad|iPod/i.test(navigator.userAgent)) hintNet += '（iPhone 需要 iOS 15 以上，或改用 Chrome/Edge 浏览器）';
             showToast('本地识别失败：' + msg + hintNet);
         }finally{
             releaseWhisperMedia();
