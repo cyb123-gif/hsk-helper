@@ -21541,6 +21541,11 @@ renderVocabLevelProgress(); renderVocabTrackList(); const _userHanzi = sessionUs
         live2dInitPromise = (async function(){
             const stage = document.getElementById('live2dStage');
             if(!stage) return;
+            // 双击本地文件（file://）打开时浏览器禁止读取同目录资源：直接给出明确指引
+            if(location.protocol === 'file:'){
+                live2dSetStatus('⚠️ 当前是双击打开的本地文件，数字人无法加载。请双击「启动网站.bat」打开 http://localhost:3001，或访问 https://cyb123-gif.github.io/hsk-helper/');
+                return;
+            }
             // 重试前清理上一次残留的 canvas/应用
             if(live2dApp){ try{ live2dApp.destroy(true, { children: true }); }catch(e){} live2dApp = null; }
             live2dModelRef = null; window._live2dModel = null;
