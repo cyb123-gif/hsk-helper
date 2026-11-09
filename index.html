@@ -226,6 +226,8 @@
         .live2d-stage canvas { display: block; }
         .live2d-fallback { font-size: 92px; opacity: .45; pointer-events: none; }
         .live2d-status { position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); background: rgba(30,43,94,0.85); color: #fff; font-size: 0.75rem; padding: 4px 14px; border-radius: 20px; white-space: normal; max-width: 94%; line-height: 1.5; text-align: center; }
+        .live2d-model-picker { position: absolute; top: 6px; right: 8px; background: rgba(255,255,255,0.92); border-radius: 14px; padding: 2px 8px; font-size: 0.72rem; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+        .live2d-model-picker select { border: none; background: transparent; font-size: 0.72rem; color: #1e2b5e; outline: none; cursor: pointer; }
         .browser-tabs { display: flex; gap: 0; padding: 0 8px; background: transparent; }
         .browser-tab { padding: 7px 14px; border: 1px solid #d0dae8; border-bottom: none; background: #e8ecf2; cursor: pointer; font-size: 0.75rem; font-weight: 600; color: #64748b; border-radius: 8px 8px 0 0; margin-right: -1px; position: relative; z-index: 0; transition: 0.15s; }
         .browser-tab:hover { background: #dce3ed; color: #334155; }
@@ -756,6 +758,14 @@
         <div id="live2dStage" class="live2d-stage" title="AI 外教">
             <div class="live2d-fallback" id="live2dFallback">👩‍🏫</div>
             <div class="live2d-status" id="live2dStatus">⏳ 数字人加载中…</div>
+            <div class="live2d-model-picker" title="更换数字人">
+                🎭 <select id="live2dModelSelect">
+                    <option value="shizuku">小原（默认）</option>
+                    <option value="koharu">小春</option>
+                    <option value="hibiki">响</option>
+                    <option value="izumi">泉</option>
+                </select>
+            </div>
         </div>
         <div class="mode-tabs" id="modeTabs">
             <button class="mode-tab active" data-group="knowledge" id="modeTabKnowledge">🎯 知识练习</button>
@@ -21978,13 +21988,25 @@ renderVocabLevelProgress(); renderVocabTrackList(); const _userHanzi = sessionUs
          'https://unpkg.com/pixi-live2d-display@0.4.0/dist/cubism2.min.js',
          'https://fastly.jsdelivr.net/npm/pixi-live2d-display@0.4.0/dist/cubism2.min.js']
     ];
-    const LIVE2D_MODEL_URLS = [
-        'live2d/shizuku/shizuku.model.json?v=20261109',
-        'https://gcore.jsdelivr.net/gh/guansss/pixi-live2d-display@master/test/assets/shizuku/shizuku.model.json',
-        'https://cdn.jsdelivr.net/gh/guansss/pixi-live2d-display@master/test/assets/shizuku/shizuku.model.json',
-        'https://fastly.jsdelivr.net/gh/guansss/pixi-live2d-display@master/test/assets/shizuku/shizuku.model.json',
-        'https://ghproxy.net/https://raw.githubusercontent.com/guansss/pixi-live2d-display/master/test/assets/shizuku/shizuku.model.json'
-    ];
+    const LIVE2D_MODELS = {
+        shizuku: { name: '小原', url: 'live2d/shizuku/shizuku.model.json?v=20261109', fallbacks: [
+            'https://gcore.jsdelivr.net/gh/guansss/pixi-live2d-display@master/test/assets/shizuku/shizuku.model.json',
+            'https://cdn.jsdelivr.net/gh/guansss/pixi-live2d-display@master/test/assets/shizuku/shizuku.model.json',
+            'https://fastly.jsdelivr.net/gh/guansss/pixi-live2d-display@master/test/assets/shizuku/shizuku.model.json'
+        ] },
+        koharu: { name: '小春', url: 'live2d/koharu/koharu.model.json?v=20261109', fallbacks: [] },
+        hibiki: { name: '响', url: 'live2d/hibiki/hibiki.model.json?v=20261109', fallbacks: [] },
+        izumi: { name: '泉', url: 'live2d/izumi/izumi.model.json?v=20261109', fallbacks: [] }
+    };
+    function live2dSelectedModel(){
+        let name = '';
+        try{ name = localStorage.getItem('LIVE2D_MODEL') || ''; }catch(e){}
+        if(!LIVE2D_MODELS[name]) name = 'shizuku';
+        return name;
+    }
+    const LIVE2D_MODEL_URLS = [].concat.apply([], Object.keys(LIVE2D_MODELS).map(function(k){
+        return [LIVE2D_MODELS[k].url].concat(LIVE2D_MODELS[k].fallbacks || []);
+    }));
     let live2dStatusState = null;   // { key, params }
     function live2dSetStatus(key, params){
         const el = document.getElementById('live2dStatus');
@@ -22094,9 +22116,22 @@ renderVocabLevelProgress(); renderVocabTrackList(); const _userHanzi = sessionUs
         return await L2D.Live2DModel.from(s);
     }
     let live2dApp = null, live2dModelRef = null, live2dInitPromise = null;
+    function bindLive2dModelSelect(){
+        const sel = document.getElementById('live2dModelSelect');
+        if(!sel || sel._l2dBound) return;
+        sel._l2dBound = true;
+        try{ sel.value = live2dSelectedModel(); }catch(e){}
+        sel.addEventListener('change', function(){
+            try{ localStorage.setItem('LIVE2D_MODEL', sel.value); }catch(e){}
+            live2dInitPromise = null;
+            live2dSetStatus('live2d.loading');
+            initLive2DTeacher();
+        });
+    }
     async function initLive2DTeacher(){
         if(live2dInitPromise) return live2dInitPromise;
         live2dInitPromise = (async function(){
+            bindLive2dModelSelect();
             const stage = document.getElementById('live2dStage');
             if(!stage) return;
             // 双击本地文件（file://）打开时浏览器禁止读取同目录资源：直接给出明确指引
@@ -22129,7 +22164,12 @@ renderVocabLevelProgress(); renderVocabTrackList(); const _userHanzi = sessionUs
                 return;
             }
             let modelUrl = null;
-            for(const u of LIVE2D_MODEL_URLS){
+            const selModel = live2dSelectedModel();
+            const probeUrls = [LIVE2D_MODELS[selModel].url].concat(LIVE2D_MODELS[selModel].fallbacks || [], LIVE2D_MODEL_URLS);
+            const seenProbe = {};
+            for(const u of probeUrls){
+                if(seenProbe[u]) continue;
+                seenProbe[u] = 1;
                 try{
                     const r = await fetch(u, { method: 'GET', headers: { Range: 'bytes=0-0' } });
                     if(r.ok || r.status === 206){ modelUrl = u; break; }
