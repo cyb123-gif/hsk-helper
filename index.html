@@ -18708,7 +18708,8 @@ ${searchRule}
                 word_info: '0'
             };
             const sorted = Object.keys(params).sort();
-            const signStr = sorted.map(function(k){ return k + '=' + params[k]; }).join('&');
+            // 官方规范：签名原文 = 主机名+路径+?+按字典序排序的参数串（不含协议 wss://，不含 signature）
+            const signStr = host + '/asr/v2/' + String(keys.appId) + '?' + sorted.map(function(k){ return k + '=' + params[k]; }).join('&');
             (async function(){
                 let sig;
                 try{
