@@ -370,6 +370,110 @@ function handleImageSearchProxy(req, res) {
     });
 }
 
+// 腾讯云语音合成密钥（可选，本地文件 tencent-keys.txt，格式：SecretId,SecretKey,AppID）
+function loadTencentKeys() {
+    const keyFile = path.join(__dirname, 'tencent-keys.txt');
+    try {
+        const content = fs.readFileSync(keyFile, 'utf-8');
+        const parts = content.split(/[\s,，;；]+/).map(s => s.trim()).filter(Boolean);
+        if (parts.length >= 2) return { secretId: parts[0], secretKey: parts[1] };
+    } catch (e) { /* 文件不存在 */ }
+    if (process.env.TENCENT_SECRET_ID && process.env.TENCENT_SECRET_KEY) {
+        return { secretId: process.env.TENCENT_SECRET_ID, secretKey: process.env.TENCENT_SECRET_KEY };
+    }
+    return null;
+}
+let TENCENT_KEYS = loadTencentKeys();
+const crypto = require('crypto');
+
+// 腾讯云语音合成代理（/tts-tencent?text=...，返回 mp3 音频）
+function handleTencentTtsProxy(req, res) {
+    let query = '';
+    const qIndex = req.url.indexOf('?');
+    if (qIndex >= 0) query = req.url.slice(qIndex + 1);
+    const params = new URLSearchParams(query);
+    const text = (params.get('text') || '').trim();
+    if (!text) {
+        res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ error: '缺少 text 参数' }));
+        return;
+    }
+    if (!TENCENT_KEYS) {
+        res.writeHead(503, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ error: '服务器未配置腾讯云密钥，请创建 tencent-keys.txt（SecretId,SecretKey,AppID 一行）' }));
+        return;
+    }
+    const host = 'tts.tencentcloudapi.com';
+    const service = 'tts';
+    const action = 'TextToVoice';
+    const version = '2019-08-23';
+    const ts = Math.floor(Date.now() / 1000);
+    const date = new Date(ts * 1000).toISOString().slice(0, 10);
+    const payload = JSON.stringify({
+        Text: text, SessionId: 'hsk' + Date.now(), VoiceType: 101001, Codec: 'mp3',
+        SampleRate: 16000, Speed: 0, Volume: 0, ProjectId: 0, PrimaryLanguage: 1
+    });
+    const sha256Hex = (s) => crypto.createHash('sha256').update(s).digest('hex');
+    const hmac = (key, msg) => crypto.createHmac('sha256', key).update(msg).digest();
+    const hashedPayload = sha256Hex(payload);
+    const canonicalHeaders = 'content-type:application/json; charset=utf-8\nhost:' + host + '\nx-tc-action:' + action.toLowerCase() + '\n';
+    const signedHeaders = 'content-type;host;x-tc-action';
+    const canonicalRequest = 'POST\n/\n\n' + canonicalHeaders + '\n' + signedHeaders + '\n' + hashedPayload;
+    const secretDate = hmac('TC3' + TENCENT_KEYS.secretKey, date);
+    const secretService = hmac(secretDate, service);
+    const secretSigning = hmac(secretService, 'tc3_request');
+    const stringToSign = 'TC3-HMAC-SHA256\n' + ts + '\n' + date + '/' + service + '/tc3_request\n' + sha256Hex(canonicalRequest);
+    const signature = hmac(secretSigning, stringToSign).toString('hex');
+    const authorization = 'TC3-HMAC-SHA256 Credential=' + TENCENT_KEYS.secretId + '/' + date + '/' + service + '/tc3_request, SignedHeaders=' + signedHeaders + ', Signature=' + signature;
+    const options = {
+        hostname: host, port: 443, path: '/', method: 'POST',
+        headers: {
+            'Content-Type': 'application/json; charset=utf-8',
+            'X-TC-Action': action, 'X-TC-Version': version,
+            'X-TC-Timestamp': String(ts), 'X-TC-Region': 'ap-guangzhou',
+            'X-TC-Language': 'zh-CN', 'Authorization': authorization,
+            'Content-Length': Buffer.byteLength(payload)
+        },
+        timeout: 30000
+    };
+    const proxyReq = https.request(options, (proxyRes) => {
+        let body = '';
+        proxyRes.setEncoding('utf8');
+        proxyRes.on('data', chunk => { body += chunk; });
+        proxyRes.on('end', () => {
+            let json = {};
+            try { json = JSON.parse(body); } catch (e) {}
+            if (proxyRes.statusCode !== 200 || (json.Response && json.Response.Error)) {
+                const err = json.Response && json.Response.Error;
+                res.writeHead(502, { 'Content-Type': 'application/json; charset=utf-8' });
+                res.end(JSON.stringify({ error: (err && (err.Code + ' ' + err.Message)) || ('上游返回 ' + proxyRes.statusCode) }));
+                return;
+            }
+            const audioB64 = json.Response && json.Response.Audio;
+            if (!audioB64) {
+                res.writeHead(502, { 'Content-Type': 'application/json; charset=utf-8' });
+                res.end(JSON.stringify({ error: '上游无音频返回' }));
+                return;
+            }
+            const audio = Buffer.from(audioB64, 'base64');
+            res.writeHead(200, { 'Content-Type': 'audio/mpeg', 'Content-Length': audio.length });
+            res.end(audio);
+        });
+    });
+    proxyReq.on('error', (err) => {
+        console.error('[TencentTTS] 请求失败:', err.message);
+        res.writeHead(502, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ error: '腾讯云语音合成失败: ' + err.message }));
+    });
+    proxyReq.on('timeout', () => {
+        proxyReq.destroy();
+        res.writeHead(504, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ error: '腾讯云语音合成超时' }));
+    });
+    proxyReq.write(payload);
+    proxyReq.end();
+}
+
 // ========== HTTP 服务器 ==========
 const server = http.createServer((req, res) => {
     // 图片搜索代理
@@ -387,6 +491,12 @@ const server = http.createServer((req, res) => {
     // TTS 语音合成代理
     if (req.url.startsWith('/tts?')) {
         handleTtsProxy(req, res);
+        return;
+    }
+
+    // 腾讯云语音合成代理
+    if (req.url.startsWith('/tts-tencent?')) {
+        handleTencentTtsProxy(req, res);
         return;
     }
 

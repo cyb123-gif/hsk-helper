@@ -78,7 +78,80 @@ export default {
             return jsonResponse(200, { ok: true });
         }
 
-        // 4. 只代理 DeepSeek 对话接口
+        // 3.5 腾讯云语音合成代理（/tts?text=...，返回 mp3 音频；密钥放在 Worker 环境变量里）
+        if (url.pathname === '/tts' && request.method === 'GET') {
+            const text = (url.searchParams.get('text') || '').trim();
+            if (!text) return jsonResponse(400, { error: '缺少 text 参数' });
+            const secretId = env.TENCENT_SECRET_ID || '';
+            const secretKey = env.TENCENT_SECRET_KEY || '';
+            if (!secretId || !secretKey) return jsonResponse(500, { error: 'Worker 未配置 TENCENT_SECRET_ID / TENCENT_SECRET_KEY' });
+            try {
+                const host = 'tts.tencentcloudapi.com';
+                const service = 'tts';
+                const action = 'TextToVoice';
+                const version = '2019-08-23';
+                const ts = Math.floor(Date.now() / 1000);
+                const date = new Date(ts * 1000).toISOString().slice(0, 10);
+                const payload = JSON.stringify({
+                    Text: text,
+                    SessionId: 'hsk' + Date.now(),
+                    VoiceType: 101001,
+                    Codec: 'mp3',
+                    SampleRate: 16000,
+                    Speed: 0,
+                    Volume: 0,
+                    ProjectId: 0,
+                    PrimaryLanguage: 1,
+                });
+                const enc = new TextEncoder();
+                const toHex = (buf) => Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, '0')).join('');
+                const hmacKey = async (keyData, msg) => {
+                    const k = await crypto.subtle.importKey('raw', keyData, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+                    return crypto.subtle.sign('HMAC', k, enc.encode(msg));
+                };
+                const hashedPayload = toHex(await crypto.subtle.digest('SHA-256', enc.encode(payload)));
+                const canonicalHeaders = 'content-type:application/json; charset=utf-8\nhost:' + host + '\nx-tc-action:' + action.toLowerCase() + '\n';
+                const signedHeaders = 'content-type;host;x-tc-action';
+                const canonicalRequest = 'POST\n/\n\n' + canonicalHeaders + '\n' + signedHeaders + '\n' + hashedPayload;
+                const secretDate = await hmacKey(enc.encode('TC3' + secretKey), date);
+                const secretService = await hmacKey(secretDate, service);
+                const secretSigning = await hmacKey(secretService, 'tc3_request');
+                const stringToSign = 'TC3-HMAC-SHA256\n' + ts + '\n' + date + '/' + service + '/tc3_request\n' + toHex(await crypto.subtle.digest('SHA-256', enc.encode(canonicalRequest)));
+                const signature = toHex(await hmacKey(secretSigning, stringToSign));
+                const authorization = 'TC3-HMAC-SHA256 Credential=' + secretId + '/' + date + '/' + service + '/tc3_request, SignedHeaders=' + signedHeaders + ', Signature=' + signature;
+                const upstream = await fetch('https://' + host + '/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json; charset=utf-8',
+                        'X-TC-Action': action,
+                        'X-TC-Version': version,
+                        'X-TC-Timestamp': String(ts),
+                        'X-TC-Region': 'ap-guangzhou',
+                        'X-TC-Language': 'zh-CN',
+                        'Authorization': authorization,
+                    },
+                    body: payload,
+                });
+                const upstreamJson = await upstream.json().catch(() => ({}));
+                if (!upstream.ok || (upstreamJson.Response && upstreamJson.Response.Error)) {
+                    const err = upstreamJson.Response && upstreamJson.Response.Error;
+                    return jsonResponse(502, { error: (err && (err.Code + ' ' + err.Message)) || ('上游返回 ' + upstream.status) });
+                }
+                const audioB64 = upstreamJson.Response && upstreamJson.Response.Audio;
+                if (!audioB64) return jsonResponse(502, { error: '上游无音频返回' });
+                const bin = atob(audioB64);
+                const bytes = new Uint8Array(bin.length);
+                for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+                return new Response(bytes, {
+                    status: 200,
+                    headers: { 'Content-Type': 'audio/mpeg', 'Cache-Control': 'public, max-age=86400', ...CORS_HEADERS },
+                });
+            } catch (e) {
+                return jsonResponse(500, { error: 'TTS 代理出错: ' + (e && e.message) });
+            }
+        }
+
+        // 4. 只代理 DeepSeek 对话接口（/tts 在上面已处理）
         if (url.pathname !== DEEPSEEK_PATH || request.method !== 'POST') {
             return jsonResponse(404, { code: 'not_found', error: { message: 'NOT_FOUND' } });
         }

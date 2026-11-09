@@ -1159,6 +1159,7 @@
             <div class="small-note" id="apiKeyStatus">🔑 请输入老师提供的 DeepSeek API Key（不会保存，每次打开页面重新输入）。</div>
             <div class="stat-title" style="margin-top:10px;"><span>🎤 腾讯云语音识别（可选）</span></div>
             <input type="password" class="api-key-input" id="tencentKeysInput" placeholder="一次粘贴：SecretId,SecretKey,AppID（英文逗号隔开）" value="" autocomplete="off" style="margin-bottom:8px;">
+            <input type="text" class="api-key-input" id="tencentTtsProxyInput" placeholder="TTS 代理地址（可选，手机出声用，如 https://xxx.workers.dev）" value="" autocomplete="off" style="margin-bottom:8px;">
             <div class="small-note">🎤 在腾讯云开通「语音识别」后（有免费额度），把 SecretId、SecretKey、AppID 三项用英文逗号隔开，一次粘贴到这里，例如：AKIDxxxxx,xxxxx,1300000000。密钥获取：console.cloud.tencent.com/cam/capi。仅保存在你自己的浏览器本地。</div>
             <div class="stat-title"><span>📊 语法点明细 (点击查看明细)</span></div>
             <div class="progress-grid" id="levelProgress"></div>
@@ -18554,6 +18555,8 @@ ${searchRule}
                 }
             }
             el.value = combined;
+            const proxyEl = document.getElementById('tencentTtsProxyInput');
+            if(proxyEl) proxyEl.value = localStorage.getItem('TENCENT_TTS_PROXY') || '';
         }catch(e){}
     }
     function saveTencentAsrKeys(){
@@ -18567,6 +18570,13 @@ ${searchRule}
         if(el && !el._tencentBound){
             el._tencentBound = true;
             el.addEventListener('change', saveTencentAsrKeys);
+        }
+        const proxyEl = document.getElementById('tencentTtsProxyInput');
+        if(proxyEl && !proxyEl._tencentProxyBound){
+            proxyEl._tencentProxyBound = true;
+            proxyEl.addEventListener('change', function(){
+                try{ localStorage.setItem('TENCENT_TTS_PROXY', proxyEl.value.trim()); }catch(e){}
+            });
         }
     }
     function tencentAsrKeys(){
@@ -19136,6 +19146,22 @@ ${searchRule}
         return new Uint8Array(s);
     }
     async function tencentTtsAudio(cleanText){
+        // 代理优先：本地服务器（localhost）或用户填的 Cloudflare Worker 地址，绕开浏览器跨域限制
+        let proxy = '';
+        try{ proxy = (localStorage.getItem('TENCENT_TTS_PROXY') || '').trim(); }catch(e){}
+        const isLocal = (location.hostname === 'localhost' || location.hostname === '127.0.0.1');
+        const proxyUrl = proxy || (isLocal ? '/tts-tencent' : '');
+        if(proxyUrl){
+            const r = await fetch(proxyUrl + '?text=' + encodeURIComponent(cleanText));
+            if(!r.ok){
+                let j = {};
+                try{ j = await r.json(); }catch(e){}
+                throw new Error(j.error || ('代理返回 ' + r.status));
+            }
+            const b = await r.blob();
+            if(!b.size) throw new Error('代理返回空音频');
+            return b;
+        }
         const keys = tencentAsrKeys();
         if(!keys) throw new Error('no-key');
         const host = 'tts.tencentcloudapi.com';
@@ -19222,7 +19248,10 @@ ${searchRule}
             return;
         }catch(e){
             const em = String((e && e.message) || e);
-            if(/UnauthorizedOperation|AuthFailure|权限不足/i.test(em)) showToast('腾讯云语音合成没权限：请给子用户关联「QcloudTTSFullAccess」策略（语音合成有免费额度）');
+            if(/UnauthorizedOperation|权限不足/i.test(em)) showToast('腾讯云语音合成没权限：请给子用户关联「QcloudTTSFullAccess」策略（语音合成有免费额度）');
+            else if(/SecretIdNotFound|密钥不存在/i.test(em)) showToast('腾讯云语音合成：SecretId 已失效，请更新右侧腾讯云密钥');
+            else if(/Failed to fetch|跨域|TypeError|NetworkError/i.test(em)) showToast('语音合成被浏览器跨域拦截：电脑请用 localhost:3001，手机请在右侧填写 TTS 代理地址（Cloudflare Worker）');
+            else showToast('语音合成失败：' + em.slice(0, 80));
         }
         if(myChatToken !== chatTtsToken) return;
         // 3) 浏览器语音兜底
