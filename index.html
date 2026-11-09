@@ -21576,18 +21576,20 @@ renderVocabLevelProgress(); renderVocabTrackList(); const _userHanzi = sessionUs
             live2dSetStatus('⏳ 数字人加载中…');
             // 依次加载三组依赖：Pixi → Live2D 核心 → Live2DModel 插件。
             // 每组先试动态 <script>，失败再用 fetch+eval 救援（兼容 QQ 浏览器等对动态脚本的限制）。
+            // 注意：pixi-live2d-display 0.4.0 浏览器打包把类挂在 PIXI.live2d.Live2DModel 上，不是 window.Live2DModel
+            const live2dPluginOk = function(){ return !!(window.PIXI && window.PIXI.live2d && window.PIXI.live2d.Live2DModel); };
             const live2dNeedGroups = [
                 [function(){ return !window.PIXI; }, LIVE2D_SCRIPT_URLS[0]],
                 [function(){ return !window.Live2D; }, LIVE2D_SCRIPT_URLS[1]],
-                [function(){ return !window.Live2DModel; }, LIVE2D_SCRIPT_URLS[2]]
+                [function(){ return !live2dPluginOk(); }, LIVE2D_SCRIPT_URLS[2]]
             ];
             for(const item of live2dNeedGroups){
                 if(!item[0]()) continue;
                 try{ await loadScriptSeq(item[1]); }catch(e){}
                 if(item[0]()){ try{ await loadLibByFetchEval(item[1]); }catch(e){} }
             }
-            if(!window.PIXI || !window.Live2D || !window.Live2DModel){
-                const l2dDetail = 'PIXI:' + !!window.PIXI + '｜Live2D核心:' + !!window.Live2D + '｜Live2DModel:' + !!window.Live2DModel + '｜本页 ' + location.host;
+            if(!window.PIXI || !window.Live2D || !live2dPluginOk()){
+                const l2dDetail = 'PIXI:' + !!window.PIXI + '｜Live2D核心:' + !!window.Live2D + '｜Live2DModel:' + live2dPluginOk() + '｜本页 ' + location.host;
                 live2dSetStatus('⚠️ 数字人加载失败｜' + l2dDetail + '｜请点击此处重试');
                 return;
             }
@@ -21610,7 +21612,7 @@ renderVocabLevelProgress(); renderVocabTrackList(); const _userHanzi = sessionUs
             }
             try{
                 stage.appendChild(live2dApp.view);
-                const model = await window.Live2DModel.from(modelUrl);
+                const model = await window.PIXI.live2d.Live2DModel.from(modelUrl);
                 model.fit(250, 250, false, { x: 0.5, y: 0.5 });
                 model.x = (stage.clientWidth || 400) / 2;
                 model.y = 130;
