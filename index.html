@@ -19149,18 +19149,18 @@ ${searchRule}
         // 代理优先：本地服务器（localhost）或用户填的 Cloudflare Worker 地址，绕开浏览器跨域限制
         let proxy = '';
         try{ proxy = (localStorage.getItem('TENCENT_TTS_PROXY') || '').trim(); }catch(e){}
-        const isLocal = (location.hostname === 'localhost' || location.hostname === '127.0.0.1');
-        const proxyUrl = proxy || (isLocal ? '/tts-tencent' : '');
-        if(proxyUrl){
-            const r = await fetch(proxyUrl + '?text=' + encodeURIComponent(cleanText));
-            if(!r.ok){
-                let j = {};
-                try{ j = await r.json(); }catch(e){}
-                throw new Error(j.error || ('代理返回 ' + r.status));
-            }
-            const b = await r.blob();
-            if(!b.size) throw new Error('代理返回空音频');
-            return b;
+        // 中转候选：用户填的代理地址 → 同源 /tts-tencent（部署在自己服务器上时自动生效；github.io 上 404 自动跳过）
+        const candidates = [];
+        if(proxy) candidates.push(proxy);
+        candidates.push('/tts-tencent');
+        for(const base of candidates){
+            try{
+                const r = await fetch(base + '?text=' + encodeURIComponent(cleanText));
+                if(r.ok){
+                    const b = await r.blob();
+                    if(b.size) return b;
+                }
+            }catch(e){}
         }
         const keys = tencentAsrKeys();
         if(!keys) throw new Error('no-key');
