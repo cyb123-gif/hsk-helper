@@ -13463,13 +13463,107 @@ const HSK2_VOCAB = [
         }
     };
 
+    // ===== AI 数字人状态提示（多语言） =====
+    const I18N_LIVE2D = {
+        'Chinese': {
+            'live2d.loading':'⏳ 数字人加载中…',
+            'live2d.file_protocol':'⚠️ 当前是双击打开的本地文件，数字人无法加载。请双击「启动网站.bat」打开 http://localhost:3001，或访问 https://cyb123-gif.github.io/hsk-helper/',
+            'live2d.load_fail':'⚠️ 数字人加载失败｜{detail}｜请点击此处重试',
+            'live2d.model_fail':'⚠️ 数字人未加载：模型加载失败｜{msg}｜点击重试',
+            'live2d.model_download_fail':'⚠️ 数字人未加载：模型下载失败（已用占位图）'
+        },
+        'English': {
+            'live2d.loading':'⏳ Loading AI teacher…',
+            'live2d.file_protocol':'⚠️ This page was opened as a local file, so the AI teacher cannot load. Double-click “启动网站.bat” to open http://localhost:3001, or visit https://cyb123-gif.github.io/hsk-helper/',
+            'live2d.load_fail':'⚠️ AI teacher failed to load｜{detail}｜Tap to retry',
+            'live2d.model_fail':'⚠️ AI teacher not loaded: model loading failed｜{msg}｜Tap to retry',
+            'live2d.model_download_fail':'⚠️ AI teacher not loaded: model download failed (placeholder shown)'
+        },
+        'Japanese': {
+            'live2d.loading':'⏳ AI先生を読み込み中…',
+            'live2d.file_protocol':'⚠️ ローカルファイルを直接開いているため、AI先生を読み込めません。「启动网站.bat」をダブルクリックして http://localhost:3001 を開くか、https://cyb123-gif.github.io/hsk-helper/ にアクセスしてください',
+            'live2d.load_fail':'⚠️ AI先生の読み込みに失敗しました｜{detail}｜クリックで再試行',
+            'live2d.model_fail':'⚠️ AI先生未読み込み：モデルの読み込みに失敗｜{msg}｜クリックで再試行',
+            'live2d.model_download_fail':'⚠️ AI先生未読み込み：モデルのダウンロードに失敗（代替画像を表示中）'
+        },
+        'Korean': {
+            'live2d.loading':'⏳ AI 선생님 불러오는 중…',
+            'live2d.file_protocol':'⚠️ 로컬 파일을 직접 열어 AI 선생님을 불러올 수 없습니다. "启动网站.bat"을 더블 클릭해 http://localhost:3001 을 열거나 https://cyb123-gif.github.io/hsk-helper/ 에 접속하세요',
+            'live2d.load_fail':'⚠️ AI 선생님 로드 실패｜{detail}｜클릭하여 재시도',
+            'live2d.model_fail':'⚠️ AI 선생님 미로드: 모델 로드 실패｜{msg}｜클릭하여 재시도',
+            'live2d.model_download_fail':'⚠️ AI 선생님 미로드: 모델 다운로드 실패(자리 표시자 표시 중)'
+        },
+        'French': {
+            'live2d.loading':'⏳ Chargement du professeur IA…',
+            'live2d.file_protocol':'⚠️ Fichier local ouvert directement : le professeur IA ne peut pas se charger. Double-cliquez sur « 启动网站.bat » pour ouvrir http://localhost:3001, ou visitez https://cyb123-gif.github.io/hsk-helper/',
+            'live2d.load_fail':'⚠️ Échec du chargement du professeur IA｜{detail}｜Cliquez pour réessayer',
+            'live2d.model_fail':'⚠️ Professeur IA non chargé : échec du chargement du modèle｜{msg}｜Cliquez pour réessayer',
+            'live2d.model_download_fail':'⚠️ Professeur IA non chargé : échec du téléchargement du modèle (image de substitution affichée)'
+        },
+        'German': {
+            'live2d.loading':'⏳ KI-Lehrer wird geladen…',
+            'live2d.file_protocol':'⚠️ Lokale Datei direkt geöffnet: Der KI-Lehrer kann nicht geladen werden. Bitte doppelklicken Sie auf «启动网站.bat», um http://localhost:3001 zu öffnen, oder besuchen Sie https://cyb123-gif.github.io/hsk-helper/',
+            'live2d.load_fail':'⚠️ KI-Lehrer konnte nicht geladen werden｜{detail}｜Zum Wiederholen klicken',
+            'live2d.model_fail':'⚠️ KI-Lehrer nicht geladen: Modell konnte nicht geladen werden｜{msg}｜Zum Wiederholen klicken',
+            'live2d.model_download_fail':'⚠️ KI-Lehrer nicht geladen: Modell-Download fehlgeschlagen (Platzhalter wird angezeigt)'
+        },
+        'Spanish': {
+            'live2d.loading':'⏳ Cargando al profesor IA…',
+            'live2d.file_protocol':'⚠️ Has abierto un archivo local directamente, el profesor IA no puede cargarse. Haz doble clic en «启动网站.bat» para abrir http://localhost:3001, o visita https://cyb123-gif.github.io/hsk-helper/',
+            'live2d.load_fail':'⚠️ No se pudo cargar el profesor IA｜{detail}｜Haz clic para reintentar',
+            'live2d.model_fail':'⚠️ Profesor IA no cargado: fallo al cargar el modelo｜{msg}｜Haz clic para reintentar',
+            'live2d.model_download_fail':'⚠️ Profesor IA no cargado: fallo al descargar el modelo (se muestra el marcador de posición)'
+        },
+        'Russian': {
+            'live2d.loading':'⏳ Загрузка ИИ-учителя…',
+            'live2d.file_protocol':'⚠️ Открыт локальный файл, ИИ-учитель не может загрузиться. Дважды щёлкните «启动网站.bat», чтобы открыть http://localhost:3001, или зайдите на https://cyb123-gif.github.io/hsk-helper/',
+            'live2d.load_fail':'⚠️ Не удалось загрузить ИИ-учителя｜{detail}｜Нажмите для повтора',
+            'live2d.model_fail':'⚠️ ИИ-учитель не загружен: ошибка загрузки модели｜{msg}｜Нажмите для повтора',
+            'live2d.model_download_fail':'⚠️ ИИ-учитель не загружен: ошибка скачивания модели (показан заполнитель)'
+        },
+        'Italian': {
+            'live2d.loading':'⏳ Caricamento insegnante IA…',
+            'live2d.file_protocol':'⚠️ File locale aperto direttamente: l\'insegnante IA non può essere caricato. Fai doppio clic su «启动网站.bat» per aprire http://localhost:3001, oppure visita https://cyb123-gif.github.io/hsk-helper/',
+            'live2d.load_fail':'⚠️ Impossibile caricare l\'insegnante IA｜{detail}｜Clicca per riprovare',
+            'live2d.model_fail':'⚠️ Insegnante IA non caricato: errore nel caricamento del modello｜{msg}｜Clicca per riprovare',
+            'live2d.model_download_fail':'⚠️ Insegnante IA non caricato: download del modello non riuscito (segnaposto mostrato)'
+        },
+        'Thai': {
+            'live2d.loading':'⏳ กำลังโหลดครู AI…',
+            'live2d.file_protocol':'⚠️ เปิดไฟล์ในเครื่องโดยตรง ครู AI ไม่สามารถโหลดได้ กรุณาดับเบิลคลิก «启动网站.bat» เพื่อเปิด http://localhost:3001 หรือไปที่ https://cyb123-gif.github.io/hsk-helper/',
+            'live2d.load_fail':'⚠️ โหลดครู AI ไม่สำเร็จ｜{detail}｜คลิกเพื่อลองใหม่',
+            'live2d.model_fail':'⚠️ ครู AI ไม่โหลด: โหลดโมเดลไม่สำเร็จ｜{msg}｜คลิกเพื่อลองใหม่',
+            'live2d.model_download_fail':'⚠️ ครู AI ไม่โหลด: ดาวน์โหลดโมเดลไม่สำเร็จ (แสดงภาพแทน)'
+        },
+        'Vietnamese': {
+            'live2d.loading':'⏳ Đang tải giáo viên AI…',
+            'live2d.file_protocol':'⚠️ Đang mở tệp cục bộ trực tiếp, giáo viên AI không thể tải. Hãy nhấp đúp «启动网站.bat» để mở http://localhost:3001, hoặc truy cập https://cyb123-gif.github.io/hsk-helper/',
+            'live2d.load_fail':'⚠️ Không tải được giáo viên AI｜{detail}｜Nhấn để thử lại',
+            'live2d.model_fail':'⚠️ Giáo viên AI chưa tải: lỗi tải mô hình｜{msg}｜Nhấn để thử lại',
+            'live2d.model_download_fail':'⚠️ Giáo viên AI chưa tải: tải mô hình thất bại (đang hiện hình thay thế)'
+        },
+        'Indonesian': {
+            'live2d.loading':'⏳ Memuat guru AI…',
+            'live2d.file_protocol':'⚠️ File lokal dibuka langsung, guru AI tidak dapat dimuat. Klik dua kali «启动网站.bat» untuk membuka http://localhost:3001, atau kunjungi https://cyb123-gif.github.io/hsk-helper/',
+            'live2d.load_fail':'⚠️ Gagal memuat guru AI｜{detail}｜Klik untuk mencoba lagi',
+            'live2d.model_fail':'⚠️ Guru AI belum dimuat: gagal memuat model｜{msg}｜Klik untuk mencoba lagi',
+            'live2d.model_download_fail':'⚠️ Guru AI belum dimuat: unduhan model gagal (menampilkan placeholder)'
+        },
+        'Slovak': {
+            'live2d.loading':'⏳ Načítavam AI učiteľa…',
+            'live2d.file_protocol':'⚠️ Otvorili ste lokálny súbor priamo, AI učiteľa nemožno načítať. Dvakrát kliknite na «启动网站.bat» a otvorte http://localhost:3001, alebo navštívte https://cyb123-gif.github.io/hsk-helper/',
+            'live2d.load_fail':'⚠️ Nepodarilo sa načítať AI učiteľa｜{detail}｜Kliknite pre opakovanie',
+            'live2d.model_fail':'⚠️ AI učiteľ nenačítaný: zlyhalo načítanie modelu｜{msg}｜Kliknite pre opakovanie',
+            'live2d.model_download_fail':'⚠️ AI učiteľ nenačítaný: sťahovanie modelu zlyhalo (zobrazuje sa zástupný obrázok)'
+        }
+    };
     function t(key) {
         const lang = targetLangSelect ? targetLangSelect.value : 'English';
         const dict = I18N[lang];
-        const extra = Object.assign({}, I18N_EXTRA['Chinese'] || {}, I18N_EXTRA2['Chinese'] || {}, I18N_EXTRA3['Chinese'] || {}, (typeof I18N_GAP !== 'undefined' && I18N_GAP['Chinese']) || {}, (typeof I18N_NEW !== 'undefined' && I18N_NEW['Chinese']) || {}, (typeof I18N_NEW2 !== 'undefined' && I18N_NEW2['Chinese']) || {}, (typeof I18N_NEW3 !== 'undefined' && I18N_NEW3['Chinese']) || {}, (typeof I18N_NEW4 !== 'undefined' && I18N_NEW4['Chinese']) || {}, (typeof I18N_NEW5 !== 'undefined' && I18N_NEW5['Chinese']) || {}, (typeof I18N_NEW6 !== 'undefined' && I18N_NEW6['Chinese']) || {}, (typeof I18N_NEW7 !== 'undefined' && I18N_NEW7['Chinese']) || {}, (typeof I18N_NEW8 !== 'undefined' && I18N_NEW8['Chinese']) || {}, (typeof I18N_NEW9 !== 'undefined' && I18N_NEW9['Chinese']) || {}, (typeof I18N_NEW12 !== 'undefined' && I18N_NEW12['Chinese']) || {}, (typeof I18N_NEW13 !== 'undefined' && I18N_NEW13['Chinese']) || {}, I18N_EXTRA[lang] || {}, I18N_EXTRA2[lang] || {}, I18N_EXTRA3[lang] || {}, (typeof I18N_GAP !== 'undefined' && I18N_GAP[lang]) || {}, (typeof I18N_NEW !== 'undefined' && I18N_NEW[lang]) || {}, (typeof I18N_NEW2 !== 'undefined' && I18N_NEW2[lang]) || {}, (typeof I18N_NEW3 !== 'undefined' && I18N_NEW3[lang]) || {}, (typeof I18N_NEW4 !== 'undefined' && I18N_NEW4[lang]) || {}, (typeof I18N_NEW5 !== 'undefined' && I18N_NEW5[lang]) || {}, (typeof I18N_NEW6 !== 'undefined' && I18N_NEW6[lang]) || {}, (typeof I18N_NEW7 !== 'undefined' && I18N_NEW7[lang]) || {}, (typeof I18N_NEW8 !== 'undefined' && I18N_NEW8[lang]) || {}, (typeof I18N_NEW9 !== 'undefined' && I18N_NEW9[lang]) || {}, (typeof I18N_NEW12 !== 'undefined' && I18N_NEW12[lang]) || {}, (typeof I18N_NEW13 !== 'undefined' && I18N_NEW13[lang]) || {}, (typeof I18N_NEW14 !== 'undefined' && I18N_NEW14[lang]) || {});
+        const extra = Object.assign({}, I18N_EXTRA['Chinese'] || {}, I18N_EXTRA2['Chinese'] || {}, I18N_EXTRA3['Chinese'] || {}, (typeof I18N_GAP !== 'undefined' && I18N_GAP['Chinese']) || {}, (typeof I18N_NEW !== 'undefined' && I18N_NEW['Chinese']) || {}, (typeof I18N_NEW2 !== 'undefined' && I18N_NEW2['Chinese']) || {}, (typeof I18N_NEW3 !== 'undefined' && I18N_NEW3['Chinese']) || {}, (typeof I18N_NEW4 !== 'undefined' && I18N_NEW4['Chinese']) || {}, (typeof I18N_NEW5 !== 'undefined' && I18N_NEW5['Chinese']) || {}, (typeof I18N_NEW6 !== 'undefined' && I18N_NEW6['Chinese']) || {}, (typeof I18N_NEW7 !== 'undefined' && I18N_NEW7['Chinese']) || {}, (typeof I18N_NEW8 !== 'undefined' && I18N_NEW8['Chinese']) || {}, (typeof I18N_NEW9 !== 'undefined' && I18N_NEW9['Chinese']) || {}, (typeof I18N_NEW12 !== 'undefined' && I18N_NEW12['Chinese']) || {}, (typeof I18N_NEW13 !== 'undefined' && I18N_NEW13['Chinese']) || {}, I18N_EXTRA[lang] || {}, I18N_EXTRA2[lang] || {}, I18N_EXTRA3[lang] || {}, (typeof I18N_GAP !== 'undefined' && I18N_GAP[lang]) || {}, (typeof I18N_NEW !== 'undefined' && I18N_NEW[lang]) || {}, (typeof I18N_NEW2 !== 'undefined' && I18N_NEW2[lang]) || {}, (typeof I18N_NEW3 !== 'undefined' && I18N_NEW3[lang]) || {}, (typeof I18N_NEW4 !== 'undefined' && I18N_NEW4[lang]) || {}, (typeof I18N_NEW5 !== 'undefined' && I18N_NEW5[lang]) || {}, (typeof I18N_NEW6 !== 'undefined' && I18N_NEW6[lang]) || {}, (typeof I18N_NEW7 !== 'undefined' && I18N_NEW7[lang]) || {}, (typeof I18N_NEW8 !== 'undefined' && I18N_NEW8[lang]) || {}, (typeof I18N_NEW9 !== 'undefined' && I18N_NEW9[lang]) || {}, (typeof I18N_NEW12 !== 'undefined' && I18N_NEW12[lang]) || {}, (typeof I18N_NEW13 !== 'undefined' && I18N_NEW13[lang]) || {}, (typeof I18N_NEW14 !== 'undefined' && I18N_NEW14[lang]) || {}, (I18N_LIVE2D[lang] || {}));
         const voice = I18N_VOICE[lang] || I18N_VOICE['Chinese'] || {};
         const translated = (dict && dict[key]) ? dict[key] : (extra[key] || voice[key] || '');
-        const chinese = (ZH && ZH[key]) ? ZH[key] : ((I18N_EXTRA['Chinese'] && I18N_EXTRA['Chinese'][key]) || (I18N_EXTRA2['Chinese'] && I18N_EXTRA2['Chinese'][key]) || (I18N_EXTRA3['Chinese'] && I18N_EXTRA3['Chinese'][key]) || (typeof I18N_GAP !== 'undefined' && I18N_GAP['Chinese'] && I18N_GAP['Chinese'][key]) || (typeof I18N_NEW !== 'undefined' && I18N_NEW['Chinese'] && I18N_NEW['Chinese'][key]) || (typeof I18N_NEW2 !== 'undefined' && I18N_NEW2['Chinese'] && I18N_NEW2['Chinese'][key]) || (typeof I18N_NEW3 !== 'undefined' && I18N_NEW3['Chinese'] && I18N_NEW3['Chinese'][key]) || (typeof I18N_NEW4 !== 'undefined' && I18N_NEW4['Chinese'] && I18N_NEW4['Chinese'][key]) || (typeof I18N_NEW5 !== 'undefined' && I18N_NEW5['Chinese'] && I18N_NEW5['Chinese'][key]) || (typeof I18N_NEW6 !== 'undefined' && I18N_NEW6['Chinese'] && I18N_NEW6['Chinese'][key]) || (typeof I18N_NEW7 !== 'undefined' && I18N_NEW7['Chinese'] && I18N_NEW7['Chinese'][key]) || (typeof I18N_NEW8 !== 'undefined' && I18N_NEW8['Chinese'] && I18N_NEW8['Chinese'][key]) || (typeof I18N_NEW9 !== 'undefined' && I18N_NEW9['Chinese'] && I18N_NEW9['Chinese'][key]) || (typeof I18N_NEW12 !== 'undefined' && I18N_NEW12['Chinese'] && I18N_NEW12['Chinese'][key]) || (typeof I18N_NEW13 !== 'undefined' && I18N_NEW13['Chinese'] && I18N_NEW13['Chinese'][key]) || (typeof I18N_NEW14 !== 'undefined' && I18N_NEW14['Chinese'] && I18N_NEW14['Chinese'][key]) || (I18N_VOICE['Chinese'] && I18N_VOICE['Chinese'][key]) || '');
+        const chinese = (ZH && ZH[key]) ? ZH[key] : ((I18N_EXTRA['Chinese'] && I18N_EXTRA['Chinese'][key]) || (I18N_EXTRA2['Chinese'] && I18N_EXTRA2['Chinese'][key]) || (I18N_EXTRA3['Chinese'] && I18N_EXTRA3['Chinese'][key]) || (typeof I18N_GAP !== 'undefined' && I18N_GAP['Chinese'] && I18N_GAP['Chinese'][key]) || (typeof I18N_NEW !== 'undefined' && I18N_NEW['Chinese'] && I18N_NEW['Chinese'][key]) || (typeof I18N_NEW2 !== 'undefined' && I18N_NEW2['Chinese'] && I18N_NEW2['Chinese'][key]) || (typeof I18N_NEW3 !== 'undefined' && I18N_NEW3['Chinese'] && I18N_NEW3['Chinese'][key]) || (typeof I18N_NEW4 !== 'undefined' && I18N_NEW4['Chinese'] && I18N_NEW4['Chinese'][key]) || (typeof I18N_NEW5 !== 'undefined' && I18N_NEW5['Chinese'] && I18N_NEW5['Chinese'][key]) || (typeof I18N_NEW6 !== 'undefined' && I18N_NEW6['Chinese'] && I18N_NEW6['Chinese'][key]) || (typeof I18N_NEW7 !== 'undefined' && I18N_NEW7['Chinese'] && I18N_NEW7['Chinese'][key]) || (typeof I18N_NEW8 !== 'undefined' && I18N_NEW8['Chinese'] && I18N_NEW8['Chinese'][key]) || (typeof I18N_NEW9 !== 'undefined' && I18N_NEW9['Chinese'] && I18N_NEW9['Chinese'][key]) || (typeof I18N_NEW12 !== 'undefined' && I18N_NEW12['Chinese'] && I18N_NEW12['Chinese'][key]) || (typeof I18N_NEW13 !== 'undefined' && I18N_NEW13['Chinese'] && I18N_NEW13['Chinese'][key]) || (typeof I18N_NEW14 !== 'undefined' && I18N_NEW14['Chinese'] && I18N_NEW14['Chinese'][key]) || (I18N_VOICE['Chinese'] && I18N_VOICE['Chinese'][key]) || (I18N_LIVE2D['Chinese'] && I18N_LIVE2D['Chinese'][key]) || '');
         if (!translated) return chinese || key;
         return translated;
     }
@@ -13662,6 +13756,8 @@ const HSK2_VOCAB = [
         const wb = document.getElementById('wZenmeshuoBtn'); if(wb) wb.textContent = t('zms.button');
         // 刷新语音输入引导提示
         if (typeof updateVoiceHint === 'function') updateVoiceHint();
+        // 刷新数字人状态条（多语言）
+        if (typeof renderLive2dStatus === 'function') renderLive2dStatus();
         // 刷新写作状态栏与流程提示
         const wfh = document.getElementById('writingFlowHint'); if(wfh) wfh.textContent = t('writing.flow_hint');
         const wtcl = document.getElementById('writingTargetCharsLabel'); if(wtcl) wtcl.textContent = t('writing.target_chars');
@@ -21504,22 +21600,33 @@ renderVocabLevelProgress(); renderVocabTrackList(); const _userHanzi = sessionUs
         'https://fastly.jsdelivr.net/gh/guansss/pixi-live2d-display@master/test/assets/shizuku/shizuku.model.json',
         'https://ghproxy.net/https://raw.githubusercontent.com/guansss/pixi-live2d-display/master/test/assets/shizuku/shizuku.model.json'
     ];
-    function live2dSetStatus(s){
+    let live2dStatusState = null;   // { key, params }
+    function live2dSetStatus(key, params){
         const el = document.getElementById('live2dStatus');
         if(!el) return;
-        if(s){
-            el.style.display = 'block';
-            el.textContent = s;
-            const failed = /未加载/.test(s);
-            el.style.cursor = failed ? 'pointer' : 'default';
-            el.onclick = failed ? function(){
-                el.textContent = '⏳ 数字人加载中…';
-                live2dInitPromise = null;
-                initLive2DTeacher();
-            } : null;
+        if(key){
+            live2dStatusState = { key: key, params: params || {} };
+            renderLive2dStatus();
         } else {
+            live2dStatusState = null;
             el.style.display = 'none';
         }
+    }
+    function renderLive2dStatus(){
+        const el = document.getElementById('live2dStatus');
+        const st = live2dStatusState;
+        if(!el || !st) return;
+        let text = t(st.key) || st.key;
+        const p = st.params || {};
+        for(const k of Object.keys(p)){ text = text.split('{' + k + '}').join(String(p[k])); }
+        el.style.display = 'block';
+        el.textContent = text;
+        const failed = st.key !== 'live2d.loading';
+        el.style.cursor = failed ? 'pointer' : 'default';
+        el.onclick = failed ? function(){
+            live2dInitPromise = null;
+            initLive2DTeacher();
+        } : null;
     }
     function loadScriptSeq(urls){
         return new Promise(function(resolve, reject){
@@ -21609,14 +21716,14 @@ renderVocabLevelProgress(); renderVocabTrackList(); const _userHanzi = sessionUs
             if(!stage) return;
             // 双击本地文件（file://）打开时浏览器禁止读取同目录资源：直接给出明确指引
             if(location.protocol === 'file:'){
-                live2dSetStatus('⚠️ 当前是双击打开的本地文件，数字人无法加载。请双击「启动网站.bat」打开 http://localhost:3001，或访问 https://cyb123-gif.github.io/hsk-helper/');
+                live2dSetStatus('live2d.file_protocol');
                 return;
             }
             // 重试前清理上一次残留的 canvas/应用
             if(live2dApp){ try{ live2dApp.destroy(true, { children: true }); }catch(e){} live2dApp = null; }
             live2dModelRef = null; window._live2dModel = null;
             stage.querySelectorAll('canvas').forEach(function(c){ c.remove(); });
-            live2dSetStatus('⏳ 数字人加载中…');
+            live2dSetStatus('live2d.loading');
             // 依次加载三组依赖：Pixi → Live2D 核心 → Live2DModel 插件。
             // 每组先试动态 <script>，失败再用 fetch+eval 救援（兼容 QQ 浏览器等对动态脚本的限制）。
             // 注意：pixi-live2d-display 0.4.0 浏览器打包把类挂在 PIXI.live2d.Live2DModel 上，不是 window.Live2DModel
@@ -21633,7 +21740,7 @@ renderVocabLevelProgress(); renderVocabTrackList(); const _userHanzi = sessionUs
             }
             if(!window.PIXI || !window.Live2D || !live2dPluginOk()){
                 const l2dDetail = 'PIXI:' + !!window.PIXI + '｜Live2D核心:' + !!window.Live2D + '｜Live2DModel:' + live2dPluginOk() + '｜本页 ' + location.host;
-                live2dSetStatus('⚠️ 数字人加载失败｜' + l2dDetail + '｜请点击此处重试');
+                live2dSetStatus('live2d.load_fail', { detail: l2dDetail });
                 return;
             }
             let modelUrl = null;
@@ -21644,7 +21751,7 @@ renderVocabLevelProgress(); renderVocabTrackList(); const _userHanzi = sessionUs
                 }catch(e){}
             }
             if(!modelUrl){
-                live2dSetStatus('⚠️ 数字人未加载：模型下载失败（已用占位图）');
+                live2dSetStatus('live2d.model_download_fail');
                 return;
             }
             try{
@@ -21698,7 +21805,7 @@ renderVocabLevelProgress(); renderVocabTrackList(); const _userHanzi = sessionUs
                 stage.querySelectorAll('canvas').forEach(function(c){ c.remove(); });
                 const fb2 = document.getElementById('live2dFallback');
                 if(fb2) fb2.style.display = '';
-                live2dSetStatus('⚠️ 数字人未加载：模型加载失败｜' + String((e && e.message) || e) + '｜点击重试');
+                live2dSetStatus('live2d.model_fail', { msg: String((e && e.message) || e) });
             }
         })();
         return live2dInitPromise;
