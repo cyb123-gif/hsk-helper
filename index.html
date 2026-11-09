@@ -776,7 +776,7 @@
         <div class="chat-messages-wrapper" id="chatMessagesWrapper">
         <div class="chat-messages" id="chatMessages">
             <div class="message assistant-message">
-                <div class="bubble assistant-bubble">你好，我是你的AI语伴，我们一起聊天吧<div class="greeting-native" id="chatGreetingNative" style="display:none;margin-top:6px;color:#64748b;font-size:0.85rem;"></div></div>
+                <div class="bubble assistant-bubble"><span id="chatGreetingText">你好，我是你的AI语伴，我们一起聊天吧</span><div class="greeting-native" id="chatGreetingNative" style="display:none;margin-top:6px;color:#64748b;font-size:0.85rem;"></div></div>
                 <div class="timestamp">刚刚</div>
             </div>
         </div>
@@ -1158,10 +1158,8 @@
             <input type="password" class="api-key-input" id="apiKeyInput" placeholder="请输入老师提供的 DeepSeek API Key" value="" autocomplete="off">
             <div class="small-note" id="apiKeyStatus">🔑 请输入老师提供的 DeepSeek API Key（不会保存，每次打开页面重新输入）。</div>
             <div class="stat-title" style="margin-top:10px;"><span>🎤 腾讯云语音识别（可选）</span></div>
-            <input type="text" class="api-key-input" id="tencentSecretId" placeholder="腾讯云 SecretId" value="" autocomplete="off" style="margin-bottom:8px;">
-            <input type="password" class="api-key-input" id="tencentSecretKey" placeholder="腾讯云 SecretKey" value="" autocomplete="off" style="margin-bottom:8px;">
-            <input type="text" class="api-key-input" id="tencentAppId" placeholder="腾讯云 AppID（数字）" value="" autocomplete="off" style="margin-bottom:8px;">
-            <div class="small-note">🎤 在腾讯云开通「语音识别」后，从控制台获取以上三项（有免费额度）。仅保存在你自己的浏览器本地；不填则麦克风按钮会提示先填写密钥。</div>
+            <input type="password" class="api-key-input" id="tencentKeysInput" placeholder="一次粘贴：SecretId,SecretKey,AppID（英文逗号隔开）" value="" autocomplete="off" style="margin-bottom:8px;">
+            <div class="small-note">🎤 在腾讯云开通「语音识别」后（有免费额度），把 SecretId、SecretKey、AppID 三项用英文逗号隔开，一次粘贴到这里，例如：AKIDxxxxx,xxxxx,1300000000。密钥获取：console.cloud.tencent.com/cam/capi。仅保存在你自己的浏览器本地。</div>
             <div class="stat-title"><span>📊 语法点明细 (点击查看明细)</span></div>
             <div class="progress-grid" id="levelProgress"></div>
         </div>
@@ -13797,6 +13795,9 @@ const HSK2_VOCAB = [
         if (typeof updateVoiceHint === 'function') updateVoiceHint();
         // 刷新数字人状态条（多语言）
         if (typeof renderLive2dStatus === 'function') renderLive2dStatus();
+        // 问候语多语言
+        const chatGreetingText = document.getElementById('chatGreetingText');
+        if (chatGreetingText) chatGreetingText.textContent = t('chat.greeting');
         // 刷新写作状态栏与流程提示
         const wfh = document.getElementById('writingFlowHint'); if(wfh) wfh.textContent = t('writing.flow_hint');
         const wtcl = document.getElementById('writingTargetCharsLabel'); if(wtcl) wtcl.textContent = t('writing.target_chars');
@@ -18526,46 +18527,56 @@ ${searchRule}
         }
     }
 
-    // ===== 腾讯云密钥（保存在本机浏览器 localStorage） =====
+    // ===== 腾讯云密钥（一个框一次粘贴三项，保存在本机浏览器 localStorage） =====
     function tencentAsrInputs(){
-        return {
-            idEl: document.getElementById('tencentSecretId'),
-            keyEl: document.getElementById('tencentSecretKey'),
-            appEl: document.getElementById('tencentAppId')
-        };
+        return { keysEl: document.getElementById('tencentKeysInput') };
+    }
+    function parseTencentKeys(raw){
+        const parts = String(raw || '').split(/[\s,，;；|]+/).filter(Boolean);
+        if(parts.length < 3) return null;
+        return { secretId: parts[0], secretKey: parts[1], appId: parts[2] };
     }
     function loadTencentAsrKeys(){
         try{
-            const el = tencentAsrInputs();
-            if(el.idEl) el.idEl.value = localStorage.getItem('TENCENT_ASR_SECRET_ID') || '';
-            if(el.keyEl) el.keyEl.value = localStorage.getItem('TENCENT_ASR_SECRET_KEY') || '';
-            if(el.appEl) el.appEl.value = localStorage.getItem('TENCENT_ASR_APP_ID') || '';
+            const el = tencentAsrInputs().keysEl;
+            if(!el) return;
+            let combined = localStorage.getItem('TENCENT_ASR_KEYS') || '';
+            if(!combined){
+                // 兼容旧版三个分开保存的字段
+                const legacy = [
+                    localStorage.getItem('TENCENT_ASR_SECRET_ID') || '',
+                    localStorage.getItem('TENCENT_ASR_SECRET_KEY') || '',
+                    localStorage.getItem('TENCENT_ASR_APP_ID') || ''
+                ];
+                if(legacy[0] && legacy[1] && legacy[2]){
+                    combined = legacy.join(',');
+                    localStorage.setItem('TENCENT_ASR_KEYS', combined);
+                }
+            }
+            el.value = combined;
         }catch(e){}
     }
     function saveTencentAsrKeys(){
         try{
-            const el = tencentAsrInputs();
-            localStorage.setItem('TENCENT_ASR_SECRET_ID', (el.idEl ? el.idEl.value : '').trim());
-            localStorage.setItem('TENCENT_ASR_SECRET_KEY', (el.keyEl ? el.keyEl.value : '').trim());
-            localStorage.setItem('TENCENT_ASR_APP_ID', (el.appEl ? el.appEl.value : '').trim());
+            const el = tencentAsrInputs().keysEl;
+            localStorage.setItem('TENCENT_ASR_KEYS', el ? el.value.trim() : '');
         }catch(e){}
     }
     function bindTencentAsrKeyInputs(){
-        const el = tencentAsrInputs();
-        [el.idEl, el.keyEl, el.appEl].forEach(function(inp){
-            if(inp && !inp._tencentBound){ inp._tencentBound = true; inp.addEventListener('change', saveTencentAsrKeys); }
-        });
+        const el = tencentAsrInputs().keysEl;
+        if(el && !el._tencentBound){
+            el._tencentBound = true;
+            el.addEventListener('change', saveTencentAsrKeys);
+        }
     }
     function tencentAsrKeys(){
-        const el = tencentAsrInputs();
-        const secretId = (el.idEl ? el.idEl.value : '').trim();
-        const secretKey = (el.keyEl ? el.keyEl.value : '').trim();
-        const appId = (el.appEl ? el.appEl.value : '').trim();
-        if(!secretId || !secretKey || !appId){
-            showToast('请先在右侧「腾讯云语音识别」填写 SecretId / SecretKey / AppID');
+        const el = tencentAsrInputs().keysEl;
+        const parsed = el ? parseTencentKeys(el.value) : null;
+        if(!parsed){
+            showToast('请把腾讯云三项密钥按「SecretId,SecretKey,AppID」顺序，用英文逗号隔开一次粘贴到右侧一个框里（不要有空格，AppID 是纯数字）');
             return null;
         }
-        return { secretId: secretId, secretKey: secretKey, appId: appId };
+        return parsed;
     }
 
     // ===== 录音 → 16kHz 单声道 PCM → 腾讯云识别 → 填入输入框 =====
@@ -18652,7 +18663,12 @@ ${searchRule}
                 showToast('未识别到内容，请再试一次（靠近麦克风、说慢一点）');
             }
         }catch(e){
-            showToast('腾讯云识别失败：' + String((e && e.message) || e));
+            const errMsg = String((e && e.message) || e);
+            let hint = '';
+            if(/密钥不存在|SecretIdNotFound|AuthFailure\.SecretIdNotFound/i.test(errMsg)) hint = '｜SecretId 不正确：请到 console.cloud.tencent.com/cam/capi 重新复制，注意前后不能有空格，也别和 SecretKey 填反';
+            else if(/Signature|签名|AuthFailure\.SignatureFailure|SignatureExpire/i.test(errMsg)) hint = '｜SecretKey 不正确：请检查是否复制完整（前后不能有空格）';
+            else if(/AppID|appid/i.test(errMsg)) hint = '｜AppID 不正确：应为纯数字（账号信息里查看）';
+            showToast('腾讯云识别失败：' + errMsg + hint);
         }finally{
             releaseTencentMedia();
             updateVoiceHint();
@@ -23537,7 +23553,7 @@ async function generateAndShowPractice(grammarPattern, grammarLevel, forceNew=fa
     function saveUsers(users){ localStorage.setItem(USERS_STORAGE, JSON.stringify(users)); }
     function updateHeaderUser(){ const el=document.getElementById('headerUsername'); if(currentUser){ el.innerHTML=t('user.welcome')+escapeHtml(currentUser)+' <span class="logout-link" id="logoutLink">'+t('user.logout')+'</span>'; document.getElementById('logoutLink').onclick=handleLogout; } else { el.innerHTML=''; } }
     async function handleLogin(){ const username=document.getElementById('loginUsername').value.trim(); const password=document.getElementById('loginPassword').value.trim(); const errorEl=document.getElementById('loginError'); const btn=document.getElementById('loginBtn'); if(!username||!password){ errorEl.textContent=t('login.error_empty'); return; } btn.disabled=true; btn.textContent=t('login.verifying'); errorEl.textContent=''; try { const users=getUsers(); const fast=hashPassword(password,username); const stored=users[username]; if(stored){ if(fast===stored){ /* new format match */ } else if(!stored.startsWith('fallback_')&&/^[0-9a-f]{64}$/.test(stored)){ const cryptoHash=await tryCryptoHash(password,username); if(cryptoHash!==stored){ errorEl.textContent=t('login.error_wrong'); btn.disabled=false; btn.textContent=t('login.button'); return; } } else { errorEl.textContent=t('login.error_wrong'); btn.disabled=false; btn.textContent=t('login.button'); return; } } else { users[username]=fast; saveUsers(users); } currentUser=username; localStorage.setItem(CURRENT_USER_STORAGE,username); document.getElementById('loginOverlay').classList.add('hidden'); updateHeaderUser(); finishInit(); } catch(e) { errorEl.textContent=t('login.error_fail'); btn.disabled=false; btn.textContent=t('login.button'); } }
-    function handleLogout(){ if(confirm(t('logout.confirm'))){ usedMap.clear(); favoriteSentences=[]; queriedItems=[]; chatHistory=[]; currentSessionClauses=[]; sessionUserMessages=[]; window._chatSessionMistakes=[]; learnPlan={}; vocabUsedMap.clear(); vocabCorrectList=[]; lastGeneratedVocabSentences.clear(); allGeneratedVocabSet.clear(); lastGeneratedSentences.clear(); lastGrammarMeta.clear(); lastGeneratedCollocations.clear(); usedPracticeStructures.clear(); wrongSentences=[]; writingEssays=[]; writingTopic=''; writingSession=null; lastWritingText=''; writingState='idle'; window._learnCustomData={}; currentLearnTab=null; window._hideReadingForTask = null; readingTrack={unknownIn:{},knownIn:{},unknownOut:{},comprehension:{in:{},out:{}}}; readingSessionUnknowns=[]; readingClickedSentences=[]; currentReadingAnalyzed=false; readingHistory=[]; currentReading=null; zmsRecords=[]; zmsAttemptState={}; window._zmsWrongAttempts=[]; window._reflectionResults=[]; window._reflectionQueue=[]; window._reflectionReasons=[]; window._reflectionDoneCallback=null; window._sentenceState=null; window._sentenceMistakes=[]; vocabDimMap={}; sentenceRows=[]; gapBank={items:[]}; wordStatusData={targetLevel:0,words:{},migrated:false}; window._dimUpdates=[]; zmsUsedSentenceSet.clear(); writingResultCache.clear(); _chatMistakeCache.clear(); window._retellContext=null; retellState=null; wlSession=null; currentPracticeVocab=null; currentPracticeGrammar=null; candidateLevel=3; currentCandidates=[]; window._readingChatMsgs=[]; window._writingChatMsgs=[]; window._chatTopicContext=null; window._wsSnapshot={}; window._wsBoardFilter=null; window._wsCardTab=null; window._dictationMode=false; window._dictationOnly=false; window._dictationTestState=null; window._dictationReflectQueue=[]; window._dictationReflectDone=null; window._reviewMode=false; window._reviewQueue=null; window._learnMode=false; window._learnQueue=null; window._currentReviewItem=null; window._reviewRound=0; window._practiceRevealed=false; window._practiceFinished=false; window._pendingLearnWord=null; window._learnRound=0; window._selfPractice=false; window._practiceCanAdvance=false; const _dro=document.getElementById('dictationReflectOverlay'); if(_dro) _dro.remove(); try{ unbindDictReflectKeys(); }catch(_e){} if(practiceModal) practiceModal.style.display='none'; if(modal) modal.style.display='none'; const _wsm=document.getElementById('wordStatusModal'); if(_wsm) _wsm.style.display='none'; const _wcm=document.getElementById('wordCardModal'); if(_wcm) _wcm.style.display='none'; document.body.style.overflow=''; renderGapBankUI(); totalMinutes=0; currentUser=null; localStorage.removeItem(CURRENT_USER_STORAGE); const _wsFirst=document.getElementById('wsFirstTargetModal'); if(_wsFirst) _wsFirst.remove(); document.getElementById('loginOverlay').classList.remove('hidden'); document.getElementById('loginPassword').value=''; document.getElementById('loginError').textContent=''; document.getElementById('loginBtn').disabled=false; document.getElementById('loginBtn').textContent=t('login.button'); document.getElementById('chatMessages').innerHTML='<div class="message assistant-message"><div class="bubble assistant-bubble">'+t('chat.greeting')+'</div><div class="timestamp">'+t('chat.just_now')+'</div></div>'; updateHeaderUser(); grammarList=buildFullGrammarList(); renderLevelProgress(); updateGrammarDisplayByLevel(parseInt(grammarViewLevel.value)); renderTrackList(); renderVocabLevelProgress(); renderVocabLibrary(parseInt(document.getElementById('vocabViewLevel')?.value)||1); renderVocabTrackList(); renderQueriedBook(); renderFavoriteBook(); renderWrongSentences(); renderLearnTasks(); } }
+    function handleLogout(){ if(confirm(t('logout.confirm'))){ usedMap.clear(); favoriteSentences=[]; queriedItems=[]; chatHistory=[]; currentSessionClauses=[]; sessionUserMessages=[]; window._chatSessionMistakes=[]; learnPlan={}; vocabUsedMap.clear(); vocabCorrectList=[]; lastGeneratedVocabSentences.clear(); allGeneratedVocabSet.clear(); lastGeneratedSentences.clear(); lastGrammarMeta.clear(); lastGeneratedCollocations.clear(); usedPracticeStructures.clear(); wrongSentences=[]; writingEssays=[]; writingTopic=''; writingSession=null; lastWritingText=''; writingState='idle'; window._learnCustomData={}; currentLearnTab=null; window._hideReadingForTask = null; readingTrack={unknownIn:{},knownIn:{},unknownOut:{},comprehension:{in:{},out:{}}}; readingSessionUnknowns=[]; readingClickedSentences=[]; currentReadingAnalyzed=false; readingHistory=[]; currentReading=null; zmsRecords=[]; zmsAttemptState={}; window._zmsWrongAttempts=[]; window._reflectionResults=[]; window._reflectionQueue=[]; window._reflectionReasons=[]; window._reflectionDoneCallback=null; window._sentenceState=null; window._sentenceMistakes=[]; vocabDimMap={}; sentenceRows=[]; gapBank={items:[]}; wordStatusData={targetLevel:0,words:{},migrated:false}; window._dimUpdates=[]; zmsUsedSentenceSet.clear(); writingResultCache.clear(); _chatMistakeCache.clear(); window._retellContext=null; retellState=null; wlSession=null; currentPracticeVocab=null; currentPracticeGrammar=null; candidateLevel=3; currentCandidates=[]; window._readingChatMsgs=[]; window._writingChatMsgs=[]; window._chatTopicContext=null; window._wsSnapshot={}; window._wsBoardFilter=null; window._wsCardTab=null; window._dictationMode=false; window._dictationOnly=false; window._dictationTestState=null; window._dictationReflectQueue=[]; window._dictationReflectDone=null; window._reviewMode=false; window._reviewQueue=null; window._learnMode=false; window._learnQueue=null; window._currentReviewItem=null; window._reviewRound=0; window._practiceRevealed=false; window._practiceFinished=false; window._pendingLearnWord=null; window._learnRound=0; window._selfPractice=false; window._practiceCanAdvance=false; const _dro=document.getElementById('dictationReflectOverlay'); if(_dro) _dro.remove(); try{ unbindDictReflectKeys(); }catch(_e){} if(practiceModal) practiceModal.style.display='none'; if(modal) modal.style.display='none'; const _wsm=document.getElementById('wordStatusModal'); if(_wsm) _wsm.style.display='none'; const _wcm=document.getElementById('wordCardModal'); if(_wcm) _wcm.style.display='none'; document.body.style.overflow=''; renderGapBankUI(); totalMinutes=0; currentUser=null; localStorage.removeItem(CURRENT_USER_STORAGE); const _wsFirst=document.getElementById('wsFirstTargetModal'); if(_wsFirst) _wsFirst.remove(); document.getElementById('loginOverlay').classList.remove('hidden'); document.getElementById('loginPassword').value=''; document.getElementById('loginError').textContent=''; document.getElementById('loginBtn').disabled=false; document.getElementById('loginBtn').textContent=t('login.button'); document.getElementById('chatMessages').innerHTML='<div class="message assistant-message"><div class="bubble assistant-bubble"><span id="chatGreetingText">'+t('chat.greeting')+'</span></div><div class="timestamp">'+t('chat.just_now')+'</div></div>'; updateHeaderUser(); grammarList=buildFullGrammarList(); renderLevelProgress(); updateGrammarDisplayByLevel(parseInt(grammarViewLevel.value)); renderTrackList(); renderVocabLevelProgress(); renderVocabLibrary(parseInt(document.getElementById('vocabViewLevel')?.value)||1); renderVocabTrackList(); renderQueriedBook(); renderFavoriteBook(); renderWrongSentences(); renderLearnTasks(); } }
     function switchGrammarTab(id, btn){ const tabs=btn.parentElement; tabs.querySelectorAll('.browser-tab').forEach(t=>t.classList.remove('active')); btn.classList.add('active'); const card=tabs.parentElement; const content=card.querySelector('.browser-tab-content'); if(content){ content.querySelectorAll('.track-list').forEach(l=>l.style.display='none'); const target=document.getElementById(id); if(target){target.style.display=''; target.style.display='block';} } }
     function switchVocabTab(id, btn){ const tabs=btn.parentElement; tabs.querySelectorAll('.browser-tab').forEach(t=>t.classList.remove('active')); btn.classList.add('active'); const card=tabs.parentElement; const content=card.querySelector('.browser-tab-content'); if(content){ content.querySelectorAll('.track-list').forEach(l=>l.style.display='none'); const target=document.getElementById(id); if(target){target.style.display=''; target.style.display='block';} } }
     function initTrackTabs(){}
@@ -26941,7 +26957,7 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
         if(wlSession && wlSession.current) window._wlSpeak(wlSession.current.word);
     });
 
-    function finishInit(){ detectSpeechSupport(); primeSpeechSynthesis(); loadFullState(); maybeMarkNewChatSession(); renderChatHistory(); loadTencentAsrKeys(); bindTencentAsrKeyInputs(); initLive2DTeacher(); sessionStart = Date.now(); loadCandidateLevel(); pickCandidateWords(); updateStatsUI(); applyLanguage(); refreshAll(); try{ wsInitUI(); wsSyncTargetToModules(); renderWsSummary(); }catch(e){} sendBtn.onclick=handleUserMessage; endBtn.onclick=handleEndConversation;
+    function finishInit(){ detectSpeechSupport(); primeSpeechSynthesis(); loadFullState(); maybeMarkNewChatSession(); loadTencentAsrKeys(); bindTencentAsrKeyInputs(); initLive2DTeacher(); sessionStart = Date.now(); loadCandidateLevel(); pickCandidateWords(); updateStatsUI(); applyLanguage(); refreshAll(); try{ wsInitUI(); wsSyncTargetToModules(); renderWsSummary(); }catch(e){} sendBtn.onclick=handleUserMessage; endBtn.onclick=handleEndConversation;
             initVoiceRecognition();
         bindReadingEvents();
         document.getElementById('chatHistoryBtn').onclick = showChatHistory;
