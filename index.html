@@ -225,6 +225,7 @@
         .live2d-stage { height: 250px; display: flex; align-items: center; justify-content: center; background: linear-gradient(180deg, #eef2ff 0%, #f8fafc 100%); overflow: hidden; position: relative; flex-shrink: 0; }
         .live2d-stage canvas { display: block; }
         .live2d-fallback { font-size: 92px; opacity: .45; pointer-events: none; }
+        .live2d-status { position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); background: rgba(30,43,94,0.82); color: #fff; font-size: 0.75rem; padding: 4px 14px; border-radius: 20px; white-space: nowrap; }
         .browser-tabs { display: flex; gap: 0; padding: 0 8px; background: transparent; }
         .browser-tab { padding: 7px 14px; border: 1px solid #d0dae8; border-bottom: none; background: #e8ecf2; cursor: pointer; font-size: 0.75rem; font-weight: 600; color: #64748b; border-radius: 8px 8px 0 0; margin-right: -1px; position: relative; z-index: 0; transition: 0.15s; }
         .browser-tab:hover { background: #dce3ed; color: #334155; }
@@ -754,6 +755,7 @@
         </div>
         <div id="live2dStage" class="live2d-stage" title="AI 外教">
             <div class="live2d-fallback" id="live2dFallback">👩‍🏫</div>
+            <div class="live2d-status" id="live2dStatus">⏳ 数字人加载中…</div>
         </div>
         <div class="mode-tabs" id="modeTabs">
             <button class="mode-tab active" data-group="knowledge" id="modeTabKnowledge">🎯 知识练习</button>
@@ -21477,22 +21479,44 @@ renderVocabLevelProgress(); renderVocabTrackList(); const _userHanzi = sessionUs
 
     // ========== AI 外教 2D 数字人（pixi-live2d-display + shizuku 模型，国内镜像兜底） ==========
     const LIVE2D_SCRIPT_URLS = [
-        // [PixiJS v6]（pixi-live2d-display 0.4.0 只兼容 v6）
-        ['https://cdn.jsdelivr.net/npm/pixi.js@6.5.10/dist/browser/pixi.min.js',
+        // [PixiJS v6]（pixi-live2d-display 0.4.0 只兼容 v6）；gcore 是 jsdelivr 国内可访问镜像
+        ['https://gcore.jsdelivr.net/npm/pixi.js@6.5.10/dist/browser/pixi.min.js',
+         'https://cdn.jsdelivr.net/npm/pixi.js@6.5.10/dist/browser/pixi.min.js',
          'https://registry.npmmirror.com/pixi.js/6.5.10/files/dist/browser/pixi.min.js',
          'https://unpkg.com/pixi.js@6.5.10/dist/browser/pixi.min.js'],
         // [Cubism 2.1 核心]
-        ['https://cdn.jsdelivr.net/gh/dylanNew/live2d/webgl/Live2D/lib/live2d.min.js',
+        ['https://gcore.jsdelivr.net/gh/dylanNew/live2d/webgl/Live2D/lib/live2d.min.js',
+         'https://cdn.jsdelivr.net/gh/dylanNew/live2d/webgl/Live2D/lib/live2d.min.js',
          'https://fastly.jsdelivr.net/gh/dylanNew/live2d/webgl/Live2D/lib/live2d.min.js'],
         // [pixi-live2d-display cubism2 打包]
-        ['https://unpkg.com/pixi-live2d-display@0.4.0/dist/cubism2.min.js',
+        ['https://gcore.jsdelivr.net/npm/pixi-live2d-display@0.4.0/dist/cubism2.min.js',
          'https://cdn.jsdelivr.net/npm/pixi-live2d-display@0.4.0/dist/cubism2.min.js',
+         'https://unpkg.com/pixi-live2d-display@0.4.0/dist/cubism2.min.js',
          'https://fastly.jsdelivr.net/npm/pixi-live2d-display@0.4.0/dist/cubism2.min.js']
     ];
     const LIVE2D_MODEL_URLS = [
+        'https://gcore.jsdelivr.net/gh/guansss/pixi-live2d-display@master/test/assets/shizuku/shizuku.model.json',
         'https://cdn.jsdelivr.net/gh/guansss/pixi-live2d-display@master/test/assets/shizuku/shizuku.model.json',
-        'https://fastly.jsdelivr.net/gh/guansss/pixi-live2d-display@master/test/assets/shizuku/shizuku.model.json'
+        'https://fastly.jsdelivr.net/gh/guansss/pixi-live2d-display@master/test/assets/shizuku/shizuku.model.json',
+        'https://ghproxy.net/https://raw.githubusercontent.com/guansss/pixi-live2d-display/master/test/assets/shizuku/shizuku.model.json'
     ];
+    function live2dSetStatus(s){
+        const el = document.getElementById('live2dStatus');
+        if(!el) return;
+        if(s){
+            el.style.display = 'block';
+            el.textContent = s;
+            const failed = /未加载/.test(s);
+            el.style.cursor = failed ? 'pointer' : 'default';
+            el.onclick = failed ? function(){
+                el.textContent = '⏳ 数字人加载中…';
+                live2dInitPromise = null;
+                initLive2DTeacher();
+            } : null;
+        } else {
+            el.style.display = 'none';
+        }
+    }
     function loadScriptSeq(urls){
         return new Promise(function(resolve, reject){
             let i = 0;
@@ -21513,22 +21537,38 @@ renderVocabLevelProgress(); renderVocabTrackList(); const _userHanzi = sessionUs
         live2dInitPromise = (async function(){
             const stage = document.getElementById('live2dStage');
             if(!stage) return;
+            // 重试前清理上一次残留的 canvas/应用
+            if(live2dApp){ try{ live2dApp.destroy(true, { children: true }); }catch(e){} live2dApp = null; }
+            live2dModelRef = null; window._live2dModel = null;
+            stage.querySelectorAll('canvas').forEach(function(c){ c.remove(); });
+            live2dSetStatus('⏳ 数字人加载中…');
             if(!window.PIXI){
                 for(const urls of LIVE2D_SCRIPT_URLS){
                     try{ await loadScriptSeq(urls); break; }catch(e){}
                 }
             }
-            if(!window.PIXI || !window.Live2DModel){ return; } // 加载失败：保留 👩‍🏫 占位
+            if(!window.PIXI || !window.Live2DModel){
+                live2dSetStatus('⚠️ 数字人未加载：网络无法访问 CDN（已用占位图）');
+                return;
+            }
             let modelUrl = null;
             for(const u of LIVE2D_MODEL_URLS){
                 try{
-                    const r = await fetch(u, { method: 'HEAD' });
-                    if(r.ok){ modelUrl = u; break; }
+                    const r = await fetch(u, { method: 'GET', headers: { Range: 'bytes=0-0' } });
+                    if(r.ok || r.status === 206){ modelUrl = u; break; }
                 }catch(e){}
             }
-            if(!modelUrl) return;
+            if(!modelUrl){
+                live2dSetStatus('⚠️ 数字人未加载：模型下载失败（已用占位图）');
+                return;
+            }
             try{
                 live2dApp = new PIXI.Application({ backgroundAlpha: 0, width: stage.clientWidth || 400, height: 250, antialias: true });
+            }catch(e){
+                live2dSetStatus('⚠️ 数字人未加载：浏览器不支持 WebGL（已用占位图）');
+                return;
+            }
+            try{
                 stage.appendChild(live2dApp.view);
                 const model = await window.Live2DModel.from(modelUrl);
                 model.fit(250, 250, false, { x: 0.5, y: 0.5 });
@@ -21539,6 +21579,7 @@ renderVocabLevelProgress(); renderVocabTrackList(); const _userHanzi = sessionUs
                 window._live2dModel = model;
                 const fb = document.getElementById('live2dFallback');
                 if(fb) fb.style.display = 'none';
+                live2dSetStatus(null);
                 // 呼吸浮动
                 let t = 0;
                 live2dApp.ticker.add(function(){
@@ -21557,6 +21598,7 @@ renderVocabLevelProgress(); renderVocabTrackList(); const _userHanzi = sessionUs
                 })();
             }catch(e){
                 console.warn('[live2d] 模型加载失败', e);
+                live2dSetStatus('⚠️ 数字人未加载：模型加载失败（已用占位图）');
             }
         })();
         return live2dInitPromise;
