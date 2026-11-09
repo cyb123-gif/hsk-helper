@@ -385,6 +385,17 @@ function loadTencentKeys() {
 }
 let TENCENT_KEYS = loadTencentKeys();
 const crypto = require('crypto');
+const os = require('os');
+function getLanIps(){
+    const out = [];
+    const ifs = os.networkInterfaces();
+    for(const k of Object.keys(ifs)){
+        for(const it of (ifs[k] || [])){
+            if(it.family === 'IPv4' && !it.internal) out.push(it.address);
+        }
+    }
+    return out;
+}
 
 // 腾讯云语音合成代理（/tts-tencent?text=...，返回 mp3 音频）
 function handleTencentTtsProxy(req, res) {
@@ -540,5 +551,7 @@ server.listen(PORT, () => {
     console.log('  🔑 DeepSeek API Key: ' + (API_KEY ? '已配置 ✓' : '❌ 未配置！'));
     console.log('  🎙️ Groq API Key: ' + (GROQ_API_KEY ? '已配置 ✓' : '❌ 未配置（语音转文字不可用）'));
     console.log('  💡 浏览器打开 http://localhost:' + PORT + ' 即可使用');
+    const lans = getLanIps();
+    for(const ip of lans) console.log('  🌐 局域网（学生连同一 WiFi）: http://' + ip + ':' + PORT);
     console.log('='.repeat(55));
 });
