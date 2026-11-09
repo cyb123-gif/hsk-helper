@@ -376,7 +376,7 @@ function loadTencentKeys() {
     try {
         const content = fs.readFileSync(keyFile, 'utf-8');
         const parts = content.split(/[\s,，;；]+/).map(s => s.trim()).filter(Boolean);
-        if (parts.length >= 2) return { secretId: parts[0], secretKey: parts[1] };
+        if (parts.length >= 3) return { secretId: parts[0], secretKey: parts[1], appId: parts[2] };
     } catch (e) { /* 文件不存在 */ }
     if (process.env.TENCENT_SECRET_ID && process.env.TENCENT_SECRET_KEY) {
         return { secretId: process.env.TENCENT_SECRET_ID, secretKey: process.env.TENCENT_SECRET_KEY };
@@ -385,6 +385,8 @@ function loadTencentKeys() {
 }
 let TENCENT_KEYS = loadTencentKeys();
 const crypto = require('crypto');
+let WebSocketServer = null;
+try{ WebSocketServer = require('ws').WebSocketServer; }catch(e){ WebSocketServer = null; }
 const os = require('os');
 function getLanIps(){
     const out = [];
@@ -543,6 +545,64 @@ const server = http.createServer((req, res) => {
     // 静态文件
     serveStatic(req, res);
 });
+
+// ===== 腾讯云实时语音识别 WebSocket 中转（/asr-ws）：学生浏览器 → 服务器 → 腾讯云，密钥只在服务器端 =====
+function buildTencentAsrUrl(keys) {
+    const host = 'asr.cloud.tencent.com';
+    const ts = Math.floor(Date.now() / 1000);
+    const params = {
+        secretid: keys.secretId,
+        timestamp: String(ts),
+        expired: String(ts + 300),
+        nonce: String(Math.floor(Math.random() * 1000000000)),
+        voice_id: 'hsk' + Date.now() + Math.random().toString(36).slice(2, 8),
+        engine_model_type: '16k_zh',
+        voice_format: '1',
+        needvad: '0',
+        filter_dirty: '0',
+        filter_modal: '0',
+        filter_punc: '0',
+        convert_num_mode: '1',
+        word_info: '0'
+    };
+    const sorted = Object.keys(params).sort();
+    const signStr = host + '/asr/v2/' + String(keys.appId) + '?' + sorted.map(k => k + '=' + params[k]).join('&');
+    const sig = crypto.createHmac('sha1', keys.secretKey).update(signStr).digest('base64');
+    const query = sorted.map(k => k + '=' + encodeURIComponent(params[k])).join('&') + '&signature=' + encodeURIComponent(sig);
+    return 'wss://' + host + '/asr/v2/' + encodeURIComponent(String(keys.appId)) + '?' + query;
+}
+if (WebSocketServer) {
+    const wss = new WebSocketServer({ noServer: true });
+    server.on('upgrade', (req, socket, head) => {
+        if (!req.url || !req.url.startsWith('/asr-ws')) return;
+        if (!TENCENT_KEYS || !TENCENT_KEYS.appId) {
+            socket.write('HTTP/1.1 503 Service Unavailable\r\n\r\n');
+            socket.destroy();
+            return;
+        }
+        const upstream = new (require('ws'))(buildTencentAsrUrl(TENCENT_KEYS));
+        let down = null;
+        upstream.on('open', () => {
+            wss.handleUpgrade(req, socket, head, (ws) => {
+                down = ws;
+                ws.on('message', (data, isBinary) => {
+                    if (upstream.readyState === 1) { try{ upstream.send(data, { binary: isBinary }); }catch(e){} }
+                });
+                ws.on('close', () => { try{ upstream.close(); }catch(e){} });
+                ws.on('error', () => { try{ upstream.close(); }catch(e){} });
+            });
+        });
+        upstream.on('message', (data, isBinary) => {
+            if (down && down.readyState === 1) { try{ down.send(data, { binary: isBinary }); }catch(e){} }
+        });
+        upstream.on('close', () => { if (down) { try{ down.close(); }catch(e){} } });
+        upstream.on('error', (err) => {
+            console.error('[ASR relay] 上游错误:', err.message);
+            if (!down) { socket.write('HTTP/1.1 502 Bad Gateway\r\n\r\n'); socket.destroy(); }
+            else { try{ down.close(); }catch(e){} }
+        });
+    });
+}
 
 server.listen(PORT, () => {
     console.log('='.repeat(55));

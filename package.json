@@ -1,0 +1,9 @@
+{
+  "name": "hsk-helper-server",
+  "version": "1.0.0",
+  "private": true,
+  "description": "学汉语 · 一体化服务器（静态文件 + DeepSeek 代理 + 腾讯云语音识别/合成中转）",
+  "dependencies": {
+    "ws": "^8.18.0"
+  }
+}

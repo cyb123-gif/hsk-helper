@@ -18645,9 +18645,14 @@ ${searchRule}
     }
     async function startTencentRecording(){
         if(voiceIsRecording) return;
-        const keys = tencentAsrKeys();
-        if(!keys) return;
-        showToast('已读取密钥：SecretId ' + keys.secretId.slice(0, 8) + '…（' + keys.secretId.length + '位）｜SecretKey（' + keys.secretKey.length + '位）｜AppID ' + keys.appId);
+        // 自己服务器/本地：走服务器中转（学生无需填密钥）；GitHub Pages：直连腾讯云（需本机填密钥）
+        const useAsrRelay = (typeof IS_GITHUB_IO !== 'undefined') ? !IS_GITHUB_IO : false;
+        let keys = null;
+        if(!useAsrRelay){
+            keys = tencentAsrKeys();
+            if(!keys) return;
+            showToast('已读取密钥：SecretId ' + keys.secretId.slice(0, 8) + '…（' + keys.secretId.length + '位）｜SecretKey（' + keys.secretKey.length + '位）｜AppID ' + keys.appId);
+        }
         if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
             if(/MicroMessenger/i.test(navigator.userAgent)) showToast('微信内置浏览器不支持录音，请用手机自带的 Chrome/Edge/Safari 浏览器打开本页');
             else showToast(t('chat.voice_no_mic'));
@@ -18669,7 +18674,11 @@ ${searchRule}
             return;
         }
         let ws;
-        try{ ws = new WebSocket(await tencentAsrUrl(keys)); }
+        try{
+            ws = useAsrRelay
+                ? new WebSocket((location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host + '/asr-ws')
+                : new WebSocket(await tencentAsrUrl(keys));
+        }
         catch(e){ try{ stream.getTracks().forEach(function(t){ t.stop(); }); }catch(_){} showToast('连接腾讯云失败：' + String((e && e.message) || e)); return; }
         ws.binaryType = 'arraybuffer';
         tencentWs = ws;
