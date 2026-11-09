@@ -18591,10 +18591,11 @@ ${searchRule}
         return { secretId: secretId, secretKey: secretKey, appId: appId };
     }
 
-    // ===== 录音 → 16kHz 单声道 PCM → 腾讯云识别 → 填入输入框 =====
-    let tencentRecorder = null;
+    // ===== 录音：直接从麦克风抓 16kHz 单声道 PCM（绕开 MediaRecorder/解码，兼容性最好） =====
     let tencentStream = null;
-    let tencentChunks = [];
+    let tencentActx = null;
+    let tencentProc = null;
+    let tencentPcmFloats = [];
     let tencentAutoStopTimer = null;
     async function startTencentRecording(){
         const keys = tencentAsrKeys();
@@ -18606,12 +18607,13 @@ ${searchRule}
             else showToast(t('chat.voice_no_mic'));
             return;
         }
-        if(typeof MediaRecorder === 'undefined'){ showToast('当前浏览器不支持录音，请换 Edge/Chrome 浏览器'); return; }
+        const AC = window.AudioContext || window.webkitAudioContext;
+        if(!AC){ showToast('当前浏览器不支持录音，请换 Edge/Chrome'); return; }
         let stream;
         try{
             // 8 秒超时保护：有些内置浏览器会卡住权限弹窗，避免点了完全没反应
             stream = await Promise.race([
-                navigator.mediaDevices.getUserMedia({audio:true}),
+                navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } }),
                 new Promise(function(_, rej){ setTimeout(function(){ rej(new Error('mic-timeout')); }, 8000); })
             ]);
         }catch(e){
@@ -18621,20 +18623,21 @@ ${searchRule}
             else showToast('无法启动麦克风：' + String((e && e.message) || e));
             return;
         }
-        let rec;
-        try{ rec = new MediaRecorder(stream); }
-        catch(e){ try{ stream.getTracks().forEach(t => t.stop()); }catch(_){} showToast('当前浏览器不支持录音，请换 Edge/Chrome'); return; }
+        let actx;
+        try{ actx = new AC({ sampleRate: 16000 }); }catch(e2){ actx = new AC(); }
+        if(actx.state === 'suspended'){ try{ actx.resume(); }catch(e){} }
+        const src = actx.createMediaStreamSource(stream);
+        const proc = actx.createScriptProcessor(4096, 1, 1);
+        tencentPcmFloats = [];
+        proc.onaudioprocess = function(ev){
+            const ch = ev.inputBuffer.getChannelData(0);
+            for(let i = 0; i < ch.length; i++) tencentPcmFloats.push(ch[i]);
+        };
+        src.connect(proc);
+        proc.connect(actx.destination);
         tencentStream = stream;
-        tencentRecorder = rec;
-        tencentChunks = [];
-        rec.ondataavailable = function(ev){ if(ev.data && ev.data.size) tencentChunks.push(ev.data); };
-        rec.onstop = function(){ transcribeTencentRecording(); };
-        try{ rec.start(); }
-        catch(e){
-            releaseTencentMedia();
-            showToast(t('chat.voice_start_fail'));
-            return;
-        }
+        tencentActx = actx;
+        tencentProc = proc;
         voiceIsRecording = true;
         if(voiceBtn){ voiceBtn.classList.add('recording'); voiceBtn.textContent = '🔴'; voiceBtn.title = '录音中，点击停止并识别'; }
         const hint = document.getElementById('voiceInputHint');
@@ -18642,17 +18645,33 @@ ${searchRule}
         tencentAutoStopTimer = setTimeout(function(){ if(voiceIsRecording) stopTencentRecording(); }, 55000);
     }
     function stopTencentRecording(){
-        if(!tencentRecorder) return;
+        if(!tencentProc) return;
         voiceIsRecording = false;
         if(tencentAutoStopTimer){ clearTimeout(tencentAutoStopTimer); tencentAutoStopTimer = null; }
         if(voiceBtn){ voiceBtn.classList.remove('recording'); voiceBtn.textContent = '🎤'; voiceBtn.title = '🎤 语音输入'; }
-        try{ if(tencentRecorder.state !== 'inactive') tencentRecorder.stop(); }catch(e){}
-        // 麦克风轨道在 transcribeTencentRecording 处理完后释放
+        try{ tencentProc.disconnect(); }catch(e){}
+        transcribeTencentRecording();
     }
     function releaseTencentMedia(){
         if(tencentAutoStopTimer){ clearTimeout(tencentAutoStopTimer); tencentAutoStopTimer = null; }
-        try{ if(tencentStream) tencentStream.getTracks().forEach(t => t.stop()); }catch(e){}
-        tencentStream = null; tencentRecorder = null; tencentChunks = [];
+        try{ if(tencentProc) tencentProc.disconnect(); }catch(e){}
+        try{ if(tencentStream) tencentStream.getTracks().forEach(function(t){ t.stop(); }); }catch(e){}
+        try{ if(tencentActx && tencentActx.state !== 'closed') tencentActx.close(); }catch(e){}
+        tencentStream = null; tencentActx = null; tencentProc = null;
+    }
+    function encodeWav16kFromFloats(samples){
+        const buffer = new ArrayBuffer(44 + samples.length * 2);
+        const view = new DataView(buffer);
+        const writeStr = function(off, s){ for(let i = 0; i < s.length; i++) view.setUint8(off + i, s.charCodeAt(i)); };
+        writeStr(0, 'RIFF'); view.setUint32(4, 36 + samples.length * 2, true); writeStr(8, 'WAVE');
+        writeStr(12, 'fmt '); view.setUint16(16, 16, true); view.setUint16(20, 1, true); view.setUint16(22, 1, true);
+        view.setUint32(24, 16000, true); view.setUint32(28, 16000 * 2, true); view.setUint16(32, 2, true); view.setUint16(34, 16, true);
+        writeStr(36, 'data'); view.setUint32(40, samples.length * 2, true);
+        for(let i = 0; i < samples.length; i++){
+            const s = Math.max(-1, Math.min(1, samples[i]));
+            view.setInt16(44 + i * 2, s < 0 ? Math.round(s * 0x8000) : Math.round(s * 0x7FFF), true);
+        }
+        return new Blob([view], { type: 'audio/wav' });
     }
     let tencentLastPlaybackUrl = null;
     function updateTencentDebugPanel(rawBlob, note){
@@ -18673,17 +18692,41 @@ ${searchRule}
     async function transcribeTencentRecording(){
         const hint = document.getElementById('voiceInputHint');
         if(hint) hint.textContent = t('voice.hint_transcribing');
-        let rawBlobForDebug = null;
+        let wavBlobForDebug = null;
         let outcomeNote = '';
         try{
-            if(!tencentChunks.length) throw new Error('没有录到声音');
-            const mime = (tencentRecorder && tencentRecorder.mimeType) || 'audio/webm';
-            const rawBlob = new Blob(tencentChunks, { type: mime });
-            rawBlobForDebug = rawBlob;
-            const wavBlob = await encodeWav16kFromBlob(rawBlob);
-            const wavBuf = new Uint8Array(await wavBlob.arrayBuffer());
-            const pcm = wavBuf.subarray(44); // 去掉 44 字节 WAV 头：16kHz/16bit/单声道 PCM
-            if(!pcm.length) throw new Error('录音数据为空');
+            const capturedRate = (tencentActx && tencentActx.sampleRate) || 16000;
+            let floats = (tencentPcmFloats || []).slice();
+            if(!floats.length) throw new Error('没有录到声音');
+            // 若实际采样率不是 16k，线性插值重采样
+            if(capturedRate !== 16000){
+                const ratio = capturedRate / 16000;
+                const outLen = Math.max(1, Math.round(floats.length / ratio));
+                const out = new Float32Array(outLen);
+                for(let i = 0; i < outLen; i++){
+                    const pos = i * ratio;
+                    const i0 = Math.floor(pos);
+                    const i1 = Math.min(floats.length - 1, i0 + 1);
+                    const frac = pos - i0;
+                    out[i] = floats[i0] * (1 - frac) + floats[i1] * frac;
+                }
+                floats = out;
+            }
+            // 音量自检 + 自动增益
+            let peak = 0;
+            for(let i = 0; i < floats.length; i++){ const a = Math.abs(floats[i]); if(a > peak) peak = a; }
+            if(peak < 0.001) throw new Error('录音没有声音：请检查麦克风是否被占用或静音、系统输入设备是否选对，说话时靠近麦克风再试一次');
+            if(peak < 0.12){ const gain = Math.min(20, 0.12 / peak); for(let i = 0; i < floats.length; i++) floats[i] *= gain; }
+            window._lastTencentAudioInfo = { dur: floats.length / 16000, peak: Math.min(1, peak) };
+            // float → 16bit 小端 PCM
+            const pcm = new Uint8Array(floats.length * 2);
+            const dv = new DataView(pcm.buffer);
+            for(let i = 0; i < floats.length; i++){
+                const s = Math.max(-1, Math.min(1, floats[i]));
+                dv.setInt16(i * 2, s < 0 ? Math.round(s * 0x8000) : Math.round(s * 0x7FFF), true);
+            }
+            // 供回放调试用的 WAV
+            wavBlobForDebug = encodeWav16kFromFloats(floats);
             const keys = tencentAsrKeys();
             if(!keys) throw new Error('缺少腾讯云密钥');
             const text = await tencentAsrRecognize(pcm, keys);
@@ -18712,7 +18755,7 @@ ${searchRule}
                 showToast('腾讯云识别失败：' + errMsg + hint);
             }
         }finally{
-            updateTencentDebugPanel(rawBlobForDebug, outcomeNote);
+            updateTencentDebugPanel(wavBlobForDebug, outcomeNote);
             releaseTencentMedia();
             updateVoiceHint();
         }
