@@ -18590,16 +18590,53 @@ ${searchRule}
         return { secretId: secretId, secretKey: secretKey, appId: appId };
     }
 
-    // ===== 录音：直接从麦克风抓 16kHz 单声道 PCM（绕开 MediaRecorder/解码，兼容性最好） =====
+    // ===== 腾讯云实时语音识别：边说边出字（边录边发，中间结果实时进输入框） =====
     let tencentStream = null;
     let tencentActx = null;
     let tencentProc = null;
-    let tencentPcmFloats = [];
+    let tencentWs = null;
+    let tencentPcmFloats = [];       // 全部录音（用于音量自检）
+    let tencentSendTimer = null;
     let tencentAutoStopTimer = null;
+    let tencentAsrBase = '';         // 录音开始前输入框已有内容
+    let tencentAsrPartial = '';      // 当前识别到的文字
+    let tencentAsrFinalText = '';    // 最终文字
+    let tencentAsrLiveActive = false;
+    let tencentAsrEnded = false;
+    async function tencentAsrUrl(keys){
+        const host = 'asr.cloud.tencent.com';
+        const ts = Math.floor(Date.now() / 1000);
+        const params = {
+            secretid: keys.secretId,
+            timestamp: String(ts),
+            expired: String(ts + 300),
+            nonce: String(Math.floor(Math.random() * 1000000000)),
+            voice_id: 'hsk' + Date.now() + Math.random().toString(36).slice(2, 8),
+            engine_model_type: '16k_zh',
+            voice_format: '1',
+            needvad: '0',
+            filter_dirty: '0',
+            filter_modal: '0',
+            filter_punc: '0',
+            convert_num_mode: '1',
+            word_info: '0'
+        };
+        const sorted = Object.keys(params).sort();
+        const signStr = host + '/asr/v2/' + String(keys.appId) + '?' + sorted.map(function(k){ return k + '=' + params[k]; }).join('&');
+        const keyBuf = new TextEncoder().encode(keys.secretKey);
+        const cryptoKey = await crypto.subtle.importKey('raw', keyBuf, { name:'HMAC', hash:'SHA-1' }, false, ['sign']);
+        const raw = await crypto.subtle.sign('HMAC', cryptoKey, new TextEncoder().encode(signStr));
+        const bytes = new Uint8Array(raw);
+        let bin = '';
+        for(let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+        const sig = btoa(bin);
+        const query = sorted.map(function(k){ return k + '=' + encodeURIComponent(params[k]); }).join('&') + '&signature=' + encodeURIComponent(sig);
+        return 'wss://' + host + '/asr/v2/' + encodeURIComponent(String(keys.appId)) + '?' + query;
+    }
     async function startTencentRecording(){
+        if(voiceIsRecording) return;
         const keys = tencentAsrKeys();
         if(!keys) return;
-        // 打码确认读到的密钥形状，方便核对：SecretId 应为 36 位（AKID 开头）、SecretKey 32 位、AppID 10 位数字
         showToast('已读取密钥：SecretId ' + keys.secretId.slice(0, 8) + '…（' + keys.secretId.length + '位）｜SecretKey（' + keys.secretKey.length + '位）｜AppID ' + keys.appId);
         if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
             if(/MicroMessenger/i.test(navigator.userAgent)) showToast('微信内置浏览器不支持录音，请用手机自带的 Chrome/Edge/Safari 浏览器打开本页');
@@ -18610,7 +18647,6 @@ ${searchRule}
         if(!AC){ showToast('当前浏览器不支持录音，请换 Edge/Chrome'); return; }
         let stream;
         try{
-            // 8 秒超时保护：有些内置浏览器会卡住权限弹窗，避免点了完全没反应
             stream = await Promise.race([
                 navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } }),
                 new Promise(function(_, rej){ setTimeout(function(){ rej(new Error('mic-timeout')); }, 8000); })
@@ -18622,143 +18658,147 @@ ${searchRule}
             else showToast('无法启动麦克风：' + String((e && e.message) || e));
             return;
         }
+        let ws;
+        try{ ws = new WebSocket(await tencentAsrUrl(keys)); }
+        catch(e){ try{ stream.getTracks().forEach(function(t){ t.stop(); }); }catch(_){} showToast('连接腾讯云失败：' + String((e && e.message) || e)); return; }
+        ws.binaryType = 'arraybuffer';
+        tencentWs = ws;
+        tencentAsrBase = userInput.value.trim();
+        tencentAsrPartial = '';
+        tencentAsrFinalText = '';
+        tencentAsrEnded = false;
+        tencentAsrLiveActive = true;
+        function liveSetText(){
+            const base = tencentAsrBase;
+            userInput.value = (base ? base + '，' : '') + (tencentAsrPartial || '');
+        }
+        ws.onmessage = function(ev){
+            if(typeof ev.data !== 'string') return;
+            window._lastTencentAsrMsg = String(ev.data).slice(0, 300);
+            let d;
+            try{ d = JSON.parse(ev.data); }catch(e){ return; }
+            if(d && d.code !== 0 && d.code !== undefined && d.code !== null){
+                const msg = d.message || ('腾讯云错误码 ' + d.code);
+                if(tencentAsrLiveActive){ tencentAsrLiveActive = false; showToast('识别失败：' + msg); }
+                return;
+            }
+            if(d && d.result && d.result.voice_text_str){
+                const t0 = String(d.result.voice_text_str).trim();
+                if(t0){ tencentAsrPartial = t0; if(tencentAsrLiveActive) liveSetText(); }
+            }
+            if(d && d.final === 1){
+                if(tencentAsrPartial) tencentAsrFinalText = tencentAsrPartial;
+                if(tencentAsrEnded && tencentAsrLiveActive) finalizeAsr();
+            }
+        };
+        ws.onerror = function(){ if(tencentAsrLiveActive){ tencentAsrLiveActive = false; showToast('腾讯云连接出错'); } };
+        ws.onclose = function(){
+            if(tencentAsrLiveActive){
+                if(!tencentAsrFinalText && tencentAsrPartial) tencentAsrFinalText = tencentAsrPartial;
+                if(tencentAsrEnded && !tencentAsrFinalText) showToast('未识别到内容，请再试一次');
+                finalizeAsr();
+            }
+        };
         let actx;
         try{ actx = new AC({ sampleRate: 16000 }); }catch(e2){ actx = new AC(); }
         if(actx.state === 'suspended'){ try{ actx.resume(); }catch(e){} }
         const src = actx.createMediaStreamSource(stream);
         const proc = actx.createScriptProcessor(4096, 1, 1);
+        const ratio = actx.sampleRate / 16000;
+        let resampleCarry = 0;
+        const pendingFloats = [];
         tencentPcmFloats = [];
-        const dbgPre = document.getElementById('voiceDebugInfo');
-        if(dbgPre){ dbgPre.style.display = 'none'; }
         proc.onaudioprocess = function(ev){
             const ch = ev.inputBuffer.getChannelData(0);
             for(let i = 0; i < ch.length; i++) tencentPcmFloats.push(ch[i]);
+            if(ratio === 1){ pendingFloats.push(new Float32Array(ch)); return; }
+            // 线性插值重采样到 16k
+            const out = [];
+            let pos = resampleCarry;
+            while(pos < ch.length){
+                const i0 = Math.floor(pos);
+                const i1 = Math.min(ch.length - 1, i0 + 1);
+                const frac = pos - i0;
+                out.push(ch[i0] * (1 - frac) + ch[i1] * frac);
+                pos += ratio;
+            }
+            resampleCarry = pos - ch.length;
+            if(out.length) pendingFloats.push(new Float32Array(out));
         };
         src.connect(proc);
         proc.connect(actx.destination);
         tencentStream = stream;
         tencentActx = actx;
         tencentProc = proc;
+        // 每 40ms 发 640 个采样点（1280 字节）= 1:1 实时率
+        const sendBuf = [];
+        tencentSendTimer = setInterval(function(){
+            if(ws.readyState !== 1) return;
+            for(const f of pendingFloats.splice(0, pendingFloats.length)){
+                for(let i = 0; i < f.length; i++) sendBuf.push(f[i]);
+            }
+            while(sendBuf.length >= 640){
+                const n = 640;
+                const bytes = new Uint8Array(n * 2);
+                const dv = new DataView(bytes.buffer);
+                for(let i = 0; i < n; i++){
+                    const smp = Math.max(-1, Math.min(1, sendBuf[i]));
+                    dv.setInt16(i * 2, smp < 0 ? Math.round(smp * 0x8000) : Math.round(smp * 0x7FFF), true);
+                }
+                sendBuf.splice(0, n);
+                try{ ws.send(bytes); }catch(e){}
+            }
+        }, 40);
         voiceIsRecording = true;
-        if(voiceBtn){ voiceBtn.classList.add('recording'); voiceBtn.textContent = '🔴'; voiceBtn.title = '录音中，点击停止并识别'; }
+        if(voiceBtn){ voiceBtn.classList.add('recording'); voiceBtn.textContent = '🔴'; voiceBtn.title = '录音中，点击停止'; }
         const hint = document.getElementById('voiceInputHint');
         if(hint) hint.textContent = t('voice.hint_recording');
         tencentAutoStopTimer = setTimeout(function(){ if(voiceIsRecording) stopTencentRecording(); }, 55000);
     }
+    function finalizeAsr(){
+        if(!tencentAsrLiveActive) return;
+        tencentAsrLiveActive = false;
+        const base = tencentAsrBase;
+        const text = tencentAsrFinalText || tencentAsrPartial || '';
+        userInput.value = text ? (base ? base + '，' : '') + text : base;
+        if(text) userInput.focus();
+        cleanupTencentAsr();
+        updateVoiceHint();
+    }
     function stopTencentRecording(){
-        if(!tencentProc) return;
+        if(!voiceIsRecording && !tencentWs) return;
         voiceIsRecording = false;
         if(tencentAutoStopTimer){ clearTimeout(tencentAutoStopTimer); tencentAutoStopTimer = null; }
         if(voiceBtn){ voiceBtn.classList.remove('recording'); voiceBtn.textContent = '🎤'; voiceBtn.title = '🎤 语音输入'; }
-        try{ tencentProc.disconnect(); }catch(e){}
-        transcribeTencentRecording();
-    }
-    function releaseTencentMedia(){
-        if(tencentAutoStopTimer){ clearTimeout(tencentAutoStopTimer); tencentAutoStopTimer = null; }
+        if(tencentSendTimer){ clearInterval(tencentSendTimer); tencentSendTimer = null; }
         try{ if(tencentProc) tencentProc.disconnect(); }catch(e){}
+        tencentAsrEnded = true;
+        // 音量自检
+        let peak = 0;
+        for(let i = 0; i < tencentPcmFloats.length; i++){ const a = Math.abs(tencentPcmFloats[i]); if(a > peak) peak = a; }
+        if(tencentPcmFloats.length && peak < 0.001){
+            showToast('录音没有声音：请检查麦克风是否被占用或静音、系统输入设备是否选对，说话时靠近麦克风再试一次');
+        }
+        if(tencentWs && tencentWs.readyState === 1){
+            try{ tencentWs.send('{"type":"end"}'); }catch(e){}
+        }
+        // 5 秒后仍未收到结果则收尾
+        setTimeout(function(){
+            if(tencentAsrLiveActive){
+                if(!tencentAsrFinalText && !tencentAsrPartial) showToast('未识别到内容，请再试一次（靠近麦克风、说慢一点）');
+                finalizeAsr();
+            }
+        }, 5000);
+    }
+    function cleanupTencentAsr(){
+        try{ if(tencentWs){ tencentWs.onmessage = null; tencentWs.onclose = null; tencentWs.onerror = null; tencentWs.close(); } }catch(e){}
+        tencentWs = null;
+        if(tencentSendTimer){ clearInterval(tencentSendTimer); tencentSendTimer = null; }
         try{ if(tencentStream) tencentStream.getTracks().forEach(function(t){ t.stop(); }); }catch(e){}
         try{ if(tencentActx && tencentActx.state !== 'closed') tencentActx.close(); }catch(e){}
         tencentStream = null; tencentActx = null; tencentProc = null;
+        tencentPcmFloats = [];
     }
-    function encodeWav16kFromFloats(samples){
-        const buffer = new ArrayBuffer(44 + samples.length * 2);
-        const view = new DataView(buffer);
-        const writeStr = function(off, s){ for(let i = 0; i < s.length; i++) view.setUint8(off + i, s.charCodeAt(i)); };
-        writeStr(0, 'RIFF'); view.setUint32(4, 36 + samples.length * 2, true); writeStr(8, 'WAVE');
-        writeStr(12, 'fmt '); view.setUint16(16, 16, true); view.setUint16(20, 1, true); view.setUint16(22, 1, true);
-        view.setUint32(24, 16000, true); view.setUint32(28, 16000 * 2, true); view.setUint16(32, 2, true); view.setUint16(34, 16, true);
-        writeStr(36, 'data'); view.setUint32(40, samples.length * 2, true);
-        for(let i = 0; i < samples.length; i++){
-            const s = Math.max(-1, Math.min(1, samples[i]));
-            view.setInt16(44 + i * 2, s < 0 ? Math.round(s * 0x8000) : Math.round(s * 0x7FFF), true);
-        }
-        return new Blob([view], { type: 'audio/wav' });
-    }
-    let tencentLastPlaybackUrl = null;
-    function updateTencentDebugPanel(rawBlob, note){
-        const dbg = document.getElementById('voiceDebugInfo');
-        if(!dbg) return;
-        dbg.style.display = 'none';
-        dbg.innerHTML = '';
-    }
-    async function transcribeTencentRecording(){
-        const hint = document.getElementById('voiceInputHint');
-        if(hint) hint.textContent = t('voice.hint_transcribing');
-        let wavBlobForDebug = null;
-        let outcomeNote = '';
-        try{
-            const capturedRate = (tencentActx && tencentActx.sampleRate) || 16000;
-            let floats = (tencentPcmFloats || []).slice();
-            if(!floats.length) throw new Error('没有录到声音');
-            // 若实际采样率不是 16k，线性插值重采样
-            if(capturedRate !== 16000){
-                const ratio = capturedRate / 16000;
-                const outLen = Math.max(1, Math.round(floats.length / ratio));
-                const out = new Float32Array(outLen);
-                for(let i = 0; i < outLen; i++){
-                    const pos = i * ratio;
-                    const i0 = Math.floor(pos);
-                    const i1 = Math.min(floats.length - 1, i0 + 1);
-                    const frac = pos - i0;
-                    out[i] = floats[i0] * (1 - frac) + floats[i1] * frac;
-                }
-                floats = out;
-            }
-            // 音量自检 + 自动增益
-            let peak = 0;
-            for(let i = 0; i < floats.length; i++){ const a = Math.abs(floats[i]); if(a > peak) peak = a; }
-            if(peak < 0.001) throw new Error('录音没有声音：请检查麦克风是否被占用或静音、系统输入设备是否选对，说话时靠近麦克风再试一次');
-            if(peak < 0.12){ const gain = Math.min(20, 0.12 / peak); for(let i = 0; i < floats.length; i++) floats[i] *= gain; }
-            // 去掉首尾静音（保留 200ms 余量），缩短发送与识别时间
-            const trimThr = Math.max(0.005, peak * 0.02);
-            let tS = 0, tE = floats.length - 1;
-            while(tS < floats.length && Math.abs(floats[tS]) < trimThr) tS++;
-            while(tE > tS && Math.abs(floats[tE]) < trimThr) tE--;
-            const padS = Math.min(tS, Math.round(0.2 * 16000));
-            const padE = Math.min(floats.length - 1 - tE, Math.round(0.2 * 16000));
-            tS -= padS; tE += padE;
-            if(tE > tS) floats = floats.slice(tS, tE + 1);
-            window._lastTencentAudioInfo = { dur: floats.length / 16000, peak: Math.min(1, peak) };
-            // float → 16bit 小端 PCM
-            const pcm = new Uint8Array(floats.length * 2);
-            const dv = new DataView(pcm.buffer);
-            for(let i = 0; i < floats.length; i++){
-                const s = Math.max(-1, Math.min(1, floats[i]));
-                dv.setInt16(i * 2, s < 0 ? Math.round(s * 0x8000) : Math.round(s * 0x7FFF), true);
-            }
-            const keys = tencentAsrKeys();
-            if(!keys) throw new Error('缺少腾讯云密钥');
-            const text = await tencentAsrRecognize(pcm, keys);
-            if(text){
-                const prev = userInput.value.trim();
-                userInput.value = prev ? prev + '，' + text : text;
-                userInput.focus();
-                outcomeNote = '✅ 识别成功';
-            } else {
-                const info = window._lastTencentAudioInfo || {};
-                const lastMsg = window._lastTencentAsrMsg || '';
-                showToast('未识别到内容｜录音 ' + (info.dur ? info.dur.toFixed(1) : '?') + ' 秒，音量峰值 ' + Math.round((info.peak || 0) * 100) + '%' + (lastMsg ? '｜服务器返回：' + lastMsg : '') + '｜请再试一次，说话时靠近麦克风');
-                outcomeNote = '未识别到内容';
-            }
-        }catch(e){
-            const errMsg = String((e && e.message) || e);
-            let hint = '';
-            if(/密钥不存在|SecretIdNotFound|AuthFailure\.SecretIdNotFound/i.test(errMsg)) hint = '｜SecretId 不正确：请到 console.cloud.tencent.com/cam/capi 重新复制，注意前后不能有空格，也别和 SecretKey 填反';
-            else if(/Signature|签名|AuthFailure\.SignatureFailure|SignatureExpire/i.test(errMsg)) hint = '｜SecretKey 不正确：请检查是否复制完整（前后不能有空格）';
-            else if(/AppID|appid/i.test(errMsg)) hint = '｜AppID 不正确：应为纯数字（账号信息里查看）';
-            outcomeNote = errMsg.slice(0, 120);
-            if(/没有声音|音量|麦克风|无法解码|不支持|录音/i.test(errMsg)){
-                showToast(errMsg);   // 本地录音/解码问题，不是腾讯云问题
-            } else {
-                showToast('腾讯云识别失败：' + errMsg + hint);
-            }
-        }finally{
-            updateTencentDebugPanel(wavBlobForDebug, outcomeNote);
-            releaseTencentMedia();
-            updateVoiceHint();
-        }
-    }
-
     // 腾讯云实时语音识别 WebSocket：签名 = Base64(HMAC-SHA1(SecretKey, 排序后的参数字符串))
     function tencentAsrRecognize(pcmU8, keys){
         return new Promise(function(resolve, reject){
@@ -19078,6 +19118,79 @@ ${searchRule}
         startLive2DMouth();
         audio.play();
     }
+    // ===== 腾讯云语音合成（TextToVoice，TC3 签名，浏览器跨域直连；有免费额度） =====
+    function ttsBytesToHex(u8){
+        let s = '';
+        for(let i = 0; i < u8.length; i++) s += ('0' + u8[i].toString(16)).slice(-2);
+        return s;
+    }
+    function ttsBase64ToU8(b64){
+        const bin = atob(String(b64));
+        const u = new Uint8Array(bin.length);
+        for(let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i);
+        return u;
+    }
+    async function ttsHmacSha256(keyData, msgStr){
+        const k = await crypto.subtle.importKey('raw', keyData, { name:'HMAC', hash:'SHA-256' }, false, ['sign']);
+        const s = await crypto.subtle.sign('HMAC', k, new TextEncoder().encode(msgStr));
+        return new Uint8Array(s);
+    }
+    async function tencentTtsAudio(cleanText){
+        const keys = tencentAsrKeys();
+        if(!keys) throw new Error('no-key');
+        const host = 'tts.tencentcloudapi.com';
+        const service = 'tts';
+        const action = 'TextToVoice';
+        const version = '2019-08-23';
+        const ts = Math.floor(Date.now() / 1000);
+        const date = new Date(ts * 1000).toISOString().slice(0, 10);
+        const payload = JSON.stringify({
+            Text: cleanText,
+            SessionId: 'hsk' + Date.now(),
+            VoiceType: 101001,
+            Codec: 'mp3',
+            SampleRate: 16000,
+            Speed: 0,
+            Volume: 0,
+            ProjectId: 0,
+            PrimaryLanguage: 1
+        });
+        const payloadU8 = new TextEncoder().encode(payload);
+        const hashedPayload = ttsBytesToHex(new Uint8Array(await crypto.subtle.digest('SHA-256', payloadU8)));
+        const canonicalHeaders = 'content-type:application/json; charset=utf-8\nhost:' + host + '\nx-tc-action:' + action.toLowerCase() + '\n';
+        const signedHeaders = 'content-type;host;x-tc-action';
+        const canonicalRequest = 'POST\n/\n\n' + canonicalHeaders + '\n' + signedHeaders + '\n' + hashedPayload;
+        const secretDate = await ttsHmacSha256(new TextEncoder().encode('TC3' + keys.secretKey), date);
+        const secretService = await ttsHmacSha256(secretDate, service);
+        const secretSigning = await ttsHmacSha256(secretService, 'tc3_request');
+        const stringToSign = 'TC3-HMAC-SHA256\n' + ts + '\n' + date + '/' + service + '/tc3_request\n' + ttsBytesToHex(new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(canonicalRequest))));
+        const signature = ttsBytesToHex(await ttsHmacSha256(secretSigning, stringToSign));
+        const authorization = 'TC3-HMAC-SHA256 Credential=' + keys.secretId + '/' + date + '/' + service + '/tc3_request, SignedHeaders=' + signedHeaders + ', Signature=' + signature;
+        const resp = await fetch('https://' + host + '/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json; charset=utf-8',
+                'X-TC-Action': action,
+                'X-TC-Version': version,
+                'X-TC-Timestamp': String(ts),
+                'X-TC-Region': 'ap-guangzhou',
+                'X-TC-Language': 'zh-CN',
+                'Authorization': authorization
+            },
+            body: payload
+        });
+        let json = {};
+        try{ json = await resp.json(); }catch(e){}
+        if(!resp.ok || (json.Response && json.Response.Error)){
+            const err = json.Response && json.Response.Error;
+            const code = err ? String(err.Code || '') : ('HTTP' + resp.status);
+            const msg = err ? String(err.Message || '') : '';
+            throw new Error('腾讯云语音合成失败：' + code + ' ' + msg);
+        }
+        const audioB64 = json.Response && json.Response.Audio;
+        if(!audioB64) throw new Error('腾讯云语音合成无音频返回');
+        return new Blob([ttsBase64ToU8(audioB64)], { type: 'audio/mpeg' });
+    }
     async function speakChatTextWithTts(text){
         const clean = stripEmojiForSpeech(String(text || '').trim());
         if(!clean) return;
@@ -19101,13 +19214,16 @@ ${searchRule}
             return;
         }catch(e){}
         if(myChatToken !== chatTtsToken) return;
-        // 2) 北语 TTS（直接用 <audio> 播放，不 fetch，绕开 CORS——微信/QQ 内置浏览器也能出声）
+        // 2) 腾讯云语音合成（跨域直连，不依赖浏览器语音引擎）
         try{
-            const url = dictationTtsBase() + '?text=' + encodeURIComponent(clean) + '&speed=5&voice=1';
+            const blob = await tencentTtsAudio(clean);
             if(myChatToken !== chatTtsToken) return;
-            playChatTtsUrl(url, false);
+            playChatTtsUrl(URL.createObjectURL(blob), true);
             return;
-        }catch(e){}
+        }catch(e){
+            const em = String((e && e.message) || e);
+            if(/UnauthorizedOperation|AuthFailure|权限不足/i.test(em)) showToast('腾讯云语音合成没权限：请给子用户关联「QcloudTTSFullAccess」策略（语音合成有免费额度）');
+        }
         if(myChatToken !== chatTtsToken) return;
         // 3) 浏览器语音兜底
         chatTtsText = '';
