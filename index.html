@@ -215,6 +215,12 @@
         .reading-notebook-item .nb-del { background: none; border: 1px solid #f5c6cb; border-radius: 8px; padding: 2px 8px; font-size: 0.7rem; cursor: pointer; color: #c0392b; }
         .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #1e2b5e; color: white; padding: 10px 24px; border-radius: 30px; font-size: 0.9rem; z-index: 9999; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
         .toast.show { opacity: 1; }
+        /* 本地 Whisper 模型下载进度卡片 */
+        .whisper-progress { position: fixed; top: 74px; left: 50%; transform: translateX(-50%); background: #fff; border: 2px solid #1e2b5e; border-radius: 16px; padding: 14px 18px; box-shadow: 0 12px 32px rgba(0,0,0,0.18); z-index: 10001; width: min(430px, 92vw); }
+        .whisper-progress-title { font-weight: 700; color: #1e2b5e; margin-bottom: 10px; font-size: 0.92rem; }
+        .whisper-progress-track { height: 12px; background: #e2e8f0; border-radius: 12px; overflow: hidden; }
+        .whisper-progress-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #1e2b5e, #3b82f6); border-radius: 12px; transition: width .25s; }
+        .whisper-progress-text { margin-top: 8px; font-size: 0.8rem; color: #64748b; }
         .browser-tabs { display: flex; gap: 0; padding: 0 8px; background: transparent; }
         .browser-tab { padding: 7px 14px; border: 1px solid #d0dae8; border-bottom: none; background: #e8ecf2; cursor: pointer; font-size: 0.75rem; font-weight: 600; color: #64748b; border-radius: 8px 8px 0 0; margin-right: -1px; position: relative; z-index: 0; transition: 0.15s; }
         .browser-tab:hover { background: #dce3ed; color: #334155; }
@@ -731,6 +737,11 @@
     </div>
 </div>
 <div id="toast" class="toast"></div>
+<div id="whisperProgress" class="whisper-progress" style="display:none;">
+    <div class="whisper-progress-title" id="whisperProgressTitle">⏳ 正在下载本地 Whisper 模型</div>
+    <div class="whisper-progress-track"><div class="whisper-progress-fill" id="whisperProgressFill" style="width:0%;"></div></div>
+    <div class="whisper-progress-text" id="whisperProgressText">准备中…（首次约 40MB，下载一次后离线可用）</div>
+</div>
 <div class="app">
     <div class="chat-panel">
         <div class="chat-header">
@@ -775,10 +786,30 @@
                 <label id="autoReadLabel" style="display:flex;align-items:center;gap:6px;cursor:pointer;color:#475569;">
                     <input type="checkbox" id="autoReadCheckbox"> 🔊 自动朗读AI回复
                 </label>
+                <label style="display:flex;align-items:center;gap:6px;color:#475569;" title="聊天 AI 回复的朗读音色（微软 Edge TTS）">
+                    <span>🗣️ AI 音色</span>
+                    <select id="chatVoiceSelect" style="padding:3px 10px;border-radius:12px;border:1.5px solid #d0dae8;font-size:0.8rem;outline:none;background:white;">
+                        <option value="zh-CN-XiaoxiaoNeural">晓晓·女声(温暖)</option>
+                        <option value="zh-CN-YunxiNeural">云希·男声</option>
+                        <option value="zh-CN-YunyangNeural">云扬·男声(新闻)</option>
+                        <option value="zh-CN-XiaoyiNeural">晓伊·女声(活泼)</option>
+                        <option value="zh-CN-YunjianNeural">云健·男声(解说)</option>
+                    </select>
+                    <span id="chatVoiceHint" style="font-size:0.7rem;color:#94a3b8;"></span>
+                </label>
+                <label style="display:flex;align-items:center;gap:6px;color:#475569;" title="语音输入引擎：在线=浏览器云端识别；本地 Whisper=完全在本地识别（首次需下载模型）">
+                    <span>🎤 语音输入</span>
+                    <select id="voiceInputEngineSelect" style="padding:3px 10px;border-radius:12px;border:1.5px solid #d0dae8;font-size:0.8rem;outline:none;background:white;">
+                        <option value="online">在线（浏览器）</option>
+                        <option value="whisper">本地 Whisper</option>
+                    </select>
+                </label>
             </div>
             <div class="input-group">
                 <input type="text" id="userInput" placeholder="聊点什么吧..." autocomplete="off">
+                <button id="voiceBtn" class="voice-btn" type="button" title="🎤 语音输入">🎤</button>
             </div>
+            <div id="voiceInputHint" class="voice-input-hint">🎤 点击麦克风开始语音输入</div>
             <div class="button-group">
                 <button id="sendBtn">发送</button>
                 <button id="endConversationBtn">结束对话</button>
@@ -12962,7 +12993,7 @@ const HSK2_VOCAB = [
             'ws.prod_summary':'产出{n}次（对{c}/错{w}/未判{u}）','ws.prod_none':'无产出',
             'ws.card_word_title':'📇 词语状态卡 · {word}',
             'ws.layers_title':'🎚 三层测量（蕴含规则自动推导，老师可人工修正）','ws.lit':'已点亮','ws.unlit':'未点亮','ws.blocked':'已熄灭（语义错产出）','ws.evidence':'{layer}证据 {n} 条',
-            'ws.rules_note':'规则：正确产出 → 知识层点亮；听力/阅读做对 → 知识层点亮；产出写错且语义错 → 知识层熄灭；非语义错 → 仍点亮。不判定「完全习得」，习得与否由老师评价。',
+            'ws.rules_note':'规则（仅目标词）：音义/形义选择题只记本维对错，不推断听力/阅读/产出；听力对+阅读没标不懂 → 音义、形义对；产出对 → 音形义用全对；产出用法错（形对义对，语序/搭配/多余）→ 音形义对、用错；产出形/义错 → 复测形义、音义、听力、阅读。不判定「完全习得」，习得与否由老师评价。',
             'ws.manual_knowledge_on':'✅ 人工点亮知识层','ws.manual_knowledge_off':'❌ 人工熄灭知识层','ws.manual_listening_on':'✅ 人工点亮听力','ws.manual_reading_on':'✅ 人工点亮阅读',
             'ws.prod_record_title':'🗓 产出记录（首次产出 {first} · 最近 {last} · 即时 {imm} · 延时 {del}）','ws.prod_dates':'产出日期：','ws.prod_dates_none':'（暂无）','ws.prod_empty':'这个词还没有被产出过（造句/聊天/写作中没出现过）。',
             'ws.curve_title':'📈 状态曲线（各层点亮过程 + 产出对错）','ws.events_title':'📜 使用记录（{n} 条）',
@@ -12974,7 +13005,9 @@ const HSK2_VOCAB = [
             'ws.rec_btn':'🎯 推荐（状态卡未点亮）','ws.rec_none':'这个等级的知识层都点亮了，没有可推荐的词','ws.rec_done':'已勾选 {n} 个知识层未点亮的词',
             'ws.source_mcq':'知识练习','ws.source_dictation':'听写','ws.source_listen':'听打','ws.source_refl_a':'听打反思A（没听出来）','ws.source_refl_b':'听打反思B（听懂字写错）','ws.source_refl_c':'听打反思C（认识没写出）',
             'ws.source_read_unknown':'阅读·标了不懂','ws.source_read_known':'阅读·没标不懂','ws.source_read_judge':'阅读判断题','ws.source_sentence':'造句','ws.source_writing':'写作','ws.source_chat':'聊天','ws.source_writing_check':'写作·必用词检查','ws.source_manual':'老师人工',
-            'ws.source_mig_mcq':'迁移·词语练习','ws.source_mig_prod':'迁移·聊天/写作','ws.source_mig_sentence':'迁移·造句','ws.source_mig_reading':'迁移·阅读判断','ws.source_mig_read_unknown':'迁移·阅读不懂'
+            'ws.source_mig_mcq':'迁移·词语练习','ws.source_mig_prod':'迁移·聊天/写作','ws.source_mig_sentence':'迁移·造句','ws.source_mig_reading':'迁移·阅读判断','ws.source_mig_read_unknown':'迁移·阅读不懂',
+            'ws.need_retest':'需复测','ws.usage_only_err':'用法错（语序/搭配/多余）','ws.dim_inferred':'推断',
+            'ws.rules_new_short':'规则（仅目标词）：音义/形义选择题只记本维，不推断听力/阅读/产出；听力对+阅读没标不懂 → 音义、形义对；产出对 → 音形义用全对；产出用法错（形对义对，语序/搭配/多余）→ 音形义对、用错；产出形/义错 → 复测形义、音义、听力、阅读'
         },
         'English': {
             'ws.group_knowledge':'🎯 Knowledge Practice','ws.group_usage':'✍️ Usage Practice','ws.group_skills':'🎧 Skills Practice',
@@ -12993,7 +13026,7 @@ const HSK2_VOCAB = [
             'ws.prod_summary':'{n} productions (correct {c} / wrong {w} / unknown {u})','ws.prod_none':'No production',
             'ws.card_word_title':'📇 Word Status Card · {word}',
             'ws.layers_title':'🎚 Three-layer measurement (implication rules applied; teacher can correct manually)','ws.lit':'Lit','ws.unlit':'Not lit','ws.blocked':'Extinguished (semantic error production)','ws.evidence':'{layer} evidence: {n}',
-            'ws.rules_note':'Rules: correct production → knowledge lit; correct listening/reading → knowledge lit; wrong production with semantic error → knowledge extinguished; non-semantic error → still lit. "Fully acquired" is not judged; the teacher evaluates acquisition.',
+            'ws.rules_note':'Rules (target words only): sound-meaning / form-meaning MCQs only record their own dim, never infer listening/reading/production; listening correct + reading not unknown → sound-meaning & form-meaning correct; production correct → sound/form/meaning/usage all correct; usage-only production error (form & meaning correct, word order/collocation/redundant wrong) → sound/form/meaning correct, usage wrong; form/meaning production error → retest form-meaning, sound-meaning, listening and reading. "Fully acquired" is not judged; the teacher evaluates acquisition.',
             'ws.manual_knowledge_on':'✅ Light knowledge manually','ws.manual_knowledge_off':'❌ Extinguish knowledge manually','ws.manual_listening_on':'✅ Light listening manually','ws.manual_reading_on':'✅ Light reading manually',
             'ws.prod_record_title':'🗓 Production Records (first {first} · last {last} · immediate {imm} · delayed {del})','ws.prod_dates':'Production dates: ','ws.prod_dates_none':' (none)','ws.prod_empty':'This word has not been produced yet (not used in sentence-making/chat/writing).',
             'ws.curve_title':'📈 Status Curve (layer progress + production results)','ws.events_title':'📜 Usage Records ({n})',
@@ -13005,7 +13038,9 @@ const HSK2_VOCAB = [
             'ws.rec_btn':'🎯 Recommend (status unlit)','ws.rec_none':'The knowledge layer of this level is fully lit; no words to recommend','ws.rec_done':'Checked {n} words with unlit knowledge layer',
             'ws.source_mcq':'Knowledge Practice','ws.source_dictation':'Dictation','ws.source_listen':'Listen & Type','ws.source_refl_a':'Listen & Type reflection A (didn\'t catch it)','ws.source_refl_b':'Listen & Type reflection B (heard it, wrong character)','ws.source_refl_c':'Listen & Type reflection C (knew it, couldn\'t write)',
             'ws.source_read_unknown':'Reading · marked unknown','ws.source_read_known':'Reading · not marked unknown','ws.source_read_judge':'Reading true/false','ws.source_sentence':'Sentence Making','ws.source_writing':'Writing','ws.source_chat':'Chat','ws.source_writing_check':'Writing · required-word check','ws.source_manual':'Teacher manual',
-            'ws.source_mig_mcq':'Migrated · word practice','ws.source_mig_prod':'Migrated · chat/writing','ws.source_mig_sentence':'Migrated · sentence making','ws.source_mig_reading':'Migrated · reading judgment','ws.source_mig_read_unknown':'Migrated · reading unknown'
+            'ws.source_mig_mcq':'Migrated · word practice','ws.source_mig_prod':'Migrated · chat/writing','ws.source_mig_sentence':'Migrated · sentence making','ws.source_mig_reading':'Migrated · reading judgment','ws.source_mig_read_unknown':'Migrated · reading unknown',
+            'ws.need_retest':'Retest needed','ws.usage_only_err':'Usage error (word order/collocation/redundant)','ws.dim_inferred':'Inferred',
+            'ws.rules_new_short':'Rules (target words only): sound-meaning / form-meaning MCQs only record their own dim, never infer listening/reading/production; listening correct + reading not unknown → sound-meaning & form-meaning correct; production correct → sound/form/meaning/usage all correct; usage-only production error (form & meaning correct, word order/collocation/redundant wrong) → sound/form/meaning correct, usage wrong; form/meaning production error → retest form-meaning, sound-meaning, listening and reading'
         },
         'Japanese': {
             'ws.group_knowledge':'🎯 知識練習','ws.group_usage':'✍️ 用法練習','ws.group_skills':'🎧 技能練習',
@@ -13992,13 +14027,15 @@ const HSK2_VOCAB = [
         return dictationEvenSegments(buffer, count);
     }
     let dictationSource = null;
+    let dictationPlayToken = 0;
     let dictationTtsCache = {};
     function dictationTtsBase(){
         if((location.hostname === 'localhost' || location.hostname === '127.0.0.1')) return '/tts';
         return 'https://hsk.blcu.edu.cn/tts';
     }
     function stopDictationAudio(){
-        if(dictationSource){ try{ dictationSource.onended = null; dictationSource.pause(); dictationSource.src = ''; }catch(e){} dictationSource = null; }
+        dictationPlayToken++;
+        if(dictationSource){ try{ dictationSource.onended = null; dictationSource.onerror = null; dictationSource.pause(); dictationSource.src = ''; }catch(e){} dictationSource = null; }
         const st = dictationEl('dictationAudioStatus'); if(st) st.textContent = '';
     }
     async function playDictationSegment(idx, isReplay){
@@ -14010,10 +14047,27 @@ const HSK2_VOCAB = [
             st.replayCount = (st.replayCount || 0) + 1;
         }
         stopDictationAudio();
+        const myPlayToken = dictationPlayToken;
         const status = dictationEl('dictationAudioStatus');
         if(status) status.textContent = t('dictation.playing');
         const voicePref = dictationVoicePrefFor(idx);
         const voiceNum = dictationTtsVoiceNumFor(idx);
+        const edgeVoice = edgeVoiceFor(voicePref);
+        const edgeText = stripEmojiForSpeech(line);
+        const browserText = normalizeErhuaForTts(edgeText);
+        // 1) 微软 Edge TTS（缓存）
+        try{
+            const url = await edgeTtsSpeakCached('edge|' + edgeVoice + '|' + speechRateValue.toFixed(2) + '|' + edgeText, edgeText, edgeVoice, speechRateValue);
+            if(myPlayToken !== dictationPlayToken) return;
+            const audio = new Audio(url);
+            dictationSource = audio;
+            audio.onended = () => { dictationSource = null; if(status) status.textContent = t('dictation.stopped'); };
+            audio.onerror = () => { dictationSource = null; if(myPlayToken === dictationPlayToken) speakWithBrowser(browserText, undefined, voicePref, speechToken); if(status) status.textContent = t('dictation.stopped'); };
+            audio.play();
+            return;
+        }catch(e){}
+        if(myPlayToken !== dictationPlayToken) return;
+        // 2) 北语 TTS（缓存）
         try{
             const cacheKey = line + '||v' + voiceNum;
             let url = dictationTtsCache[cacheKey];
@@ -14025,14 +14079,15 @@ const HSK2_VOCAB = [
                 url = URL.createObjectURL(blob);
                 dictationTtsCache[cacheKey] = url;
             }
+            if(myPlayToken !== dictationPlayToken) return;
             const audio = new Audio(url);
             dictationSource = audio;
             audio.onended = () => { dictationSource = null; if(status) status.textContent = t('dictation.stopped'); };
-            audio.onerror = () => { dictationSource = null; speakChinese(line, undefined, voicePref); if(status) status.textContent = t('dictation.stopped'); };
+            audio.onerror = () => { dictationSource = null; if(myPlayToken === dictationPlayToken) speakWithBrowser(browserText, undefined, voicePref, speechToken); if(status) status.textContent = t('dictation.stopped'); };
             audio.play();
         }catch(e){
             // 网络/接口不可用时退回浏览器自带中文语音合成
-            speakChinese(line, undefined, voicePref);
+            if(myPlayToken === dictationPlayToken) speakWithBrowser(browserText, undefined, voicePref, speechToken);
             if(status) status.textContent = t('dictation.stopped');
         }
     }
@@ -14234,8 +14289,8 @@ const HSK2_VOCAB = [
             "  const d=e.data||{};",
             "  try{",
             "    if(d.type==='load'){ if(!rec) await load(); self.postMessage({type:'loaded'}); }",
-            "    else if(d.type==='transcribe'){ if(!rec) await load(); const out=await rec(d.url,{chunk_length_s:30,stride_length_s:5,language:'zh',return_timestamps:'word'}); self.postMessage({type:'result',out:{text:out.text,chunks:out.chunks}}); }",
-            "  }catch(err){ self.postMessage({type:'error',message:String(err&&err.message||err)}); }",
+            "    else if(d.type==='transcribe'){ if(!rec) await load(); const out=await rec(d.url,{chunk_length_s:30,stride_length_s:5,language:'zh',return_timestamps:'word'}); self.postMessage({type:'result',id:d.id,out:{text:out.text,chunks:out.chunks}}); }",
+            "  }catch(err){ self.postMessage({type:'error',id:d.id,message:String(err&&err.message||err)}); }",
             "};"
         ].join('\n');
         try{
@@ -14248,15 +14303,21 @@ const HSK2_VOCAB = [
         }
         return { worker: whisperWorker, ready: false };
     }
-    function whisperWorkerLoad(){
+    function whisperWorkerLoad(onProgress){
         return new Promise(function(resolve, reject){
             const w = whisperWorker || null;
             if(!w){ reject(new Error('no worker')); return; }
             const handler = function(e){
                 const d = e.data || {};
-                if(d.type === 'loaded'){ w.removeEventListener('message', handler); whisperWorkerReady = true; resolve(); }
-                else if(d.type === 'progress'){ const st = document.getElementById('dictationFileStatus'); if(st) st.textContent = t('dict.upload_status_model_dl').replace('{p}', d.p); }
-                else if(d.type === 'error'){ w.removeEventListener('message', handler); reject(new Error(d.message)); }
+                if(d.type === 'loaded'){ w.removeEventListener('message', handler); whisperWorkerReady = true; hideWhisperProgress(); resolve(); }
+                else if(d.type === 'progress'){
+                    const p = d.p || 0;
+                    // 顶部进度卡片：告诉用户正在下载模型和百分比
+                    showWhisperProgress('⏳ 正在下载本地 Whisper 模型', '正在下载 ' + p + '%（首次约 40MB，下载一次后离线可用）', p);
+                    if(typeof onProgress === 'function'){ onProgress(p); }
+                    else { const st = document.getElementById('dictationFileStatus'); if(st) st.textContent = t('dict.upload_status_model_dl').replace('{p}', p); }
+                }
+                else if(d.type === 'error' && !d.id){ w.removeEventListener('message', handler); hideWhisperProgress(); reject(new Error(d.message)); }
             };
             w.addEventListener('message', handler);
             w.postMessage({ type:'load' });
@@ -14266,13 +14327,15 @@ const HSK2_VOCAB = [
         return new Promise(function(resolve, reject){
             const w = whisperWorker;
             if(!w){ reject(new Error('no worker')); return; }
+            const id = 't' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
             const handler = function(e){
                 const d = e.data || {};
+                if(d.id !== id) return;
                 if(d.type === 'result'){ w.removeEventListener('message', handler); resolve(d.out); }
                 else if(d.type === 'error'){ w.removeEventListener('message', handler); reject(new Error(d.message)); }
             };
             w.addEventListener('message', handler);
-            w.postMessage({ type:'transcribe', url: url });
+            w.postMessage({ type:'transcribe', id: id, url: url });
         });
     }
     function buildFileSentences(chunks){
@@ -14333,6 +14396,7 @@ const HSK2_VOCAB = [
             playFileSentence(0);
             input.focus();
         }catch(e){
+            hideWhisperProgress();
             const msg = (e && e.message) ? String(e.message) : 'mp3';
             const hint = /failed to fetch|Failed to fetch|load fail|NetworkError|fetch/i.test(msg) ? t('dict.upload_status_network') : '';
             setStatus(t('dict.upload_status_fail').replace('{msg}', msg) + hint);
@@ -18291,10 +18355,18 @@ ${searchRule}
 
     // ========== 语音输入（桌面端实时识别 + 移动端键盘麦克风引导） ==========
     let voiceRecognition = null, voiceIsSupported = false, voiceIsRecording = false;
+    let voiceInputEngine = 'online';
+    try{ const _vie = localStorage.getItem('VOICE_INPUT_ENGINE'); if(_vie === 'whisper' || _vie === 'online') voiceInputEngine = _vie; }catch(e){}
 
     function updateVoiceHint() {
         const hintEl = document.getElementById('voiceInputHint');
         if (!hintEl) return;
+        if (voiceInputEngine === 'whisper') {
+            hintEl.textContent = whisperWorkerReady
+                ? '🎤 本地 Whisper：点击麦克风开始录音，再点一次停止并识别（离线可用）'
+                : '🎤 本地 Whisper：点击麦克风开始录音（首次使用需下载模型，约 40MB）';
+            return;
+        }
         const isIOS2 = /iPhone|iPad|iPod/i.test(navigator.userAgent);
         const isAndroid = /Android/i.test(navigator.userAgent);
         if (!voiceIsSupported) {
@@ -18307,38 +18379,42 @@ ${searchRule}
     function initVoiceRecognition() {
         if(!voiceBtn) return;
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (!SpeechRecognition) {
-            // iOS / 安卓 / 不支持的浏览器：按钮可见，但点击时给出对应设备的替代方案
-            voiceIsSupported = false;
-            voiceBtn.classList.remove('unsupported');
-            voiceBtn.onclick = function() {
-                const isIOS2 = /iPhone|iPad|iPod/i.test(navigator.userAgent);
-                const isAndroid = /Android/i.test(navigator.userAgent);
-                if (isIOS2) {
-                    showToast(t('chat.voice_hint_keyboard'));
-                } else if (isAndroid) {
-                    showToast(t('chat.voice_android'));
-                } else {
-                    showToast(t('chat.voice_desktop_unsupported'));
-                }
-            };
-            updateVoiceHint();
-            return;
-        }
-        voiceIsSupported = true;
+        voiceIsSupported = !!SpeechRecognition;
         voiceBtn.classList.remove('unsupported');
         voiceBtn.onclick = toggleVoiceRecording;
+        const engineSel = document.getElementById('voiceInputEngineSelect');
+        if(engineSel){
+            engineSel.value = voiceInputEngine;
+            engineSel.addEventListener('change', function(){
+                voiceInputEngine = engineSel.value;
+                try{ localStorage.setItem('VOICE_INPUT_ENGINE', voiceInputEngine); }catch(e){}
+                // 引擎切换时把两套录音都停掉，避免旧引擎的录音残留
+                stopVoiceRecognitionInstance();
+                stopWhisperRecording(true);
+                updateVoiceHint();
+                showToast(voiceInputEngine === 'whisper' ? '🎤 已切换：本地 Whisper（离线识别）' : '🎤 已切换：在线语音识别（浏览器）');
+            });
+        }
         updateVoiceHint();
     }
 
     function toggleVoiceRecording() {
         if (voiceIsRecording) {
             stopVoiceRecording();
-        } else if (voiceIsSupported) {
+            return;
+        }
+        if (voiceInputEngine === 'whisper') {
+            startWhisperRecording();
+            return;
+        }
+        if (voiceIsSupported) {
             startVoiceRecording();
         } else {
-            initVoiceRecognition(); // re-check
-            if (voiceIsSupported) startVoiceRecording();
+            const isIOS2 = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+            const isAndroid = /Android/i.test(navigator.userAgent);
+            if (isIOS2) showToast(t('chat.voice_hint_keyboard'));
+            else if (isAndroid) showToast(t('chat.voice_android'));
+            else showToast(t('chat.voice_desktop_unsupported'));
         }
     }
 
@@ -18433,7 +18509,145 @@ ${searchRule}
     }
 
     function stopVoiceRecording() {
+        if (voiceInputEngine === 'whisper') {
+            stopWhisperRecording();
+            return;
+        }
         stopVoiceRecognitionInstance();
+    }
+
+    // ========== 本地 Whisper 语音输入（复用听写模式的 whisper-tiny 引擎） ==========
+    let whisperMediaRecorder = null;
+    let whisperMediaStream = null;
+    let whisperMediaChunks = [];
+    function updateWhisperHintText(s){ const h = document.getElementById('voiceInputHint'); if(h) h.textContent = s; }
+    // ===== 本地 Whisper 模型下载进度卡片（语音输入/听写共用） =====
+    function showWhisperProgress(title, text, pct){
+        const el = document.getElementById('whisperProgress');
+        if(!el) return;
+        el.style.display = 'block';
+        const tEl = document.getElementById('whisperProgressTitle');
+        if(tEl) tEl.textContent = title || '⏳ 正在下载本地 Whisper 模型';
+        const fEl = document.getElementById('whisperProgressFill');
+        if(fEl) fEl.style.width = Math.max(0, Math.min(100, Math.round(Number(pct) || 0))) + '%';
+        const xEl = document.getElementById('whisperProgressText');
+        if(xEl) xEl.textContent = text || '';
+    }
+    function hideWhisperProgress(){
+        const el = document.getElementById('whisperProgress');
+        if(el) el.style.display = 'none';
+    }
+    function releaseWhisperMedia(){
+        try{ if(whisperMediaStream) whisperMediaStream.getTracks().forEach(t => t.stop()); }catch(e){}
+        whisperMediaStream = null; whisperMediaRecorder = null; whisperMediaChunks = [];
+    }
+    async function startWhisperRecording(){
+        if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){ showToast(t('chat.voice_no_mic')); return; }
+        let stream;
+        try{ stream = await navigator.mediaDevices.getUserMedia({audio:true}); }
+        catch(e){ showToast(t('chat.voice_denied')); return; }
+        let rec;
+        try{ rec = new MediaRecorder(stream); }
+        catch(e){ try{ stream.getTracks().forEach(t => t.stop()); }catch(_){} showToast('当前浏览器不支持录音（本地 Whisper 需要 MediaRecorder，建议用 Edge/Chrome）'); return; }
+        whisperMediaStream = stream;
+        whisperMediaRecorder = rec;
+        whisperMediaChunks = [];
+        rec.ondataavailable = function(ev){ if(ev.data && ev.data.size) whisperMediaChunks.push(ev.data); };
+        rec.onstop = function(){ transcribeWhisperRecording(); };
+        try{ rec.start(); }
+        catch(e){
+            releaseWhisperMedia();
+            showToast(t('chat.voice_start_fail'));
+            return;
+        }
+        voiceIsRecording = true;
+        if(voiceBtn){ voiceBtn.classList.add('recording'); voiceBtn.textContent = '🔴'; voiceBtn.title = '录音中，点击停止并识别'; }
+        updateWhisperHintText('🎙️ 正在录音（本地 Whisper）…再点一次 🎤 停止并识别');
+    }
+    function stopWhisperRecording(abandon){
+        if(!whisperMediaRecorder) return;
+        voiceIsRecording = false;
+        if(voiceBtn){ voiceBtn.classList.remove('recording'); voiceBtn.textContent = '🎤'; voiceBtn.title = '🎤 语音输入'; }
+        if(abandon){
+            // 切换引擎/放弃本次录音：不触发识别
+            try{ whisperMediaRecorder.onstop = null; }catch(e){}
+            whisperMediaChunks = [];
+        }
+        try{ if(whisperMediaRecorder.state !== 'inactive') whisperMediaRecorder.stop(); }catch(e){}
+        if(abandon) releaseWhisperMedia();
+        // 正常停止时：麦克风轨道在 transcribeWhisperRecording 处理完后释放
+    }
+    // MediaRecorder 输出（webm/mp4）→ 解码 → 重采样 16kHz 单声道 → 16-bit PCM WAV
+    async function encodeWav16kFromBlob(blob){
+        const AC = window.AudioContext || window.webkitAudioContext;
+        if(!AC) throw new Error('浏览器不支持音频解码');
+        const arrayBuf = await blob.arrayBuffer();
+        const ctx = new AC();
+        let decoded;
+        try{ decoded = await ctx.decodeAudioData(arrayBuf); }
+        finally{ try{ ctx.close(); }catch(e){} }
+        if(!decoded) throw new Error('无法解码录音，建议换 Edge/Chrome');
+        const targetRate = 16000;
+        const length = Math.max(1, Math.ceil(decoded.duration * targetRate));
+        if(!window.OfflineAudioContext) throw new Error('浏览器不支持重采样');
+        const offline = new OfflineAudioContext(1, length, targetRate);
+        const src = offline.createBufferSource();
+        src.buffer = decoded;
+        src.connect(offline.destination);
+        src.start();
+        const rendered = await offline.startRendering();
+        const samples = rendered.getChannelData(0);
+        const buffer = new ArrayBuffer(44 + samples.length * 2);
+        const view = new DataView(buffer);
+        const writeStr = function(off, s){ for(let i = 0; i < s.length; i++) view.setUint8(off + i, s.charCodeAt(i)); };
+        writeStr(0, 'RIFF'); view.setUint32(4, 36 + samples.length * 2, true); writeStr(8, 'WAVE');
+        writeStr(12, 'fmt '); view.setUint32(16, 16, true); view.setUint16(20, 1, true); view.setUint16(22, 1, true);
+        view.setUint32(24, targetRate, true); view.setUint32(28, targetRate * 2, true); view.setUint16(32, 2, true); view.setUint16(34, 16, true);
+        writeStr(36, 'data'); view.setUint32(40, samples.length * 2, true);
+        let off = 44;
+        for(let i = 0; i < samples.length; i++){
+            let s = Math.max(-1, Math.min(1, samples[i]));
+            view.setInt16(off, s < 0 ? Math.round(s * 0x8000) : Math.round(s * 0x7FFF), true);
+            off += 2;
+        }
+        return new Blob([view], { type: 'audio/wav' });
+    }
+    async function transcribeWhisperRecording(){
+        updateWhisperHintText('⏳ 正在用本地 Whisper 识别…');
+        let url = null;
+        try{
+            if(!whisperMediaChunks.length) throw new Error('没有录到声音');
+            const mime = (whisperMediaRecorder && whisperMediaRecorder.mimeType) || 'audio/webm';
+            const rawBlob = new Blob(whisperMediaChunks, { type: mime });
+            const wavBlob = await encodeWav16kFromBlob(rawBlob);
+            url = URL.createObjectURL(wavBlob);
+            if(!whisperWorker){
+                updateWhisperHintText('⏳ 首次使用：正在下载本地 Whisper 模型（约 40MB）…');
+                await loadWhisperRecognizer();
+            }
+            if(!whisperWorkerReady){
+                await whisperWorkerLoad(function(p){ updateWhisperHintText('⏳ 正在下载模型 ' + p + '%（下载一次后离线可用）…'); });
+            }
+            const out = await whisperWorkerTranscribe(url);
+            const text = String((out && out.text) || '').replace(/[。！？!?.]+$/, '').trim();
+            if(text){
+                const prev = userInput.value.trim();
+                userInput.value = prev ? prev + '，' + text : text;
+                userInput.focus();
+                showToast('✅ 本地识别：' + text);
+            } else {
+                showToast('未识别到内容，请再试一次');
+            }
+        }catch(e){
+            const msg = String((e && e.message) || e);
+            const hintNet = /failed to fetch|load fail|NetworkError|fetch/i.test(msg) ? '（模型下载需要联网，下载一次后离线可用）' : '';
+            showToast('本地识别失败：' + msg + hintNet);
+        }finally{
+            releaseWhisperMedia();
+            hideWhisperProgress();
+            try{ if(url) URL.revokeObjectURL(url); }catch(e){}
+            updateVoiceHint();
+        }
     }
     function escapeHtml(s){ return String(s).replace(/[&<>]/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])); }
     function vocabHoverTitle(v){ if(!v) return ''; const m=String(v.m||'').trim(); const e=String(v.e||'').trim(); const s=(m&&e)?(m+' | '+e):(m||e); return escapeHtml(s).replace(/"/g,'&quot;'); }
@@ -18461,6 +18675,7 @@ ${searchRule}
         const raw = rawText || (isHtml ? stripHtml(content) : content);
         // 朗读内容默认等于原文；带纠错块的消息只读 AI 句子（不读下面的纠错区）
         const speakRaw = speakText !== undefined ? speakText : raw;
+        div._speakText = speakRaw;
         if(role === 'assistant'){
             const msgId = 'msg_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6);
             const safeRaw = escapeHtml(raw).replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/\r?\n/g, '\\n');
@@ -18573,10 +18788,16 @@ ${searchRule}
     function addAssistantMessage(txt, isHtml, rawText, speakText, noHighlight){ addMessage('assistant', txt, isHtml, rawText, speakText, noHighlight); }
     window._translateToggle=async function(text, msgId){ const btn=document.getElementById(msgId+'_btn'); const trEl=document.getElementById(msgId+'_tr'); if(trEl.dataset.translated==='1'){ if(trEl.style.display==='none'){ trEl.style.display='block'; btn.textContent=t('chat.hide_translation'); } else { trEl.style.display='none'; btn.textContent=t('chat.translate'); } return; } btn.disabled=true; btn.textContent=t('chat.translating'); trEl.style.display='block'; trEl.textContent='⏳ ...'; const apiKey=apiKeyInput.value.trim(); if(!apiKey){ trEl.textContent=t('api_key_required'); btn.disabled=false; btn.textContent=t('chat.translate'); return; } const targetLang=targetLangSelect.value; try{ const resp=await fetch(API_BASE,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey}, body:JSON.stringify({model:'deepseek-v4-flash',thinking:{type:'disabled'}, max_tokens:4096, messages:[{role:'user',content:'请将以下中文逐行翻译成'+targetLang+'，保持原来的分行格式，每行单独翻译：\n'+text}], temperature:0.3})}); const data=await resp.json(); if(data.error) throw new Error(data.error.message||"API error"); if(!data.choices||!data.choices[0]||!data.choices[0].message) throw new Error("API error"); const tr=data.choices[0].message.content.trim(); const origLines=text.split('\n'); const trLines=tr.split('\n'); let resultHtml=''; const maxLines=Math.max(origLines.length, trLines.length); for(let i=0;i<maxLines;i++){ const o=(origLines[i]||'').trim(); const t=(trLines[i]||'').trim(); resultHtml+='<div style="margin-bottom:2px;"><b>'+escapeHtml(o)+'</b> → <b style="color:#27ae60">'+escapeHtml(t)+'</b></div>'; } trEl.innerHTML=resultHtml; trEl.dataset.translated='1'; btn.textContent=t('chat.hide_translation'); btn.disabled=false; }catch(e){ trEl.textContent=t('chat.translation_fail'); btn.disabled=false; btn.textContent=t('chat.translate'); } };
     window._pinyinToggle=async function(text, msgId){ const btn=document.getElementById(msgId+'_pyBtn'); const pyEl=document.getElementById(msgId+'_py'); if(!btn||!pyEl) return; if(pyEl.dataset.loaded==='1'){ if(pyEl.style.display==='none'){ pyEl.style.display='block'; btn.textContent=t('chat.hide_pinyin'); } else { pyEl.style.display='none'; btn.textContent=t('chat.pinyin'); } return; } btn.disabled=true; btn.textContent=t('chat.pinyin_loading'); pyEl.style.display='block'; pyEl.textContent='⏳ ...'; const apiKey=apiKeyInput.value.trim(); if(!apiKey){ pyEl.textContent=t('api_key_required'); btn.disabled=false; btn.textContent=t('chat.pinyin'); return; } try{ const resp=await fetch(API_BASE,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey}, body:JSON.stringify({model:'deepseek-v4-flash',thinking:{type:'disabled'}, max_tokens:4096, messages:[{role:'user',content:'请给下面的中文内容标注拼音。每个汉字的拼音用空格分开（如：wǒ shì xué shēng），保持原来的分行格式，每行单独标注，只输出拼音文本，不要输出任何其他内容：\n'+text}], temperature:0})}); const data=await resp.json(); if(data.error) throw new Error(data.error.message||"API error"); if(!data.choices||!data.choices[0]||!data.choices[0].message) throw new Error("API error"); const py=data.choices[0].message.content.trim(); const origLines=text.split('\n'); const pyLines=py.split('\n'); let resultHtml=''; const maxLines=Math.max(origLines.length, pyLines.length); for(let i=0;i<maxLines;i++){ const o=(origLines[i]||'').trim(); const p=(pyLines[i]||'').trim(); resultHtml+='<div style="margin-bottom:2px;">'+escapeHtml(o)+'<br><b style="color:#1565c0;">'+escapeHtml(p)+'</b></div>'; } pyEl.innerHTML=resultHtml; pyEl.dataset.loaded='1'; btn.textContent=t('chat.hide_pinyin'); btn.disabled=false; }catch(e){ pyEl.textContent=t('chat.pinyin_fail'); btn.disabled=false; btn.textContent=t('chat.pinyin'); } };
-    // 聊天朗读：北语 TTS（无需 API Key），失败时退回浏览器语音
+    // 聊天朗读：微软 Edge TTS → 北语 TTS → 浏览器语音（均无需 API Key）
     let chatTtsAudio = null;
     let chatTtsText = '';
+    let chatTtsToken = 0;
     function playChatTtsUrl(url, isBlobUrl){
+        if(chatTtsAudio){
+            const old = chatTtsAudio;
+            chatTtsAudio = null;
+            try{ old.onended=null; old.onerror=null; old.pause(); old.src=''; }catch(e){}
+        }
         const audio = new Audio(url);
         chatTtsAudio = audio;
         audio.onended = function(){
@@ -18590,28 +18811,42 @@ ${searchRule}
         audio.play();
     }
     async function speakChatTextWithTts(text){
-        const clean = String(text || '').trim();
+        const clean = stripEmojiForSpeech(String(text || '').trim());
         if(!clean) return;
         stopAllSpeech();
         if(chatTtsAudio){
             const old = chatTtsAudio;
             chatTtsAudio = null;
-            try{ old.pause(); old.src = ''; }catch(e){}
-            if(chatTtsText === clean){ chatTtsText = ''; return; }
+            try{ old.onended=null; old.onerror=null; old.pause(); old.src = ''; }catch(e){}
+            if(chatTtsText === clean){ chatTtsText = ''; chatTtsToken++; return; }
         }
+        // 正在请求中再点一次 → 取消
+        if(!chatTtsAudio && chatTtsText === clean){ chatTtsToken++; chatTtsText = ''; return; }
         chatTtsText = clean;
-        // 北语 TTS
+        const myChatToken = ++chatTtsToken;
+        const chatVoice = getChatEdgeVoice();
+        // 1) 微软 Edge TTS
+        try{
+            const url = await edgeTtsSpeakCached('edge|' + chatVoice + '|' + speechRateValue.toFixed(2) + '|' + clean, clean, chatVoice, speechRateValue);
+            if(myChatToken !== chatTtsToken) return;
+            playChatTtsUrl(url, false);
+            return;
+        }catch(e){}
+        if(myChatToken !== chatTtsToken) return;
+        // 2) 北语 TTS
         try{
             const resp = await fetch(dictationTtsBase() + '?text=' + encodeURIComponent(clean) + '&speed=5&voice=1');
             const ct = resp.headers.get('content-type') || '';
             if(!resp.ok || !/audio|mpeg|wav|mp3/i.test(ct)) throw new Error('tts unavailable');
             const blob = await resp.blob();
+            if(myChatToken !== chatTtsToken) return;
             playChatTtsUrl(URL.createObjectURL(blob), true);
             return;
         }catch(e){}
-        // 浏览器语音兜底
+        if(myChatToken !== chatTtsToken) return;
+        // 3) 浏览器语音兜底
         chatTtsText = '';
-        speakChinese(clean);
+        speakWithBrowser(clean, false, speechVoicePref, speechToken);
     }
     window._readMsg=function(text){ speakChatTextWithTts(text); };
     function splitClauses(text){ return text.split(/[，,。；;！!？?]+/).filter(s=>s.trim().length>0).map(s=>s.trim()); }
@@ -18683,6 +18918,45 @@ function saveFullState(){ if(!currentUser) return; const entries=Array.from(used
     function saveChatHistory(){ if(!currentUser) return; localStorage.setItem(chatHistoryKey(), JSON.stringify(chatHistory)); }
     const APP_VERSION = '2.1';
     function loadChatHistory(){ if(!currentUser) return; const storedVer=localStorage.getItem('app_version'); if(storedVer!==APP_VERSION){ localStorage.removeItem(chatHistoryKey()); localStorage.setItem('app_version',APP_VERSION); chatHistory=[]; return; } const raw=localStorage.getItem(chatHistoryKey()); if(raw){ try{ chatHistory=JSON.parse(raw); }catch(e){ chatHistory=[]; } } if(!Array.isArray(chatHistory)) chatHistory=[]; chatHistory = dedupeChatHistory(chatHistory); }
+    // ===== 会话新鲜度：隔了较长时间（默认 4 小时）重新打开，自动当作一次新对话 =====
+    const CHAT_SESSION_MARK = '[新的对话]';
+    const CHAT_STALE_GAP_MS = 4 * 3600 * 1000;
+    function chatStaleGapMs(){
+        if(!Array.isArray(chatHistory) || chatHistory.length === 0) return null;
+        let maxT = 0, hasT = false;
+        for(const m of chatHistory){
+            if(m && m.role !== 'system' && m.time){
+                const t = new Date(m.time).getTime();
+                if(!isNaN(t)){ maxT = Math.max(maxT, t); hasT = true; }
+            }
+        }
+        if(!hasT) return 8 * 3600 * 1000; // 旧记录没有时间戳：当作很久以前
+        return Math.max(0, Date.now() - maxT);
+    }
+    function chatLastMarkerIndex(){
+        let idx = -1;
+        for(let i = 0; i < chatHistory.length; i++){
+            if(chatHistory[i] && chatHistory[i].role === 'system') idx = i;
+        }
+        return idx;
+    }
+    // 最近一次「新的对话」标记之后的记录（AI 只拿这些当上下文，旧话题自然断掉）
+    function chatRecentContext(){
+        const idx = chatLastMarkerIndex();
+        return idx >= 0 ? chatHistory.slice(idx + 1) : chatHistory;
+    }
+    function chatHasUserSinceMarker(){
+        return chatRecentContext().some(m => m && m.role === 'user');
+    }
+    function maybeMarkNewChatSession(){
+        if(!Array.isArray(chatHistory) || chatHistory.length === 0) return;
+        const gap = chatStaleGapMs();
+        if(gap === null || gap <= CHAT_STALE_GAP_MS) return;
+        const last = chatHistory[chatHistory.length - 1];
+        if(last && last.role === 'system') return; // 已有标记
+        chatHistory.push({ role:'system', content: CHAT_SESSION_MARK, time: new Date().toISOString() });
+        saveChatHistory();
+    }
     function dedupeChatHistory(list){
         if(!list || list.length < 2) return list;
         const out=[];
@@ -18699,11 +18973,32 @@ function saveFullState(){ if(!currentUser) return; const entries=Array.from(used
         }
         return out;
     }
-    function renderChatHistory(){ if(chatHistory.length===0) return; chatMessages.innerHTML=''; for(let msg of chatHistory){ const role=msg.role; const content=msg.content; if(role==='assistant'){ const div=document.createElement('div'); div.className='message assistant-message'; div.innerHTML='<div class="bubble assistant-bubble">'+content+'</div>'; chatMessages.appendChild(div); } else { const div=document.createElement('div'); div.className='message user-message'; div.innerHTML='<div class="bubble user-bubble">'+escapeHtml(content)+'</div>'; chatMessages.appendChild(div); } } chatMessages.scrollTop=chatMessages.scrollHeight; }
+    function renderChatHistory(){
+        if(!Array.isArray(chatHistory) || chatHistory.length===0) return;
+        chatMessages.innerHTML='';
+        for(let msg of chatHistory){
+            if(!msg || msg.role === 'system') continue; // 会话分隔标记不显示
+            const role = (msg.role === 'assistant') ? 'assistant' : 'user';
+            const div = document.createElement('div');
+            div.className = 'message ' + role + '-message';
+            const bubble = document.createElement('div');
+            bubble.className = 'bubble ' + (role === 'assistant' ? 'assistant-bubble' : 'user-bubble');
+            bubble.innerHTML = escapeHtml(String(msg.content || '')).replace(/\n/g, '<br>');
+            div.appendChild(bubble);
+            const ts = document.createElement('div');
+            ts.className = 'timestamp';
+            ts.textContent = msg.time ? new Date(msg.time).toLocaleString() : '';
+            div.appendChild(ts);
+            div._speakText = String(msg.content || '');
+            chatMessages.appendChild(div);
+        }
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
     function showChatHistory(){
         if(chatHistory.length===0){ showToast('暂无聊天历史'); return; }
         let html='<div style="max-height:60vh;overflow-y:auto;padding:8px;">';
         for(let msg of chatHistory){
+            if(!msg || msg.role === 'system') continue; // 会话分隔标记不显示
             const roleLabel=msg.role==='user'?'🧑 用户':'🤖 AI';
             const timeStr=msg.time?new Date(msg.time).toLocaleString():'';
             html+='<div style="margin-bottom:12px;padding:10px;border-radius:12px;background:'+(msg.role==='user'?'#e8f0fe':'#f8fafc')+';border:1px solid #e9eef4;">';
@@ -18929,7 +19224,14 @@ ${gapChatGuide()}
 (b) 长度是否自然——该说少就说少，该说多就说多，不为凑字数啰嗦、也不砍掉必要的内容？
 (c) 回复是否延续话题、能让学生愿意继续开口？
 (a) 不符合就换词；(b)/(c) 不符合就调整内容，不要死板地数句数。` + topicCtx + enforce + corrCtx;
-        const messages = [{role:'system', content:system}, ...chatHistory];
+        // 新的一天/长时间未打开：只把「新的对话」标记之后的记录给 AI，旧话题自然断掉
+        const recentCtx = chatRecentContext();
+        // 本次会话的第一句话（历史里有旧内容，但标记之后只有学生这 1 条）→ 提醒 AI 不要续旧话题
+        const firstOfNewSession = chatHistory.length > 1 && recentCtx.length >= 1 && recentCtx.filter(m => m && m.role === 'user').length === 1;
+        const freshNote = firstOfNewSession
+            ? '\n【会话状态 - 必须遵守】这是一次全新的对话：学生隔了一段时间才重新打开页面，之前聊过的内容已经过去了。绝对不要主动延续、回顾或引用旧话题（不许说「我们刚才说到」「你之前提到」之类的话），也不要接着旧话题提问。像第一次见面一样自然回应；如果学生自己提到以前的内容而你不了解，可以自然地请他把情况再说一下。'
+            : '';
+        const messages = [{role:'system', content:system + freshNote}, ...recentCtx];
         try{
             const resp = await fetch(API_BASE, {method:'POST', headers:{'Content-Type':'application/json', 'Authorization':'Bearer '+apiKey}, body: JSON.stringify({model:'deepseek-v4-pro', thinking:{type:'disabled'}, max_tokens:512, messages, temperature:0.4}), signal: aiFetchSignal(signal, 60000)});
             const data = await resp.json();
@@ -20373,7 +20675,7 @@ async function analyzeMistakesBatch(userMessages, aiReplyRaw, contextMessages){ 
         const clean = stripInlineCorrectionBlock(content);
         return String(clean||'').split(/[\n。！？!?；;，,]+/).map(s => chatContentCmp(s)).filter(s => s.length >= 2);
     }
-    function downloadUnifiedReport(){ let rpt='=== 📚 完整学习报告 ===\n'+new Date().toLocaleString()+'\n\n'; rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n✏️ 作文批改（最终提交文本 + 修改过程）\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(writingEssays.length===0){ rpt+='(暂无作文批改记录)\n\n'; } else { writingEssays.forEach((we,i)=>{ rpt+='📌 作文 '+(i+1)+'（'+formatDate(we.date)+'）\n--- 最终提交文本 ---\n'+(we.original||'')+'\n'; if(we.revisions&&we.revisions.length>0){ rpt+='--- 修改过程 ---\n'; we.revisions.forEach((rv,k)=>{ rpt+='修改'+(k+1)+'（'+formatDate(rv.date)+'）\n'+(rv.text||'')+'\n'; }); } rpt+='\n'; }); } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n📝 第一部分：全部聊天记录\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; const _chatMsgs = dedupeChatHistory(chatHistory || []); if(_chatMsgs.length===0){ rpt+='(暂无聊天记录)\n'; } else { for(let msg of _chatMsgs){ const roleLabel=msg.role==='user'?'🧑 用户':'🤖 AI'; const timeStr=msg.time?new Date(msg.time).toLocaleString():''; rpt+=roleLabel+' ['+timeStr+']\n'+msg.content+'\n\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n💬 阅读模式讨论记录\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; const _rc=(function(){try{return JSON.parse(localStorage.getItem('HSK_MODE_CHAT_READING_'+currentUser)||'[]')||[];}catch(e){return [];}})(); if(_rc.length===0){ rpt+='(暂无阅读讨论记录)\n'; } else { for(const _c of _rc){ rpt+='📌 '+(_c.date||'')+' '+(_c.title||'')+'\n'; for(const _m of (_c.messages||[])){ rpt+=(_m.role==='user'?'🧑 用户':'🤖 AI')+'：'+_m.content+'\n'; } rpt+='\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n💬 写作模式讨论记录\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; const _wc=(function(){try{return JSON.parse(localStorage.getItem('HSK_MODE_CHAT_WRITING_'+currentUser)||'[]')||[];}catch(e){return [];}})(); if(_wc.length===0){ rpt+='(暂无写作讨论记录)\n'; } else { for(const _c of _wc){ rpt+='📌 '+(_c.date||'')+' '+(_c.title||'')+'\n'; for(const _m of (_c.messages||[])){ rpt+=(_m.role==='user'?'🧑 用户':'🤖 AI')+'：'+_m.content+'\n'; } rpt+='\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n🔍 第二部分：查询过的词或句子\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(queriedItems.length===0){ rpt+='(暂无查询记录)\n'; } else { for(let i=0;i<queriedItems.length;i++){ const item=queriedItems[i]; const icon=item.type==='sentence'?'📝 句子':'🔤 词语'; rpt+=icon+' '+item.text+'\n  🌐 '+(item.translation||'')+'\n  📅 '+formatDate(item.date?item.date.slice(0,10):'')+'\n\n'; } }
+    function downloadUnifiedReport(){ let rpt='=== 📚 完整学习报告 ===\n'+new Date().toLocaleString()+'\n\n'; rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n✏️ 作文批改（最终提交文本 + 修改过程）\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(writingEssays.length===0){ rpt+='(暂无作文批改记录)\n\n'; } else { writingEssays.forEach((we,i)=>{ rpt+='📌 作文 '+(i+1)+'（'+formatDate(we.date)+'）\n--- 最终提交文本 ---\n'+(we.original||'')+'\n'; if(we.revisions&&we.revisions.length>0){ rpt+='--- 修改过程 ---\n'; we.revisions.forEach((rv,k)=>{ rpt+='修改'+(k+1)+'（'+formatDate(rv.date)+'）\n'+(rv.text||'')+'\n'; }); } rpt+='\n'; }); } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n📝 第一部分：全部聊天记录\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; const _chatMsgs = dedupeChatHistory(chatHistory || []); if(_chatMsgs.length===0){ rpt+='(暂无聊天记录)\n'; } else { for(let msg of _chatMsgs){ if(msg.role==='system') continue; const roleLabel=msg.role==='user'?'🧑 用户':'🤖 AI'; const timeStr=msg.time?new Date(msg.time).toLocaleString():''; rpt+=roleLabel+' ['+timeStr+']\n'+msg.content+'\n\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n💬 阅读模式讨论记录\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; const _rc=(function(){try{return JSON.parse(localStorage.getItem('HSK_MODE_CHAT_READING_'+currentUser)||'[]')||[];}catch(e){return [];}})(); if(_rc.length===0){ rpt+='(暂无阅读讨论记录)\n'; } else { for(const _c of _rc){ rpt+='📌 '+(_c.date||'')+' '+(_c.title||'')+'\n'; for(const _m of (_c.messages||[])){ rpt+=(_m.role==='user'?'🧑 用户':'🤖 AI')+'：'+_m.content+'\n'; } rpt+='\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n💬 写作模式讨论记录\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; const _wc=(function(){try{return JSON.parse(localStorage.getItem('HSK_MODE_CHAT_WRITING_'+currentUser)||'[]')||[];}catch(e){return [];}})(); if(_wc.length===0){ rpt+='(暂无写作讨论记录)\n'; } else { for(const _c of _wc){ rpt+='📌 '+(_c.date||'')+' '+(_c.title||'')+'\n'; for(const _m of (_c.messages||[])){ rpt+=(_m.role==='user'?'🧑 用户':'🤖 AI')+'：'+_m.content+'\n'; } rpt+='\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n🔍 第二部分：查询过的词或句子\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(queriedItems.length===0){ rpt+='(暂无查询记录)\n'; } else { for(let i=0;i<queriedItems.length;i++){ const item=queriedItems[i]; const icon=item.type==='sentence'?'📝 句子':'🔤 词语'; rpt+=icon+' '+item.text+'\n  🌐 '+(item.translation||'')+'\n  📅 '+formatDate(item.date?item.date.slice(0,10):'')+'\n\n'; } }
 rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n🎯 错误库（错误的词/句子，全部来源）\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(gapBank.items.length===0){ rpt+='(暂无错误记录)\n'; } else { const _gi=[...gapBank.items].sort(gapSort); for(const it of _gi){ rpt+=(it.acquired?'✅已习得':'🔴未习得')+' '+it.text+'｜出现'+(it.count||1)+'次｜来源：'+(it.source||'')+'\n'; if(it.correct && it.correct!==it.text) rpt+='  正确：'+it.correct+'\n'; if(it.sentence) rpt+='  改正后的句子：'+it.sentence+'\n'; if(it.translation) rpt+='  母语翻译：'+it.translation+'\n'; if(it.correctUseCount) rpt+='  正确使用：'+it.correctUseCount+'/3\n'; if(it.occurrences&&it.occurrences.length) rpt+='  出现时间：'+it.occurrences.map(o=>o.date).join('、')+'\n'; if(it.usedSentences&&it.usedSentences.length) rpt+='  使用句子（时间）：'+it.usedSentences.map(u=>u.sentence+'('+u.source+' '+(u.time||u.date||'')+')').join('；')+'\n'; rpt+='\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n📝 错句纠错记录（错句本）\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(wrongSentences.length===0){ rpt+='(暂无纠错记录)\n'; } else { for(const _ws of wrongSentences){ rpt+='✏️ 你写的：'+(_ws.userAnswer||'')+'\n'; rpt+='✅ 正确：'+(_ws.sentence||'')+'\n'; if(_ws.note) rpt+='💡 原因：'+(_ws.note||'')+'\n'; if(_ws.errType) rpt+='🏷 类型：'+(mistakeTypeLabel(_ws.errType)||_ws.errType||'')+'\n'; rpt+='📅 '+(_ws.date||'')+'\n\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n💭 第三部分：错句反思记录（全部历史）\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; const _rr=(window._reflectionResults||[]).slice().sort((a,b)=>String(b.date||'').localeCompare(String(a.date||''))); if(_rr.length===0){ rpt+='(暂无反思记录)\n'; } else { for(const r of _rr){ rpt+='['+(r.mode||'')+'] '+(r.text||'')+'\n'; if(r.user) rpt+='  ✏️ 你写的：'+r.user+'\n'; if(r.note) rpt+='  📌 '+(r.note||'')+'\n'; if(r.native) rpt+='  🌐 母语表达：'+r.native+'\n'; rpt+='  💭 反思：'+(r.reason||'（跳过）')+'\n'; rpt+='  📅 '+(r.date||'')+'\n\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n⭐ 第四部分：收藏句子\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(favoriteSentences.length===0){ rpt+='(暂无收藏)\n'; } else { for(let item of favoriteSentences){ rpt+='🇨🇳 '+item.chinese+'\n🌐 '+(item.translation||'')+'\n📅 '+(item.date||'')+'\n\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n💬 「怎么说」尝试记录\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(zmsRecords.length===0){ rpt+='(暂无尝试记录)\n'; } else { for(var zi=0; zi<zmsRecords.length; zi++){ var zr=zmsRecords[zi]; rpt+='🌐 母语：'+zr.original+'\n'; if(zr.attempt) rpt+='  ✏️ 你的尝试：'+zr.attempt+'\n'; rpt+='  ✅ 参考答案：'+zr.reference+'\n  📅 '+(zr.date||'')+'\n\n'; } } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n📰 阅读历史\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; if(readingHistory.length===0){ rpt+='(暂无阅读记录)\n'; } else { readingHistory.forEach((r,i)=>{ rpt+='📌 '+(r.title||('HSK'+r.level))+' [HSK'+r.level+']\n'; rpt+='📅 '+(r.date||'')+' · 主题：'+(r.topic||'')+'\n'; if(r.background) rpt+='背景：'+r.background+'\n'; if(r.sourceUrl) rpt+='🔗 '+r.sourceUrl+'\n'; rpt+='--- 正文 ---\n'+(r.content||'')+'\n\n'; }); } rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n🔤 第五部分：音/形/义/用 四维记录（全部，含出现句子）\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; const _fourWords=Object.keys(vocabDimMap||{}).sort((a,b)=>a.localeCompare(b,'zh')); if(!_fourWords.length){ rpt+='(暂无记录)\n'; } else { const _sentMap={}; for(const _u of (window._dimUpdates||[])){ if(_u && _u.sent){ _sentMap[_u.word]=_sentMap[_u.word]||new Set(); _sentMap[_u.word].add(_u.sent); } } rpt+='| 词语 | 音（对/错/共） | 形（对/错/共） | 义（对/错/共） | 用（对/错/共） | 出现句子（最多10条） |\n|---|---|---|---|---|---|\n'; for(const _fw of _fourWords){ const _fd=vocabDimMap[_fw]||{}; const _pc2=(e)=>'对'+(e.c||0)+'/错'+Math.max(0,(e.t||0)-(e.c||0))+'/共'+(e.t||0); const _sents=_sentMap[_fw]; const _sentStr=_sents&&_sents.size?Array.from(_sents).slice(0,10).map(s=>String(s).replace(/\|/g,'｜').replace(/\r?\n/g,' ')).join('；'):''; rpt+='| '+String(_fw).replace(/\|/g,'｜')+' | '+_pc2(_fd['音']||{c:0,t:0})+' | '+_pc2(_fd['形']||{c:0,t:0})+' | '+_pc2(_fd['义']||{c:0,t:0})+' | '+_pc2(_fd['用']||{c:0,t:0})+' | '+_sentStr+' |\n'; } } rpt+='\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n✨ 第六部分：本次新增（按模式标记，含句子）\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; const _upd=(window._dimUpdates||[]).slice(-200); if(!_upd.length){ rpt+='(暂无新增)\n'; } else { for(const _u of _upd){ rpt+='['+(_u.mode||'未标记')+'] '+_u.word+' → '+_u.dims+' ✅ '+(_u.date||'')+(_u.sent?'｜'+_u.sent:'')+'\n'; } }
 rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n📊 ' + t('ws.board_title') + '\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; rpt+=t('ws.target_label') + '：'+(function(){ try{ return vocabLevelLabel(wsTargetLevel()); }catch(e){ return '—'; } })()+'\n'; (function(){ try{ const _words=Object.keys(wordStatusData.words||{}).sort((a,b)=>a.localeCompare(b,'zh')); if(!_words.length){ rpt+='(暂无词语状态记录)\n'; return; } rpt+='| 词语 | 等级 | 阶梯 | ' + t('ws.layer_knowledge_short') + ' | ' + t('ws.layer_listening_short') + ' | ' + t('ws.layer_reading_short') + ' | ' + t('ws.layer_production_short') + '(对/错/未判) | 即时 | 延时 | 首次产出 | 最近产出 |\n|---|---|---|---|---|---|---|---|---|---|---|\n'; for(const w of _words){ const s=wsStatus(w); const lv=(wordStatusData.words[w]&&wordStatusData.words[w].level)||0; rpt+='| '+String(w).replace(/\|/g,'｜')+' | '+(lv||'')+' | '+wsStageLabel(s.stage)+' | '+(s.knowledge?'✅':'❌')+' | '+(s.listening?'✅':'—')+' | '+(s.reading?'✅':'—')+' | '+s.prod.count+'（'+s.prod.correct+'/'+s.prod.wrong+'/'+s.prod.unknown+'） | '+s.prod.immediate+' | '+s.prod.delayed+' | '+(s.prod.firstDate||'—')+' | '+(s.prod.lastDate||'—')+' |\n'; } rpt+='\n词语状态卡事件明细（按词）：\n'; for(const w of _words){ const card=wordStatusData.words[w]; rpt+='\n📇 '+w+(card.note?'（评语：'+card.note+'）':'')+'\n'; const evs=(card.events||[]).slice().reverse(); for(const e of evs){ rpt+='  '+e.date+' ['+wsLayerShortLabel(e.layer)+'] '+wsSourceLabel(e.source)+(e.dim?'·'+wsDimLabel(e.dim):'')+' → '+(e.correct===true?t('ws.correct'):(e.correct===false?t('ws.wrong'):t('ws.unknown')))+(e.semantic===true?'（'+t('ws.sem_err')+'）':(e.semantic===false?'（'+t('ws.sem_ok')+'）':''))+(e.sentence?'｜'+(e.layer==='production'?'产出句：':'')+e.sentence:'')+(e.meaningUsed?'｜'+t('ws.meaning_used')+e.meaningUsed:'')+(e.meaningExpected?'｜'+t('ws.meaning_exp')+e.meaningExpected:'')+'\n'; } } }catch(e){ rpt+='(词语状态输出失败)\n'; } })();
 const ok = downloadTextFile(rpt, 'HSK_Learning_Report_' + getLocalDate() + '.md'); showToast(ok ? t('toast.download_started') : t('toast.download_failed')); }
@@ -20930,7 +21232,7 @@ renderVocabLevelProgress(); renderVocabTrackList(); const _userHanzi = sessionUs
 
     // 构造纠错用的聊天上下文：取最近几轮对话，帮助 AI 判断学生当前句子的意图（如是否在回答「谁做的？」）
     function buildChatContextForCorrection(){
-        const msgs = (chatHistory || []).slice(-3);
+        const msgs = chatRecentContext().slice(-3);
         if(!msgs.length) return '';
         return msgs.map(m => (m.role === 'assistant' ? 'AI：' : '学生：') + String(stripInlineCorrectionBlock(m.content) || '').slice(0, 80)).join(String.fromCharCode(10));
     }
@@ -21103,10 +21405,45 @@ renderVocabLevelProgress(); renderVocabTrackList(); const _userHanzi = sessionUs
     }
 
     const _chatMistakeCache = new Map();
+    function isPureGreeting(text){
+        const s = String(text || '').replace(/[，。！？!?、,.·~#*\-—\s]+/g, '').toLowerCase();
+        if(!s) return false;
+        const base = s.replace(/(呀|啊|呢|哦|嘛|喽|咯|哟|哇|啦|哈|吧)+$/, '');
+        const list = ['你好','您好','你们好','大家好','你好呀','嗨','嗨喽','哈喽','哈啰','hello','hi','hey','嗨嗨','在吗','在不在','老师好','早上好','中午好','下午好','晚上好','早安','午安','晚安'];
+        return list.indexOf(base) !== -1 || list.indexOf(s) !== -1;
+    }
+    // 全新对话里的打招呼：用极简提示词直接问候，不走繁重的纠错分析/长系统提示词，避免「你好」也回复得混乱
+    async function chatGreetingFlow(text){
+        showChatThinkingIndicator();
+        const now = new Date().toISOString();
+        chatHistory.push({ role:'user', content: text, time: now });
+        saveChatHistory();
+        const level = parseInt(aiLevelSelect.value) || 3;
+        const canned = {1:'你好！很高兴见到你。', 2:'你好！很高兴认识你。你今天好吗？', 3:'你好！很高兴见到你。你今天过得怎么样？', 4:'你好！很高兴见到你。最近怎么样？', 5:'你好！很高兴见到你。最近过得怎么样？想聊点什么？'}[level] || '你好！很高兴见到你。';
+        let replyRaw = '';
+        const apiKey = apiKeyInput.value.trim();
+        if(apiKey){
+            try{
+                const system = '你是HSK' + level + '级中文对话伙伴。学生刚刚跟你打招呼（「' + text + '」）。请像朋友一样，用符合HSK' + level + '级的中文简短友好地回应（1-3句），并自然地问一个简单的问题邀请他开始聊天。只输出回复本身，不要复述学生的话，不要输出任何符号、标签、解释或格式。';
+                const resp = await fetch(API_BASE, {method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey}, body:JSON.stringify({model:'deepseek-v4-pro', thinking:{type:'disabled'}, max_tokens:128, messages:[{role:'system', content:system}, {role:'user', content:text}], temperature:0.6}), signal: aiFetchSignal(null, 30000)});
+                const data = await resp.json();
+                if(data.error) throw new Error(data.error.message || 'API error');
+                if(!data.choices || !data.choices[0] || !data.choices[0].message) throw new Error('API error');
+                replyRaw = String(data.choices[0].message.content || '').trim();
+                if(!replyRaw || replyRaw.length > 200 || /[✅❌💡✏️【】]/.test(replyRaw)) replyRaw = '';
+            }catch(e){ replyRaw = ''; }
+        }
+        if(!replyRaw) replyRaw = canned;
+        chatHistory.push({ role:'assistant', content: replyRaw, time: new Date().toISOString() });
+        saveChatHistory();
+        addAssistantMessage(replyRaw.replace(/\n/g, '<br>'), true, replyRaw, replyRaw);
+    }
     async function handleUserMessage(){
         if(window._chatBusy) return;
         let text = userInput.value.trim();
         if(!text) return;
+        // 页面长时间开着没刷新，隔了很久再说话：同样按新对话处理（此时本条消息还没进历史，时间差是真实值）
+        maybeMarkNewChatSession();
         window._chatBusy = true;
         userInput.value = '';
         try{
@@ -21118,6 +21455,11 @@ renderVocabLevelProgress(); renderVocabTrackList(); const _userHanzi = sessionUs
             // 英语/外语输入：不纠错，直接正常聊天
             if(!/[\u4e00-\u9fff]/.test(text)){
                 await finishChatCorrectionFlow(text, [], '');
+                return;
+            }
+            // 新的一天/全新对话里纯打招呼：走极简问候通道，跳过繁重的纠错/聊天提示词，保证回复干净不乱（也不会接着聊旧话题）
+            if(isPureGreeting(text) && !chatHasUserSinceMarker()){
+                await chatGreetingFlow(text);
                 return;
             }
             const _cacheKey = (targetLangSelect ? targetLangSelect.value : 'English') + '|' + stripForCompare(text);
@@ -21209,6 +21551,309 @@ renderVocabLevelProgress(); renderVocabTrackList(); const _userHanzi = sessionUs
         } catch(_) {}
     }
 
+    // ========== 微软 Edge TTS（免费 WebSocket 接口，无需 API Key） ==========
+    // 微软 2025 年起启用 DRM：Sec-MS-GEC 为 v2 格式（CS64-自定义SHA256），且握手要求桌面版 Edge 的 User-Agent。
+    // 浏览器无法修改 WebSocket 握手 UA/Origin，因此只有 Edge 桌面浏览器（Edg/140+）能直连，其余浏览器走兜底语音。
+    const EDGE_TRUSTED_TOKEN = '6A5AA1D4EAFF4E9FB37E23D68491D6F4';
+    const EDGE_SEC_GEC_VERSION = '2-143.0.3650.75';
+    const EDGE_TTS_WSS = 'wss://speech.platform.bing.com/consumer/speech/synthesize/readaloud/edge/v1';
+    const EDGE_VOICE_MAP = { female: 'zh-CN-XiaoxiaoNeural', male: 'zh-CN-YunxiNeural' };
+    const EDGE_TTS_CHAT_VOICES = [
+        { v: 'zh-CN-XiaoxiaoNeural', label: '晓晓·女声(温暖)' },
+        { v: 'zh-CN-YunxiNeural', label: '云希·男声' },
+        { v: 'zh-CN-YunyangNeural', label: '云扬·男声(新闻)' },
+        { v: 'zh-CN-XiaoyiNeural', label: '晓伊·女声(活泼)' },
+        { v: 'zh-CN-YunjianNeural', label: '云健·男声(解说)' }
+    ];
+    let edgeTtsDownUntil = 0;      // 接口失败后的冷却时间（毫秒时间戳），冷却期内直接走兜底
+    const edgeTtsCache = new Map(); // cacheKey -> blob URL（最多 200 条）
+    const edgeOpenSockets = new Set();
+    function edgeTtsSupported(){
+        if(!('WebSocket' in window)) return false;
+        try{
+            const m = /Edg\/(\d+)/.exec(navigator.userAgent || '');
+            if(!m) return false;
+            return parseInt(m[1], 10) >= 140;
+        }catch(e){ return false; }
+    }
+    function edgeVoiceFor(pref){
+        const p = String(pref || speechVoicePref || 'female').toLowerCase();
+        return p === 'male' ? EDGE_VOICE_MAP.male : EDGE_VOICE_MAP.female;
+    }
+    function edgeTtsBroken(){ edgeTtsDownUntil = Date.now() + 30000; }
+    function edgeTtsConnectionId(){
+        try{ if(window.crypto && crypto.randomUUID) return crypto.randomUUID().replace(/-/g, ''); }catch(e){}
+        let s = '';
+        for(let i = 0; i < 32; i++) s += Math.floor(Math.random() * 16).toString(16);
+        return s;
+    }
+    // ===== Sec-MS-GEC v2（与 edge-tts Python 库 7.x 完全一致的算法移植，已逐位交叉验证） =====
+    const EDGE_SHA256_INITIAL = [0x6A09E667,0xBB67AE85,0x3C6EF372,0xA54FF53A,0x510E527F,0x9B05688C,0x1F83D9AB,0x5BE0CD19];
+    const EDGE_SHA256_STATE   = [0xFD9FBEA2,0x91243CE7,0xBE499094,0xCD2E1E0A,0x6C006F49,0x04BD35AB,0xFEB0A7E4,0x03EFFBD2];
+    const EDGE_SHA256_SCHEDULE= [0xEB24BF9E,0x1558691F,0xA0C09EE2,0x0CFA32BA,0xA622EE8C,0xD1DD9491,0xC0DD25A0,0xF9E70AB6,0xF0C31573,0x7058CE4E,0x7188E606,0x00E5AB33,0xD258B060,0x72766564];
+    const EDGE_SHA256_K = [0x428A2F98,0x71374491,0xB5C0FBCF,0xE9B5DBA5,0x3956C25B,0x59F111F1,0x923F82A4,0xAB1C5ED5,0xD807AA98,0x12835B01,0x243185BE,0x550C7DC3,0x72BE5D74,0x80DEB1FE,0x9BDC06A7,0xC19BF174,0xE49B69C1,0xEFBE4786,0x0FC19DC6,0x240CA1CC,0x2DE92C6F,0x4A7484AA,0x5CB0A9DC,0x76F988DA,0x983E5152,0xA831C66D,0xB00327C8,0xBF597FC7,0xC6E00BF3,0xD5A79147,0x06CA6351,0x14292967,0x27B70A85,0x2E1B2138,0x4D2C6DFC,0x53380D13,0x650A7354,0x766A0ABB,0x81C2C92E,0x92722C85,0xA2BFE8A1,0xA81A664B,0xC24B8B70,0xC76C51A3,0xD192E819,0xD6990624,0xF40E3585,0x106AA070,0x19A4C116,0x1E376C08,0x2748774C,0x34B0BCB5,0x391C0CB3,0x4ED8AA4A,0x5B9CCA4F,0x682E6FF3,0x748F82EE,0x78A5636F,0x84C87814,0x8CC70208,0x90BEFFFA,0xA4506CEB,0xBEF9A3F7,0xC67178F2];
+    const EDGE_SHA256_ADJUSTMENT = 0xC9DC06A7;
+    const EDGE_SHA256_K_BLOCK = EDGE_SHA256_K.slice(0,14).concat([EDGE_SHA256_ADJUSTMENT]).concat(EDGE_SHA256_K.slice(15));
+    const EDGE_SIGMA0_ADJ = 0x059C0B80;
+    const EDGE_SIGMA1_ADJ = 0x000B92C0;
+    const EDGE_CS64_COEFFICIENTS = [
+        [0xE82E91B1,0xB32700D0],[0x44DE24C6,0x88DFF51D],[0x3BEB65BC,0x29514038],[0xC89C5933,0xB328CBDF],
+        [0x8D1EC211,0xD405B4D5],[0x314EF5D5,0x26E55F3C],[0xE92491B1,0x607801C6],[0xF0A5B9D5,0x82B2C1FB],
+        [0x06064CF3,0xFA51A3DA],[0xDA79FA60,0x207CC464],[0xBED20560,0x3C3C74F3],[0x89F9C9F8,0xD2D14B61],
+        [0x35FA38C6,0xBB04A2C1],[0xCB49E3C6,0xC5626167]
+    ];
+    const EDGE_CS64_FACTOR = 0x82893933;
+    const EDGE_CS64_ADJ0 = 0xF2F90B1A;
+    const EDGE_CS64_ADJ1 = 0x0B1A0000;
+    function edgeRol16(v){ v >>>= 0; return ((v << 16) | (v >>> 16)) >>> 0; }
+    function edgeRotr(x, n){ return ((x >>> n) | (x << (32 - n))) >>> 0; }
+    function edgeSigma0(v){ return (edgeRotr(v, 7) ^ edgeRotr(v, 18) ^ (v >>> 3)) >>> 0; }
+    function edgeSigma1(v){ return (edgeRotr(v, 17) ^ edgeRotr(v, 19) ^ (v >>> 10)) >>> 0; }
+    function edgeSha256Rounds(state, words, firstRound, K){
+        let a=state[0],b=state[1],c=state[2],d=state[3],e=state[4],f=state[5],g=state[6],h=state[7];
+        for(let i=firstRound;i<64;i++){
+            const S1 = (edgeRotr(e,6) ^ edgeRotr(e,11) ^ edgeRotr(e,25))>>>0;
+            const ch = ((e&f)^((~e)&g))>>>0;
+            const t1 = (h + S1 + ch + K[i] + words[i])>>>0;
+            const S0 = (edgeRotr(a,2) ^ edgeRotr(a,13) ^ edgeRotr(a,22))>>>0;
+            const maj = ((a&b)^(a&c)^(b&c))>>>0;
+            const t2 = (S0 + maj)>>>0;
+            h=g; g=f; f=e; e=(d+t1)>>>0; d=c; c=b; b=a; a=(t1+t2)>>>0;
+        }
+        return [a,b,c,d,e,f,g,h];
+    }
+    function edgeExpandSchedule(words, firstWord){
+        for(let i=firstWord;i<64;i++){
+            const x = words[i-2], y = words[i-15];
+            const s1 = (edgeRotr(x,17) ^ edgeRotr(x,19) ^ (x >>> 10))>>>0;
+            const s0 = (edgeRotr(y,7) ^ edgeRotr(y,18) ^ (y >>> 3))>>>0;
+            words.push((s1 + words[i-7] + s0 + words[i-16])>>>0);
+        }
+    }
+    function edgeSha256Init(data7){
+        const words = new Array(14).fill(0);
+        words[14] = ((data7[0]<<16)|(data7[1]<<8)|data7[2])>>>0;
+        words[15] = (((data7[3]<<24)|(data7[4]<<16)|(data7[5]<<8)|data7[6])>>>0);
+        for(let index=16;index<30;index++){
+            let value = EDGE_SHA256_SCHEDULE[index-16];
+            if(index-2>=14) value += (index===16) ? (edgeSigma1(words[index-2]) ^ EDGE_SIGMA1_ADJ) : edgeSigma1(words[index-2]);
+            if(index-7>=14) value += words[index-7];
+            if(index-15>=14) value += (index===29) ? (edgeSigma0(words[index-15]) ^ EDGE_SIGMA0_ADJ) : edgeSigma0(words[index-15]);
+            words.push(value>>>0);
+        }
+        words.push((edgeSigma1(words[28]) + words[23] + edgeSigma0(words[15]) + words[14] + EDGE_SHA256_ADJUSTMENT - EDGE_SHA256_K[14])>>>0);
+        edgeExpandSchedule(words, 31);
+        const working = edgeSha256Rounds(EDGE_SHA256_STATE, words, 14, EDGE_SHA256_K_BLOCK);
+        const out = [];
+        for(let i=0;i<8;i++) out.push((EDGE_SHA256_INITIAL[i] + working[i])>>>0);
+        return out;
+    }
+    function edgeSha256Digest(data){
+        if(data.length < 7) throw new Error('token salt too short');
+        const length = 57 + data.length;
+        const padZeros = ((55 - length) % 64 + 64) % 64;
+        const paddedLen = (data.length - 7) + 1 + padZeros + 8;
+        const padded = new Uint8Array(paddedLen);
+        padded.set(data.subarray(7));
+        padded[data.length - 7] = 0x80;
+        const dvp = new DataView(padded.buffer);
+        dvp.setUint32(paddedLen - 8, Math.floor((length * 8) / 0x100000000));
+        dvp.setUint32(paddedLen - 4, (length * 8) >>> 0);
+        let state = edgeSha256Init(data.subarray(0, 7));
+        for(let off=0; off<padded.length; off+=64){
+            const words = [];
+            const dvb = new DataView(padded.buffer, padded.byteOffset + off, 64);
+            for(let i=0;i<16;i++) words.push(dvb.getUint32(i*4));
+            edgeExpandSchedule(words, 16);
+            const working = edgeSha256Rounds(state, words, 0, EDGE_SHA256_K);
+            state = state.map((v,i)=>(v + working[i])>>>0);
+        }
+        const out = new Uint8Array(32);
+        const dvo = new DataView(out.buffer);
+        for(let i=0;i<8;i++) dvo.setUint32(i*4, state[i]);
+        return out;
+    }
+    function edgeCs64Digest(data, digest){
+        const keyA = ((digest[0] | (digest[1]<<8) | (digest[2]<<16) | (digest[3]<<24)) >>> 0) | 1;
+        const keyB = ((digest[4] | (digest[5]<<8) | (digest[6]<<16) | (digest[7]<<24)) >>> 0) | 1;
+        const factors = [Math.imul(keyA, EDGE_CS64_FACTOR)>>>0, Math.imul(keyB, EDGE_CS64_FACTOR)>>>0];
+        const terms = [], offsets = [];
+        for(let i=0;i<EDGE_CS64_COEFFICIENTS.length;i++){
+            terms.push(Math.imul(EDGE_CS64_COEFFICIENTS[i][0], factors[i%2])>>>0);
+            offsets.push(EDGE_CS64_COEFFICIENTS[i][1]);
+        }
+        const bytes = new Uint8Array(data.length + 1);
+        bytes[0] = 0;
+        bytes.set(data, 1);
+        const pad = (4 - (bytes.length % 4)) % 4;
+        const padded = new Uint8Array(bytes.length + pad);
+        padded.set(bytes);
+        let count = Math.floor(padded.length / 4);
+        if(count % 2 === 1) count += 1;
+        const dv = new DataView(padded.buffer);
+        for(let idx=0; idx<count; idx++){
+            const word = idx*4 < padded.length ? dv.getUint32(idx*4, true) : 0;
+            const key = (idx%2===0) ? keyA : keyB;
+            let term = Math.imul(word, key);
+            let offset = Math.imul(edgeRol16(word), (idx%2===0) ? 0xEF0569FB : 0xC31713DB);
+            if(idx===0){
+                term = (term + Math.imul(EDGE_CS64_ADJ0, factors[0]))>>>0;
+                offset = (offset + EDGE_CS64_ADJ1)>>>0;
+            }
+            terms.push(term>>>0);
+            offsets.push(offset>>>0);
+        }
+        let swapAcc=0, swapLast=0, state=0, acc=0;
+        for(let i=0;i<terms.length;i+=2){
+            const x=terms[i], y=terms[i+1];
+            let t = edgeRol16((offsets[i] + x)>>>0);
+            let q = Math.imul(t, 0x76F50F34)>>>0;
+            swapAcc = (swapAcc + ((Math.imul(edgeRol16(q), 0xC3EFEA97) + q)>>>0))>>>0;
+            t = edgeRol16((offsets[i+1] + y)>>>0);
+            q = Math.imul(t, 0x1881CE3C)>>>0;
+            swapLast = (Math.imul(edgeRol16(q), 0x35BD1EC9) + q)>>>0;
+            swapAcc = (swapAcc + swapLast)>>>0;
+            state = (Math.imul(state, keyA) + x)>>>0;
+            state = Math.imul(edgeRol16(state), 0xCF98B111)>>>0;
+            state = Math.imul(edgeRol16(state), 0x87085B9F)>>>0;
+            state = Math.imul(edgeRol16(state), 0x12CEB96D)>>>0;
+            state = Math.imul(edgeRol16(state), 0x257E1D83)>>>0;
+            acc = (acc + state)>>>0;
+            let t2 = (Math.imul(state, keyB) + y)>>>0;
+            t2 = Math.imul(edgeRol16(t2), 0xA27416F5)>>>0;
+            t2 = Math.imul(edgeRol16(t2), 0xD38396FF)>>>0;
+            state = Math.imul(edgeRol16(Math.imul(edgeRol16(t2), 0x7C932B89)>>>0), 0xBFA49F69)>>>0;
+            acc = (acc + state)>>>0;
+        }
+        return [(swapLast ^ state)>>>0, (swapAcc ^ acc)>>>0];
+    }
+    function edgeTokenHash(data){
+        const digest = edgeSha256Digest(data);
+        const cs = edgeCs64Digest(data, digest);
+        const csBuf = new Uint8Array(8);
+        const dvcs = new DataView(csBuf.buffer);
+        dvcs.setUint32(0, cs[0], true);
+        dvcs.setUint32(4, cs[1], true);
+        let csHex = '';
+        for(let i=0;i<8;i++) csHex += csBuf[i].toString(16).padStart(2,'0');
+        let dHex = '';
+        for(let i=0;i<32;i++) dHex += digest[i].toString(16).padStart(2,'0');
+        return csHex.toUpperCase() + '-' + dHex.toUpperCase();
+    }
+    // Windows FILETIME 100ns 刻度向下取整到 5 分钟 + token，再算 v2 哈希
+    function edgeTtsSecMsGec(){
+        const unixSec = Math.floor(Date.now() / 1000);
+        const bucket = unixSec - (unixSec % 300) + 11644473600;
+        const ticksStr = (BigInt(bucket) * 10000000n).toString();
+        const data = new TextEncoder().encode(ticksStr + EDGE_TRUSTED_TOKEN);
+        return edgeTokenHash(data);
+    }
+    // Edge 浏览器风格的日期字符串（与 edge-tts 库一致）
+    function edgeTtsDateString(){
+        const d = new Date();
+        const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+        const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        const p2 = n => String(n).padStart(2,'0');
+        return days[d.getUTCDay()] + ' ' + months[d.getUTCMonth()] + ' ' + p2(d.getUTCDate()) + ' ' + d.getUTCFullYear() + ' ' +
+            p2(d.getUTCHours()) + ':' + p2(d.getUTCMinutes()) + ':' + p2(d.getUTCSeconds()) + ' GMT+0000 (Coordinated Universal Time)';
+    }
+    function edgeTtsXmlEscape(s){
+        return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;');
+    }
+    function edgeTtsRatePct(rate){
+        let r = parseFloat(rate) || 1.0;
+        if(r < 0.5) r = 0.5;
+        if(r > 2) r = 2;
+        return Math.round((r - 1) * 100) + '%';
+    }
+    function edgeTtsSsml(text, voiceName, rate){
+        return "<speak version='1.0' xmlns='http://www.w3.org/2001/10/synthesis' xml:lang='zh-CN'>" +
+            "<voice name='" + voiceName + "'>" +
+            "<prosody pitch='+0Hz' rate='" + edgeTtsRatePct(rate) + "' volume='+0%'>" +
+            edgeTtsXmlEscape(text) + "</prosody></voice></speak>";
+    }
+    function edgeTtsFetch(text, voiceName, rate, timeoutMs){
+        timeoutMs = timeoutMs || Math.max(12000, Math.min(60000, String(text || '').length * 100));
+        return new Promise((resolve, reject) => {
+            if(!edgeTtsSupported()){ reject(new Error('edge tts unsupported browser')); return; }
+            let secGec;
+            try{ secGec = edgeTtsSecMsGec(); }catch(e){ edgeTtsBroken(); reject(e); return; }
+            const url = EDGE_TTS_WSS +
+                '?TrustedClientToken=' + EDGE_TRUSTED_TOKEN +
+                '&Sec-MS-GEC=' + secGec +
+                '&Sec-MS-GEC-Version=' + EDGE_SEC_GEC_VERSION +
+                '&ConnectionId=' + edgeTtsConnectionId();
+            let ws;
+            try{ ws = new WebSocket(url); }catch(e){ edgeTtsBroken(); reject(e); return; }
+            ws.binaryType = 'arraybuffer';
+            const chunks = [];
+            let finished = false;
+            let timer = null;
+            const finish = (err) => {
+                if(finished) return;
+                finished = true;
+                if(timer){ clearTimeout(timer); timer = null; }
+                try{ edgeOpenSockets.delete(ws); }catch(e){}
+                try{ if(ws.readyState === 0 || ws.readyState === 1) ws.close(); }catch(e){}
+                if(err) reject(err); else resolve(chunks);
+            };
+            timer = setTimeout(() => finish(new Error('edge tts timeout')), timeoutMs);
+            ws.onopen = () => {
+                const ts = edgeTtsDateString();
+                const config = '{"context":{"synthesis":{"audio":{"metadataoptions":{"sentenceBoundaryEnabled":"false","wordBoundaryEnabled":"true"},"outputFormat":"audio-24khz-48kbitrate-mono-mp3"}}}}';
+                ws.send('X-Timestamp:' + ts + '\r\nContent-Type:application/json; charset=utf-8\r\nPath:speech.config\r\n\r\n' + config + '\r\n');
+                ws.send('X-RequestId:' + edgeTtsConnectionId() + '\r\nContent-Type:application/ssml+xml\r\nX-Timestamp:' + ts + 'Z\r\nPath:ssml\r\n\r\n' + edgeTtsSsml(text, voiceName, rate));
+            };
+            ws.onmessage = (ev) => {
+                if(typeof ev.data === 'string'){
+                    if(ev.data.indexOf('Path:turn.end') !== -1) finish();
+                } else if(ev.data instanceof ArrayBuffer){
+                    const bytes = new Uint8Array(ev.data);
+                    if(bytes.length > 2){
+                        const headerLen = (bytes[0] << 8) | bytes[1];
+                        const start = 2 + headerLen;
+                        if(start < bytes.length) chunks.push(bytes.subarray(start));
+                    }
+                }
+            };
+            ws.onerror = () => { edgeTtsBroken(); finish(new Error('edge tts ws error')); };
+            ws.onclose = () => { if(!finished){ edgeTtsBroken(); finish(new Error('edge tts ws closed')); } };
+            edgeOpenSockets.add(ws);
+        });
+    }
+    // 带缓存 + 冷却的 Edge TTS 合成，成功时返回 blob URL
+    function edgeTtsSpeakCached(cacheKey, text, voiceName, rate){
+        const cached = edgeTtsCache.get(cacheKey);
+        if(cached) return Promise.resolve(cached);
+        if(!edgeTtsSupported()) return Promise.reject(new Error('edge tts unsupported browser'));
+        if(Date.now() < edgeTtsDownUntil) return Promise.reject(new Error('edge tts cooling down'));
+        return edgeTtsFetch(text, voiceName, rate).then(chunks => {
+            if(!chunks || !chunks.length) throw new Error('edge tts empty audio');
+            const blob = new Blob(chunks, { type: 'audio/mpeg' });
+            if(blob.size < 300) throw new Error('edge tts audio too small');
+            const url = URL.createObjectURL(blob);
+            edgeTtsDownUntil = 0;
+            if(edgeTtsCache.size >= 200){
+                const firstKey = edgeTtsCache.keys().next().value;
+                const old = edgeTtsCache.get(firstKey);
+                edgeTtsCache.delete(firstKey);
+                if(old){ try{ URL.revokeObjectURL(old); }catch(e){} }
+            }
+            edgeTtsCache.set(cacheKey, url);
+            return url;
+        }).catch(err => {
+            if(!/cooling|unsupported/.test(err.message || '')) edgeTtsBroken();
+            throw err;
+        });
+    }
+    function getChatEdgeVoice(){
+        try{
+            const saved = localStorage.getItem('EDGE_VOICE_CHAT');
+            if(saved && EDGE_TTS_CHAT_VOICES.some(o => o.v === saved)) return saved;
+        }catch(e){}
+        return 'zh-CN-XiaoxiaoNeural';
+    }
+
     let speechToken = 0;
     let speechRateValue = parseFloat(localStorage.getItem('SPEECH_RATE') || '1.0') || 1.0;
     let speechVoicePref = localStorage.getItem('SPEECH_VOICE') || 'female';
@@ -21264,16 +21909,82 @@ renderVocabLevelProgress(); renderVocabTrackList(); const _userHanzi = sessionUs
             .trim();
     }
     let currentSpeakingText = '';
+    // Edge 音频按顺序播放：上一个没播完时，新的排到它结束后再播（与浏览器语音队列行为一致）
+    let edgeSpeakAudio = null;
+    let edgeSpeakNext = null;
+    function queueEdgeSpeechPlay(url, cleanText, myToken, retry, voicePref){
+        if(edgeSpeakAudio && !edgeSpeakAudio.ended && !edgeSpeakAudio.paused){
+            edgeSpeakNext = () => { edgeSpeakNext = null; queueEdgeSpeechPlay(url, cleanText, myToken, retry, voicePref); };
+            return;
+        }
+        const audio = new Audio(url);
+        edgeSpeakAudio = audio;
+        const runNext = () => {
+            if(edgeSpeakNext){
+                const n = edgeSpeakNext; edgeSpeakNext = null;
+                try{ n(); }catch(e){}
+            } else if(myToken === speechToken){
+                practiceIsSpeaking = false;
+                if(currentSpeakingText === cleanText) currentSpeakingText = '';
+            }
+        };
+        audio.onended = () => { if(edgeSpeakAudio === audio) edgeSpeakAudio = null; runNext(); };
+        audio.onerror = () => {
+            if(edgeSpeakAudio === audio) edgeSpeakAudio = null;
+            if(myToken === speechToken && !edgeSpeakNext){
+                practiceIsSpeaking = false;
+                if(currentSpeakingText === cleanText) currentSpeakingText = '';
+                speakWithBrowser(cleanText, retry, voicePref, myToken);
+            }
+            runNext();
+        };
+        try{
+            const p = audio.play();
+            if(p && p.catch) p.catch(() => {
+                if(edgeSpeakAudio === audio) edgeSpeakAudio = null;
+                if(myToken === speechToken && !edgeSpeakNext){
+                    practiceIsSpeaking = false;
+                    if(currentSpeakingText === cleanText) currentSpeakingText = '';
+                    speakWithBrowser(cleanText, retry, voicePref, myToken);
+                }
+                runNext();
+            });
+        }catch(e){
+            if(edgeSpeakAudio === audio) edgeSpeakAudio = null;
+            if(myToken === speechToken){ practiceIsSpeaking = false; if(currentSpeakingText === cleanText) currentSpeakingText=''; speakWithBrowser(cleanText, retry, voicePref, myToken); }
+            runNext();
+        }
+    }
     function speakChinese(text, retry, voicePref){
-        if(!('speechSynthesis' in window)){ practiceIsSpeaking=false; currentSpeakingText=''; showToast(t('toast.no_speech_support')); return; }
-        const synth = window.speechSynthesis;
-        if(!synth){ practiceIsSpeaking=false; currentSpeakingText=''; showToast(t('toast.no_speech_support')); return; }
+        const edgeOk = ('WebSocket' in window);
+        if(!edgeOk && !('speechSynthesis' in window)){ practiceIsSpeaking=false; currentSpeakingText=''; showToast(t('toast.no_speech_support')); return; }
         if(practiceAutoSpeakTimer){ clearTimeout(practiceAutoSpeakTimer); practiceAutoSpeakTimer=null; }
-        const cleanText = stripEmojiForSpeech(normalizeErhuaForTts(text));
-        if(!cleanText){ return; }
+        const rawText = stripEmojiForSpeech(text);
+        const cleanText = normalizeErhuaForTts(rawText);   // 浏览器语音不认儿化，Edge 用保留儿化的原文
+        if(!rawText){ return; }
         currentSpeakingText = cleanText;
         const myToken = speechToken;
         practiceIsSpeaking=true;
+        if(!edgeOk){
+            speakWithBrowser(cleanText, retry, voicePref, myToken);
+            return;
+        }
+        const voice = edgeVoiceFor(voicePref);
+        const rateKey = speechRateValue.toFixed(2);
+        edgeTtsSpeakCached('edge|' + voice + '|' + rateKey + '|' + rawText, rawText, voice, speechRateValue).then(url => {
+            if(myToken !== speechToken) return;
+            queueEdgeSpeechPlay(url, cleanText, myToken, retry, voicePref);
+        }).catch(() => {
+            if(myToken !== speechToken) return;
+            speakWithBrowser(cleanText, retry, voicePref, myToken);
+        });
+    }
+    // 浏览器自带语音合成（Edge TTS 失败时的兜底）
+    function speakWithBrowser(cleanText, retry, voicePref, myToken){
+        if(!('speechSynthesis' in window)){ practiceIsSpeaking=false; currentSpeakingText=''; showToast(t('toast.no_speech_support')); return; }
+        const synth = window.speechSynthesis;
+        if(!synth){ practiceIsSpeaking=false; currentSpeakingText=''; showToast(t('toast.no_speech_support')); return; }
+        if(myToken !== speechToken) return;
         const utter=new SpeechSynthesisUtterance(cleanText);
         utter.lang='zh-CN';
         const v = pickChineseVoice(synth, voicePref);
@@ -21282,15 +21993,15 @@ renderVocabLevelProgress(); renderVocabTrackList(); const _userHanzi = sessionUs
         let started=false;
         utter.onstart=()=>{ started=true; };
         utter.onend=()=>{ practiceIsSpeaking=false; if(currentSpeakingText === cleanText) currentSpeakingText=''; };
-        utter.onerror=()=>{ practiceIsSpeaking=false; if(currentSpeakingText === cleanText) currentSpeakingText=''; if(!started&&!retry){ synth.cancel(); if(myToken===speechToken) setTimeout(()=>speakChinese(text,true),100); } else if(!started) showToast(t('toast.no_speech_support')); };
+        utter.onerror=()=>{ practiceIsSpeaking=false; if(currentSpeakingText === cleanText) currentSpeakingText=''; if(!started&&!retry){ synth.cancel(); if(myToken===speechToken) setTimeout(()=>speakWithBrowser(cleanText,true,voicePref,myToken),100); } else if(!started) showToast(t('toast.no_speech_support')); };
         setTimeout(()=>{
             if(!started&&practiceIsSpeaking&&myToken===speechToken){
                 synth.cancel(); practiceIsSpeaking=false; if(currentSpeakingText === cleanText) currentSpeakingText='';
-                if(!retry){ setTimeout(()=>speakChinese(text,true),100); }
+                if(!retry){ setTimeout(()=>speakWithBrowser(cleanText,true,voicePref,myToken),100); }
                 else showToast(t('toast.no_speech_support'));
             }
         },1500);
-        try { synth.speak(utter); } catch(_) { practiceIsSpeaking=false; if(currentSpeakingText === cleanText) currentSpeakingText=''; if(!retry&&myToken===speechToken) setTimeout(()=>speakChinese(text,true),100); else if(!retry) showToast(t('toast.no_speech_support')); }
+        try { synth.speak(utter); } catch(_) { practiceIsSpeaking=false; if(currentSpeakingText === cleanText) currentSpeakingText=''; if(!retry&&myToken===speechToken) setTimeout(()=>speakWithBrowser(cleanText,true,voicePref,myToken),100); else if(!retry) showToast(t('toast.no_speech_support')); }
     }
     function toggleSpeakChinese(text){
         const cleanText = stripEmojiForSpeech(normalizeErhuaForTts(text));
@@ -21298,7 +22009,7 @@ renderVocabLevelProgress(); renderVocabTrackList(); const _userHanzi = sessionUs
         stopAllSpeech();
         speakChinese(cleanText);
     }
-    function stopAllSpeech(){ speechToken++; if(practiceAutoSpeakTimer){ clearTimeout(practiceAutoSpeakTimer); practiceAutoSpeakTimer=null; } try{ const synth=window.speechSynthesis; if(synth){ synth.cancel(); } }catch(_){} practiceIsSpeaking=false; currentSpeakingText=''; }
+    function stopAllSpeech(){ speechToken++; if(practiceAutoSpeakTimer){ clearTimeout(practiceAutoSpeakTimer); practiceAutoSpeakTimer=null; } edgeSpeakNext=null; if(edgeSpeakAudio){ const a=edgeSpeakAudio; edgeSpeakAudio=null; try{ a.onended=null; a.onerror=null; a.pause(); a.src=''; }catch(e){} } try{ edgeOpenSockets.forEach(ws=>{ try{ ws.close(); }catch(e){} }); }catch(e){} try{ const synth=window.speechSynthesis; if(synth){ synth.cancel(); } }catch(_){} practiceIsSpeaking=false; currentSpeakingText=''; }
     function parsePinyinString(str){ const chars=[], pinyins=[]; let i=0; while(i<str.length){ const ch=str[i]; if(ch.match(/[\u4e00-\u9fff]/)){ if(i+1<str.length && str[i+1]==='('){ const close=str.indexOf(')',i+2); if(close!==-1){ const rawPinyin=str.substring(i+2,close); let gStart=i, gEnd=i+1; while(gEnd<str.length&&str[gEnd].match(/[\u4e00-\u9fff]/)&&gEnd+1<str.length&&str[gEnd+1]!=='('){ gEnd++; } const cnGroup=str.substring(gStart,gEnd); if(cnGroup.length>1){ const syllables=rawPinyin.match(/(?:[bpmfdtnlgkhjqxzcsryw](?:h)?|[aeiouü])[aeiouü]*[āáǎàēéěèīíǐìōóǒòūúǔùǖǘǚǜ][aeiouü]*(?:ng?)?/gi); if(syllables&&syllables.length===cnGroup.length){ for(let k=0;k<cnGroup.length;k++){ chars.push(cnGroup[k]); pinyins.push(syllables[k]); } i=close+1; continue; } } chars.push(ch); pinyins.push(rawPinyin); i=close+1; continue; } } chars.push(ch); pinyins.push(null); i++; } else i++; } return {chars, pinyins}; }
     // ========== 听打错词反思（A/B/C）+ 四维记录 + 复习队列 ==========
     function segmentRefWords(text){
@@ -22930,7 +23641,7 @@ async function generateAndShowPractice(grammarPattern, grammarLevel, forceNew=fa
         const apiKey = apiKeyInput.value.trim();
         if(!apiKey) return null;
         const kindLabel = item.type === 'grammar' ? '语法' : '词语';
-        const prompt = '你是HSK中文教师。学生被要求用' + kindLabel + '「' + item.w + '」造一个句子，请批改。\n学生句子：' + sentence + '\n学生水平：HSK' + level + '\n\n要求：\n1. 判断句子是否自然通顺、符合常识，并且是否正确使用了「' + item.w + '」的意思和用法（不能只是出现了这个词/格式）。【重要】只有当错误发生在目标词本身时（目标词写错字/写成同音近音字、词性用错、义项用错、搭配错误），correct=false；句子其他位置的字词/语法错误不影响本词判定，本词 correct 仍可为 true。【同音字检查】如果学生把目标词写成了同音/近音的另一个字（如把「戴」写成「带」），视为用错，correct=false 并在 issue 中指出正确写法。【词性检查】句中该词的词性必须与目标词词性一致。【义项检查】先确定学生用的是目标词的哪一个义项，与该词正确词义比对，义项不一致视为语义错。\n2. 有错误就给出改正后的完整句子 corrected；没错时 corrected 填空字符串。\n3. translation 用' + targetLang + '翻译 corrected（正确时翻译原句）。\n4. grammar 只写 AI 改动涉及的语法或句式（例如：把字句、动词+得+补语、关联词“因为...所以...”）；如果 AI 没有改动任何语法/句式，就填空字符串。\n5. issue 用' + targetLang + '简要说明错误原因或正确之处。\n6. explanation 用' + targetLang + '解释正确句子的关键词、搭配、语法，像纠错解析一样（可分点）。\n7. 标点符号一律不判错、不修改：corrected 必须保持学生原句的标点符号，不得增删改标点。\n8. 最小改动：只改真正错误或不自然的部分，其余字词一字不动；原句已经正确、只是“可以换一种更地道的说法”时，必须判 correct=true 且 corrected 填空。\n9. meaningUsed：把学生句子里「' + item.w + '」实际表达的义项翻译成' + targetLang + '（≤10个词）；meaningMatches：这个义项与「' + item.w + '」的正确词义是否一致（语义错=不一致，true/false）。\n输出JSON：{"correct":true或false,"corrected":"正确句子","translation":"母语翻译","grammar":"AI改动的语法/句式","issue":"简要说明","explanation":"解释","meaningUsed":"学生句中该词的意思","meaningMatches":true或false}\n只输出 JSON。';
+        const prompt = '你是HSK中文教师。学生被要求用' + kindLabel + '「' + item.w + '」造一个句子，请批改。\n学生句子：' + sentence + '\n学生水平：HSK' + level + '\n\n要求：\n1. 判断句子是否自然通顺、符合常识，并且是否正确使用了「' + item.w + '」的意思和用法（不能只是出现了这个词/格式）。【重要】只有当错误发生在目标词本身时（目标词写错字/写成同音近音字、词性用错、义项用错、搭配错误），correct=false；句子其他位置的字词/语法错误不影响本词判定，本词 correct 仍可为 true。【同音字检查】如果学生把目标词写成了同音/近音的另一个字（如把「戴」写成「带」），视为用错，correct=false 并在 issue 中指出正确写法。【词性检查】句中该词的词性必须与目标词词性一致。【义项检查】先确定学生用的是目标词的哪一个义项，与该词正确词义比对，义项不一致视为语义错。\n2. 有错误就给出改正后的完整句子 corrected；没错时 corrected 填空字符串。\n3. translation 用' + targetLang + '翻译 corrected（正确时翻译原句）。\n4. grammar 只写 AI 改动涉及的语法或句式（例如：把字句、动词+得+补语、关联词“因为...所以...”）；如果 AI 没有改动任何语法/句式，就填空字符串。\n5. issue 用' + targetLang + '简要说明错误原因或正确之处。\n6. explanation 用' + targetLang + '解释正确句子的关键词、搭配、语法，像纠错解析一样（可分点）。\n7. 标点符号一律不判错、不修改：corrected 必须保持学生原句的标点符号，不得增删改标点。\n8. 最小改动：只改真正错误或不自然的部分，其余字词一字不动；原句已经正确、只是“可以换一种更地道的说法”时，必须判 correct=true 且 corrected 填空。\n9. meaningUsed：把学生句子里「' + item.w + '」实际表达的义项翻译成' + targetLang + '（≤10个词）；meaningMatches：这个义项与「' + item.w + '」的正确词义是否一致（语义错=不一致，true/false）。\n10. formOk：目标词的字形是否写对（同音/近音替代字算错，true/false）。\n11. meaningOk：与 meaningMatches 相同（true/false）。\n12. usageError：当 correct=false 且字形对、义项也对，错误只是语序错误/搭配错误/多余重复时 = true；其他情况 false。\n输出JSON：{"correct":true或false,"corrected":"正确句子","translation":"母语翻译","grammar":"AI改动的语法/句式","issue":"简要说明","explanation":"解释","meaningUsed":"学生句中该词的意思","meaningMatches":true或false,"formOk":true或false,"meaningOk":true或false,"usageError":true或false}\n只输出 JSON。';
         try{
             const resp = await fetch(API_BASE, { method:'POST', headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer ' + apiKey }, body: JSON.stringify({ model:'deepseek-v4-flash', thinking:{ type:'disabled' }, max_tokens:2048, messages:[{ role:'user', content:prompt }], temperature:0, response_format:{ type:'json_object' } }) });
             const data = await resp.json();
@@ -22947,7 +23658,10 @@ async function generateAndShowPractice(grammarPattern, grammarLevel, forceNew=fa
                 issue: String(r.issue || '').trim(),
                 explanation: String(r.explanation || '').trim(),
                 meaningUsed: String(r.meaningUsed || '').trim(),
-                meaningMatches: (r.meaningMatches === true || r.meaningMatches === false) ? r.meaningMatches : null
+                meaningMatches: (r.meaningMatches === true || r.meaningMatches === false) ? r.meaningMatches : null,
+                formOk: (r.formOk === true || r.formOk === false) ? r.formOk : null,
+                meaningOk: (r.meaningOk === true || r.meaningOk === false) ? r.meaningOk : null,
+                usageError: (r.usageError === true || r.usageError === false) ? r.usageError : null
             };
         }catch(e){ return null; }
     }
@@ -23126,10 +23840,14 @@ async function generateAndShowPractice(grammarPattern, grammarLevel, forceNew=fa
         if(item.type === 'vocab'){
             try{
                 const _wv = vocabEntryForWord(item.w);
+                const _cls = wsClassifyProduction(r, item.w, val);
                 wsRecord(item.w, 'production', {
                     source: 'sentence',
                     correct: isCorrect,
                     semantic: isCorrect ? false : (r.meaningMatches === false ? true : (r.meaningMatches === true ? false : null)),
+                    formOk: _cls.formOk,
+                    meaningOk: _cls.meaningOk,
+                    usageOnly: _cls.usageOnly,
                     sentence: val,
                     corrected: (corrected && corrected !== val) ? corrected : '',
                     meaningUsed: r.meaningUsed || '',
@@ -24524,7 +25242,7 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
     async function judgeSentenceWithWord(sentence, word, level){
         const apiKey = apiKeyInput.value.trim();
         const targetLang = targetLangSelect ? targetLangSelect.value : 'English';
-        const prompt = '你是HSK中文教师。学生用指定词语造了一个句子，请判断是否正确使用了该词语。\n词语：' + word + '（HSK' + level + '）\n学生句子：' + sentence + '\n\n要求：\n1. 判断句子是否自然、通顺，并且是否正确使用了「' + word + '」的意思和用法（不能只是出现了这个词）。【同音字检查】如果学生把目标词写成了同音/近音的另一个字（如把「戴」写成「带」），视为用错，correct=false。【词性检查】句中该词的词性必须与目标词词性一致。【义项检查】先确定学生用的是目标词的哪一个义项，与该词正确词义比对，义项不一致视为语义错。\n2. 有错误就给出改正后的句子；没错就返回空字符串。\n3. note 用' + targetLang + '简要说明。\n4. meaningUsed：把学生句子里「' + word + '」实际表达的义项翻译成' + targetLang + '（≤10个词）；meaningMatches：这个义项与「' + word + '」的正确词义是否一致（true/false，语义错=不一致）。\n输出JSON：{"correct":true或false,"corrected":"改正后的句子（正确时填空字符串）","note":"说明","meaningUsed":"学生句中该词的意思","meaningMatches":true或false}';
+        const prompt = '你是HSK中文教师。学生用指定词语造了一个句子，请判断是否正确使用了该词语。\n词语：' + word + '（HSK' + level + '）\n学生句子：' + sentence + '\n\n要求：\n1. 判断句子是否自然、通顺，并且是否正确使用了「' + word + '」的意思和用法（不能只是出现了这个词）。【同音字检查】如果学生把目标词写成了同音/近音的另一个字（如把「戴」写成「带」），视为用错，correct=false。【词性检查】句中该词的词性必须与目标词词性一致。【义项检查】先确定学生用的是目标词的哪一个义项，与该词正确词义比对，义项不一致视为语义错。\n2. 有错误就给出改正后的句子；没错就返回空字符串。\n3. note 用' + targetLang + '简要说明。\n4. meaningUsed：把学生句子里「' + word + '」实际表达的义项翻译成' + targetLang + '（≤10个词）；meaningMatches：这个义项与「' + word + '」的正确词义是否一致（true/false，语义错=不一致）。\n5. formOk：目标词的字形是否写对（同音/近音替代字算错，true/false）。\n6. meaningOk：与 meaningMatches 相同（true/false）。\n7. usageError：当 correct=false 且字形对、义项也对，错误只是语序错误/搭配错误/多余重复时 = true；其他情况 false。\n输出JSON：{"correct":true或false,"corrected":"改正后的句子（正确时填空字符串）","note":"说明","meaningUsed":"学生句中该词的意思","meaningMatches":true或false,"formOk":true或false,"meaningOk":true或false,"usageError":true或false}';
         try{
             const resp = await fetch(API_BASE, { method:'POST', headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer ' + apiKey }, body: JSON.stringify({ model:'deepseek-v4-flash', thinking:{ type:'disabled' }, max_tokens:1024, messages:[{ role:'user', content:prompt }], temperature:0, response_format:{ type:'json_object' } }) });
             const data = await resp.json();
@@ -24532,7 +25250,7 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
             let c = data.choices[0].message.content;
             c = c.replace(/```json/g, '').replace(/```/g, '').trim();
             const r = safeJsonParse(c);
-            return { correct: r.correct !== false, corrected: r.corrected || '', note: r.note || '', meaningUsed: r.meaningUsed || '', meaningMatches: (r.meaningMatches === true || r.meaningMatches === false) ? r.meaningMatches : null };
+            return { correct: r.correct !== false, corrected: r.corrected || '', note: r.note || '', meaningUsed: r.meaningUsed || '', meaningMatches: (r.meaningMatches === true || r.meaningMatches === false) ? r.meaningMatches : null, formOk: (r.formOk === true || r.formOk === false) ? r.formOk : null, meaningOk: (r.meaningOk === true || r.meaningOk === false) ? r.meaningOk : null, usageError: (r.usageError === true || r.usageError === false) ? r.usageError : null };
         }catch(e){ return null; }
     }
     window._sentenceCheck = async function(i){
@@ -24550,10 +25268,14 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
         if(r){
             try{
                 const _wv2 = vocabEntryForWord(row.word);
+                const _cls2 = wsClassifyProduction(r, row.word, val);
                 wsRecord(row.word, 'production', {
                     source: 'sentence',
                     correct: r.correct === true,
                     semantic: r.correct ? false : (r.meaningMatches === false ? true : (r.meaningMatches === true ? false : null)),
+                    formOk: _cls2.formOk,
+                    meaningOk: _cls2.meaningOk,
+                    usageOnly: _cls2.usageOnly,
                     sentence: val,
                     corrected: (r.corrected && r.corrected !== val) ? r.corrected : '',
                     meaningUsed: r.meaningUsed || '',
@@ -24643,6 +25365,7 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
         if(!w.level) w.level = vocabLevelOfWord(word) || 0;
         if(!w.events) w.events = [];
         if(!w.note) w.note = '';
+        if(!w.retest) w.retest = {};
         return w;
     }
     function wsLevelBadge(word){
@@ -24674,9 +25397,11 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
         return map[layer] ? t(map[layer]) : String(layer || '');
     }
     function wsDimLabel(dim){
-        const map = { '音':'dim.yin', '形':'dim.xing', '义':'dim.yi' };
+        const map = { '音':'dim.yin', '形':'dim.xing', '义':'dim.yi', '用':'dim.yong' };
         return map[dim] ? t(map[dim]) : String(dim || '');
     }
+    function wsDimKey(dim){ return { '音':'yin', '形':'xing', '义':'yi', '用':'yong' }[dim] || ''; }
+    function wsIsTargetWord(word){ return vocabLevelOfWord(word) === wsTargetLevel(); }
     function wsRecord(word, layer, opts){
         if(!currentUser || !word || !layer) return;
         const card = wsGetCard(word);
@@ -24689,7 +25414,11 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
             dim: (opts && opts.dim) || '',
             correct: (opts && Object.prototype.hasOwnProperty.call(opts, 'correct')) ? (opts.correct === null ? null : !!opts.correct) : null,
             semantic: (opts && Object.prototype.hasOwnProperty.call(opts, 'semantic')) ? (opts.semantic === null ? null : !!opts.semantic) : null,
+            formOk: (opts && (opts.formOk === true || opts.formOk === false)) ? opts.formOk : null,
+            meaningOk: (opts && (opts.meaningOk === true || opts.meaningOk === false)) ? opts.meaningOk : null,
+            usageOnly: !!(opts && opts.usageOnly),
             sentence: String((opts && opts.sentence) || '').slice(0, 140),
+            corrected: String((opts && opts.corrected) || '').slice(0, 140),
             meaningUsed: String((opts && opts.meaningUsed) || '').slice(0, 80),
             meaningExpected: String((opts && opts.meaningExpected) || '').slice(0, 80),
             manual: !!(opts && opts.manual),
@@ -24697,11 +25426,72 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
         };
         card.events.push(ev);
         if(card.events.length > 400) card.events.splice(0, card.events.length - 400);
+        wsUpdateRetest(card, word, ev);
         wsSave();
         // 实时更新：右侧卡片、总览列表、正在打开的状态卡
         try{ renderWsSummary(); }catch(e){}
         try{ const _m = document.getElementById('wordStatusModal'); if(_m && _m.style.display === 'block') renderWordStatusBoard(); }catch(e){}
         try{ const _c = document.getElementById('wordCardModal'); if(_c && _c.style.display === 'block' && window._wsCurrentWord === word) renderWordCard(word); }catch(e){}
+    }
+    // 目标词复测标记（只针对目标词）：
+    // 产出对 → 音/形/义/用四层知识都对；
+    // 产出用法错（形对+义对，语序/搭配/多余）→ 音/形/义对，用需复测；
+    // 产出形/义错 → 知识层复测形义+音义，听力层、阅读层也都要重测；
+    // 复测通过（对应层/维打对）后自动清除标记。
+    function wsUpdateRetest(card, word, ev){
+        if(!card || !word || !ev) return;
+        if(!wsIsTargetWord(word)) return;
+        const ret = card.retest || (card.retest = {});
+        if(ev.layer === 'production'){
+            if(ev.correct === true){
+                delete ret.yin; delete ret.xing; delete ret.yi; delete ret.yong;
+            } else if(ev.correct === false){
+                ret.yong = ev.ts;
+                if(ev.usageOnly === true){
+                    delete ret.yin; delete ret.xing; delete ret.yi;
+                } else {
+                    ret.yin = ev.ts; ret.xing = ev.ts; ret.yi = ev.ts;
+                    ret.listening = ev.ts; ret.reading = ev.ts;
+                }
+            }
+        } else if(ev.layer === 'knowledge' && ev.dim){
+            const key = wsDimKey(ev.dim);
+            if(key && ev.correct === true) delete ret[key];
+        } else if(ev.layer === 'listening' && ev.correct === true){
+            delete ret.listening; delete ret.yin; delete ret.yi;
+        } else if(ev.layer === 'reading' && wsIsReadingEncounter(ev.source) && ev.correct === true){
+            delete ret.reading; delete ret.xing; delete ret.yi;
+        }
+        let empty = true;
+        for(const k in ret){ if(Object.prototype.hasOwnProperty.call(ret, k)){ empty = false; break; } }
+        if(empty) delete card.retest;
+    }
+    // 根据全部事件重新计算复测标记（老师手工改判定/删除事件后保持一致）
+    function wsRecalcRetest(word){
+        const card = wsGetCard(word);
+        if(!card) return;
+        const ret = {};
+        if(wsIsTargetWord(word)){
+            const events = (card.events || []).slice().sort(function(a, b){ return String(a.ts || a.date || '') < String(b.ts || b.date || '') ? -1 : 1; });
+            for(const ev of events){
+                if(ev.layer === 'production'){
+                    if(ev.correct === true){ delete ret.yin; delete ret.xing; delete ret.yi; delete ret.yong; }
+                    else if(ev.correct === false){
+                        ret.yong = ev.ts;
+                        if(ev.usageOnly === true){ delete ret.yin; delete ret.xing; delete ret.yi; }
+                        else { ret.yin = ev.ts; ret.xing = ev.ts; ret.yi = ev.ts; ret.listening = ev.ts; ret.reading = ev.ts; }
+                    }
+                } else if(ev.layer === 'knowledge' && ev.dim){
+                    const key = wsDimKey(ev.dim);
+                    if(key && ev.correct === true) delete ret[key];
+                } else if(ev.layer === 'listening' && ev.correct === true){
+                    delete ret.listening; delete ret.yin; delete ret.yi;
+                } else if(ev.layer === 'reading' && wsIsReadingEncounter(ev.source) && ev.correct === true){
+                    delete ret.reading; delete ret.xing; delete ret.yi;
+                }
+            }
+        }
+        card.retest = ret;
     }
     // 阅读判断题只做记录，不进入「阅读理解」维度统计（做阅读题不算考察）
     function wsIsReadingEncounter(src){
@@ -24710,50 +25500,102 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
     function wsStatus(word){
         const card = wsGetCard(word);
         const events = ((card && card.events) || []).slice().sort(function(a, b){ return String(a.ts || a.date || '') < String(b.ts || b.date || '') ? -1 : 1; });
-        let knowledge = false;
+        const ret = (card && card.retest) || {};
+        const isTarget = wsIsTargetWord(word);
+        // 四维知识层：音/形/义/用，各统计 对(c)/错(w)/总(t)
+        const dims = {
+            yin: { c: 0, w: 0, t: 0, lit: false },
+            xing: { c: 0, w: 0, t: 0, lit: false },
+            yi: { c: 0, w: 0, t: 0, lit: false },
+            yong: { c: 0, w: 0, t: 0, lit: false }
+        };
+        const DIM_NAME = { '音':'yin', '形':'xing', '义':'yi', '用':'yong' };
+        const dimSet = function(d, val){
+            const k = DIM_NAME[d];
+            if(!k) return;
+            dims[k].lit = val;
+        };
         const has = { listening: false, reading: false, production: false };
-        // 四维度统计：选择题=正确率；听力=打对次数率；阅读=没标不理解次数率；造句=使用正确率
-        let mcqT = 0, mcqC = 0, lisT = 0, lisC = 0, readT = 0, readOK = 0;
-        let prodCount = 0, prodCorrect = 0, prodWrong = 0, prodUnknown = 0;
+        let mcqT = 0, mcqC = 0, mcqW = 0;
+        let lisT = 0, lisC = 0, lisW = 0, readT = 0, readOK = 0, readBad = 0;
+        let prodCount = 0, prodCorrect = 0, prodWrong = 0, prodUnknown = 0, prodUsageWrong = 0;
         let firstDate = '', lastDate = '';
         const prodDates = [];
         for(const e of events){
             if(e.layer === 'knowledge'){
-                if(e.correct === true) knowledge = true;
-                if(e.source === 'mcq' || e.source === '知识练习'){ mcqT++; if(e.correct === true) mcqC++; }
+                // 音义/形义选择题只记本维对错：做对/做错都不推断听力层、阅读层、产出层
+                const k = DIM_NAME[e.dim];
+                if(k){
+                    dims[k].t++;
+                    if(e.correct === true) dims[k].c++;
+                    else if(e.correct === false) dims[k].w++;
+                }
+                if(e.correct === true || e.correct === false) dimSet(e.dim, e.correct === true);
+                if(e.source === 'mcq' || e.source === '知识练习' || e.source === 'mig_mcq'){ mcqT++; if(e.correct === true) mcqC++; else if(e.correct === false) mcqW++; }
             } else if(e.layer === 'listening'){
                 lisT++;
-                if(e.correct === true){ knowledge = true; has.listening = true; lisC++; }
+                if(e.correct === true){
+                    lisC++; has.listening = true;
+                    // 听力层打对 → 推断音、义对
+                    dimSet('音', true); dimSet('义', true);
+                } else if(e.correct === false){
+                    lisW++;
+                }
             } else if(e.layer === 'reading'){
                 if(wsIsReadingEncounter(e.source)){
                     readT++;
-                    if(e.correct === true){ knowledge = true; has.reading = true; readOK++; }
+                    if(e.correct === true){
+                        readOK++; has.reading = true;
+                        // 阅读层没标不懂 → 推断形、义对
+                        dimSet('形', true); dimSet('义', true);
+                    } else if(e.correct === false){
+                        readBad++;
+                    }
                 }
             } else if(e.layer === 'production'){
                 has.production = true;
                 prodCount++;
-                if(e.correct === true){ knowledge = true; prodCorrect++; }
-                else if(e.correct === false){ prodWrong++; if(e.semantic === true) knowledge = false; else knowledge = true; }
-                else prodUnknown++;
+                if(e.correct === true){
+                    prodCorrect++;
+                    // 产出对 → 音、形、义、用四层知识都对；产出即「用」的直接测试
+                    dims.yong.t++; dims.yong.c++;
+                    dimSet('音', true); dimSet('形', true); dimSet('义', true); dimSet('用', true);
+                } else if(e.correct === false){
+                    prodWrong++;
+                    dims.yong.t++; dims.yong.w++;
+                    if(e.usageOnly === true){
+                        prodUsageWrong++;
+                        // 形对+义对，只是语序/搭配/多余 → 音、形、义对，用不对
+                        dimSet('音', true); dimSet('形', true); dimSet('义', true); dimSet('用', false);
+                    } else {
+                        // 形/义错 → 音、形、义、用都熄灭（复测标记由 wsRecord 写入 card.retest）
+                        dimSet('音', false); dimSet('形', false); dimSet('义', false); dimSet('用', false);
+                    }
+                } else {
+                    prodUnknown++;
+                }
                 const d = e.date || '';
                 if(d){ prodDates.push(d); if(!firstDate || d < firstDate) firstDate = d; if(!lastDate || d > lastDate) lastDate = d; }
             }
         }
+        // 目标词：复测标记生效 → 对应维/层强制未点亮，直到新的通过事件清除标记
+        if(isTarget){
+            if(ret.yin) dims.yin.lit = false;
+            if(ret.xing) dims.xing.lit = false;
+            if(ret.yi) dims.yi.lit = false;
+            if(ret.yong) dims.yong.lit = false;
+            if(ret.listening) has.listening = false;
+            if(ret.reading) has.reading = false;
+        }
+        const knowledgeAny = dims.yin.lit || dims.xing.lit || dims.yi.lit || dims.yong.lit;
+        const knowledge = dims.yin.lit && dims.xing.lit && dims.yi.lit && dims.yong.lit;
         let immediate = 0, delayed = 0;
         for(const d of prodDates){ if(firstDate && d === firstDate) immediate++; else delayed++; }
-        // 阶梯：没有「①未出现」，只有 ②音形义理解 → ③阅读/听力理解 → ④产出
+        // 阶梯：②知识（四维任一/全部）→ ③阅读/听力理解 → ④产出
         let stage = 0;
-        if(knowledge) stage = 2;
+        if(knowledgeAny) stage = 2;
         if(has.listening || has.reading) stage = 3;
         if(has.production) stage = 4;
-        // 音/形/义：按「知识层事件」计数——做一题记一题（做对/做的），听写/阅读的推理不计入这里的次数
-        const dimOf = function(dim){
-            let c = 0, t = 0;
-            for(const e of events){
-                if(e.layer === 'knowledge' && e.dim === dim){ t++; if(e.correct === true) c++; }
-            }
-            return { c: c, t: t };
-        };
         // 不同模式使用次数 + 例句（来自原词语追踪）
         const vu = vocabUsedMap && vocabUsedMap.get ? vocabUsedMap.get(word) : null;
         const usage = {
@@ -24765,14 +25607,21 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
         };
         return {
             eventCount: events.length,
-            knowledge: knowledge, listening: has.listening, reading: has.reading, production: has.production,
+            knowledge: knowledge,
+            knowledgeAny: knowledgeAny,
+            listening: has.listening, reading: has.reading, production: has.production,
             stage: stage,
-            dims: { yin: dimOf('音'), xing: dimOf('形'), yi: dimOf('义') },
-            mcq: { total: mcqT, correct: mcqC },
-            lis: { total: lisT, correct: lisC },
-            read: { total: readT, notUnknown: readOK },
+            dims: dims,
+            mcq: { total: mcqT, correct: mcqC, wrong: mcqW },
+            lis: { total: lisT, correct: lisC, wrong: lisW },
+            read: { total: readT, notUnknown: readOK, unknown: readBad },
             usage: usage,
-            prod: { count: prodCount, correct: prodCorrect, wrong: prodWrong, unknown: prodUnknown, judged: prodCorrect + prodWrong, firstDate: firstDate, lastDate: lastDate, dates: Array.from(new Set(prodDates)), immediate: immediate, delayed: delayed }
+            retest: {
+                yin: !!(isTarget && ret.yin), xing: !!(isTarget && ret.xing), yi: !!(isTarget && ret.yi), yong: !!(isTarget && ret.yong),
+                listening: !!(isTarget && ret.listening), reading: !!(isTarget && ret.reading),
+                any: !!(isTarget && (ret.yin || ret.xing || ret.yi || ret.yong || ret.listening || ret.reading))
+            },
+            prod: { count: prodCount, correct: prodCorrect, wrong: prodWrong, unknown: prodUnknown, usageWrong: prodUsageWrong, judged: prodCorrect + prodWrong, firstDate: firstDate, lastDate: lastDate, dates: Array.from(new Set(prodDates)), immediate: immediate, delayed: delayed }
         };
     }
     function wsStageLabel(stage){ if(stage >= 2 && stage <= 4) return t('ws.stage_' + stage); return '—'; }
@@ -24780,25 +25629,42 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
         const vocab = VOCAB_LEVEL_MAP[wsTargetLevel()] || [];
         return vocab.map(function(v){ return v.w; });
     }
-    // 按状态卡挑选「本层未点亮」的目标等级词，不足时用其余目标词补齐
+    // 按状态卡挑选「本层未点亮」的目标等级词，不足时用其余目标词补齐；
+    // 复测词最优先：产出形/义错后，知识层（形义/音义）、听力、阅读都要重测
     function wsPickUnlit(layer, n, level){
         const lvl = level || wsTargetLevel();
         const all = ((VOCAB_LEVEL_MAP[lvl] || []).map(function(v){ return v.w; })).slice();
         shuffleArray(all);
+        const retestWords = all.filter(function(w){
+            const rt = wsStatus(w).retest || {};
+            if(layer === 'knowledge') return !!(rt.yin || rt.xing || rt.yi);
+            if(layer === 'listening') return !!rt.listening;
+            if(layer === 'reading') return !!rt.reading;
+            if(layer === 'production') return !!rt.yong;
+            return false;
+        });
         const unlit = all.filter(function(w){ const s = wsStatus(w); if(layer === 'knowledge') return !s.knowledge; if(layer === 'listening') return !s.listening; if(layer === 'reading') return !s.reading; if(layer === 'production') return !s.production; return !s.knowledge; });
-        const out = unlit.slice(0, n);
-        for(const w of all){ if(out.length >= n) break; if(!out.includes(w)) out.push(w); }
+        const out = [];
+        const add = function(arr){ for(const w of arr){ if(out.length >= n) break; if(!out.includes(w)) out.push(w); } };
+        add(retestWords);
+        add(unlit);
+        add(all);
         return out;
     }
     function wsPickSentenceWords(n, level){
-        // 造句选词：没有任何产出的优先 → 有产出但没写对过的次之 → 其余补齐
+        // 造句选词：没有任何产出的优先 → 用层需复测的次之 → 有产出但没写对过的 → 其余补齐
         const lvl = level || wsTargetLevel();
         const all = ((VOCAB_LEVEL_MAP[lvl] || []).map(function(v){ return v.w; })).slice();
         shuffleArray(all);
         const none = all.filter(function(w){ return wsStatus(w).prod.count === 0; });
+        const retestUse = all.filter(function(w){ return !!wsStatus(w).retest.yong; });
         const wrongOnly = all.filter(function(w){ const s = wsStatus(w); return s.prod.count > 0 && s.prod.correct === 0; });
-        const out = none.slice(0, n).concat(wrongOnly.slice(0, Math.max(0, n - none.length)));
-        for(const w of all){ if(out.length >= n) break; if(!out.includes(w)) out.push(w); }
+        const out = [];
+        const add = function(arr){ for(const w of arr){ if(out.length >= n) break; if(!out.includes(w)) out.push(w); } };
+        add(none);
+        add(retestUse);
+        add(wrongOnly);
+        add(all);
         return out.slice(0, n);
     }
     // AI 逐词判定：判断学生在句子里用这个词对不对、意思是否与标准词义一致（看翻译）
@@ -24810,7 +25676,7 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
             return (i + 1) + '. 词语：「' + it.word + '」；标准词义：' + (it.meaning || '（未提供）') + '；学生句子：' + (it.sentence || '');
         }).join('\n');
         const srcLabel = wsSourceLabel((items[0] && items[0].source) || 'chat');
-        const prompt = '你是HSK中文教师。学生在' + srcLabel + '中使用了下面的词语，请逐词判断。\n\n【词语列表】\n' + listText + '\n\n【要求】对每个词语判断：\n1. correct：学生是否用对了这个词语。【重要】只有当错误发生在目标词本身时（目标词写错字/写成同音近音字、词性用错、义项用错、搭配错误），correct=false；句子其他位置的字词/语法错误不算本词错误，此时本词 correct=true，可在 note 里提一句句子另有错误。【同音字检查】如果学生把目标词写成了同音/近音的另一个字（例如把「戴」写成「带」、把「在」写成「再」、把「她」写成「他」），视为目标词写错，correct=false，note 里指出正确写法。【词性检查】学生句中该词实际充当的词性必须与目标词词性一致，词性用错 correct=false。\n2. meaningMatches：先确定学生句中该词用的是哪一个义项，再把这个义项翻译成' + targetLang + '，与「标准词义」比对是否一致（语义错 = 义项不一致）。\n3. meaningUsed：学生句子里这个词实际表达的意思（用' + targetLang + '翻译，≤10个词）。\n4. note：用' + targetLang + '写一句简短说明（≤20个词）。\n5. corrected：当 correct=false 时，只把目标词改正（其余字词一字不动）后的完整句子，必须原样包含目标词；correct=true 时填空字符串。\n\n输出JSON：{"items":[{"word":"词语","correct":true或false,"meaningMatches":true或false,"meaningUsed":"翻译","note":"说明","corrected":"改正句"}]}\n只输出 JSON。';
+        const prompt = '你是HSK中文教师。学生在' + srcLabel + '中使用了下面的词语，请逐词判断。\n\n【词语列表】\n' + listText + '\n\n【要求】对每个词语判断：\n1. correct：学生是否用对了这个词语。【重要】只有当错误发生在目标词本身时（目标词写错字/写成同音近音字、词性用错、义项用错、搭配错误），correct=false；句子其他位置的字词/语法错误不算本词错误，此时本词 correct=true，可在 note 里提一句句子另有错误。【同音字检查】如果学生把目标词写成了同音/近音的另一个字（例如把「戴」写成「带」、把「在」写成「再」、把「她」写成「他」），视为目标词写错，correct=false，note 里指出正确写法。【词性检查】学生句中该词实际充当的词性必须与目标词词性一致，词性用错 correct=false。\n2. meaningMatches：先确定学生句中该词用的是哪一个义项，再把这个义项翻译成' + targetLang + '，与「标准词义」比对是否一致（语义错 = 义项不一致）。\n3. meaningUsed：学生句子里这个词实际表达的意思（用' + targetLang + '翻译，≤10个词）。\n4. note：用' + targetLang + '写一句简短说明（≤20个词）。\n5. corrected：当 correct=false 时，只把目标词改正（其余字词一字不动）后的完整句子，必须原样包含目标词；correct=true 时填空字符串。\n6. formOk：目标词的字形是否写对（同音/近音替代字算错，true/false）。\n7. meaningOk：与 meaningMatches 相同，目标词实际使用的义项与标准词义是否一致（true/false）。\n8. usageError：当 correct=false 且字形对、义项也对，错误只是语序错误/搭配错误/多余重复时 = true；其他情况 false。\n\n输出JSON：{"items":[{"word":"词语","correct":true或false,"meaningMatches":true或false,"meaningUsed":"翻译","note":"说明","corrected":"改正句","formOk":true或false,"meaningOk":true或false,"usageError":true或false}]}\n只输出 JSON。';
         try{
             const resp = await fetch(API_BASE, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + apiKey }, body: JSON.stringify({ model: 'deepseek-v4-flash', thinking: { type: 'disabled' }, max_tokens: 4096, messages: [{ role: 'user', content: prompt }], temperature: 0, response_format: { type: 'json_object' } }) });
             const data = await resp.json();
@@ -24821,6 +25687,26 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
             const r = safeJsonParse(c);
             return (Array.isArray(r.items) ? r.items : []);
         }catch(e){ return null; }
+    }
+    // 产出错误分类（用于目标词复测判断）：
+    // 形对 + 义对 + 只是语序/搭配/多余 → usageOnly（音/形/义对，用不对）；
+    // 其余错误（形错/义错/无法分类）→ 需要复测形义、音义、听力、阅读。
+    function wsClassifyProduction(r, word, sentence){
+        let formOk = (r && (r.formOk === true || r.formOk === false)) ? r.formOk : null;
+        let meaningOk = (r && (r.meaningOk === true || r.meaningOk === false)) ? r.meaningOk : null;
+        if(meaningOk === null && r && (r.meaningMatches === true || r.meaningMatches === false)) meaningOk = r.meaningMatches;
+        const corrected = (r && r.corrected) ? String(r.corrected) : '';
+        if(formOk === null && corrected && word && sentence){
+            // 兜底：改正句中原样包含目标词 → 字形算对
+            formOk = stripForCompare(corrected).includes(stripForCompare(String(word)));
+        }
+        if(r && r.usageError === true){
+            if(formOk === null) formOk = true;
+            if(meaningOk === null) meaningOk = true;
+        }
+        const correct = !!(r && r.correct === true);
+        const usageOnly = (correct === false && formOk === true && meaningOk === true);
+        return { formOk: formOk, meaningOk: meaningOk, usageOnly: usageOnly };
     }
     // 从一段/多段文本提取纲内词，逐词 AI 判定后记入产出层
     async function wsJudgeAndRecord(source, texts, extraWords){
@@ -24851,10 +25737,14 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
                 const v = vocabEntryForWord(it.word);
                 const correct = r ? (r.correct === true ? true : (r.correct === false ? false : null)) : null;
                 const meaningMatches = r ? (r.meaningMatches === true ? true : (r.meaningMatches === false ? false : null)) : null;
+                const cls = wsClassifyProduction(r, it.word, it.sentence);
                 wsRecord(it.word, 'production', {
                     source: source,
                     correct: correct,
                     semantic: (meaningMatches === false) ? true : ((meaningMatches === true) ? false : null),
+                    formOk: cls.formOk,
+                    meaningOk: cls.meaningOk,
+                    usageOnly: cls.usageOnly,
                     sentence: it.sentence,
                     corrected: (r && r.corrected && r.corrected !== it.sentence) ? r.corrected : '',
                     meaningUsed: (r && r.meaningUsed) || '',
@@ -25216,7 +26106,7 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
         }
         const hasRec = function(s){
             if(s.eventCount > 0) return true;
-            if(s.dims.yin.t > 0 || s.dims.xing.t > 0 || s.dims.yi.t > 0) return true;
+            if(s.dims.yin.t > 0 || s.dims.xing.t > 0 || s.dims.yi.t > 0 || s.dims.yong.t > 0) return true;
             if(s.usage.count > 0 || s.usage.chat > 0 || s.usage.writing > 0 || s.usage.practice > 0) return true;
             return false;
         };
@@ -25247,11 +26137,13 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
         else {
             for(const it of list){
                 const w = it.w, s = it.s;
-                // 四个维度：出现一个就 +1（音形义 / 听力 / 阅读 / 写作口语）
-                const kPresent = (s.mcq.total > 0) || (s.dims.yin.t > 0) || (s.dims.xing.t > 0) || (s.dims.yi.t > 0);
+                // 四个维度：出现一个就 +1（音形义用 / 听力 / 阅读 / 写作口语）
+                const kPresent = (s.mcq.total > 0) || (s.dims.yin.t > 0) || (s.dims.xing.t > 0) || (s.dims.yi.t > 0) || (s.dims.yong.t > 0) || (s.prod.count > 0 && s.prod.correct > 0);
                 const dimCount = (kPresent ? 1 : 0) + (s.lis.total > 0 ? 1 : 0) + (s.read.total > 0 ? 1 : 0) + (s.prod.count > 0 ? 1 : 0);
-                h += '<div class="ws-word-item" style="cursor:pointer;" title="' + escapeHtml(w + ' · ' + dimCount + '/4') + '" onclick="window._wsOpenCard(\'' + escapeHtml(w).replace(/'/g, "\\'") + '\')">' +
+                const rtBadge = s.retest.any ? '<span class="ws-stage-badge ws-tag-no" style="background:#fff7ed;color:#c2410c;">🔄 ' + escapeHtml(t('ws.need_retest')) + '</span>' : '';
+                h += '<div class="ws-word-item" style="cursor:pointer;" title="' + escapeHtml(w + ' · ' + dimCount + '/4' + (s.retest.any ? ' · ' + t('ws.need_retest') : '')) + '" onclick="window._wsOpenCard(\'' + escapeHtml(w).replace(/'/g, "\\'") + '\')">' +
                     '<span class="w" style="min-width:64px;">' + escapeHtml(w) + '</span>' +
+                    rtBadge +
                     '<span class="ws-stage-badge ' + (dimCount > 0 ? 'ws-tag-ok' : 'ws-tag-off') + '" style="margin-left:auto;">' + dimCount + '/4</span>' +
                     '</div>';
             }
@@ -25299,24 +26191,28 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
             h += '<button class="browser-tab' + (tab === tb[0] ? ' active' : '') + '" onclick="window._wsCardTabSwitch(\'' + escapeHtml(word).replace(/'/g, "\\'") + '\',\'' + tb[0] + '\')">' + tb[1] + ' ' + escapeHtml(tb[2]) + '</button>';
         }
         h += '</div>';
-        // 统计胶囊（没有数据就显示 0/0，不显示其他文字）
-        const statPill = function(label, c, t2){
-            const weak = t2 > 0 && c / t2 < 0.5;
-            return '<span class="ws-dim-pill">' + label + ' <b style="color:' + (weak ? '#c0392b' : '#1e2b5e') + ';">' + c + '/' + t2 + '</b></span>';
+        // 统计胶囊（对/错/总 + 点亮状态 + 复测标记）
+        const statPill = function(label, d, lit, retestFlag){
+            const weak = d.t > 0 && d.c / d.t < 0.5;
+            const icon = retestFlag ? '🔄' : (lit ? (d.t > 0 ? '✅' : '💡') : '⬜');
+            const color = weak ? '#c0392b' : (lit ? '#1e2b5e' : '#94a3b8');
+            return '<span class="ws-dim-pill">' + icon + ' ' + label + ' <b style="color:' + color + ';">' + d.c + '/' + d.t + '</b>' + (d.w > 0 ? '<span style="color:#c0392b;">（' + escapeHtml(t('ws.wrong')) + d.w + '）</span>' : '') + (retestFlag ? '<span style="color:#e67e22;"> ' + escapeHtml(t('ws.need_retest')) + '</span>' : '') + '</span>';
         };
         h += '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">';
         if(tab === 'knowledge'){
-            // 音形义：只显示音/形/义，各自 0/0
-            h += statPill(t('dim.yin'), s.dims.yin.c, s.dims.yin.t) +
-                 statPill(t('dim.xing'), s.dims.xing.c, s.dims.xing.t) +
-                 statPill(t('dim.yi'), s.dims.yi.c, s.dims.yi.t);
+            // 四层知识：音/形/义/用，各显示 对/错/总
+            h += statPill(t('dim.yin'), s.dims.yin, s.dims.yin.lit, s.retest.yin) +
+                 statPill(t('dim.xing'), s.dims.xing, s.dims.xing.lit, s.retest.xing) +
+                 statPill(t('dim.yi'), s.dims.yi, s.dims.yi.lit, s.retest.yi) +
+                 statPill(t('dim.yong'), s.dims.yong, s.dims.yong.lit, s.retest.yong);
         } else if(tab === 'listening'){
-            h += statPill(t('ws.correct'), s.lis.correct, s.lis.total);
+            h += statPill(t('ws.correct'), { c: s.lis.correct, w: s.lis.wrong, t: s.lis.total }, s.listening, s.retest.listening);
         } else if(tab === 'reading'){
-            h += statPill('', s.read.notUnknown, s.read.total);
+            h += statPill(t('ws.read_not_unknown'), { c: s.read.notUnknown, w: s.read.unknown, t: s.read.total }, s.reading, s.retest.reading);
         } else {
             // 写作/口语：只统计已判定的句子，用对/已判定，没有「未判」
-            h += statPill(t('ws.correct'), s.prod.correct, s.prod.judged);
+            h += statPill(t('ws.correct'), { c: s.prod.correct, w: s.prod.wrong, t: s.prod.judged }, s.prod.correct > 0, s.retest.yong);
+            if(s.prod.usageWrong > 0) h += '<span class="ws-dim-pill">' + escapeHtml(t('ws.usage_only_err')) + ' <b>' + s.prod.usageWrong + '</b></span>';
         }
         h += '</div>';
         // 该维度的句子/例句列表
@@ -25330,7 +26226,7 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
         };
         const verdict = function(e){
             if(e.correct === true) return '<b style="color:#27ae60;">' + escapeHtml(t('ws.correct')) + '</b>';
-            if(e.correct === false) return '<b style="color:#e74c3c;">' + escapeHtml(t('ws.wrong')) + (e.semantic === true ? '（' + escapeHtml(t('ws.sem_err')) + '）' : '') + '</b>';
+            if(e.correct === false) return '<b style="color:#e74c3c;">' + escapeHtml(t('ws.wrong')) + (e.usageOnly ? '（' + escapeHtml(t('ws.usage_only_err')) + '）' : (e.semantic === true ? '（' + escapeHtml(t('ws.sem_err')) + '）' : '')) + '</b>';
             return '<span style="color:#94a3b8;">' + escapeHtml(t('ws.unknown')) + '</span>';
         };
         const usageSrcLabel = function(src){
@@ -25342,7 +26238,7 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
         let rows = '';
         if(tab === 'knowledge'){
             for(const e of evFilter('knowledge', null)){
-                rows += rowHtml(e, wsSourceLabel(e.source), verdict(e), (e.dim || e.sentence || ''), '');
+                rows += rowHtml(e, wsSourceLabel(e.source), verdict(e), e.dim ? wsDimLabel(e.dim) : (e.sentence || ''), '');
             }
         } else if(tab === 'listening'){
             for(const e of evFilter('listening', null)){
@@ -25395,18 +26291,28 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
         let prodMax = 1;
         let prodCum = 0;
         const layers = ['knowledge', 'listening', 'reading'];
-        let k = false, l = false, r = false;
+        let l = false, r = false;
+        const kDims = { yin: false, xing: false, yi: false, yong: false };
+        const kAny = function(){ return kDims.yin || kDims.xing || kDims.yi || kDims.yong; };
+        const kMap = { '音':'yin', '形':'xing', '义':'yi', '用':'yong' };
         const states = { knowledge: [], listening: [], reading: [], production: [] };
         for(const e of evs){
-            if(e.layer === 'knowledge'){ if(e.correct === true) k = true; }
-            else if(e.layer === 'listening'){ if(e.correct === true){ k = true; l = true; } }
-            else if(e.layer === 'reading'){ if(e.correct === true){ k = true; r = true; } }
+            if(e.layer === 'knowledge'){
+                const m = kMap[e.dim];
+                if(m){ if(e.correct === true) kDims[m] = true; else if(e.correct === false) kDims[m] = false; }
+            }
+            else if(e.layer === 'listening'){ if(e.correct === true){ kDims.yin = true; kDims.yi = true; l = true; } }
+            else if(e.layer === 'reading'){ if(wsIsReadingEncounter(e.source) && e.correct === true){ kDims.xing = true; kDims.yi = true; r = true; } }
             else if(e.layer === 'production'){
-                if(e.correct === true){ k = true; prodCum++; }
-                else if(e.correct === false){ prodCum++; if(e.semantic === true) k = false; else k = true; }
+                if(e.correct === true){ kDims.yin = kDims.xing = kDims.yi = kDims.yong = true; prodCum++; }
+                else if(e.correct === false){
+                    prodCum++;
+                    if(e.usageOnly === true){ kDims.yin = kDims.xing = kDims.yi = true; kDims.yong = false; }
+                    else { kDims.yin = kDims.xing = kDims.yi = kDims.yong = false; }
+                }
                 else prodCum++;
             }
-            states.knowledge.push(k ? 1 : 0);
+            states.knowledge.push(kAny() ? 1 : 0);
             states.listening.push(l ? 1 : 0);
             states.reading.push(r ? 1 : 0);
             states.production.push(prodCum);
@@ -25455,17 +26361,18 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
     window._wsSetEventCorrect = function(word, id, val){
         const card = wsGetCard(word);
         const e = (card.events || []).find(function(x){ return x.id === id; });
-        if(e){ e.correct = val; e.manual = true; wsSave(); renderWordCard(word); try{ renderWsSummary(); }catch(_){} }
+        if(e){ e.correct = val; e.manual = true; wsRecalcRetest(word); wsSave(); renderWordCard(word); try{ renderWsSummary(); }catch(_){} }
     };
     window._wsSetEventSemantic = function(word, id){
         const card = wsGetCard(word);
         const e = (card.events || []).find(function(x){ return x.id === id; });
-        if(e){ e.semantic = (e.semantic === true) ? false : true; e.manual = true; wsSave(); renderWordCard(word); try{ renderWsSummary(); }catch(_){} }
+        if(e){ e.semantic = (e.semantic === true) ? false : true; e.manual = true; wsRecalcRetest(word); wsSave(); renderWordCard(word); try{ renderWsSummary(); }catch(_){} }
     };
     window._wsDeleteEvent = function(word, id){
         const card = wsGetCard(word);
         if(card && card.events){
             card.events = card.events.filter(function(x){ return x.id !== id; });
+            wsRecalcRetest(word);
             wsSave(); renderWordCard(word); try{ renderWsSummary(); }catch(_){}
             try{ const _m = document.getElementById('wordStatusModal'); if(_m && _m.style.display === 'block') renderWordStatusBoard(); }catch(_){}
         }
@@ -25488,8 +26395,15 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
                 const card = wordStatusData.words[w] || {};
                 const v = vocabEntryForWord(w);
                 body += '<section class="word"><h2>' + esc(w) + ' <small>' + esc((v && v.p) || '') + ' ' + esc((v && v.m) || '') + ' · ' + esc(vocabLevelLabel(card.level || vocabLevelOfWord(w) || 0)) + '</small></h2>';
-                body += '<div class="stats"><span>🧠 ' + esc(t('ws.layer_knowledge_short')) + '：' + esc(t('dim.yin')) + ' ' + s.dims.yin.c + '/' + s.dims.yin.t + ' · ' + esc(t('dim.xing')) + ' ' + s.dims.xing.c + '/' + s.dims.xing.t + ' · ' + esc(t('dim.yi')) + ' ' + s.dims.yi.c + '/' + s.dims.yi.t + '</span>' +
-                    '<span>👂 ' + s.lis.correct + '/' + s.lis.total + '</span><span>👀 ' + s.read.notUnknown + '/' + s.read.total + '</span><span>✏️ ' + s.prod.correct + '/' + s.prod.judged + '</span></div>';
+                const dimTxt = function(d){
+                    return esc(t('dim.yin')) + ' ' + d.yin.c + '/' + d.yin.t + (d.yin.w > 0 ? '（' + esc(t('ws.wrong')) + d.yin.w + '）' : '') + ' · ' +
+                        esc(t('dim.xing')) + ' ' + d.xing.c + '/' + d.xing.t + (d.xing.w > 0 ? '（' + esc(t('ws.wrong')) + d.xing.w + '）' : '') + ' · ' +
+                        esc(t('dim.yi')) + ' ' + d.yi.c + '/' + d.yi.t + (d.yi.w > 0 ? '（' + esc(t('ws.wrong')) + d.yi.w + '）' : '') + ' · ' +
+                        esc(t('dim.yong')) + ' ' + d.yong.c + '/' + d.yong.t + (d.yong.w > 0 ? '（' + esc(t('ws.wrong')) + d.yong.w + '）' : '');
+                };
+                body += '<div class="stats"><span>🧠 ' + esc(t('ws.layer_knowledge_short')) + '：' + dimTxt(s.dims) + '</span>' +
+                    '<span>👂 ' + s.lis.correct + '/' + s.lis.total + '</span><span>👀 ' + s.read.notUnknown + '/' + s.read.total + '</span><span>✏️ ' + s.prod.correct + '/' + s.prod.judged + '</span>' +
+                    (s.retest.any ? '<span style="background:#fff7ed;color:#c2410c;">🔄 ' + esc(t('ws.need_retest')) + '：' + [s.retest.yin ? esc(t('dim.yin')) : '', s.retest.xing ? esc(t('dim.xing')) : '', s.retest.yi ? esc(t('dim.yi')) : '', s.retest.yong ? esc(t('dim.yong')) : '', s.retest.listening ? esc(t('ws.layer_listening_short')) : '', s.retest.reading ? esc(t('ws.layer_reading_short')) : ''].filter(Boolean).join(' ') + '</span>' : '') + '</div>';
                 const evs = (card.events || []).slice().reverse();
                 if(evs.length){
                     body += '<table><thead><tr><th>' + esc(t('ws.th_date')) + '</th><th>' + esc(t('ws.th_layer')) + '</th><th>' + esc(t('ws.th_source')) + '</th><th>' + esc(t('ws.th_verdict')) + '</th><th>' + esc(t('ws.th_sentence')) + '</th></tr></thead><tbody>';
@@ -25498,7 +26412,7 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
                         if(e.layer === 'reading' && wsIsReadingEncounter(e.source)){
                             verdictTxt = e.correct === true ? t('ws.read_not_unknown') : t('ws.read_unknown_short');
                         } else if(e.correct === true){ verdictTxt = t('ws.correct'); }
-                        else if(e.correct === false){ verdictTxt = t('ws.wrong') + (e.semantic === true ? '（' + t('ws.sem_err') + '）' : ''); }
+                        else if(e.correct === false){ verdictTxt = t('ws.wrong') + (e.usageOnly ? '（' + t('ws.usage_only_err') + '）' : (e.semantic === true ? '（' + t('ws.sem_err') + '）' : '')); }
                         else { verdictTxt = t('ws.unknown'); }
                         body += '<tr><td>' + esc(e.date || '') + '</td><td>' + esc(layerLabel(e.layer)) + (e.dim ? '·' + esc(e.dim) : '') + '</td><td>' + esc(wsSourceLabel(e.source)) + '</td><td>' + esc(verdictTxt) + '</td><td>' + esc(e.sentence || '') +
                             (e.corrected ? '<div class="fixed">→ ' + esc(e.corrected) + '</div>' : '') +
@@ -25553,10 +26467,11 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
                     w: w,
                     dims: dims.join(' '),
                     n: newEvs.length,
-                    k: s.dims.yin.c + '/' + s.dims.yin.t,
+                    k: (s.dims.yin.lit ? 1 : 0) + (s.dims.xing.lit ? 1 : 0) + (s.dims.yi.lit ? 1 : 0) + (s.dims.yong.lit ? 1 : 0) + '/4',
                     l: s.lis.correct + '/' + s.lis.total,
                     r: s.read.notUnknown + '/' + s.read.total,
-                    p: s.prod.correct + '/' + s.prod.judged
+                    p: s.prod.correct + '/' + s.prod.judged,
+                    rt: s.retest.any
                 });
             }
             if(!rows.length) return;
@@ -25575,6 +26490,7 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
                     '<span class="ws-dim-pill" style="font-size:0.75rem;">👂 ' + escapeHtml(r.l) + '</span>' +
                     '<span class="ws-dim-pill" style="font-size:0.75rem;">👀 ' + escapeHtml(r.r) + '</span>' +
                     '<span class="ws-dim-pill" style="font-size:0.75rem;">✏️ ' + escapeHtml(r.p) + '</span>' +
+                    (r.rt ? '<span class="ws-dim-pill" style="font-size:0.75rem;background:#fff7ed;color:#c2410c;">🔄 ' + escapeHtml(t('ws.need_retest')) + '</span>' : '') +
                     '</div>';
             }
             ov.innerHTML = '<div style="background:#fff;border-radius:20px;max-width:640px;width:100%;padding:24px;box-shadow:0 10px 40px rgba(0,0,0,0.3);max-height:86vh;overflow:auto;">' +
@@ -25628,13 +26544,28 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
         if(wlSession && wlSession.current) window._wlSpeak(wlSession.current.word);
     });
 
-    function finishInit(){ detectSpeechSupport(); primeSpeechSynthesis(); loadFullState(); sessionStart = Date.now(); loadCandidateLevel(); pickCandidateWords(); updateStatsUI(); applyLanguage(); refreshAll(); try{ wsInitUI(); wsSyncTargetToModules(); renderWsSummary(); }catch(e){} sendBtn.onclick=handleUserMessage; endBtn.onclick=handleEndConversation;
+    function finishInit(){ detectSpeechSupport(); primeSpeechSynthesis(); loadFullState(); maybeMarkNewChatSession(); renderChatHistory(); sessionStart = Date.now(); loadCandidateLevel(); pickCandidateWords(); updateStatsUI(); applyLanguage(); refreshAll(); try{ wsInitUI(); wsSyncTargetToModules(); renderWsSummary(); }catch(e){} sendBtn.onclick=handleUserMessage; endBtn.onclick=handleEndConversation;
             initVoiceRecognition();
         bindReadingEvents();
         document.getElementById('chatHistoryBtn').onclick = showChatHistory;
         const histBtn=document.getElementById('chatHistoryBtn'); if(histBtn){ histBtn.textContent = t('chat.history'); }
         targetLangSelect.addEventListener('change',()=>{ applyLanguage(); });
         aiLevelSelect.addEventListener('change',()=>{ saveAiLevel(); showToast(t('toast.level_changed')+aiLevelSelect.value); });
+        const chatVoiceSelect = document.getElementById('chatVoiceSelect');
+        if(chatVoiceSelect){
+            chatVoiceSelect.value = getChatEdgeVoice();
+            const chatVoiceHint = document.getElementById('chatVoiceHint');
+            if(chatVoiceHint) chatVoiceHint.textContent = edgeTtsSupported() ? '（Edge TTS）' : '（当前浏览器非 Edge，自动改用北语语音）';
+            chatVoiceSelect.addEventListener('change',()=>{
+                try{ localStorage.setItem('EDGE_VOICE_CHAT', chatVoiceSelect.value); }catch(e){}
+                const opt = chatVoiceSelect.options[chatVoiceSelect.selectedIndex];
+                showToast('🗣️ 音色：' + (opt ? opt.textContent : chatVoiceSelect.value));
+                if(autoReadCheckbox && autoReadCheckbox.checked){
+                    const lastMsg = document.querySelector('#chatMessages .assistant-message:last-of-type');
+                    if(lastMsg && lastMsg._speakText){ speakChatTextWithTts(lastMsg._speakText); }
+                }
+            });
+        }
         const learnRateSlider=document.getElementById('learnRateSlider'), learnRateLabel=document.getElementById('learnRateLabel');
         if(learnRateSlider){
             learnRateSlider.value = String(speechRateValue);
