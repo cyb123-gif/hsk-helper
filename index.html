@@ -13466,6 +13466,9 @@ const HSK2_VOCAB = [
     // ===== AI 数字人状态提示（多语言） =====
     const I18N_LIVE2D = {
         'Chinese': {
+            'voice.hint_tencent':'🎤 点击麦克风说话（腾讯云识别），再点一次停止并识别。需先在右侧填写腾讯云 SecretId/SecretKey/AppID',
+            'voice.hint_recording':'🎙️ 正在录音…再点一次 🎤 停止并识别（最长 55 秒）',
+            'voice.hint_transcribing':'⏳ 正在用腾讯云识别…',
             'live2d.loading':'⏳ 数字人加载中…',
             'live2d.file_protocol':'⚠️ 当前是双击打开的本地文件，数字人无法加载。请双击「启动网站.bat」打开 http://localhost:3001，或访问 https://cyb123-gif.github.io/hsk-helper/',
             'live2d.load_fail':'⚠️ 数字人加载失败｜{detail}｜请点击此处重试',
@@ -13473,6 +13476,9 @@ const HSK2_VOCAB = [
             'live2d.model_download_fail':'⚠️ 数字人未加载：模型下载失败（已用占位图）'
         },
         'English': {
+            'voice.hint_tencent':'🎤 Tap the mic to speak (Tencent Cloud), tap again to stop and transcribe. Fill in SecretId/SecretKey/AppID on the right first.',
+            'voice.hint_recording':'🎙️ Recording… tap 🎤 again to stop and transcribe (max 55s)',
+            'voice.hint_transcribing':'⏳ Transcribing with Tencent Cloud…',
             'live2d.loading':'⏳ Loading AI teacher…',
             'live2d.file_protocol':'⚠️ This page was opened as a local file, so the AI teacher cannot load. Double-click “启动网站.bat” to open http://localhost:3001, or visit https://cyb123-gif.github.io/hsk-helper/',
             'live2d.load_fail':'⚠️ AI teacher failed to load｜{detail}｜Tap to retry',
@@ -13480,6 +13486,9 @@ const HSK2_VOCAB = [
             'live2d.model_download_fail':'⚠️ AI teacher not loaded: model download failed (placeholder shown)'
         },
         'Japanese': {
+            'voice.hint_tencent':'🎤 マイクをタップして話す（テンセントクラウド認識）。もう一度タップで停止して文字化。先に右側で SecretId/SecretKey/AppID を入力してください',
+            'voice.hint_recording':'🎙️ 録音中…もう一度 🎤 をタップして停止・文字化（最長55秒）',
+            'voice.hint_transcribing':'⏳ テンセントクラウドで認識中…',
             'live2d.loading':'⏳ AI先生を読み込み中…',
             'live2d.file_protocol':'⚠️ ローカルファイルを直接開いているため、AI先生を読み込めません。「启动网站.bat」をダブルクリックして http://localhost:3001 を開くか、https://cyb123-gif.github.io/hsk-helper/ にアクセスしてください',
             'live2d.load_fail':'⚠️ AI先生の読み込みに失敗しました｜{detail}｜クリックで再試行',
@@ -13487,6 +13496,9 @@ const HSK2_VOCAB = [
             'live2d.model_download_fail':'⚠️ AI先生未読み込み：モデルのダウンロードに失敗（代替画像を表示中）'
         },
         'Korean': {
+            'voice.hint_tencent':'🎤 마이크를 눌러 말하세요(텐센트 클라우드 인식). 다시 누르면 멈추고 문자로 변환됩니다. 먼저 오른쪽에 SecretId/SecretKey/AppID를 입력하세요',
+            'voice.hint_recording':'🎙️ 녹음 중… 다시 🎤를 눌러 중지 및 변환(최대 55초)',
+            'voice.hint_transcribing':'⏳ 텐센트 클라우드로 인식 중…',
             'live2d.loading':'⏳ AI 선생님 불러오는 중…',
             'live2d.file_protocol':'⚠️ 로컬 파일을 직접 열어 AI 선생님을 불러올 수 없습니다. "启动网站.bat"을 더블 클릭해 http://localhost:3001 을 열거나 https://cyb123-gif.github.io/hsk-helper/ 에 접속하세요',
             'live2d.load_fail':'⚠️ AI 선생님 로드 실패｜{detail}｜클릭하여 재시도',
@@ -13494,6 +13506,9 @@ const HSK2_VOCAB = [
             'live2d.model_download_fail':'⚠️ AI 선생님 미로드: 모델 다운로드 실패(자리 표시자 표시 중)'
         },
         'French': {
+            'voice.hint_tencent':'🎤 Touchez le micro pour parler (reconnaissance Tencent Cloud), retouchez pour arrêter et transcrire. Renseignez d’abord SecretId/SecretKey/AppID à droite.',
+            'voice.hint_recording':'🎙️ Enregistrement… retouchez 🎤 pour arrêter et transcrire (55 s max)',
+            'voice.hint_transcribing':'⏳ Transcription Tencent Cloud…',
             'live2d.loading':'⏳ Chargement du professeur IA…',
             'live2d.file_protocol':'⚠️ Fichier local ouvert directement : le professeur IA ne peut pas se charger. Double-cliquez sur « 启动网站.bat » pour ouvrir http://localhost:3001, ou visitez https://cyb123-gif.github.io/hsk-helper/',
             'live2d.load_fail':'⚠️ Échec du chargement du professeur IA｜{detail}｜Cliquez pour réessayer',
@@ -13501,6 +13516,9 @@ const HSK2_VOCAB = [
             'live2d.model_download_fail':'⚠️ Professeur IA non chargé : échec du téléchargement du modèle (image de substitution affichée)'
         },
         'German': {
+            'voice.hint_tencent':'🎤 Mikrofon antippen und sprechen (Tencent-Cloud-Erkennung), erneut tippen zum Stoppen und Transkribieren. Zuerst rechts SecretId/SecretKey/AppID eintragen.',
+            'voice.hint_recording':'🎙️ Aufnahme… erneut 🎤 tippen zum Stoppen und Transkribieren (max. 55 s)',
+            'voice.hint_transcribing':'⏳ Tencent-Cloud-Transkription…',
             'live2d.loading':'⏳ KI-Lehrer wird geladen…',
             'live2d.file_protocol':'⚠️ Lokale Datei direkt geöffnet: Der KI-Lehrer kann nicht geladen werden. Bitte doppelklicken Sie auf «启动网站.bat», um http://localhost:3001 zu öffnen, oder besuchen Sie https://cyb123-gif.github.io/hsk-helper/',
             'live2d.load_fail':'⚠️ KI-Lehrer konnte nicht geladen werden｜{detail}｜Zum Wiederholen klicken',
@@ -13508,6 +13526,9 @@ const HSK2_VOCAB = [
             'live2d.model_download_fail':'⚠️ KI-Lehrer nicht geladen: Modell-Download fehlgeschlagen (Platzhalter wird angezeigt)'
         },
         'Spanish': {
+            'voice.hint_tencent':'🎤 Toca el micrófono para hablar (reconocimiento de Tencent Cloud), toca de nuevo para detener y transcribir. Primero rellena SecretId/SecretKey/AppID a la derecha.',
+            'voice.hint_recording':'🎙️ Grabando… toca 🎤 de nuevo para detener y transcribir (máx. 55 s)',
+            'voice.hint_transcribing':'⏳ Transcribiendo con Tencent Cloud…',
             'live2d.loading':'⏳ Cargando al profesor IA…',
             'live2d.file_protocol':'⚠️ Has abierto un archivo local directamente, el profesor IA no puede cargarse. Haz doble clic en «启动网站.bat» para abrir http://localhost:3001, o visita https://cyb123-gif.github.io/hsk-helper/',
             'live2d.load_fail':'⚠️ No se pudo cargar el profesor IA｜{detail}｜Haz clic para reintentar',
@@ -13515,6 +13536,9 @@ const HSK2_VOCAB = [
             'live2d.model_download_fail':'⚠️ Profesor IA no cargado: fallo al descargar el modelo (se muestra el marcador de posición)'
         },
         'Russian': {
+            'voice.hint_tencent':'🎤 Нажмите на микрофон и говорите (распознавание Tencent Cloud), нажмите ещё раз, чтобы остановить и расшифровать. Сначала заполните SecretId/SecretKey/AppID справа.',
+            'voice.hint_recording':'🎙️ Идёт запись… нажмите 🎤 ещё раз для остановки и расшифровки (до 55 с)',
+            'voice.hint_transcribing':'⏳ Распознавание Tencent Cloud…',
             'live2d.loading':'⏳ Загрузка ИИ-учителя…',
             'live2d.file_protocol':'⚠️ Открыт локальный файл, ИИ-учитель не может загрузиться. Дважды щёлкните «启动网站.bat», чтобы открыть http://localhost:3001, или зайдите на https://cyb123-gif.github.io/hsk-helper/',
             'live2d.load_fail':'⚠️ Не удалось загрузить ИИ-учителя｜{detail}｜Нажмите для повтора',
@@ -13522,6 +13546,9 @@ const HSK2_VOCAB = [
             'live2d.model_download_fail':'⚠️ ИИ-учитель не загружен: ошибка скачивания модели (показан заполнитель)'
         },
         'Italian': {
+            'voice.hint_tencent':'🎤 Tocca il microfono per parlare (riconoscimento Tencent Cloud), tocca di nuovo per fermare e trascrivere. Inserisci prima SecretId/SecretKey/AppID a destra.',
+            'voice.hint_recording':'🎙️ Registrazione… tocca di nuovo 🎤 per fermare e trascrivere (max 55 s)',
+            'voice.hint_transcribing':'⏳ Trascrizione Tencent Cloud…',
             'live2d.loading':'⏳ Caricamento insegnante IA…',
             'live2d.file_protocol':'⚠️ File locale aperto direttamente: l\'insegnante IA non può essere caricato. Fai doppio clic su «启动网站.bat» per aprire http://localhost:3001, oppure visita https://cyb123-gif.github.io/hsk-helper/',
             'live2d.load_fail':'⚠️ Impossibile caricare l\'insegnante IA｜{detail}｜Clicca per riprovare',
@@ -13529,6 +13556,9 @@ const HSK2_VOCAB = [
             'live2d.model_download_fail':'⚠️ Insegnante IA non caricato: download del modello non riuscito (segnaposto mostrato)'
         },
         'Thai': {
+            'voice.hint_tencent':'🎤 แตะไมโครโฟนเพื่อพูด (การรู้จำเสียง Tencent Cloud) แตะอีกครั้งเพื่อหยุดและแปลงเป็นข้อความ กรุณากรอก SecretId/SecretKey/AppID ทางขวาก่อน',
+            'voice.hint_recording':'🎙️ กำลังบันทึก… แตะ 🎤 อีกครั้งเพื่อหยุดและแปลง (สูงสุด 55 วินาที)',
+            'voice.hint_transcribing':'⏳ กำลังแปลงเสียงด้วย Tencent Cloud…',
             'live2d.loading':'⏳ กำลังโหลดครู AI…',
             'live2d.file_protocol':'⚠️ เปิดไฟล์ในเครื่องโดยตรง ครู AI ไม่สามารถโหลดได้ กรุณาดับเบิลคลิก «启动网站.bat» เพื่อเปิด http://localhost:3001 หรือไปที่ https://cyb123-gif.github.io/hsk-helper/',
             'live2d.load_fail':'⚠️ โหลดครู AI ไม่สำเร็จ｜{detail}｜คลิกเพื่อลองใหม่',
@@ -13536,6 +13566,9 @@ const HSK2_VOCAB = [
             'live2d.model_download_fail':'⚠️ ครู AI ไม่โหลด: ดาวน์โหลดโมเดลไม่สำเร็จ (แสดงภาพแทน)'
         },
         'Vietnamese': {
+            'voice.hint_tencent':'🎤 Chạm mic để nói (nhận dạng giọng nói Tencent Cloud), chạm lần nữa để dừng và chuyển thành chữ. Hãy điền SecretId/SecretKey/AppID ở bên phải trước.',
+            'voice.hint_recording':'🎙️ Đang ghi âm… chạm 🎤 lần nữa để dừng và chuyển chữ (tối đa 55 giây)',
+            'voice.hint_transcribing':'⏳ Đang nhận dạng bằng Tencent Cloud…',
             'live2d.loading':'⏳ Đang tải giáo viên AI…',
             'live2d.file_protocol':'⚠️ Đang mở tệp cục bộ trực tiếp, giáo viên AI không thể tải. Hãy nhấp đúp «启动网站.bat» để mở http://localhost:3001, hoặc truy cập https://cyb123-gif.github.io/hsk-helper/',
             'live2d.load_fail':'⚠️ Không tải được giáo viên AI｜{detail}｜Nhấn để thử lại',
@@ -13543,6 +13576,9 @@ const HSK2_VOCAB = [
             'live2d.model_download_fail':'⚠️ Giáo viên AI chưa tải: tải mô hình thất bại (đang hiện hình thay thế)'
         },
         'Indonesian': {
+            'voice.hint_tencent':'🎤 Ketuk mikrofon untuk berbicara (pengenalan suara Tencent Cloud), ketuk lagi untuk berhenti dan ubah ke teks. Isi SecretId/SecretKey/AppID di kanan dulu.',
+            'voice.hint_recording':'🎙️ Merekam… ketuk 🎤 lagi untuk berhenti dan ubah ke teks (maks 55 dtk)',
+            'voice.hint_transcribing':'⏳ Mengubah suara dengan Tencent Cloud…',
             'live2d.loading':'⏳ Memuat guru AI…',
             'live2d.file_protocol':'⚠️ File lokal dibuka langsung, guru AI tidak dapat dimuat. Klik dua kali «启动网站.bat» untuk membuka http://localhost:3001, atau kunjungi https://cyb123-gif.github.io/hsk-helper/',
             'live2d.load_fail':'⚠️ Gagal memuat guru AI｜{detail}｜Klik untuk mencoba lagi',
@@ -13550,6 +13586,9 @@ const HSK2_VOCAB = [
             'live2d.model_download_fail':'⚠️ Guru AI belum dimuat: unduhan model gagal (menampilkan placeholder)'
         },
         'Slovak': {
+            'voice.hint_tencent':'🎤 Ťuknite na mikrofón a hovorte (rozpoznávanie Tencent Cloud), opätovným ťuknutím zastavíte a prepíšete. Najprv vpravo vyplňte SecretId/SecretKey/AppID.',
+            'voice.hint_recording':'🎙️ Nahrávam… znova ťuknite 🎤 pre zastavenie a prepis (max 55 s)',
+            'voice.hint_transcribing':'⏳ Prepisujem cez Tencent Cloud…',
             'live2d.loading':'⏳ Načítavam AI učiteľa…',
             'live2d.file_protocol':'⚠️ Otvorili ste lokálny súbor priamo, AI učiteľa nemožno načítať. Dvakrát kliknite na «启动网站.bat» a otvorte http://localhost:3001, alebo navštívte https://cyb123-gif.github.io/hsk-helper/',
             'live2d.load_fail':'⚠️ Nepodarilo sa načítať AI učiteľa｜{detail}｜Kliknite pre opakovanie',
@@ -18469,7 +18508,7 @@ ${searchRule}
     function updateVoiceHint() {
         const hintEl = document.getElementById('voiceInputHint');
         if (!hintEl) return;
-        hintEl.textContent = '🎤 点击麦克风说话（腾讯云识别），再点一次停止并识别。需先在右侧填写腾讯云 SecretId/SecretKey/AppID';
+        hintEl.textContent = t('voice.hint_tencent');
     }
 
     function initVoiceRecognition() {
@@ -18574,7 +18613,7 @@ ${searchRule}
         voiceIsRecording = true;
         if(voiceBtn){ voiceBtn.classList.add('recording'); voiceBtn.textContent = '🔴'; voiceBtn.title = '录音中，点击停止并识别'; }
         const hint = document.getElementById('voiceInputHint');
-        if(hint) hint.textContent = '🎙️ 正在录音…再点一次 🎤 停止并识别（最长 55 秒）';
+        if(hint) hint.textContent = t('voice.hint_recording');
         tencentAutoStopTimer = setTimeout(function(){ if(voiceIsRecording) stopTencentRecording(); }, 55000);
     }
     function stopTencentRecording(){
@@ -18592,7 +18631,7 @@ ${searchRule}
     }
     async function transcribeTencentRecording(){
         const hint = document.getElementById('voiceInputHint');
-        if(hint) hint.textContent = '⏳ 正在用腾讯云识别…';
+        if(hint) hint.textContent = t('voice.hint_transcribing');
         try{
             if(!tencentChunks.length) throw new Error('没有录到声音');
             const mime = (tencentRecorder && tencentRecorder.mimeType) || 'audio/webm';
