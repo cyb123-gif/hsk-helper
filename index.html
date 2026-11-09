@@ -18665,7 +18665,7 @@ ${searchRule}
         if(rawBlob){
             try{ if(tencentLastPlaybackUrl) URL.revokeObjectURL(tencentLastPlaybackUrl); }catch(e){}
             tencentLastPlaybackUrl = URL.createObjectURL(rawBlob);
-            html += '　<a href="' + tencentLastPlaybackUrl + '" target="_blank" style="color:#fbbf24;">▶ 回放这段录音</a>';
+            html += '<br><audio controls="controls" src="' + tencentLastPlaybackUrl + '" style="width:100%;margin-top:4px;"></audio>';
         }
         dbg.style.display = 'block';
         dbg.innerHTML = html;
@@ -18759,6 +18759,7 @@ ${searchRule}
                 catch(e){ reject(new Error('连接腾讯云失败')); return; }
                 ws.binaryType = 'arraybuffer';
                 let finalText = '';
+                let partialText = '';
                 let finished = false;
                 let started = false;
                 let sawFinal = false;
@@ -18794,15 +18795,19 @@ ${searchRule}
                         const d = JSON.parse(ev.data);
                         if(d && d.code !== 0 && d.code !== undefined && d.code !== null){ if(!finished){ finished = true; cleanup(); reject(new Error(d.message || ('腾讯云错误码 ' + d.code))); } return; }
                         if(d && d.code === 0 && !started) startSend();
+                        // 文字可能出现在 final=0 的中间消息里，final=1 的结束确认可能不带 result
+                        if(d && d.result && d.result.voice_text_str){
+                            const t0 = String(d.result.voice_text_str).trim();
+                            if(t0) partialText = t0;
+                        }
                         if(d && d.final === 1){
                             sawFinal = true;
-                            const t0 = d.result && d.result.voice_text_str ? String(d.result.voice_text_str).trim() : '';
-                            if(t0){ finalText = t0; if(!finished){ finished = true; cleanup(); resolve(finalText); } }
+                            if(partialText){ finalText = partialText; if(!finished){ finished = true; cleanup(); resolve(finalText); } }
                         }
                     }catch(e){}
                 };
                 ws.onerror = function(){ if(!finished){ finished = true; cleanup(); reject(new Error('腾讯云连接出错')); } };
-                ws.onclose = function(){ if(!finished){ finished = true; if(finalText){ resolve(finalText); } else if(sawFinal){ resolve(''); } else { reject(new Error('连接已关闭，未收到识别结果' + (lastServerMsg ? '｜服务器最后返回：' + lastServerMsg : ''))); } } };
+                ws.onclose = function(){ if(!finished){ finished = true; if(finalText || partialText){ resolve(finalText || partialText); } else if(sawFinal){ resolve(''); } else { reject(new Error('连接已关闭，未收到识别结果' + (lastServerMsg ? '｜服务器最后返回：' + lastServerMsg : ''))); } } };
             })();
         });
     }
