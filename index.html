@@ -18673,7 +18673,9 @@ ${searchRule}
                 userInput.focus();
                 showToast('✅ 识别：' + text);
             } else {
-                showToast('未识别到内容，请再试一次（靠近麦克风、说慢一点）');
+                const info = window._lastTencentAudioInfo || {};
+                const lastMsg = window._lastTencentAsrMsg || '';
+                showToast('未识别到内容｜录音 ' + (info.dur ? info.dur.toFixed(1) : '?') + ' 秒，音量峰值 ' + Math.round((info.peak || 0) * 100) + '%' + (lastMsg ? '｜服务器返回：' + lastMsg : '') + '｜请再试一次，说话时靠近麦克风');
             }
         }catch(e){
             const errMsg = String((e && e.message) || e);
@@ -18706,7 +18708,7 @@ ${searchRule}
                 voice_id: 'hsk' + Date.now() + Math.random().toString(36).slice(2, 8),
                 engine_model_type: '16k_zh',
                 voice_format: '1',
-                needvad: '1',
+                needvad: '0',
                 filter_dirty: '0',
                 filter_modal: '0',
                 filter_punc: '0',
@@ -18763,6 +18765,7 @@ ${searchRule}
                 ws.onmessage = function(ev){
                     if(typeof ev.data !== 'string') return;
                     lastServerMsg = String(ev.data).slice(0, 300);
+                    window._lastTencentAsrMsg = lastServerMsg;
                     try{
                         const d = JSON.parse(ev.data);
                         if(d && d.code !== 0 && d.code !== undefined && d.code !== null){ if(!finished){ finished = true; cleanup(); reject(new Error(d.message || ('腾讯云错误码 ' + d.code))); } return; }
@@ -18823,6 +18826,7 @@ ${searchRule}
         if(peak < 0.001){
             throw new Error('录音没有声音：请检查麦克风是否被占用或静音、系统输入设备是否选对，说话时靠近麦克风再试一次');
         }
+        window._lastTencentAudioInfo = { dur: Number(decoded.duration || 0), peak: peak };
         let gain = 1;
         if(peak < 0.12) gain = Math.min(20, 0.12 / peak);   // 小声录音放大到可用范围
         if(gain !== 1) for(let i = 0; i < samples.length; i++) samples[i] = samples[i] * gain;
