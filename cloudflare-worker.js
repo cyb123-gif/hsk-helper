@@ -62,9 +62,10 @@ export default {
         const url = new URL(request.url);
         const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
 
-        // 1. 班级口令校验（不匹配直接拒绝，不消耗 AI 额度）
+        // 1. 班级口令校验（/tts 语音接口除外；不匹配直接拒绝，不消耗 AI 额度）
+        const isTtsRoute = (url.pathname === '/tts' && request.method === 'GET');
         const token = request.headers.get('X-Class-Token') || '';
-        if (!env.CLASS_TOKEN || token !== env.CLASS_TOKEN) {
+        if (!isTtsRoute && (!env.CLASS_TOKEN || token !== env.CLASS_TOKEN)) {
             return jsonResponse(401, { code: 'class_token_invalid', error: { message: 'CLASS_TOKEN_INVALID' } });
         }
 
