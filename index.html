@@ -5559,11 +5559,11 @@ const HSK2_VOCAB = [
     function favoriteKey(){ return FAVORITE_STORAGE_PREFIX + currentUser; }
     function minutesKey(){ return 'HSK_TOTAL_MINUTES_' + currentUser; }
 
-    // 自动检测运行环境：本地服务器走本地代理；线上（GitHub Pages 等静态托管）直连 DeepSeek API
-    const IS_LOCAL_SERVER = (location.hostname === 'localhost' || location.hostname === '127.0.0.1');
-    const API_BASE = IS_LOCAL_SERVER
-        ? '/v1/chat/completions'
-        : 'https://api.deepseek.com/v1/chat/completions';
+    // 自动检测运行环境：GitHub Pages 直连 DeepSeek；其余（localhost / 自己服务器域名）走同源代理，学生无需填密钥
+    const IS_GITHUB_IO = (location.hostname === 'cyb123-gif.github.io' || /\.github\.io$/.test(location.hostname));
+    const API_BASE = IS_GITHUB_IO
+        ? 'https://api.deepseek.com/v1/chat/completions'
+        : '/v1/chat/completions';
 
     // ==================== API Key 校验（保持占位符：不校验，Key 不写入 HTML） ====================
     // VALID_API_KEY_HASH 可由 node set_api_key_hash.js 写入，但按需求不再使用。
