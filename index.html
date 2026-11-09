@@ -18571,12 +18571,23 @@ ${searchRule}
     }
     function tencentAsrKeys(){
         const el = tencentAsrInputs().keysEl;
-        const parsed = el ? parseTencentKeys(el.value) : null;
-        if(!parsed){
-            showToast('请把腾讯云三项密钥按「SecretId,SecretKey,AppID」顺序，用英文逗号隔开一次粘贴到右侧一个框里（不要有空格，AppID 是纯数字）');
+        const raw = el ? el.value.trim() : '';
+        const parts = String(raw || '').split(/[\s,，;；|]+/).filter(Boolean);
+        if(parts.length < 3){
+            showToast('密钥格式不对：需要 3 段「SecretId,SecretKey,AppID」，当前只解析出 ' + parts.length + ' 段。请用英文逗号隔开一次粘贴');
             return null;
         }
-        return parsed;
+        const secretId = parts[0], secretKey = parts[1], appId = parts[2];
+        const mask = function(s){ s = String(s || ''); return s ? (s.length > 8 ? s.slice(0, 8) + '…（长度' + s.length + '）' : s) : '（空）'; };
+        let problem = '';
+        if(!/^AKID/i.test(secretId) || secretId.length < 20) problem = '第1段应该是 SecretId（AKID 开头、约36位），当前是：' + mask(secretId);
+        else if(secretKey.length < 16) problem = '第2段应该是 SecretKey（约32位），当前是：' + mask(secretKey);
+        else if(!/^\d{8,12}$/.test(appId)) problem = '第3段应该是 AppID（纯数字，如 1300000000），当前是：' + mask(appId);
+        if(problem){
+            showToast('密钥自检未通过｜' + problem + '｜请重新从腾讯云控制台复制');
+            return null;
+        }
+        return { secretId: secretId, secretKey: secretKey, appId: appId };
     }
 
     // ===== 录音 → 16kHz 单声道 PCM → 腾讯云识别 → 填入输入框 =====
