@@ -18629,6 +18629,8 @@ ${searchRule}
         const src = actx.createMediaStreamSource(stream);
         const proc = actx.createScriptProcessor(4096, 1, 1);
         tencentPcmFloats = [];
+        const dbgPre = document.getElementById('voiceDebugInfo');
+        if(dbgPre){ dbgPre.style.display = 'none'; }
         proc.onaudioprocess = function(ev){
             const ch = ev.inputBuffer.getChannelData(0);
             for(let i = 0; i < ch.length; i++) tencentPcmFloats.push(ch[i]);
@@ -18677,6 +18679,12 @@ ${searchRule}
     function updateTencentDebugPanel(rawBlob, note){
         const dbg = document.getElementById('voiceDebugInfo');
         if(!dbg) return;
+        if(note === '✅ 识别成功'){
+            // 成功时自动隐藏调试面板
+            dbg.style.display = 'none';
+            dbg.innerHTML = '';
+            return;
+        }
         const info = window._lastTencentAudioInfo || {};
         let html = '🎤 录音 ' + (info.dur ? info.dur.toFixed(1) : '?') + ' 秒｜音量峰值 ' + Math.round((info.peak || 0) * 100) + '%';
         if(note) html += '｜' + note;
