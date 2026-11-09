@@ -18681,7 +18681,11 @@ ${searchRule}
             if(/密钥不存在|SecretIdNotFound|AuthFailure\.SecretIdNotFound/i.test(errMsg)) hint = '｜SecretId 不正确：请到 console.cloud.tencent.com/cam/capi 重新复制，注意前后不能有空格，也别和 SecretKey 填反';
             else if(/Signature|签名|AuthFailure\.SignatureFailure|SignatureExpire/i.test(errMsg)) hint = '｜SecretKey 不正确：请检查是否复制完整（前后不能有空格）';
             else if(/AppID|appid/i.test(errMsg)) hint = '｜AppID 不正确：应为纯数字（账号信息里查看）';
-            showToast('腾讯云识别失败：' + errMsg + hint);
+            if(/没有声音|音量|麦克风|无法解码|不支持|录音/i.test(errMsg)){
+                showToast(errMsg);   // 本地录音/解码问题，不是腾讯云问题
+            } else {
+                showToast('腾讯云识别失败：' + errMsg + hint);
+            }
         }finally{
             releaseTencentMedia();
             updateVoiceHint();
@@ -18812,6 +18816,16 @@ ${searchRule}
         src.start();
         const rendered = await offline.startRendering();
         const samples = rendered.getChannelData(0);
+        // 音量自检：计算峰值和 RMS，完全静音直接报错，音量偏低时自动放大
+        let peak = 0, sumSq = 0;
+        for(let i = 0; i < samples.length; i++){ const a = Math.abs(samples[i]); if(a > peak) peak = a; sumSq += samples[i] * samples[i]; }
+        const rms = samples.length ? Math.sqrt(sumSq / samples.length) : 0;
+        if(peak < 0.001){
+            throw new Error('录音没有声音：请检查麦克风是否被占用或静音、系统输入设备是否选对，说话时靠近麦克风再试一次');
+        }
+        let gain = 1;
+        if(peak < 0.12) gain = Math.min(20, 0.12 / peak);   // 小声录音放大到可用范围
+        if(gain !== 1) for(let i = 0; i < samples.length; i++) samples[i] = samples[i] * gain;
         const buffer = new ArrayBuffer(44 + samples.length * 2);
         const view = new DataView(buffer);
         const writeStr = function(off, s){ for(let i = 0; i < s.length; i++) view.setUint8(off + i, s.charCodeAt(i)); };
