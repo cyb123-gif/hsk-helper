@@ -19414,24 +19414,82 @@ function saveFullState(){ if(!currentUser) return; const entries=Array.from(used
         chatMessages.scrollTop = chatMessages.scrollHeight;
     }
     function showChatHistory(){
-        if(chatHistory.length===0){ showToast('暂无聊天历史'); return; }
-        let html='<div style="max-height:60vh;overflow-y:auto;padding:8px;">';
-        for(let msg of chatHistory){
-            if(!msg || msg.role === 'system') continue; // 会话分隔标记不显示
-            const roleLabel=msg.role==='user'?'🧑 用户':'🤖 AI';
-            const timeStr=msg.time?new Date(msg.time).toLocaleString():'';
-            html+='<div style="margin-bottom:12px;padding:10px;border-radius:12px;background:'+(msg.role==='user'?'#e8f0fe':'#f8fafc')+';border:1px solid #e9eef4;">';
-            html+='<div style="font-size:0.72rem;color:#94a3b8;margin-bottom:4px;">'+roleLabel+' · '+timeStr+'</div>';
-            html+='<div style="line-height:1.6;">'+escapeHtml(msg.content)+'</div>';
-            html+='</div>';
+        let html='<div style="max-height:50vh;overflow-y:auto;padding:8px;">';
+        if(chatHistory.length===0){
+            html+='<div style="text-align:center;color:#94a3b8;padding:20px;">暂无聊天历史</div>';
+        } else {
+            for(let msg of chatHistory){
+                if(!msg || msg.role === 'system') continue; // 会话分隔标记不显示
+                const roleLabel=msg.role==='user'?'🧑 用户':'🤖 AI';
+                const timeStr=msg.time?new Date(msg.time).toLocaleString():'';
+                html+='<div style="margin-bottom:12px;padding:10px;border-radius:12px;background:'+(msg.role==='user'?'#e8f0fe':'#f8fafc')+';border:1px solid #e9eef4;">';
+                html+='<div style="font-size:0.72rem;color:#94a3b8;margin-bottom:4px;">'+roleLabel+' · '+timeStr+'</div>';
+                html+='<div style="line-height:1.6;">'+escapeHtml(msg.content)+'</div>';
+                html+='</div>';
+            }
         }
         html+='</div>';
-        html+='<div style="text-align:center;margin-top:10px;"><button onclick="document.getElementById(\'grammarModal\').style.display=\'none\';document.body.style.overflow=\'\';" style="background:#1e2b5e;color:#fff;border:none;padding:8px 20px;border-radius:20px;cursor:pointer;">关闭</button></div>';
+        html+='<div style="text-align:center;margin-top:10px;border-top:1px solid #e9eef4;padding-top:10px;">'
+            + '<button onclick="window._exportMyData()" style="background:#1e2b5e;color:#fff;border:none;padding:8px 16px;border-radius:20px;cursor:pointer;margin-right:8px;">📤 导出我的数据</button>'
+            + '<button onclick="window._importMyData()" style="background:#0e7490;color:#fff;border:none;padding:8px 16px;border-radius:20px;cursor:pointer;">📥 导入数据</button>'
+            + '<div style="font-size:0.72rem;color:#94a3b8;margin-top:8px;line-height:1.5;">换网址迁移：先在旧网址点「导出」→ 全选复制代码 → 新网址点「导入」粘贴。包含历史、错题本、学习时长等全部数据。</div>'
+            + '</div>';
+        html+='<div style="text-align:center;margin-top:10px;"><button onclick="document.getElementById(\'grammarModal\').style.display=\'none\';document.body.style.overflow=\'\';" style="background:#64748b;color:#fff;border:none;padding:8px 20px;border-radius:20px;cursor:pointer;">关闭</button></div>';
         document.getElementById('modalTitle').textContent='📜 聊天历史记录';
         document.getElementById('modalDynamicContent').innerHTML=html;
         document.getElementById('grammarModal').style.display='block';
         document.body.style.overflow='hidden';
     }
+    // ===== 数据迁移：导出本浏览器全部学习数据（跨网址搬迁用） =====
+    window._exportMyData=function(){
+        try{
+            const data={};
+            for(let i=0;i<localStorage.length;i++){
+                const k=localStorage.key(i);
+                try{ data[k]=localStorage.getItem(k); }catch(e){}
+            }
+            const payload={ app:'hsk-helper', version:2, exportedAt:new Date().toISOString(), user:(currentUser||''), data:data };
+            const text='HSKEXPORT:'+btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
+            const ta='<div style="font-size:0.8rem;color:#475569;margin-bottom:8px;">👇 点「全选复制」，把这段代码发到新设备（微信文件传输助手等），在新网址点「导入数据」粘贴：</div>'
+                + '<textarea id="exportDataBox" readonly style="width:100%;height:180px;box-sizing:border-box;border:1px solid #cbd5e1;border-radius:10px;padding:8px;font-size:0.72rem;word-break:break-all;">'+escapeHtml(text)+'</textarea>'
+                + '<div style="text-align:center;margin-top:10px;"><button onclick="window._copyExportData()" style="background:#1e2b5e;color:#fff;border:none;padding:8px 20px;border-radius:20px;cursor:pointer;">📋 全选复制</button></div>';
+            document.getElementById('modalTitle').textContent='📤 导出我的数据';
+            document.getElementById('modalDynamicContent').innerHTML=ta;
+            document.getElementById('grammarModal').style.display='block';
+            document.body.style.overflow='hidden';
+            const box=document.getElementById('exportDataBox');
+            if(box){ box.focus(); box.select(); }
+        }catch(e){ showToast('导出失败：'+String((e&&e.message)||e)); }
+    };
+    window._copyExportData=function(){
+        const box=document.getElementById('exportDataBox');
+        if(!box) return;
+        box.focus(); box.select();
+        let done=false;
+        try{ done=document.execCommand('copy'); }catch(e){}
+        if(navigator.clipboard){ navigator.clipboard.writeText(box.value).then(function(){ showToast('✅ 已复制，去新网址点「导入数据」粘贴'); }, function(){ showToast('已全选，请手动长按复制'); }); }
+        else showToast(done?'✅ 已复制，去新网址点「导入数据」粘贴':'已全选，请手动长按复制');
+    };
+    window._importMyData=function(){
+        let text='';
+        try{ text=prompt('请粘贴从旧网址导出的数据代码（以 HSKEXPORT: 开头）：')||''; }
+        catch(e){ return; }
+        if(!text) return;
+        try{
+            const raw=String(text).trim();
+            const b64=raw.startsWith('HSKEXPORT:')?raw.slice(10):raw;
+            const payload=JSON.parse(decodeURIComponent(escape(atob(b64))));
+            if(!payload || payload.app!=='hsk-helper' || !payload.data) throw new Error('bad format');
+            let count=0;
+            for(const k of Object.keys(payload.data)){
+                try{ localStorage.setItem(k, payload.data[k]); count++; }catch(e){}
+            }
+            showToast('✅ 已导入 '+count+' 条数据，页面马上刷新');
+            setTimeout(function(){ location.reload(); }, 1500);
+        }catch(e){
+            showToast('导入失败：代码不完整或格式不对，请重新完整复制');
+        }
+    };
     function renderFavoriteBook(){ const el=document.getElementById('favoriteNotebookList'); if(!el) return; if(favoriteSentences.length===0){ el.innerHTML='<div class="empty-detail">'+t('panel.empty_favs')+'</div>'; return; } let html=''; for(let i=0;i<favoriteSentences.length;i++){ const item=favoriteSentences[i]; html+=`<div class="mistake-item"><div class="mistake-original">🇨🇳 ${escapeHtml(item.chinese)}</div><div>🌐 ${escapeHtml(item.translation||'')}</div><div style="font-size:0.7rem;color:#94a3b8;">📅 ${item.date||''} <button class="feedback-btn feedback-incorrect" onclick="window._removeFavorite(${i})" style="margin-left:8px;">`+t('zms.remove')+`</button></div></div>`; } el.innerHTML=html; }
     window._removeFavorite=function(idx){ favoriteSentences.splice(idx,1); saveFullState(); renderFavoriteBook(); showToast(t('zms.removed')); }
     function addFavorite(chinese, translation){ const _favIdx = favoriteSentences.findIndex(f => f.chinese === chinese); if(_favIdx !== -1){ favoriteSentences.splice(_favIdx, 1); saveFullState(); renderFavoriteBook(); showToast(t('zms.removed')); return; } favoriteSentences.unshift({chinese, translation, date:getLocalDate()}); if(favoriteSentences.length>50) favoriteSentences.pop(); saveFullState(); renderFavoriteBook(); showToast(t('toast.fav_added')); }
