@@ -458,14 +458,14 @@ function handleTencentTtsProxy(req, res) {
             try { json = JSON.parse(body); } catch (e) {}
             if (proxyRes.statusCode !== 200 || (json.Response && json.Response.Error)) {
                 const err = json.Response && json.Response.Error;
-                res.writeHead(502, { 'Content-Type': 'application/json; charset=utf-8' });
-                res.end(JSON.stringify({ error: (err && (err.Code + ' ' + err.Message)) || ('上游返回 ' + proxyRes.statusCode) }));
+                console.log('[TencentTTS] 腾讯云合成失败，自动改用备用语音:', (err && (err.Code + ' ' + err.Message)) || ('上游返回 ' + proxyRes.statusCode));
+                handleTtsProxy(req, res);
                 return;
             }
             const audioB64 = json.Response && json.Response.Audio;
             if (!audioB64) {
-                res.writeHead(502, { 'Content-Type': 'application/json; charset=utf-8' });
-                res.end(JSON.stringify({ error: '上游无音频返回' }));
+                console.log('[TencentTTS] 无音频返回，自动改用备用语音');
+                handleTtsProxy(req, res);
                 return;
             }
             const audio = Buffer.from(audioB64, 'base64');
@@ -474,14 +474,13 @@ function handleTencentTtsProxy(req, res) {
         });
     });
     proxyReq.on('error', (err) => {
-        console.error('[TencentTTS] 请求失败:', err.message);
-        res.writeHead(502, { 'Content-Type': 'application/json; charset=utf-8' });
-        res.end(JSON.stringify({ error: '腾讯云语音合成失败: ' + err.message }));
+        console.error('[TencentTTS] 请求失败，自动改用备用语音:', err.message);
+        handleTtsProxy(req, res);
     });
     proxyReq.on('timeout', () => {
         proxyReq.destroy();
-        res.writeHead(504, { 'Content-Type': 'application/json; charset=utf-8' });
-        res.end(JSON.stringify({ error: '腾讯云语音合成超时' }));
+        console.error('[TencentTTS] 请求超时，自动改用备用语音');
+        handleTtsProxy(req, res);
     });
     proxyReq.write(payload);
     proxyReq.end();
