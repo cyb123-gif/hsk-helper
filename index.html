@@ -18730,30 +18730,48 @@ ${searchRule}
                 ws.binaryType = 'arraybuffer';
                 let finalText = '';
                 let finished = false;
-                const timer = setTimeout(function(){ if(!finished){ finished = true; cleanup(); reject(new Error('识别超时，请重试')); } }, 20000);
-                function cleanup(){ clearTimeout(timer); try{ if(ws && (ws.readyState === 0 || ws.readyState === 1)) ws.close(); }catch(e){} }
-                ws.onopen = function(){
-                    try{
-                        const step = 1280; // 每 40ms 一帧
-                        for(let off = 0; off < pcmU8.length; off += step){
-                            ws.send(pcmU8.subarray(off, Math.min(off + step, pcmU8.length)));
+                let started = false;
+                let sawFinal = false;
+                let lastServerMsg = '';
+                let sendTimer = null;
+                const timer = setTimeout(function(){ if(!finished){ finished = true; cleanup(); reject(new Error('识别超时，请重试')); } }, 25000);
+                function cleanup(){ clearTimeout(timer); if(sendTimer) clearInterval(sendTimer); sendTimer = null; try{ if(ws && (ws.readyState === 0 || ws.readyState === 1)) ws.close(); }catch(e){} }
+                function startSend(){
+                    if(started) return;
+                    started = true;
+                    const step = 1280; // 16kHz 16bit 单声道：1280 字节 = 40ms，按 1:1 实时率发送
+                    let off = 0;
+                    sendTimer = setInterval(function(){
+                        if(off >= pcmU8.length){
+                            clearInterval(sendTimer);
+                            sendTimer = null;
+                            try{ ws.send('{"type":"end"}'); }catch(e){}
+                            return;
                         }
-                        ws.send('{"type":"end"}');
-                    }catch(e){ if(!finished){ finished = true; cleanup(); reject(new Error('发送音频失败')); } }
+                        try{ ws.send(pcmU8.subarray(off, Math.min(off + step, pcmU8.length))); }catch(e){}
+                        off += step;
+                    }, 40);
+                }
+                ws.onopen = function(){
+                    // 等服务器的握手成功消息（code=0）再发音频；1.5 秒没等到就直接发
+                    setTimeout(function(){ if(!started){ startSend(); } }, 1500);
                 };
                 ws.onmessage = function(ev){
                     if(typeof ev.data !== 'string') return;
+                    lastServerMsg = String(ev.data).slice(0, 300);
                     try{
                         const d = JSON.parse(ev.data);
-                        if(d && d.code !== 0){ if(!finished){ finished = true; cleanup(); reject(new Error(d.message || ('腾讯云错误码 ' + d.code))); } return; }
-                        if(d && d.final === 1 && d.result && d.result.voice_text_str){
-                            finalText = String(d.result.voice_text_str).trim();
-                            if(!finished){ finished = true; cleanup(); resolve(finalText); }
+                        if(d && d.code !== 0 && d.code !== undefined && d.code !== null){ if(!finished){ finished = true; cleanup(); reject(new Error(d.message || ('腾讯云错误码 ' + d.code))); } return; }
+                        if(d && d.code === 0 && !started) startSend();
+                        if(d && d.final === 1){
+                            sawFinal = true;
+                            const t0 = d.result && d.result.voice_text_str ? String(d.result.voice_text_str).trim() : '';
+                            if(t0){ finalText = t0; if(!finished){ finished = true; cleanup(); resolve(finalText); } }
                         }
                     }catch(e){}
                 };
                 ws.onerror = function(){ if(!finished){ finished = true; cleanup(); reject(new Error('腾讯云连接出错')); } };
-                ws.onclose = function(){ if(!finished){ finished = true; if(finalText){ resolve(finalText); } else { reject(new Error('连接已关闭，未收到识别结果')); } } };
+                ws.onclose = function(){ if(!finished){ finished = true; if(finalText){ resolve(finalText); } else if(sawFinal){ resolve(''); } else { reject(new Error('连接已关闭，未收到识别结果' + (lastServerMsg ? '｜服务器最后返回：' + lastServerMsg : ''))); } } };
             })();
         });
     }
