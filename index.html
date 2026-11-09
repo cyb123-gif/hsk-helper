@@ -815,6 +815,7 @@
                 <button id="voiceBtn" class="voice-btn" type="button" title="🎤 语音输入">🎤</button>
             </div>
             <div id="voiceInputHint" class="voice-input-hint">🎤 点击麦克风开始语音输入</div>
+            <div id="voiceDebugInfo" class="small-note" style="display:none;margin-top:4px;word-break:break-all;background:#0f172a;color:#7dd3fc;padding:6px 8px;border-radius:6px;font-size:0.78rem;line-height:1.5;"></div>
             <div class="button-group">
                 <button id="sendBtn">发送</button>
                 <button id="endConversationBtn">结束对话</button>
@@ -18653,13 +18654,32 @@ ${searchRule}
         try{ if(tencentStream) tencentStream.getTracks().forEach(t => t.stop()); }catch(e){}
         tencentStream = null; tencentRecorder = null; tencentChunks = [];
     }
+    let tencentLastPlaybackUrl = null;
+    function updateTencentDebugPanel(rawBlob, note){
+        const dbg = document.getElementById('voiceDebugInfo');
+        if(!dbg) return;
+        const info = window._lastTencentAudioInfo || {};
+        let html = '🎤 录音 ' + (info.dur ? info.dur.toFixed(1) : '?') + ' 秒｜音量峰值 ' + Math.round((info.peak || 0) * 100) + '%';
+        if(note) html += '｜' + note;
+        html += '<br>服务器最后返回：' + escapeHtml(String(window._lastTencentAsrMsg || '（无）')).slice(0, 400);
+        if(rawBlob){
+            try{ if(tencentLastPlaybackUrl) URL.revokeObjectURL(tencentLastPlaybackUrl); }catch(e){}
+            tencentLastPlaybackUrl = URL.createObjectURL(rawBlob);
+            html += '　<a href="' + tencentLastPlaybackUrl + '" target="_blank" style="color:#fbbf24;">▶ 回放这段录音</a>';
+        }
+        dbg.style.display = 'block';
+        dbg.innerHTML = html;
+    }
     async function transcribeTencentRecording(){
         const hint = document.getElementById('voiceInputHint');
         if(hint) hint.textContent = t('voice.hint_transcribing');
+        let rawBlobForDebug = null;
+        let outcomeNote = '';
         try{
             if(!tencentChunks.length) throw new Error('没有录到声音');
             const mime = (tencentRecorder && tencentRecorder.mimeType) || 'audio/webm';
             const rawBlob = new Blob(tencentChunks, { type: mime });
+            rawBlobForDebug = rawBlob;
             const wavBlob = await encodeWav16kFromBlob(rawBlob);
             const wavBuf = new Uint8Array(await wavBlob.arrayBuffer());
             const pcm = wavBuf.subarray(44); // 去掉 44 字节 WAV 头：16kHz/16bit/单声道 PCM
@@ -18672,10 +18692,12 @@ ${searchRule}
                 userInput.value = prev ? prev + '，' + text : text;
                 userInput.focus();
                 showToast('✅ 识别：' + text);
+                outcomeNote = '✅ 识别成功';
             } else {
                 const info = window._lastTencentAudioInfo || {};
                 const lastMsg = window._lastTencentAsrMsg || '';
                 showToast('未识别到内容｜录音 ' + (info.dur ? info.dur.toFixed(1) : '?') + ' 秒，音量峰值 ' + Math.round((info.peak || 0) * 100) + '%' + (lastMsg ? '｜服务器返回：' + lastMsg : '') + '｜请再试一次，说话时靠近麦克风');
+                outcomeNote = '未识别到内容';
             }
         }catch(e){
             const errMsg = String((e && e.message) || e);
@@ -18683,12 +18705,14 @@ ${searchRule}
             if(/密钥不存在|SecretIdNotFound|AuthFailure\.SecretIdNotFound/i.test(errMsg)) hint = '｜SecretId 不正确：请到 console.cloud.tencent.com/cam/capi 重新复制，注意前后不能有空格，也别和 SecretKey 填反';
             else if(/Signature|签名|AuthFailure\.SignatureFailure|SignatureExpire/i.test(errMsg)) hint = '｜SecretKey 不正确：请检查是否复制完整（前后不能有空格）';
             else if(/AppID|appid/i.test(errMsg)) hint = '｜AppID 不正确：应为纯数字（账号信息里查看）';
+            outcomeNote = errMsg.slice(0, 120);
             if(/没有声音|音量|麦克风|无法解码|不支持|录音/i.test(errMsg)){
                 showToast(errMsg);   // 本地录音/解码问题，不是腾讯云问题
             } else {
                 showToast('腾讯云识别失败：' + errMsg + hint);
             }
         }finally{
+            updateTencentDebugPanel(rawBlobForDebug, outcomeNote);
             releaseTencentMedia();
             updateVoiceHint();
         }
