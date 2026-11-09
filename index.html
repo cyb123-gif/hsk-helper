@@ -21828,6 +21828,9 @@ renderVocabLevelProgress(); renderVocabTrackList(); const _userHanzi = sessionUs
                 return;
             }
             try{
+                // 开始挂载画布前先隐藏占位图，避免加载期间图层被挤到左边
+                const fb0 = document.getElementById('live2dFallback');
+                if(fb0) fb0.style.display = 'none';
                 stage.appendChild(live2dApp.view);
                 let model = null;
                 try{
