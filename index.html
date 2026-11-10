@@ -235,9 +235,9 @@
         .live2d-status { position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); background: rgba(30,43,94,0.85); color: #fff; font-size: 0.75rem; padding: 4px 14px; border-radius: 20px; white-space: normal; max-width: 94%; line-height: 1.5; text-align: center; }
         .live2d-model-picker { position: absolute; top: 6px; right: 8px; background: rgba(255,255,255,0.92); border-radius: 14px; padding: 2px 8px; font-size: 0.72rem; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
         .live2d-model-picker select { border: none; background: transparent; font-size: 0.72rem; color: #1e2b5e; outline: none; cursor: pointer; }
-        /* ===== 对话模式布局：数字人与聊天窗口左右并排，一屏内看到数字人+最新消息+发送+怎么说，不用翻页 ===== */
-        .chat-live2d-row { display: flex; flex: 1; min-height: 0; }
-        .chat-live2d-row .live2d-stage { flex: 0 0 220px; width: 220px; height: auto; min-height: 300px; border-radius: 16px; margin: 10px 0 10px 10px; box-shadow: 0 4px 14px rgba(30,43,94,0.08); }
+        /* ===== 对话模式布局：数字人在上、聊天窗口在下，一屏内看到数字人+最新消息+发送+怎么说，不用翻页 ===== */
+        .chat-live2d-row { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+        .chat-live2d-row .live2d-stage { flex: 0 0 180px; width: auto; height: 180px; min-height: 0; border-radius: 14px; margin: 10px 10px 0; box-shadow: 0 4px 14px rgba(30,43,94,0.08); }
         .chat-live2d-row .chat-messages-wrapper { flex: 1; min-width: 0; min-height: 0; }
         .chat-panel.chat-fit { max-height: calc(100vh - 32px); }
         .chat-panel.chat-fit .chat-messages { max-height: none; }
@@ -303,7 +303,7 @@
             .chat-panel { min-width: 280px; flex: 1.5; }
             .info-panel { min-width: 280px; flex: 1; }
             .chat-messages { max-height: 350px; }
-            .live2d-stage { height: 200px; }
+            .chat-live2d-row .live2d-stage { flex: 0 0 150px; height: 150px; }
             .modal-content { width: 95%; padding: 14px; border-radius: 20px; }
             .practice-input-box { width: 58px; margin-top: 18px; }
             .practice-input-box input { height: 44px; font-size: 20px; }
