@@ -22033,9 +22033,6 @@ renderVocabLevelProgress(); renderVocabTrackList(); const _userHanzi = sessionUs
         if(!LIVE2D_MODELS[name]) name = 'shizuku';
         return name;
     }
-    const LIVE2D_MODEL_URLS = [].concat.apply([], Object.keys(LIVE2D_MODELS).map(function(k){
-        return [LIVE2D_MODELS[k].url].concat(LIVE2D_MODELS[k].fallbacks || []);
-    }));
     let live2dStatusState = null;   // { key, params }
     function live2dSetStatus(key, params){
         const el = document.getElementById('live2dStatus');
@@ -22194,7 +22191,9 @@ renderVocabLevelProgress(); renderVocabTrackList(); const _userHanzi = sessionUs
             }
             let modelUrl = null;
             const selModel = live2dSelectedModel();
-            const probeUrls = [LIVE2D_MODELS[selModel].url].concat(LIVE2D_MODELS[selModel].fallbacks || [], LIVE2D_MODEL_URLS);
+            // 只探测用户当前选中的角色及其自身的备用地址；
+            // 绝不能偷偷换成别的角色（否则选了小春/响/泉却一直显示小原）
+            const probeUrls = [LIVE2D_MODELS[selModel].url].concat(LIVE2D_MODELS[selModel].fallbacks || []);
             const seenProbe = {};
             for(const u of probeUrls){
                 if(seenProbe[u]) continue;
