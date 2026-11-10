@@ -37,6 +37,7 @@
         .voice-btn.unsupported { display: none; }
         .voice-input-hint { margin: -2px 4px 0; font-size: 0.72rem; color: #94a3b8; line-height: 1.4; }
         @keyframes voicePulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.35); } 50% { box-shadow: 0 0 0 10px rgba(220, 38, 38, 0); } }
+        @keyframes enterSpin { to { transform: rotate(360deg); } }
         .button-group { display: flex; gap: 10px; }
         .button-group button { background: #1e2b5e; color: white; border: none; border-radius: 40px; padding: 10px 0; font-weight: 600; font-size: 1rem; cursor: pointer; transition: 0.15s; flex: 1; }
         .button-group button:hover { background: #2f4685; transform: scale(0.97); }
@@ -234,6 +235,13 @@
         .live2d-status { position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); background: rgba(30,43,94,0.85); color: #fff; font-size: 0.75rem; padding: 4px 14px; border-radius: 20px; white-space: normal; max-width: 94%; line-height: 1.5; text-align: center; }
         .live2d-model-picker { position: absolute; top: 6px; right: 8px; background: rgba(255,255,255,0.92); border-radius: 14px; padding: 2px 8px; font-size: 0.72rem; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
         .live2d-model-picker select { border: none; background: transparent; font-size: 0.72rem; color: #1e2b5e; outline: none; cursor: pointer; }
+        /* ===== 对话模式布局：数字人与聊天窗口左右并排，一屏内看到数字人+最新消息+发送+怎么说，不用翻页 ===== */
+        .chat-live2d-row { display: flex; flex: 1; min-height: 0; }
+        .chat-live2d-row .live2d-stage { flex: 0 0 220px; width: 220px; height: auto; min-height: 300px; border-radius: 16px; margin: 10px 0 10px 10px; box-shadow: 0 4px 14px rgba(30,43,94,0.08); }
+        .chat-live2d-row .chat-messages-wrapper { flex: 1; min-width: 0; min-height: 0; }
+        .chat-panel.chat-fit { max-height: calc(100vh - 32px); }
+        .chat-panel.chat-fit .chat-messages { max-height: none; }
+        .chat-panel.chat-fit .chat-input-area { flex-shrink: 0; }
         .browser-tabs { display: flex; gap: 0; padding: 0 8px; background: transparent; }
         .browser-tab { padding: 7px 14px; border: 1px solid #d0dae8; border-bottom: none; background: #e8ecf2; cursor: pointer; font-size: 0.75rem; font-weight: 600; color: #64748b; border-radius: 8px 8px 0 0; margin-right: -1px; position: relative; z-index: 0; transition: 0.15s; }
         .browser-tab:hover { background: #dce3ed; color: #334155; }
@@ -310,7 +318,11 @@
             .chat-header { padding: 14px 16px; }
             .chat-header h2 { font-size: 1.2rem; }
             .chat-messages { max-height: 42vh; min-height: 200px; padding: 12px; }
-            .live2d-stage { height: 150px; }
+            .chat-live2d-row { flex-direction: column; gap: 0; }
+            .chat-live2d-row .live2d-stage { flex: 0 0 140px; width: auto; height: 140px; min-height: 0; margin: 8px 8px 0; border-radius: 14px; }
+            .chat-panel.chat-fit { max-height: calc(100vh - 16px); }
+            .chat-panel.chat-fit .chat-messages { max-height: none; min-height: 120px; }
+            .chat-panel.chat-fit .chat-input-area { padding: 10px 12px 12px; gap: 6px; }
             .live2d-fallback { font-size: 56px; }
             .live2d-model-picker { font-size: 0.66rem; padding: 1px 6px; }
             .bubble { font-size: 0.9rem; padding: 10px 14px; }
@@ -765,18 +777,6 @@
             <h2>🤖 汉语学习助手</h2>
             <p><span id="headerUsername" class="user-welcome"></span><span id="usageTimer" style="margin-left:12px;opacity:0.8;font-size:0.82rem;"></span><button id="chatHistoryBtn" style="margin-left:12px;background:rgba(255,255,255,0.2);color:#fff;border:1px solid rgba(255,255,255,0.4);border-radius:12px;padding:2px 10px;cursor:pointer;font-size:0.75rem;">📜 历史</button><span class="target-level-wrap" title="练习前选择目标 HSK 等级"><span id="targetLevelLabel">🎯 目标 HSK 等级</span><select id="targetLevelSelect"></select></span></p>
         </div>
-        <div id="live2dStage" class="live2d-stage" title="AI 外教">
-            <div class="live2d-fallback" id="live2dFallback">👩‍🏫</div>
-            <div class="live2d-status" id="live2dStatus">⏳ 数字人加载中…</div>
-            <div class="live2d-model-picker" title="更换数字人">
-                🎭 <select id="live2dModelSelect">
-                    <option value="shizuku">小原（默认）</option>
-                    <option value="koharu">小春</option>
-                    <option value="hibiki">响</option>
-                    <option value="izumi">泉</option>
-                </select>
-            </div>
-        </div>
         <div class="mode-tabs" id="modeTabs">
             <button class="mode-tab active" data-group="knowledge" id="modeTabKnowledge">🎯 知识练习</button>
             <button class="mode-tab" data-group="usage" id="modeTabUsage">✍️ 用法练习</button>
@@ -793,7 +793,20 @@
             <button class="mode-tab sub" data-mode="dictation" id="modeTabDictation">🎧 听写模式</button>
             <button class="mode-tab sub" data-mode="wordlab" id="modeTabWordLab">📚 练习模式</button>
         </div>
-        <div class="chat-messages-wrapper" id="chatMessagesWrapper">
+        <div class="chat-live2d-row" id="chatLive2dRow">
+            <div id="live2dStage" class="live2d-stage" title="AI 外教">
+                <div class="live2d-fallback" id="live2dFallback">👩‍🏫</div>
+                <div class="live2d-status" id="live2dStatus">⏳ 数字人加载中…</div>
+                <div class="live2d-model-picker" title="更换数字人">
+                    🎭 <select id="live2dModelSelect">
+                        <option value="shizuku">小原（默认）</option>
+                        <option value="koharu">小春</option>
+                        <option value="hibiki">响</option>
+                        <option value="izumi">泉</option>
+                    </select>
+                </div>
+            </div>
+            <div class="chat-messages-wrapper" id="chatMessagesWrapper">
         <div class="chat-messages" id="chatMessages">
             <div class="message assistant-message">
                 <div class="bubble assistant-bubble"><span id="chatGreetingText">你好，我是你的AI语伴，我们一起聊天吧</span><div class="greeting-native" id="chatGreetingNative" style="display:none;margin-top:6px;color:#64748b;font-size:0.85rem;"></div></div>
@@ -815,19 +828,53 @@
                 <label id="autoReadLabel" style="display:flex;align-items:center;gap:6px;cursor:pointer;color:#475569;">
                     <input type="checkbox" id="autoReadCheckbox"> 🔊 自动朗读AI回复
                 </label>
-                <label style="display:flex;align-items:center;gap:6px;color:#475569;" title="聊天 AI 回复的朗读音色（微软 Edge TTS）">
+                <label style="display:flex;align-items:center;gap:6px;color:#475569;" title="聊天 AI 回复的朗读音色：腾讯云音色优先，微软 Edge 多语种音色兜底">
                     <span>🗣️ AI 音色</span>
                     <select id="chatVoiceSelect" style="padding:3px 10px;border-radius:12px;border:1.5px solid #d0dae8;font-size:0.8rem;outline:none;background:white;">
-                        <option value="zh-CN-XiaoxiaoNeural">晓晓·女声(温暖)</option>
-                        <option value="zh-CN-YunxiNeural">云希·男声</option>
-                        <option value="zh-CN-YunyangNeural">云扬·男声(新闻)</option>
-                        <option value="zh-CN-XiaoyiNeural">晓伊·女声(活泼)</option>
-                        <option value="zh-CN-YunjianNeural">云健·男声(解说)</option>
+                        <optgroup label="腾讯云音色（推荐）">
+                            <option value="tcc:101001" selected>智瑜·女(温柔)</option>
+                            <option value="tcc:101002">智聆·女(新闻)</option>
+                            <option value="tcc:101003">智美·女(客服)</option>
+                            <option value="tcc:101004">智云·男(情感)</option>
+                            <option value="tcc:101005">智莉·女(活泼)</option>
+                            <option value="tcc:101006">智言·男(磁性)</option>
+                        </optgroup>
+                        <optgroup label="Edge 中文">
+                            <option value="zh-CN-XiaoxiaoNeural">晓晓·女声(温暖)</option>
+                            <option value="zh-CN-YunxiNeural">云希·男声</option>
+                            <option value="zh-CN-YunyangNeural">云扬·男声(新闻)</option>
+                            <option value="zh-CN-XiaoyiNeural">晓伊·女声(活泼)</option>
+                            <option value="zh-CN-YunjianNeural">云健·男声(解说)</option>
+                        </optgroup>
+                        <optgroup label="Edge English">
+                            <option value="en-US-AriaNeural">Aria·女(US)</option>
+                            <option value="en-US-GuyNeural">Guy·男(US)</option>
+                            <option value="en-GB-SoniaNeural">Sonia·女(UK)</option>
+                        </optgroup>
+                        <optgroup label="Edge 日本語">
+                            <option value="ja-JP-NanamiNeural">七海·女</option>
+                            <option value="ja-JP-KeitaNeural">圭太·男</option>
+                        </optgroup>
+                        <optgroup label="Edge 한국어">
+                            <option value="ko-KR-SunHiNeural">선히·女</option>
+                            <option value="ko-KR-InJoonNeural">인준·男</option>
+                        </optgroup>
+                        <optgroup label="Edge 其他语言">
+                            <option value="es-ES-ElviraNeural">Elvira·西班牙语(女)</option>
+                            <option value="fr-FR-DeniseNeural">Denise·法语(女)</option>
+                            <option value="de-DE-KatjaNeural">Katja·德语(女)</option>
+                            <option value="ru-RU-SvetlanaNeural">Svetlana·俄语(女)</option>
+                            <option value="th-TH-PremwadeeNeural">Premwadee·泰语(女)</option>
+                            <option value="it-IT-ElsaNeural">Elsa·意大利语(女)</option>
+                            <option value="vi-VN-HoaiMyNeural">HoaiMy·越南语(女)</option>
+                            <option value="id-ID-GadisNeural">Gadis·印尼语(女)</option>
+                            <option value="sk-SK-ViktoriaNeural">Viktoria·斯洛伐克语(女)</option>
+                        </optgroup>
                     </select>
                     <span id="chatVoiceHint" style="font-size:0.7rem;color:#94a3b8;"></span>
                 </label>
-                <label style="display:flex;align-items:center;gap:6px;color:#475569;" title="语音输入使用腾讯云实时语音识别（免费额度），需在右侧「腾讯云语音识别」填写密钥">
-                    <span>🎤 语音输入：腾讯云</span>
+                <label style="display:flex;align-items:center;gap:6px;color:#475569;" title="语音输入使用腾讯云实时语音识别">
+                    <span>🎤 语音输入</span>
                 </label>
             </div>
             <div class="input-group">
@@ -847,6 +894,7 @@
             </div>
             <div id="zenmeshuoResult" class="zenmeshuo-result"></div>
             <div class="end-conversation-hint">⚠️ 聊天结束后请务必点击「结束对话」→ 分析语法并保存学习记录</div>
+        </div>
         </div>
         </div>
         <div class="writing-panel" id="writingPanel">
@@ -13639,14 +13687,6 @@ const HSK2_VOCAB = [
             const next = el.nextElementSibling;
             if(next && next.classList && next.classList.contains('small-note')) next.style.display = 'none';
         }
-        if(!document.getElementById('serverKeyNote')){
-            const note = document.createElement('div');
-            note.id = 'serverKeyNote';
-            note.className = 'small-note';
-            note.textContent = '✅ AI 与语音服务由本站服务器提供，无需填写任何密钥';
-            const anchorEl = document.getElementById('apiKeyInput');
-            if(anchorEl && anchorEl.parentNode) anchorEl.parentNode.insertBefore(note, anchorEl);
-        }
     }
     function t(key) {
         const lang = targetLangSelect ? targetLangSelect.value : 'English';
@@ -14062,12 +14102,17 @@ const HSK2_VOCAB = [
             if (mcqPanel) mcqPanel.classList.add('active');
             renderWordLab();
         }
-        // 数字人只在「对话」模式显示：写作/阅读/练习等模式隐藏，把空间留给内容
+        // 数字人+聊天窗口只在「对话」模式显示：写作/阅读/练习等模式隐藏整行，把空间留给内容
+        const _l2dRow = document.getElementById('chatLive2dRow');
         const _l2dStage = document.getElementById('live2dStage');
+        const _chatPanelEl = document.querySelector('.chat-panel');
+        if(_l2dRow) _l2dRow.style.display = (mode === 'chat') ? 'flex' : 'none';
         if(_l2dStage){
             _l2dStage.style.display = (mode === 'chat') ? '' : 'none';
-            if(mode === 'chat' && window._live2dResizeFit){ setTimeout(window._live2dResizeFit, 60); }
+            if(mode === 'chat' && window._live2dResizeFit){ setTimeout(window._live2dResizeFit, 80); }
         }
+        // 对话模式限定面板高度：一屏内同时看到数字人、最新消息、发送和「怎么说」
+        if(_chatPanelEl) _chatPanelEl.classList.toggle('chat-fit', mode === 'chat');
     }
     const _kTabEl = document.getElementById('modeTabKnowledge');
     if (_kTabEl) _kTabEl.onclick = () => switchMode('knowledge');
@@ -19187,6 +19232,22 @@ ${searchRule}
     let chatTtsAudio = null;
     let chatTtsText = '';
     let chatTtsToken = 0;
+    // 用 Web Audio 实时分析音频振幅，驱动数字人嘴型（说话时嘴巴按真实声音张合，更逼真）
+    function attachChatTtsAudioAnalyser(audio){
+        try{
+            if(!(window.AudioContext || window.webkitAudioContext)) return;
+            const AC = window.AudioContext || window.webkitAudioContext;
+            if(!window._chatTtsAudioCtx) window._chatTtsAudioCtx = new AC();
+            const ctx = window._chatTtsAudioCtx;
+            if(ctx.state === 'suspended'){ ctx.resume().catch(function(){}); }
+            const src = ctx.createMediaElementSource(audio);
+            const an = ctx.createAnalyser();
+            an.fftSize = 256;
+            src.connect(an);
+            an.connect(ctx.destination);
+            window._chatTtsAnalyser = an;
+        }catch(e){}
+    }
     function playChatTtsUrl(url, isBlobUrl){
         if(chatTtsAudio){
             const old = chatTtsAudio;
@@ -19206,6 +19267,7 @@ ${searchRule}
             stopLive2DMouth();
             if(isBlobUrl){ try{ URL.revokeObjectURL(url); }catch(e){} }
         };
+        attachChatTtsAudioAnalyser(audio);
         startLive2DMouth();
         audio.play();
     }
@@ -19226,7 +19288,11 @@ ${searchRule}
         const s = await crypto.subtle.sign('HMAC', k, new TextEncoder().encode(msgStr));
         return new Uint8Array(s);
     }
-    async function tencentTtsAudio(cleanText){
+    async function tencentTtsAudio(cleanText, voiceType){
+        const _voice = Number(voiceType) || 101001;
+        // 语速映射：页面 0.5x~2x → 腾讯云 Speed(-2~2)
+        let _speed = 0;
+        try{ _speed = Math.max(-2, Math.min(2, Math.round((speechRateValue - 1) * 2))); }catch(e){}
         // 代理优先：本地服务器（localhost）或用户填的 Cloudflare Worker 地址，绕开浏览器跨域限制
         let proxy = '';
         try{ proxy = (localStorage.getItem('TENCENT_TTS_PROXY') || '').trim(); }catch(e){}
@@ -19236,7 +19302,7 @@ ${searchRule}
         candidates.push('/tts-tencent');
         for(const base of candidates){
             try{
-                const r = await fetch(base + '?text=' + encodeURIComponent(cleanText));
+                const r = await fetch(base + '?text=' + encodeURIComponent(cleanText) + '&voice=' + encodeURIComponent(String(_voice)) + '&speed=' + encodeURIComponent(String(_speed)));
                 if(r.ok){
                     const b = await r.blob();
                     if(b.size) return b;
@@ -19254,7 +19320,7 @@ ${searchRule}
         const payload = JSON.stringify({
             Text: cleanText,
             SessionId: 'hsk' + Date.now(),
-            VoiceType: 101001,
+            VoiceType: _voice,
             Codec: 'mp3',
             SampleRate: 16000,
             Speed: 0,
@@ -19313,27 +19379,30 @@ ${searchRule}
         chatTtsText = clean;
         const myChatToken = ++chatTtsToken;
         const chatVoice = getChatEdgeVoice();
-        // 1) 微软 Edge TTS
+        // 1) 腾讯云音色（已付费优先）：tcc:101001 等
+        if(chatVoice.indexOf('tcc:') === 0){
+            try{
+                const blob = await tencentTtsAudio(clean, chatVoice.slice(4));
+                if(myChatToken !== chatTtsToken) return;
+                playChatTtsUrl(URL.createObjectURL(blob), true);
+                return;
+            }catch(e){
+                const em = String((e && e.message) || e);
+                if(/UnauthorizedOperation|权限不足/i.test(em)) showToast('腾讯云语音合成没权限：请给子用户关联「QcloudTTSFullAccess」策略');
+                else if(/SecretIdNotFound|密钥不存在/i.test(em)) showToast('腾讯云语音合成：SecretId 已失效，已自动改用 Edge 音色');
+                else showToast('腾讯云语音合成失败，已改用 Edge 音色');
+                // 失败自动回退到 Edge 中文晓晓
+            }
+            if(myChatToken !== chatTtsToken) return;
+        }
+        // 2) 微软 Edge TTS（多语种音色）
+        const edgeVoice = (chatVoice.indexOf('tcc:') === 0) ? 'zh-CN-XiaoxiaoNeural' : chatVoice;
         try{
-            const url = await edgeTtsSpeakCached('edge|' + chatVoice + '|' + speechRateValue.toFixed(2) + '|' + clean, clean, chatVoice, speechRateValue);
+            const url = await edgeTtsSpeakCached('edge|' + edgeVoice + '|' + speechRateValue.toFixed(2) + '|' + clean, clean, edgeVoice, speechRateValue);
             if(myChatToken !== chatTtsToken) return;
             playChatTtsUrl(url, false);
             return;
         }catch(e){}
-        if(myChatToken !== chatTtsToken) return;
-        // 2) 腾讯云语音合成（跨域直连，不依赖浏览器语音引擎）
-        try{
-            const blob = await tencentTtsAudio(clean);
-            if(myChatToken !== chatTtsToken) return;
-            playChatTtsUrl(URL.createObjectURL(blob), true);
-            return;
-        }catch(e){
-            const em = String((e && e.message) || e);
-            if(/UnauthorizedOperation|权限不足/i.test(em)) showToast('腾讯云语音合成没权限：请给子用户关联「QcloudTTSFullAccess」策略（语音合成有免费额度）');
-            else if(/SecretIdNotFound|密钥不存在/i.test(em)) showToast('腾讯云语音合成：SecretId 已失效，请更新右侧腾讯云密钥');
-            else if(/Failed to fetch|跨域|TypeError|NetworkError/i.test(em)) showToast('语音合成被浏览器跨域拦截：电脑请用 localhost:3001，手机请在右侧填写 TTS 代理地址（Cloudflare Worker）');
-            else showToast('语音合成失败：' + em.slice(0, 80));
-        }
         if(myChatToken !== chatTtsToken) return;
         // 3) 浏览器语音兜底
         chatTtsText = '';
@@ -19960,7 +20029,7 @@ async function analyzeMistakesBatch(userMessages, aiReplyRaw, contextMessages){ 
 8. note 用${targetLang}具体说明每个错误的原因。
 9. type 必须从固定中文类型中选一个：错字、别字、漏字、多字、词语错误、离合词错误、缺词、多词、语序错误、搭配不当、成分残缺、成分多余、句式杂糅、关联词错误、语义错误、语义不完整。
 10. 拿不准学生想表达什么时 uncertain 填 true，不要猜。
-输出JSON数组：[{"original":"原文句子","corrected":"改正后句子","uncertain":true或false,"type":"类型","pattern":"框式结构或空","note":"说明"}]。`; const dictHints = buildHskDictHints((userMessages || []).join('\n')); try{ const _tr=await thinkingFetch({model:'deepseek-v4-pro',thinking:{type:'disabled'}, max_tokens:4096, messages:[{role:'system',content:compactPrompt},{role:'user',content:((contextMessages?('【对话上下文】（仅用于理解学生当前句子的意思，不要纠错上下文内容）\n'+contextMessages+'\n\n'):'') + (aiReplyRaw ? ('学生句子: '+JSON.stringify(userMessages)+'\n\nAI对话伙伴的自然回复（仅供参考，可能已包含正确说法）:\n'+String(aiReplyRaw)) : ('学生句子: '+JSON.stringify(userMessages)))) + (dictHints ? ('\n\n【语料近义词提示 - 仅供参考，必须结合上下文判断：学生用对了就不要改，确实用错才纠正】\n' + dictHints.split('\n').slice(0, 8).join('\n')) : '')}], temperature:0.3}, 45000); if(!_tr) throw new Error("API timeout"); const data=_tr.data; if(data.error) throw new Error(data.error.message||"API error"); if(!data.choices||!data.choices[0]||!data.choices[0].message) throw new Error("API error"); let content=data.choices[0].message.content || data.choices[0].message.reasoning_content || ''; content=content.replace(/```json/g,'').replace(/```/g,'').trim(); let parsed=null; try{ parsed=JSON.parse(content); }catch(e){ const arrM=content.match(/\[[\s\S]*\]/); const objM=content.match(/\{[\s\S]*\}/); const cand=arrM?arrM[0]:(objM?objM[0]:''); if(cand){ try{ parsed=JSON.parse(cand); }catch(e2){ parsed=null; } } } let arr=[]; if(Array.isArray(parsed)) arr=parsed; else if(parsed&&Array.isArray(parsed.mistakes)) arr=parsed.mistakes; else if(parsed&&Array.isArray(parsed.results)) arr=parsed.results; else if(parsed&&Array.isArray(parsed.errors)) arr=parsed.errors; else if(parsed&&typeof parsed.original==='string'&&typeof parsed.corrected==='string') arr=[parsed]; return arr; }catch(e){ return []; } }
+输出JSON数组：[{"original":"原文句子","corrected":"改正后句子","uncertain":true或false,"type":"类型","pattern":"框式结构或空","note":"说明"}]。`; const dictHints = buildHskDictHints((userMessages || []).join('\n')); try{ const _tr=await thinkingFetch({model:'deepseek-v4-pro',reasoning_effort:'low',thinking:{type:'enabled'}, max_tokens:8192, messages:[{role:'system',content:compactPrompt},{role:'user',content:((contextMessages?('【对话上下文】（仅用于理解学生当前句子的意思，不要纠错上下文内容）\n'+contextMessages+'\n\n'):'') + (aiReplyRaw ? ('学生句子: '+JSON.stringify(userMessages)+'\n\nAI对话伙伴的自然回复（仅供参考，可能已包含正确说法）:\n'+String(aiReplyRaw)) : ('学生句子: '+JSON.stringify(userMessages)))) + (dictHints ? ('\n\n【语料近义词提示 - 仅供参考，必须结合上下文判断：学生用对了就不要改，确实用错才纠正】\n' + dictHints.split('\n').slice(0, 8).join('\n')) : '')}], temperature:0.3}, 90000); if(!_tr) throw new Error("API timeout"); const data=_tr.data; if(data.error) throw new Error(data.error.message||"API error"); if(!data.choices||!data.choices[0]||!data.choices[0].message) throw new Error("API error"); let content=data.choices[0].message.content || data.choices[0].message.reasoning_content || ''; content=content.replace(/```json/g,'').replace(/```/g,'').trim(); let parsed=null; try{ parsed=JSON.parse(content); }catch(e){ const arrM=content.match(/\[[\s\S]*\]/); const objM=content.match(/\{[\s\S]*\}/); const cand=arrM?arrM[0]:(objM?objM[0]:''); if(cand){ try{ parsed=JSON.parse(cand); }catch(e2){ parsed=null; } } } let arr=[]; if(Array.isArray(parsed)) arr=parsed; else if(parsed&&Array.isArray(parsed.mistakes)) arr=parsed.mistakes; else if(parsed&&Array.isArray(parsed.results)) arr=parsed.results; else if(parsed&&Array.isArray(parsed.errors)) arr=parsed.errors; else if(parsed&&typeof parsed.original==='string'&&typeof parsed.corrected==='string') arr=[parsed]; return arr; }catch(e){ return []; } }
     // 无错快速判断：不开思考、约1秒，只判断有没有错。返回 true=有错/不确定（走完整分析），false=非常确定无错（跳过深度思考）。
     // 判断失败返回 null，调用方按“有错”保守处理，保证不漏纠。
     async function quickMistakeCheck(text){
@@ -22370,14 +22439,26 @@ const _bgPending = (window._chatCorrectionBgTasks || []).slice(); if(_bgPending.
         live2dIdlePaused = true;   // 说话时暂停待机动作
         const t0 = Date.now();
         live2dMouthTimer = setInterval(function(){
-            const t = (Date.now() - t0) / 1000;
-            const v = 0.22 + 0.78 * Math.abs(Math.sin(t * Math.PI * 5.6)) * (0.65 + 0.35 * Math.abs(Math.sin(t * 2.31 + 1.7)));
+            let v = 0.22 + 0.78 * Math.abs(Math.sin((Date.now() - t0) / 1000 * Math.PI * 5.6)) * (0.65 + 0.35 * Math.abs(Math.sin((Date.now() - t0) / 1000 * 2.31 + 1.7)));
+            // 有实时音频分析时，嘴型按真实声音振幅张合（更逼真）
+            const an = window._chatTtsAnalyser;
+            if(an){
+                try{
+                    const buf = new Uint8Array(an.fftSize || 256);
+                    an.getByteTimeDomainData(buf);
+                    let sum = 0;
+                    for(let i = 0; i < buf.length; i++){ const d = (buf[i] - 128) / 128; sum += d * d; }
+                    const rms = Math.sqrt(sum / buf.length);
+                    v = Math.min(1, 0.12 + rms * 3.2);
+                }catch(e){}
+            }
             if(window.setLive2DMouth) window.setLive2DMouth(v);
-        }, 60);
+        }, 50);
     }
     function stopLive2DMouth(){
         live2dIdlePaused = false;  // 恢复待机动作
         if(live2dMouthTimer){ clearInterval(live2dMouthTimer); live2dMouthTimer = null; }
+        if(window._chatTtsAnalyser){ try{ window._chatTtsAnalyser.disconnect(); }catch(e){} window._chatTtsAnalyser = null; }
         if(window.setLive2DMouth) window.setLive2DMouth(0);
     }
 
@@ -22458,12 +22539,36 @@ const _bgPending = (window._chatCorrectionBgTasks || []).slice(); if(_bgPending.
     const EDGE_SEC_GEC_VERSION = '2-143.0.3650.75';
     const EDGE_TTS_WSS = 'wss://speech.platform.bing.com/consumer/speech/synthesize/readaloud/edge/v1';
     const EDGE_VOICE_MAP = { female: 'zh-CN-XiaoxiaoNeural', male: 'zh-CN-YunxiNeural' };
+    const TENCENT_TTS_CHAT_VOICES = [
+        { v: 'tcc:101001', label: '智瑜·女(温柔)' },
+        { v: 'tcc:101002', label: '智聆·女(新闻)' },
+        { v: 'tcc:101003', label: '智美·女(客服)' },
+        { v: 'tcc:101004', label: '智云·男(情感)' },
+        { v: 'tcc:101005', label: '智莉·女(活泼)' },
+        { v: 'tcc:101006', label: '智言·男(磁性)' }
+    ];
     const EDGE_TTS_CHAT_VOICES = [
         { v: 'zh-CN-XiaoxiaoNeural', label: '晓晓·女声(温暖)' },
         { v: 'zh-CN-YunxiNeural', label: '云希·男声' },
         { v: 'zh-CN-YunyangNeural', label: '云扬·男声(新闻)' },
         { v: 'zh-CN-XiaoyiNeural', label: '晓伊·女声(活泼)' },
-        { v: 'zh-CN-YunjianNeural', label: '云健·男声(解说)' }
+        { v: 'zh-CN-YunjianNeural', label: '云健·男声(解说)' },
+        { v: 'en-US-AriaNeural', label: 'Aria·女(US)' },
+        { v: 'en-US-GuyNeural', label: 'Guy·男(US)' },
+        { v: 'en-GB-SoniaNeural', label: 'Sonia·女(UK)' },
+        { v: 'ja-JP-NanamiNeural', label: '七海·女' },
+        { v: 'ja-JP-KeitaNeural', label: '圭太·男' },
+        { v: 'ko-KR-SunHiNeural', label: '선히·女' },
+        { v: 'ko-KR-InJoonNeural', label: '인준·男' },
+        { v: 'es-ES-ElviraNeural', label: 'Elvira·西班牙语(女)' },
+        { v: 'fr-FR-DeniseNeural', label: 'Denise·法语(女)' },
+        { v: 'de-DE-KatjaNeural', label: 'Katja·德语(女)' },
+        { v: 'ru-RU-SvetlanaNeural', label: 'Svetlana·俄语(女)' },
+        { v: 'th-TH-PremwadeeNeural', label: 'Premwadee·泰语(女)' },
+        { v: 'it-IT-ElsaNeural', label: 'Elsa·意大利语(女)' },
+        { v: 'vi-VN-HoaiMyNeural', label: 'HoaiMy·越南语(女)' },
+        { v: 'id-ID-GadisNeural', label: 'Gadis·印尼语(女)' },
+        { v: 'sk-SK-ViktoriaNeural', label: 'Viktoria·斯洛伐克语(女)' }
     ];
     let edgeTtsDownUntil = 0;      // 接口失败后的冷却时间（毫秒时间戳），冷却期内直接走兜底
     const edgeTtsCache = new Map(); // cacheKey -> blob URL（最多 200 条）
@@ -22749,9 +22854,11 @@ const _bgPending = (window._chatCorrectionBgTasks || []).slice(); if(_bgPending.
     function getChatEdgeVoice(){
         try{
             const saved = localStorage.getItem('EDGE_VOICE_CHAT');
+            if(saved && saved.indexOf('tcc:') === 0 && TENCENT_TTS_CHAT_VOICES.some(o => o.v === saved)) return saved;
             if(saved && EDGE_TTS_CHAT_VOICES.some(o => o.v === saved)) return saved;
         }catch(e){}
-        return 'zh-CN-XiaoxiaoNeural';
+        // 默认使用腾讯云音色（服务器已配置腾讯云密钥）
+        return 'tcc:101001';
     }
 
     let speechToken = 0;
@@ -24043,7 +24150,17 @@ async function generateAndShowPractice(grammarPattern, grammarLevel, forceNew=fa
     function getUsers(){ const raw=localStorage.getItem(USERS_STORAGE); return raw?JSON.parse(raw):{}; }
     function saveUsers(users){ localStorage.setItem(USERS_STORAGE, JSON.stringify(users)); }
     function updateHeaderUser(){ const el=document.getElementById('headerUsername'); if(currentUser){ el.innerHTML=t('user.welcome')+escapeHtml(currentUser)+' <span class="logout-link" id="logoutLink">'+t('user.logout')+'</span>'; document.getElementById('logoutLink').onclick=handleLogout; } else { el.innerHTML=''; } }
-    async function handleLogin(){ const username=document.getElementById('loginUsername').value.trim(); const password=document.getElementById('loginPassword').value.trim(); const errorEl=document.getElementById('loginError'); const btn=document.getElementById('loginBtn'); if(!username||!password){ errorEl.textContent=t('login.error_empty'); return; } btn.disabled=true; btn.textContent=t('login.verifying'); errorEl.textContent=''; try { const users=getUsers(); const fast=hashPassword(password,username); const stored=users[username]; if(stored){ if(fast===stored){ /* new format match */ } else if(!stored.startsWith('fallback_')&&/^[0-9a-f]{64}$/.test(stored)){ const cryptoHash=await tryCryptoHash(password,username); if(cryptoHash!==stored){ errorEl.textContent=t('login.error_wrong'); btn.disabled=false; btn.textContent=t('login.button'); return; } } else { errorEl.textContent=t('login.error_wrong'); btn.disabled=false; btn.textContent=t('login.button'); return; } } else { users[username]=fast; saveUsers(users); } currentUser=username; localStorage.setItem(CURRENT_USER_STORAGE,username); document.getElementById('loginOverlay').classList.add('hidden'); updateHeaderUser(); finishInit(); } catch(e) { errorEl.textContent=t('login.error_fail'); btn.disabled=false; btn.textContent=t('login.button'); } }
+    // 登录后进入界面有短暂的初始化过程：先显示「正在进入」提示，防止用户误以为卡死
+    function showEnteringTip(){
+        hideEnteringTip();
+        const el = document.createElement('div');
+        el.id = 'enteringTip';
+        el.style.cssText = 'position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);background:rgba(30,43,94,0.95);color:#fff;padding:14px 26px;border-radius:18px;z-index:10002;font-size:0.95rem;display:flex;align-items:center;gap:10px;box-shadow:0 10px 30px rgba(0,0,0,0.25);';
+        el.innerHTML = '<span style="display:inline-block;width:16px;height:16px;border:3px solid rgba(255,255,255,0.35);border-top-color:#fff;border-radius:50%;animation:enterSpin 0.8s linear infinite;"></span> 🎓 正在进入学习空间，请稍候…';
+        document.body.appendChild(el);
+    }
+    function hideEnteringTip(){ const el = document.getElementById('enteringTip'); if(el && el.parentNode) el.parentNode.removeChild(el); }
+    async function handleLogin(){ const username=document.getElementById('loginUsername').value.trim(); const password=document.getElementById('loginPassword').value.trim(); const errorEl=document.getElementById('loginError'); const btn=document.getElementById('loginBtn'); if(!username||!password){ errorEl.textContent=t('login.error_empty'); return; } btn.disabled=true; btn.textContent=t('login.verifying'); errorEl.textContent=''; try { const users=getUsers(); const fast=hashPassword(password,username); const stored=users[username]; if(stored){ if(fast===stored){ /* new format match */ } else if(!stored.startsWith('fallback_')&&/^[0-9a-f]{64}$/.test(stored)){ const cryptoHash=await tryCryptoHash(password,username); if(cryptoHash!==stored){ errorEl.textContent=t('login.error_wrong'); btn.disabled=false; btn.textContent=t('login.button'); return; } } else { errorEl.textContent=t('login.error_wrong'); btn.disabled=false; btn.textContent=t('login.button'); return; } } else { users[username]=fast; saveUsers(users); } currentUser=username; localStorage.setItem(CURRENT_USER_STORAGE,username); updateHeaderUser(); showEnteringTip(); await new Promise(function(r){ setTimeout(r, 60); }); document.getElementById('loginOverlay').classList.add('hidden'); finishInit(); hideEnteringTip(); } catch(e) { errorEl.textContent=t('login.error_fail'); btn.disabled=false; btn.textContent=t('login.button'); } }
     function handleLogout(){ if(confirm(t('logout.confirm'))){ usedMap.clear(); favoriteSentences=[]; queriedItems=[]; chatHistory=[]; currentSessionClauses=[]; sessionUserMessages=[]; window._chatSessionMistakes=[]; learnPlan={}; vocabUsedMap.clear(); vocabCorrectList=[]; lastGeneratedVocabSentences.clear(); allGeneratedVocabSet.clear(); lastGeneratedSentences.clear(); lastGrammarMeta.clear(); lastGeneratedCollocations.clear(); usedPracticeStructures.clear(); wrongSentences=[]; writingEssays=[]; writingTopic=''; writingSession=null; lastWritingText=''; writingState='idle'; window._learnCustomData={}; currentLearnTab=null; window._hideReadingForTask = null; readingTrack={unknownIn:{},knownIn:{},unknownOut:{},comprehension:{in:{},out:{}}}; readingSessionUnknowns=[]; readingClickedSentences=[]; currentReadingAnalyzed=false; readingHistory=[]; currentReading=null; zmsRecords=[]; zmsAttemptState={}; window._zmsWrongAttempts=[]; window._reflectionResults=[]; window._reflectionQueue=[]; window._reflectionReasons=[]; window._reflectionDoneCallback=null; window._sentenceState=null; window._sentenceMistakes=[]; vocabDimMap={}; sentenceRows=[]; gapBank={items:[]}; wordStatusData={targetLevel:0,words:{},migrated:false}; window._dimUpdates=[]; zmsUsedSentenceSet.clear(); writingResultCache.clear(); _chatMistakeCache.clear(); window._retellContext=null; retellState=null; wlSession=null; currentPracticeVocab=null; currentPracticeGrammar=null; candidateLevel=3; currentCandidates=[]; window._readingChatMsgs=[]; window._writingChatMsgs=[]; window._chatTopicContext=null; window._wsSnapshot={}; window._wsBoardFilter=null; window._wsCardTab=null; window._dictationMode=false; window._dictationOnly=false; window._dictationTestState=null; window._dictationReflectQueue=[]; window._dictationReflectDone=null; window._reviewMode=false; window._reviewQueue=null; window._learnMode=false; window._learnQueue=null; window._currentReviewItem=null; window._reviewRound=0; window._practiceRevealed=false; window._practiceFinished=false; window._pendingLearnWord=null; window._learnRound=0; window._selfPractice=false; window._practiceCanAdvance=false; const _dro=document.getElementById('dictationReflectOverlay'); if(_dro) _dro.remove(); try{ unbindDictReflectKeys(); }catch(_e){} if(practiceModal) practiceModal.style.display='none'; if(modal) modal.style.display='none'; const _wsm=document.getElementById('wordStatusModal'); if(_wsm) _wsm.style.display='none'; const _wcm=document.getElementById('wordCardModal'); if(_wcm) _wcm.style.display='none'; document.body.style.overflow=''; renderGapBankUI(); totalMinutes=0; currentUser=null; localStorage.removeItem(CURRENT_USER_STORAGE); const _wsFirst=document.getElementById('wsFirstTargetModal'); if(_wsFirst) _wsFirst.remove(); document.getElementById('loginOverlay').classList.remove('hidden'); document.getElementById('loginPassword').value=''; document.getElementById('loginError').textContent=''; document.getElementById('loginBtn').disabled=false; document.getElementById('loginBtn').textContent=t('login.button'); document.getElementById('chatMessages').innerHTML='<div class="message assistant-message"><div class="bubble assistant-bubble"><span id="chatGreetingText">'+t('chat.greeting')+'</span></div><div class="timestamp">'+t('chat.just_now')+'</div></div>'; updateHeaderUser(); grammarList=buildFullGrammarList(); renderLevelProgress(); updateGrammarDisplayByLevel(parseInt(grammarViewLevel.value)); renderTrackList(); renderVocabLevelProgress(); renderVocabLibrary(parseInt(document.getElementById('vocabViewLevel')?.value)||1); renderVocabTrackList(); renderQueriedBook(); renderFavoriteBook(); renderWrongSentences(); renderLearnTasks(); } }
     function switchGrammarTab(id, btn){ const tabs=btn.parentElement; tabs.querySelectorAll('.browser-tab').forEach(t=>t.classList.remove('active')); btn.classList.add('active'); const card=tabs.parentElement; const content=card.querySelector('.browser-tab-content'); if(content){ content.querySelectorAll('.track-list').forEach(l=>l.style.display='none'); const target=document.getElementById(id); if(target){target.style.display=''; target.style.display='block';} } }
     function switchVocabTab(id, btn){ const tabs=btn.parentElement; tabs.querySelectorAll('.browser-tab').forEach(t=>t.classList.remove('active')); btn.classList.add('active'); const card=tabs.parentElement; const content=card.querySelector('.browser-tab-content'); if(content){ content.querySelectorAll('.track-list').forEach(l=>l.style.display='none'); const target=document.getElementById(id); if(target){target.style.display=''; target.style.display='block';} } }
@@ -27456,7 +27573,7 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
         if(wlSession && wlSession.current) window._wlSpeak(wlSession.current.word);
     });
 
-    function finishInit(){ detectSpeechSupport(); primeSpeechSynthesis(); loadFullState(); maybeMarkNewChatSession(); loadTencentAsrKeys(); hideKeyInputsOnServer(); bindTencentAsrKeyInputs(); initLive2DTeacher(); sessionStart = Date.now(); loadCandidateLevel(); pickCandidateWords(); updateStatsUI(); applyLanguage(); refreshAll(); try{ wsInitUI(); wsSyncTargetToModules(); renderWsSummary(); }catch(e){} sendBtn.onclick=handleUserMessage; endBtn.onclick=handleEndConversation;
+    function finishInit(){ detectSpeechSupport(); primeSpeechSynthesis(); loadFullState(); maybeMarkNewChatSession(); loadTencentAsrKeys(); hideKeyInputsOnServer(); bindTencentAsrKeyInputs(); initLive2DTeacher(); sessionStart = Date.now(); loadCandidateLevel(); pickCandidateWords(); updateStatsUI(); applyLanguage(); refreshAll(); try{ wsInitUI(); wsSyncTargetToModules(); renderWsSummary(); }catch(e){} switchMode('chat'); sendBtn.onclick=handleUserMessage; endBtn.onclick=handleEndConversation;
             initVoiceRecognition();
         bindReadingEvents();
         document.getElementById('chatHistoryBtn').onclick = showChatHistory;
@@ -27528,9 +27645,13 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
         const savedUser = localStorage.getItem(CURRENT_USER_STORAGE);
         if(savedUser){
             currentUser = savedUser;
-            document.getElementById('loginOverlay').classList.add('hidden');
-            updateHeaderUser();
-            finishInit();
+            showEnteringTip();
+            setTimeout(function(){
+                document.getElementById('loginOverlay').classList.add('hidden');
+                updateHeaderUser();
+                finishInit();
+                hideEnteringTip();
+            }, 60);
             return;
         }
         document.getElementById('loginOverlay').classList.remove('hidden');
