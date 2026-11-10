@@ -237,16 +237,17 @@
         .live2d-model-picker select { border: none; background: transparent; font-size: 0.72rem; color: #1e2b5e; outline: none; cursor: pointer; }
         /* ===== 对话模式布局：数字人在上、聊天窗口在下，一屏内看到数字人+最新消息+发送+怎么说，不用翻页 ===== */
         .chat-live2d-row { display: flex; flex-direction: column; flex: 1; min-height: 0; }
-        .chat-live2d-row .live2d-stage { flex: 0 0 auto; width: auto; height: clamp(130px, 20vh, 200px); min-height: 0; border-radius: 14px; margin: 10px 10px 0; box-shadow: 0 4px 14px rgba(30,43,94,0.08); }
+        .chat-live2d-row .live2d-stage { flex: 0 0 auto; width: auto; height: clamp(120px, 18vh, 180px); min-height: 0; border-radius: 14px; margin: 8px 8px 0; box-shadow: 0 4px 14px rgba(30,43,94,0.08); }
         .chat-live2d-row .chat-messages-wrapper { flex: 1; min-width: 0; min-height: 0; }
-        .chat-panel.chat-fit { max-height: calc(100vh - 32px); }
-        .chat-panel.chat-fit .chat-messages { max-height: none; min-height: 140px; }
-        .chat-panel.chat-fit .chat-input-area { flex-shrink: 0; }
-        /* 矮屏（笔记本小窗口）：数字人再缩小、隐藏橙色提示条，保证对话内容可见 */
+        .chat-panel.chat-fit { max-height: calc(100vh - 32px); overflow-y: auto; }
+        .chat-panel.chat-fit .chat-messages { max-height: none; min-height: 120px; }
+        .chat-panel.chat-fit .chat-input-area { flex-shrink: 0; padding: 10px 16px 14px; gap: 6px; }
+        /* 矮屏（笔记本小窗口）：数字人再缩小，优先保证消息和按钮可见 */
         @media (max-height: 700px) {
-            .chat-panel.chat-fit .chat-live2d-row .live2d-stage { height: 110px; }
-            .chat-panel.chat-fit .end-conversation-hint { display: none; }
-            .chat-panel.chat-fit .chat-input-area { padding: 8px 12px 10px; gap: 4px; }
+            .chat-panel.chat-fit .chat-live2d-row .live2d-stage { height: 100px; margin-top: 6px; }
+            .chat-panel.chat-fit .chat-messages { min-height: 90px; }
+            .chat-panel.chat-fit .chat-input-area { padding: 6px 12px 8px; gap: 3px; }
+            #endConversationBtn { padding: 6px 0; }
         }
         .browser-tabs { display: flex; gap: 0; padding: 0 8px; background: transparent; }
         .browser-tab { padding: 7px 14px; border: 1px solid #d0dae8; border-bottom: none; background: #e8ecf2; cursor: pointer; font-size: 0.75rem; font-weight: 600; color: #64748b; border-radius: 8px 8px 0 0; margin-right: -1px; position: relative; z-index: 0; transition: 0.15s; }
@@ -323,13 +324,17 @@
             .chat-panel, .info-panel { min-width: 0; width: 100%; flex: none; }
             .chat-header { padding: 14px 16px; }
             .chat-header h2 { font-size: 1.2rem; }
-            .chat-messages { max-height: 42vh; min-height: 200px; padding: 12px; }
+            .chat-messages { max-height: 42vh; min-height: 140px; padding: 12px; }
             .chat-live2d-row { flex-direction: column; gap: 0; }
-            .chat-live2d-row .live2d-stage { flex: 0 0 140px; width: auto; height: 140px; min-height: 0; margin: 8px 8px 0; border-radius: 14px; }
-            .chat-panel.chat-fit { max-height: calc(100vh - 16px); }
+            .chat-live2d-row .live2d-stage { flex: 0 0 120px; width: auto; height: 120px; min-height: 0; margin: 6px 6px 0; border-radius: 14px; }
+            /* 手机上点输入框（键盘弹出）时收起数字人，保证聊天框和输入框可见 */
+            .chat-live2d-row.chat-typing .live2d-stage { display: none; }
+            .chat-panel.chat-fit { max-height: calc(100dvh - 16px); overflow-y: auto; }
             .chat-panel.chat-fit .chat-messages { max-height: none; min-height: 120px; }
-            .chat-panel.chat-fit .chat-input-area { padding: 10px 12px 12px; gap: 6px; }
-            .live2d-fallback { font-size: 56px; }
+            .chat-panel.chat-fit .chat-input-area { padding: 8px 10px 10px; gap: 5px; }
+            /* 输入框字号≥16px，防止 iOS 聚焦时自动放大页面 */
+            .chat-input-area input, .chat-input-area textarea { font-size: 16px; }
+            .live2d-fallback { font-size: 52px; }
             .live2d-model-picker { font-size: 0.66rem; padding: 1px 6px; }
             .bubble { font-size: 0.9rem; padding: 10px 14px; }
             .input-group input { padding: 12px 14px; font-size: 0.95rem; }
@@ -830,7 +835,7 @@
                     </select>
                 </label>
                 <label id="autoReadLabel" style="display:flex;align-items:center;gap:6px;cursor:pointer;color:#475569;">
-                    <input type="checkbox" id="autoReadCheckbox"> 🔊 自动朗读AI回复
+                    <input type="checkbox" id="autoReadCheckbox" checked> 🔊 自动朗读AI回复
                 </label>
                 <label style="display:flex;align-items:center;gap:6px;color:#475569;" title="聊天 AI 回复的朗读音色（腾讯云多语种音色）">
                     <span>🗣️ AI 音色</span>
@@ -880,7 +885,6 @@
                 <button id="zenmeshuoBtn">💬 怎么说</button>
             </div>
             <div id="zenmeshuoResult" class="zenmeshuo-result"></div>
-            <div class="end-conversation-hint">⚠️ 聊天结束后请务必点击「结束对话」→ 分析语法并保存学习记录</div>
         </div>
         </div>
         </div>
@@ -14093,10 +14097,11 @@ const HSK2_VOCAB = [
         const _l2dRow = document.getElementById('chatLive2dRow');
         const _l2dStage = document.getElementById('live2dStage');
         const _chatPanelEl = document.querySelector('.chat-panel');
-        if(_l2dRow) _l2dRow.style.display = (mode === 'chat') ? 'flex' : 'none';
+        if(_l2dRow){ _l2dRow.style.display = (mode === 'chat') ? 'flex' : 'none'; _l2dRow.classList.remove('chat-typing'); }
         if(_l2dStage){
             _l2dStage.style.display = (mode === 'chat') ? '' : 'none';
-            if(mode === 'chat' && window._live2dResizeFit){ setTimeout(window._live2dResizeFit, 80); }
+            // 等布局完成后再重新适配画布尺寸（隐藏期间尺寸为0，_fitModel 会自动重试）
+            if(mode === 'chat' && window._live2dResizeFit){ setTimeout(window._live2dResizeFit, 150); setTimeout(window._live2dResizeFit, 450); }
         }
         // 对话模式限定面板高度：一屏内同时看到数字人、最新消息、发送和「怎么说」
         if(_chatPanelEl) _chatPanelEl.classList.toggle('chat-fit', mode === 'chat');
@@ -22090,6 +22095,8 @@ const _bgPending = (window._chatCorrectionBgTasks || []).slice(); if(_bgPending.
         maybeMarkNewChatSession();
         window._chatBusy = true;
         userInput.value = '';
+        // 手机端发送后收起键盘，让数字人重新出现
+        if(window.innerWidth <= 768){ try{ userInput.blur(); }catch(e){} }
         try{
             addMessage('user', text);
             currentSessionClauses.push(...splitClauses(text));
@@ -22355,8 +22362,10 @@ const _bgPending = (window._chatCorrectionBgTasks || []).slice(); if(_bgPending.
                 let live2dBaseY = 126;
                 const _fitModel = function(){
                     try{
-                        const w = stage.clientWidth || 400;
-                        const h = stage.clientHeight || 250;
+                        const w = stage.clientWidth;
+                        const h = stage.clientHeight;
+                        // 数字人被隐藏时（其他模式/手机键盘弹出）尺寸为 0：不要用兜底尺寸渲染，等恢复可见后重试
+                        if(!w || !h || h < 40){ setTimeout(_fitModel, 150); return; }
                         const avail = Math.max(90, h - 14);
                         const l2dScale = Math.min(avail / (model.height || 1), avail / (model.width || 1));
                         model.scale.set(l2dScale);
@@ -27584,7 +27593,7 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
         if(chatVoiceSelect){
             chatVoiceSelect.value = getChatEdgeVoice();
             const chatVoiceHint = document.getElementById('chatVoiceHint');
-            if(chatVoiceHint) chatVoiceHint.textContent = edgeTtsSupported() ? '（Edge TTS）' : '（当前浏览器非 Edge，自动改用北语语音）';
+            if(chatVoiceHint) chatVoiceHint.textContent = '（腾讯云音色）';
             chatVoiceSelect.addEventListener('change',()=>{
                 try{ localStorage.setItem('EDGE_VOICE_CHAT', chatVoiceSelect.value); }catch(e){}
                 const opt = chatVoiceSelect.options[chatVoiceSelect.selectedIndex];
@@ -27593,6 +27602,13 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
                     const lastMsg = document.querySelector('#chatMessages .assistant-message:last-of-type');
                     if(lastMsg && lastMsg._speakText){ speakChatTextWithTts(lastMsg._speakText); }
                 }
+            });
+        }
+        // 自动朗读开关：默认开启，记住用户选择
+        if(autoReadCheckbox){
+            try{ const _arSaved = localStorage.getItem('AUTO_READ_AI'); if(_arSaved === '0') autoReadCheckbox.checked = false; }catch(e){}
+            autoReadCheckbox.addEventListener('change', function(){
+                try{ localStorage.setItem('AUTO_READ_AI', autoReadCheckbox.checked ? '1' : '0'); }catch(e){}
             });
         }
         const learnRateSlider=document.getElementById('learnRateSlider'), learnRateLabel=document.getElementById('learnRateLabel');
@@ -27632,7 +27648,22 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
         apiKeyInput.addEventListener('input', refreshApiKeyStatus);
         refreshApiKeyStatus();
         if(document.getElementById('downloadUnifiedBtn')) document.getElementById('downloadUnifiedBtn').onclick=downloadUnifiedReport;
-        if(!userInput._chatKeyBound){ userInput._chatKeyBound=true; userInput.addEventListener('keypress',e=>{ if(e.key==='Enter' && !e.isComposing && e.keyCode!==229) handleUserMessage(); }); } grammarViewLevel.addEventListener('change',()=>updateGrammarDisplayByLevel(parseInt(grammarViewLevel.value))); closeModalSpan.onclick=()=>{modal.style.display='none';document.body.style.overflow='';}; closePracticeSpan.onclick=()=>{const _wasSelfPractice = window._selfPractice; practiceModal.style.display='none';stopAllSpeech();practiceGenerating=false;practiceSessionToken++;window._selfPractice=false;document.body.style.overflow=''; if(_wasSelfPractice) setTimeout(finishPracticeReflection, 400); window._dictationMode = false; window._dictationOnly = false; window._reviewMode = false; window._reviewQueue = null; window._learnMode = false; window._learnQueue = null; window._currentReviewItem = null; window._reviewRound = 0; window._practiceRevealed = false; window._practiceFinished = false; window._pendingLearnWord = null; window._learnRound = 0; window._dictationReflectQueue = []; window._dictationReflectDone = null; const _dro = document.getElementById('dictationReflectOverlay'); if(_dro) _dro.remove(); unbindDictReflectKeys(); window._dictationTestState = null; window._dictationTestWrongs = 0; window._practiceCanAdvance = false; practiceContent.classList.remove('dictation-active','revealed'); const drb=document.getElementById('dictationRevealBtn'); if(drb) drb.classList.remove('show'); const _kh2 = document.getElementById('practiceKeyHints'); if(_kh2) _kh2.style.display = ''; }; window.onclick=e=>{ if(e.target===modal){modal.style.display='none';document.body.style.overflow='';} if(e.target===practiceModal){const _wasSelfPractice2 = window._selfPractice; practiceModal.style.display='none';stopAllSpeech();practiceGenerating=false;practiceSessionToken++;window._selfPractice=false;document.body.style.overflow=''; if(_wasSelfPractice2) setTimeout(finishPracticeReflection, 400);} const _wsm=document.getElementById('wordStatusModal'); if(_wsm && e.target===_wsm){_wsm.style.display='none';document.body.style.overflow='';} const _wcm=document.getElementById('wordCardModal'); if(_wcm && e.target===_wcm){_wcm.style.display='none';document.body.style.overflow='';} }; function commitUsageMinutes(){ if(!currentUser) return; let delta=(Date.now()-sessionStart)/60000; if(delta>0){ totalMinutes+=delta; sessionStart=Date.now(); saveFullState(); updateStatsUI(); } } if(!window._usageTimerInit){ window._usageTimerInit=true; document.addEventListener('visibilitychange',()=>{ if(document.hidden){ commitUsageMinutes(); } else { sessionStart=Date.now(); } }); window.addEventListener('pagehide',()=>{ commitUsageMinutes(); }); setInterval(()=>{ if(document.hidden){ sessionStart=Date.now(); return; } commitUsageMinutes(); },60000); } /* Chrome speech synthesis keep-alive: resume every 15s to prevent the synthesizer from sleeping (known Chrome bug) */ setInterval(()=>{ try { if('speechSynthesis' in window && window.speechSynthesis && !window.speechSynthesis.speaking) { window.speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(''); u.volume=0; speechSynthesis.speak(u); } } catch(_) {} },15000); }
+        if(!userInput._chatKeyBound){ userInput._chatKeyBound=true; userInput.addEventListener('keypress',e=>{ if(e.key==='Enter' && !e.isComposing && e.keyCode!==229) handleUserMessage(); }); }
+        // 手机端：聚焦输入框（键盘弹出）时收起数字人；发送后收起键盘，恢复数字人
+        (function bindChatTyping(){
+            const row = document.getElementById('chatLive2dRow');
+            const bindEl = function(el){
+                if(!el || el._typingBound) return;
+                el._typingBound = true;
+                el.addEventListener('focus', function(){
+                    if(window.innerWidth <= 768 && row) row.classList.add('chat-typing');
+                    setTimeout(function(){ try{ el.scrollIntoView({ behavior:'smooth', block:'nearest' }); }catch(e){} }, 250);
+                });
+                el.addEventListener('blur', function(){ if(row) row.classList.remove('chat-typing'); });
+            };
+            bindEl(userInput);
+            bindEl(document.getElementById('zenmeshuoInput'));
+        })(); grammarViewLevel.addEventListener('change',()=>updateGrammarDisplayByLevel(parseInt(grammarViewLevel.value))); closeModalSpan.onclick=()=>{modal.style.display='none';document.body.style.overflow='';}; closePracticeSpan.onclick=()=>{const _wasSelfPractice = window._selfPractice; practiceModal.style.display='none';stopAllSpeech();practiceGenerating=false;practiceSessionToken++;window._selfPractice=false;document.body.style.overflow=''; if(_wasSelfPractice) setTimeout(finishPracticeReflection, 400); window._dictationMode = false; window._dictationOnly = false; window._reviewMode = false; window._reviewQueue = null; window._learnMode = false; window._learnQueue = null; window._currentReviewItem = null; window._reviewRound = 0; window._practiceRevealed = false; window._practiceFinished = false; window._pendingLearnWord = null; window._learnRound = 0; window._dictationReflectQueue = []; window._dictationReflectDone = null; const _dro = document.getElementById('dictationReflectOverlay'); if(_dro) _dro.remove(); unbindDictReflectKeys(); window._dictationTestState = null; window._dictationTestWrongs = 0; window._practiceCanAdvance = false; practiceContent.classList.remove('dictation-active','revealed'); const drb=document.getElementById('dictationRevealBtn'); if(drb) drb.classList.remove('show'); const _kh2 = document.getElementById('practiceKeyHints'); if(_kh2) _kh2.style.display = ''; }; window.onclick=e=>{ if(e.target===modal){modal.style.display='none';document.body.style.overflow='';} if(e.target===practiceModal){const _wasSelfPractice2 = window._selfPractice; practiceModal.style.display='none';stopAllSpeech();practiceGenerating=false;practiceSessionToken++;window._selfPractice=false;document.body.style.overflow=''; if(_wasSelfPractice2) setTimeout(finishPracticeReflection, 400);} const _wsm=document.getElementById('wordStatusModal'); if(_wsm && e.target===_wsm){_wsm.style.display='none';document.body.style.overflow='';} const _wcm=document.getElementById('wordCardModal'); if(_wcm && e.target===_wcm){_wcm.style.display='none';document.body.style.overflow='';} }; function commitUsageMinutes(){ if(!currentUser) return; let delta=(Date.now()-sessionStart)/60000; if(delta>0){ totalMinutes+=delta; sessionStart=Date.now(); saveFullState(); updateStatsUI(); } } if(!window._usageTimerInit){ window._usageTimerInit=true; document.addEventListener('visibilitychange',()=>{ if(document.hidden){ commitUsageMinutes(); } else { sessionStart=Date.now(); } }); window.addEventListener('pagehide',()=>{ commitUsageMinutes(); }); setInterval(()=>{ if(document.hidden){ sessionStart=Date.now(); return; } commitUsageMinutes(); },60000); } /* Chrome speech synthesis keep-alive: resume every 15s to prevent the synthesizer from sleeping (known Chrome bug) */ setInterval(()=>{ try { if('speechSynthesis' in window && window.speechSynthesis && !window.speechSynthesis.speaking) { window.speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(''); u.volume=0; speechSynthesis.speak(u); } } catch(_) {} },15000); }
     window._dictationMode = false;
     window._dictationOnly = false;
     window.revealDictation = function(){ const pc=document.getElementById('practiceContent'); if(pc){ pc.classList.toggle('revealed'); const btn=document.getElementById('dictationRevealBtn'); if(btn) btn.classList.toggle('show', !pc.classList.contains('revealed')); } };
