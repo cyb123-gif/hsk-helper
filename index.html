@@ -235,12 +235,12 @@
         .live2d-status { position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); background: rgba(30,43,94,0.85); color: #fff; font-size: 0.75rem; padding: 4px 14px; border-radius: 20px; white-space: normal; max-width: 94%; line-height: 1.5; text-align: center; }
         .live2d-model-picker { position: absolute; top: 6px; right: 8px; background: rgba(255,255,255,0.92); border-radius: 14px; padding: 2px 8px; font-size: 0.72rem; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
         .live2d-model-picker select { border: none; background: transparent; font-size: 0.72rem; color: #1e2b5e; outline: none; cursor: pointer; }
-        /* ===== 对话模式布局：数字人在上、聊天窗口在下；消息区内部滚动，输入区（发送/怎么说/结束对话）在消息下方，页面可整体下滚 ===== */
-        .chat-live2d-row { display: flex; flex-direction: column; flex: 0 0 auto; }
-        .chat-live2d-row .live2d-stage { flex: 0 0 auto; width: auto; height: clamp(150px, 22vh, 220px); min-height: 0; border-radius: 14px; margin: 8px 8px 0; box-shadow: 0 4px 14px rgba(30,43,94,0.08); }
-        .chat-live2d-row .chat-messages-wrapper { flex: 0 0 auto; min-width: 0; }
+        /* ===== 对话模式布局：数字人放大作为背景，覆盖聊天区域；消息区只显示最新一问一答（半透明白卡），输入区在下方正常排列 ===== */
+        .chat-live2d-row { position: relative; flex: 0 0 auto; height: clamp(320px, 46vh, 480px); }
+        .chat-live2d-row .live2d-stage { position: absolute; inset: 0; width: auto; height: auto; min-height: 0; margin: 0; border-radius: 14px; box-shadow: 0 4px 14px rgba(30,43,94,0.08); z-index: 0; }
+        .chat-live2d-row .chat-messages-wrapper { position: absolute; left: 12px; right: 12px; bottom: 12px; z-index: 2; min-width: 0; background: rgba(255,255,255,0.88); border-radius: 14px; box-shadow: 0 2px 10px rgba(15,23,42,0.12); }
+        .chat-live2d-row .chat-messages { max-height: 150px; min-height: 60px; background: transparent; }
         .chat-panel.chat-fit { max-height: none; }
-        .chat-panel.chat-fit .chat-messages { max-height: 400px; min-height: 180px; }
         .chat-panel.chat-fit .chat-input-area { flex-shrink: 0; }
         .browser-tabs { display: flex; gap: 0; padding: 0 8px; background: transparent; }
         .browser-tab { padding: 7px 14px; border: 1px solid #d0dae8; border-bottom: none; background: #e8ecf2; cursor: pointer; font-size: 0.75rem; font-weight: 600; color: #64748b; border-radius: 8px 8px 0 0; margin-right: -1px; position: relative; z-index: 0; transition: 0.15s; }
@@ -317,11 +317,12 @@
             .chat-panel, .info-panel { min-width: 0; width: 100%; flex: none; }
             .chat-header { padding: 14px 16px; }
             .chat-header h2 { font-size: 1.2rem; }
-            .chat-messages { max-height: 42vh; min-height: 160px; padding: 12px; }
-            .chat-live2d-row { flex-direction: column; gap: 0; }
-            .chat-live2d-row .live2d-stage { flex: 0 0 150px; width: auto; height: 150px; min-height: 0; margin: 6px 6px 0; border-radius: 14px; }
+            .chat-messages { max-height: 150px; min-height: 60px; padding: 10px; }
+            .chat-live2d-row { height: clamp(280px, 42vh, 380px); }
+            .chat-live2d-row .live2d-stage { position: absolute; inset: 0; width: auto; height: auto; min-height: 0; margin: 0; border-radius: 14px; }
+            .chat-live2d-row .chat-messages-wrapper { left: 8px; right: 8px; bottom: 8px; }
+            .chat-live2d-row .chat-messages { max-height: 110px; min-height: 50px; }
             .chat-panel.chat-fit { max-height: none; }
-            .chat-panel.chat-fit .chat-messages { max-height: 42vh; min-height: 160px; }
             .chat-panel.chat-fit .chat-input-area { padding: 12px 12px 14px; gap: 8px; }
             /* 输入框字号≥16px，防止 iOS 聚焦时自动放大页面 */
             .chat-input-area input, .chat-input-area textarea { font-size: 16px; }
@@ -813,6 +814,8 @@
                 <div class="timestamp">刚刚</div>
             </div>
         </div>
+            </div>
+        </div>
         <div class="chat-input-area">
             <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px;font-size:0.8rem;">
                 <label style="display:flex;align-items:center;gap:6px;color:#475569;font-weight:600;">
@@ -877,7 +880,6 @@
                 <button id="zenmeshuoBtn">💬 怎么说</button>
             </div>
             <div id="zenmeshuoResult" class="zenmeshuo-result"></div>
-        </div>
         </div>
         </div>
         <div class="writing-panel" id="writingPanel">
@@ -22359,12 +22361,24 @@ const _bgPending = (window._chatCorrectionBgTasks || []).slice(); if(_bgPending.
                 }
                 // 0.4.0 没有 fit()：按当前舞台高度等比缩放并居中（手机端舞台更矮，模型自动缩小）
                 let live2dBaseY = 126;
+                let live2dFitW = stage.clientWidth;
+                let live2dFitH = stage.clientHeight;
                 const _fitModel = function(){
                     try{
                         const w = stage.clientWidth;
                         const h = stage.clientHeight;
-                        // 数字人被隐藏时（其他模式/手机键盘弹出）尺寸为 0：不要用兜底尺寸渲染，等恢复可见后重试
+                        // 数字人被隐藏时（其他模式/键盘弹出）尺寸为 0：等恢复可见后重试，绝不用错误尺寸渲染
                         if(!w || !h || h < 40){ setTimeout(_fitModel, 150); return; }
+                        // 舞台尺寸明显变化时（切换模式/转屏）：重建整个画布。
+                        // PIXI 动态 renderer.resize 会导致 Live2D 模型碎片化/脸消失，重建最稳。
+                        if(live2dApp && live2dApp.renderer && (Math.abs((live2dFitW || 0) - w) > 24 || Math.abs((live2dFitH || 0) - h) > 24)){
+                            live2dFitW = w; live2dFitH = h;
+                            window._live2dResizeFit = null;
+                            live2dInitPromise = null;
+                            initLive2DTeacher();
+                            return;
+                        }
+                        live2dFitW = w; live2dFitH = h;
                         const avail = Math.max(90, h - 14);
                         const l2dScale = Math.min(avail / (model.height || 1), avail / (model.width || 1));
                         model.scale.set(l2dScale);
@@ -22372,11 +22386,12 @@ const _bgPending = (window._chatCorrectionBgTasks || []).slice(); if(_bgPending.
                         model.x = w / 2;
                         live2dBaseY = h / 2;
                         model.y = live2dBaseY;
-                        if(live2dApp && live2dApp.renderer) live2dApp.renderer.resize(w, h);
                     }catch(e){}
                 };
                 _fitModel();
                 window._live2dResizeFit = _fitModel;
+                if(window._live2dResizeHandler){ try{ window.removeEventListener('resize', window._live2dResizeHandler); }catch(e){} }
+                window._live2dResizeHandler = _fitModel;
                 try{ window.addEventListener('resize', _fitModel); }catch(e){}
                 live2dApp.stage.addChild(model);
                 live2dModelRef = model;
