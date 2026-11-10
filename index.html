@@ -5575,6 +5575,16 @@ const HSK2_VOCAB = [
         ? 'https://api.deepseek.com/v1/chat/completions'
         : '/v1/chat/completions';
 
+    // 通过 server.js（localhost:3001 / 自建域名）打开时，密钥输入框被隐藏，真实 Key 只存在服务器端；
+    // 但前端所有 AI 调用都要求 Key 非空才发请求。这里在服务器模式下返回占位 Key：
+    // 同源代理 server.js 会忽略客户端 Authorization，改用 api-key.txt 里的真实 Key。
+    // GitHub Pages 直连 DeepSeek 时仍要求用户手动输入 Key。
+    function currentApiKey(){
+        const el = document.getElementById('apiKeyInput');
+        const k = el ? el.value.trim() : '';
+        return k || (IS_GITHUB_IO ? '' : 'server-proxy');
+    }
+
     // ==================== API Key 校验（保持占位符：不校验，Key 不写入 HTML） ====================
     // VALID_API_KEY_HASH 可由 node set_api_key_hash.js 写入，但按需求不再使用。
     // 保持占位符 __API_KEY_SHA256_PLACEHOLDER__ 时不做校验，任何非空 Key 都能用。
@@ -5672,7 +5682,7 @@ const HSK2_VOCAB = [
     function refreshApiKeyStatus(){
         const el = document.getElementById('apiKeyStatus');
         if (!el) return;
-        const k = apiKeyInput.value.trim();
+        const k = currentApiKey();
         if (!apiKeyHashConfigured()) {
             el.textContent = t('api.key_note');
             el.style.color = '#64748b';
@@ -14744,7 +14754,7 @@ const HSK2_VOCAB = [
 
     // ==================== AI 生成听写文章（和阅读同样的生成逻辑：含缺口词/缺口句式或HSK词汇语法） ====================
     async function generateDictationArticle(){
-        const apiKey = apiKeyInput.value.trim();
+        const apiKey = currentApiKey();
         if(!apiKey){ alert(t('api_key_required')); return; }
         const btn = document.getElementById('dictationGenBtn');
         const level = parseInt((document.getElementById('dictationGenLevelSelect') && document.getElementById('dictationGenLevelSelect').value) || aiLevelSelect.value) || 3;
@@ -15178,7 +15188,7 @@ const HSK2_VOCAB = [
         return map[v] || '中国 热搜';
     }
     async function fetchFreshReadingTopics(){
-        const apiKey = apiKeyInput.value.trim();
+        const apiKey = currentApiKey();
         if(!apiKey){ alert(t('api_key_required')); return; }
         const btn = document.getElementById('readingFreshTopicsBtn');
         if(btn){ btn.disabled = true; btn.textContent = '⏳...'; }
@@ -15387,7 +15397,7 @@ const HSK2_VOCAB = [
     }
     // 根据刚生成的文章，让 flash 模型给一个与文章内容直接相关的英文图片搜索关键词（避免中文关键词/无关图）
     async function makeEnglishImageKeyword(reading, forceTitle){
-        const apiKey = apiKeyInput.value.trim();
+        const apiKey = currentApiKey();
         if(!apiKey || !reading) return '';
         const base = forceTitle
             ? ('标题：' + String(reading.title || '').slice(0, 60))
@@ -15406,12 +15416,12 @@ const HSK2_VOCAB = [
     async function translateReadingFieldFast(text){
         const src = String(text || '').trim();
         if(!src) return '';
-        const apiKey = apiKeyInput.value.trim();
+        const apiKey = currentApiKey();
         if(!apiKey) return src;
         try{ return await translateReadingTextItem(src, targetLangSelect.value, apiKey); }catch(e){ return src; }
     }
     async function generateReading(retryCount = 0) {
-        const apiKey = apiKeyInput.value.trim();
+        const apiKey = currentApiKey();
         if (!apiKey) { alert(t('reading.no_api_key')); return; }
         const btn = document.getElementById('readingGenerateBtn');
         // 防重复点击：进入函数立刻禁用按钮并显示等待提示，避免联网搜索阶段产生多篇短文
@@ -16194,7 +16204,7 @@ ${searchRule}
         const btn = document.getElementById('readingPinyinBtn');
         if (!currentReading) { showToast(t('reading.empty')); return; }
         if (!readingShowPinyin && !String(currentReading.contentPinyin || '').trim()) {
-            const apiKey = apiKeyInput.value.trim();
+            const apiKey = currentApiKey();
             if (!apiKey) { showToast(t('reading.no_api_key')); return; }
             if (btn) { btn.disabled = true; btn.textContent = '⏳'; }
             try {
@@ -16482,7 +16492,7 @@ ${searchRule}
     window._readingCloseTip = function(){ hideReadingTransTooltip(); hideReadingSelection(); };
     async function translateReadingItemsInto(container, items){
         if(!container) return;
-        const apiKey = apiKeyInput.value.trim();
+        const apiKey = currentApiKey();
         if(!apiKey){ container.innerHTML = '<div style="color:#c0392b;">' + escapeHtml(t('reading.no_api_key')) + '</div>'; return; }
         const targetLang = targetLangSelect.value;
         for(const it of items){
@@ -16966,7 +16976,7 @@ ${searchRule}
     }
     async function generateReadingJudge(auto){
         if (!currentReading) { showToast(t('reading.no_article')); return; }
-        const apiKey = apiKeyInput.value.trim();
+        const apiKey = currentApiKey();
         const area = document.getElementById('readingJudgeArea');
         if (!apiKey) {
             if (!auto) alert(t('api_key_required'));
@@ -17143,7 +17153,7 @@ ${searchRule}
         syncRetellOutlineTextarea();
     }
     async function fetchRetellAiKeywords(){
-        const apiKey = apiKeyInput.value.trim();
+        const apiKey = currentApiKey();
         const box = document.getElementById('readingRetellAiChips');
         const btn = document.getElementById('readingRetellAiBtn');
         if (!retellState || !currentReading) return;
@@ -17192,7 +17202,7 @@ ${searchRule}
         syncRetellOutlineTextarea();
         showToast(t('reading.retell_prep_toast'));
         // 进入复述准备时自动让 AI 推荐关键词（有 API Key 时）
-        if (apiKeyInput.value.trim()) fetchRetellAiKeywords();
+        if (currentApiKey()) fetchRetellAiKeywords();
     }
     function cancelRetellPrep(){
         readingRetellPrep = false;
@@ -17363,7 +17373,7 @@ ${searchRule}
         return '学生作文：\n' + String(lastText).slice(0, 1200);
     }
     async function generateModeQuestions(kind){
-        const apiKey = apiKeyInput.value.trim();
+        const apiKey = currentApiKey();
         if(!apiKey){ alert(t('api_key_required')); return; }
         const ctx = modeChatContext(kind);
         if(!ctx){ showToast(kind === 'reading' ? '请先生成短文' : '请先提交作文并批改'); return; }
@@ -17395,7 +17405,7 @@ ${searchRule}
         const input = document.getElementById(kind + 'ChatInput');
         const text = input ? input.value.trim() : '';
         if(!text) return;
-        const apiKey = apiKeyInput.value.trim();
+        const apiKey = currentApiKey();
         if(!apiKey){ alert(t('api_key_required')); return; }
         const msgs = window['_' + kind + 'ChatMsgs'];
         msgs.push({ role:'user', content: text, time: new Date().toISOString() });
@@ -17482,7 +17492,7 @@ ${searchRule}
         document.getElementById('gotoChatNo').onclick = function(){ ov.remove(); };
     }
     async function jumpToChatFromMode(kind){
-        const apiKey = apiKeyInput.value.trim();
+        const apiKey = currentApiKey();
         if(!apiKey){ alert(t('api_key_required')); return; }
         let ctx = '';
         if(kind === 'reading'){
@@ -17801,7 +17811,7 @@ ${searchRule}
         const isRelang = !!skipAnalysis;
         const firstSubmit = !isRelang && !writingSession;
         const isRevision = !isRelang && !firstSubmit;
-        const apiKey = apiKeyInput.value.trim();
+        const apiKey = currentApiKey();
         if (!apiKey) { alert(t('api_key_required')); updateWritingStatus(writingSession ? 'graded' : 'idle'); return; }
         const targetLang = targetLangSelect.value;
         const info = getWritingLevelInfo();
@@ -19133,7 +19143,7 @@ ${searchRule}
             trBox = document.getElementById(msgId + '_seltr');
         }
         trBox.innerHTML = '⏳ ...';
-        const apiKey = apiKeyInput.value.trim();
+        const apiKey = currentApiKey();
         if(!apiKey){ trBox.textContent = t('api_key_required'); return; }
         const targetLang = targetLangSelect.value;
         try{
@@ -19153,8 +19163,8 @@ ${searchRule}
         }
     };
     function addAssistantMessage(txt, isHtml, rawText, speakText, noHighlight){ addMessage('assistant', txt, isHtml, rawText, speakText, noHighlight); }
-    window._translateToggle=async function(text, msgId){ const btn=document.getElementById(msgId+'_btn'); const trEl=document.getElementById(msgId+'_tr'); if(trEl.dataset.translated==='1'){ if(trEl.style.display==='none'){ trEl.style.display='block'; btn.textContent=t('chat.hide_translation'); } else { trEl.style.display='none'; btn.textContent=t('chat.translate'); } return; } btn.disabled=true; btn.textContent=t('chat.translating'); trEl.style.display='block'; trEl.textContent='⏳ ...'; const apiKey=apiKeyInput.value.trim(); if(!apiKey){ trEl.textContent=t('api_key_required'); btn.disabled=false; btn.textContent=t('chat.translate'); return; } const targetLang=targetLangSelect.value; try{ const resp=await fetch(API_BASE,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey}, body:JSON.stringify({model:'deepseek-v4-flash',thinking:{type:'disabled'}, max_tokens:4096, messages:[{role:'user',content:'请将以下中文逐行翻译成'+targetLang+'，保持原来的分行格式，每行单独翻译：\n'+text}], temperature:0.3})}); const data=await resp.json(); if(data.error) throw new Error(data.error.message||"API error"); if(!data.choices||!data.choices[0]||!data.choices[0].message) throw new Error("API error"); const tr=data.choices[0].message.content.trim(); const origLines=text.split('\n'); const trLines=tr.split('\n'); let resultHtml=''; const maxLines=Math.max(origLines.length, trLines.length); for(let i=0;i<maxLines;i++){ const o=(origLines[i]||'').trim(); const t=(trLines[i]||'').trim(); resultHtml+='<div style="margin-bottom:2px;"><b>'+escapeHtml(o)+'</b> → <b style="color:#27ae60">'+escapeHtml(t)+'</b></div>'; } trEl.innerHTML=resultHtml; trEl.dataset.translated='1'; btn.textContent=t('chat.hide_translation'); btn.disabled=false; }catch(e){ trEl.textContent=t('chat.translation_fail'); btn.disabled=false; btn.textContent=t('chat.translate'); } };
-    window._pinyinToggle=async function(text, msgId){ const btn=document.getElementById(msgId+'_pyBtn'); const pyEl=document.getElementById(msgId+'_py'); if(!btn||!pyEl) return; if(pyEl.dataset.loaded==='1'){ if(pyEl.style.display==='none'){ pyEl.style.display='block'; btn.textContent=t('chat.hide_pinyin'); } else { pyEl.style.display='none'; btn.textContent=t('chat.pinyin'); } return; } btn.disabled=true; btn.textContent=t('chat.pinyin_loading'); pyEl.style.display='block'; pyEl.textContent='⏳ ...'; const apiKey=apiKeyInput.value.trim(); if(!apiKey){ pyEl.textContent=t('api_key_required'); btn.disabled=false; btn.textContent=t('chat.pinyin'); return; } try{ const resp=await fetch(API_BASE,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey}, body:JSON.stringify({model:'deepseek-v4-flash',thinking:{type:'disabled'}, max_tokens:4096, messages:[{role:'user',content:'请给下面的中文内容标注拼音。每个汉字的拼音用空格分开（如：wǒ shì xué shēng），保持原来的分行格式，每行单独标注，只输出拼音文本，不要输出任何其他内容：\n'+text}], temperature:0})}); const data=await resp.json(); if(data.error) throw new Error(data.error.message||"API error"); if(!data.choices||!data.choices[0]||!data.choices[0].message) throw new Error("API error"); const py=data.choices[0].message.content.trim(); const origLines=text.split('\n'); const pyLines=py.split('\n'); let resultHtml=''; const maxLines=Math.max(origLines.length, pyLines.length); for(let i=0;i<maxLines;i++){ const o=(origLines[i]||'').trim(); const p=(pyLines[i]||'').trim(); resultHtml+='<div style="margin-bottom:2px;">'+escapeHtml(o)+'<br><b style="color:#1565c0;">'+escapeHtml(p)+'</b></div>'; } pyEl.innerHTML=resultHtml; pyEl.dataset.loaded='1'; btn.textContent=t('chat.hide_pinyin'); btn.disabled=false; }catch(e){ pyEl.textContent=t('chat.pinyin_fail'); btn.disabled=false; btn.textContent=t('chat.pinyin'); } };
+    window._translateToggle=async function(text, msgId){ const btn=document.getElementById(msgId+'_btn'); const trEl=document.getElementById(msgId+'_tr'); if(trEl.dataset.translated==='1'){ if(trEl.style.display==='none'){ trEl.style.display='block'; btn.textContent=t('chat.hide_translation'); } else { trEl.style.display='none'; btn.textContent=t('chat.translate'); } return; } btn.disabled=true; btn.textContent=t('chat.translating'); trEl.style.display='block'; trEl.textContent='⏳ ...'; const apiKey=currentApiKey(); if(!apiKey){ trEl.textContent=t('api_key_required'); btn.disabled=false; btn.textContent=t('chat.translate'); return; } const targetLang=targetLangSelect.value; try{ const resp=await fetch(API_BASE,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey}, body:JSON.stringify({model:'deepseek-v4-flash',thinking:{type:'disabled'}, max_tokens:4096, messages:[{role:'user',content:'请将以下中文逐行翻译成'+targetLang+'，保持原来的分行格式，每行单独翻译：\n'+text}], temperature:0.3})}); const data=await resp.json(); if(data.error) throw new Error(data.error.message||"API error"); if(!data.choices||!data.choices[0]||!data.choices[0].message) throw new Error("API error"); const tr=data.choices[0].message.content.trim(); const origLines=text.split('\n'); const trLines=tr.split('\n'); let resultHtml=''; const maxLines=Math.max(origLines.length, trLines.length); for(let i=0;i<maxLines;i++){ const o=(origLines[i]||'').trim(); const t=(trLines[i]||'').trim(); resultHtml+='<div style="margin-bottom:2px;"><b>'+escapeHtml(o)+'</b> → <b style="color:#27ae60">'+escapeHtml(t)+'</b></div>'; } trEl.innerHTML=resultHtml; trEl.dataset.translated='1'; btn.textContent=t('chat.hide_translation'); btn.disabled=false; }catch(e){ trEl.textContent=t('chat.translation_fail'); btn.disabled=false; btn.textContent=t('chat.translate'); } };
+    window._pinyinToggle=async function(text, msgId){ const btn=document.getElementById(msgId+'_pyBtn'); const pyEl=document.getElementById(msgId+'_py'); if(!btn||!pyEl) return; if(pyEl.dataset.loaded==='1'){ if(pyEl.style.display==='none'){ pyEl.style.display='block'; btn.textContent=t('chat.hide_pinyin'); } else { pyEl.style.display='none'; btn.textContent=t('chat.pinyin'); } return; } btn.disabled=true; btn.textContent=t('chat.pinyin_loading'); pyEl.style.display='block'; pyEl.textContent='⏳ ...'; const apiKey=currentApiKey(); if(!apiKey){ pyEl.textContent=t('api_key_required'); btn.disabled=false; btn.textContent=t('chat.pinyin'); return; } try{ const resp=await fetch(API_BASE,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey}, body:JSON.stringify({model:'deepseek-v4-flash',thinking:{type:'disabled'}, max_tokens:4096, messages:[{role:'user',content:'请给下面的中文内容标注拼音。每个汉字的拼音用空格分开（如：wǒ shì xué shēng），保持原来的分行格式，每行单独标注，只输出拼音文本，不要输出任何其他内容：\n'+text}], temperature:0})}); const data=await resp.json(); if(data.error) throw new Error(data.error.message||"API error"); if(!data.choices||!data.choices[0]||!data.choices[0].message) throw new Error("API error"); const py=data.choices[0].message.content.trim(); const origLines=text.split('\n'); const pyLines=py.split('\n'); let resultHtml=''; const maxLines=Math.max(origLines.length, pyLines.length); for(let i=0;i<maxLines;i++){ const o=(origLines[i]||'').trim(); const p=(pyLines[i]||'').trim(); resultHtml+='<div style="margin-bottom:2px;">'+escapeHtml(o)+'<br><b style="color:#1565c0;">'+escapeHtml(p)+'</b></div>'; } pyEl.innerHTML=resultHtml; pyEl.dataset.loaded='1'; btn.textContent=t('chat.hide_pinyin'); btn.disabled=false; }catch(e){ pyEl.textContent=t('chat.pinyin_fail'); btn.disabled=false; btn.textContent=t('chat.pinyin'); } };
     // 聊天朗读：微软 Edge TTS → 北语 TTS → 浏览器语音（均无需 API Key）
     let chatTtsAudio = null;
     let chatTtsText = '';
@@ -19330,7 +19340,7 @@ async function translateLegacyWrongNotes(){
         if(changed) saveWrongSentences();
         return;
     }
-    const apiKey = apiKeyInput.value.trim();
+    const apiKey = currentApiKey();
     if(!apiKey) return;
     const toTranslate = [];
     for(let i=0;i<wrongSentences.length;i++){
@@ -19654,7 +19664,7 @@ function saveFullState(){ if(!currentUser) return; const entries=Array.from(used
     // 深度思考请求兜底：接口不支持或思考超时（AbortError）时，自动用“不思考”模式重试一次，
     // 保证纠错/语法分析不会因为深度思考失败而整体丢失。
     async function thinkingFetch(body, ms){
-        const apiKey = apiKeyInput.value.trim();
+        const apiKey = currentApiKey();
         if(!apiKey) return null;
         const headers = {'Content-Type':'application/json','Authorization':'Bearer '+apiKey};
         const attempt = async function(b){
@@ -19686,7 +19696,7 @@ function saveFullState(){ if(!currentUser) return; const entries=Array.from(used
         }catch(e){ return signal || null; }
     }
     async function chatWithContext(userMsg, signal, retryCount=0, prevCheck=null, mistakes=null, netRetry=0){
-        const apiKey = apiKeyInput.value.trim();
+        const apiKey = currentApiKey();
         if (!apiKey) return null;
         const level = parseInt(aiLevelSelect.value) || 3;
         const targetLang = targetLangSelect.value;
@@ -19855,7 +19865,7 @@ ${gapChatGuide()}
     }
 function getCandidatePatterns(sentence, allPatterns){ const candidates=[]; let noFixedCount=0; const MAX_NO_FIXED=5; const segTokens=segmentForGrammar(sentence); for(const p of allPatterns){ const groups=extractPatternFixedChars(p.pattern); if(groups.length===0){ if(noFixedCount<MAX_NO_FIXED){ candidates.push(p); noFixedCount++; } continue; } let curPos=0, allOk=true; for(const group of groups){ const alts=group.split('/').map(s=>s.trim()).filter(s=>s); let found=false, bestPos=Infinity; for(const alt of alts){ let searchFrom=curPos; while(searchFrom<=sentence.length){ const pos=indexOfFlexible(sentence,alt,searchFrom); if(pos===-1) break; if(fixedMatchAlignedWithTokens(segTokens,pos,alt.length)){ if(pos<bestPos){ bestPos=pos; found=true; } break; } searchFrom=pos+1; } } if(!found){ allOk=false; break; } curPos=bestPos+1; } if(allOk) candidates.push(p); } return candidates; }
 function validatePracticeSentence(pattern, sentence){ const groups=extractPatternFixedChars(pattern); if(groups.length===0) return {valid:true}; let curPos=0; for(const group of groups){ const alts=group.split('/').map(s=>s.trim()).filter(s=>s); let found=false, bestPos=Infinity; for(const alt of alts){ const pos=indexOfFlexible(sentence,alt,curPos); if(pos!==-1&&pos<bestPos){ bestPos=pos; found=true; } } if(!found) return {valid:false, reason:'missing any of: '+group}; curPos=bestPos+1; } const COMMON_VERBS=new Set(['是','有','去','来','做','说','看','见','吃','喝','走','跑','写','读','听','学','买','卖','给','用','到','出','进','回','过','起','开','关','放','拿','打','想','要','会','能','可','让','叫','问','找','等','坐','住','加','记','忘','帮','送','带','洗','唱','跳','画','拍','讲','知道','觉得','喜欢','希望','开始','准备']); const COMMON_ADJ=new Set(['好','坏','大','小','多','少','快','慢','高','低','长','短','新','旧','热','冷','难','对','错','远','近','贵','便宜','漂亮','美丽','胖','瘦','忙','累','饿','渴','困','高兴','快乐','难过','紧张','轻松','够','全','早','晚','饱','香','甜']); const cleaned=pattern.replace(/[（(][^)）]*[)）]/g,''); if(cleaned==='V+了'||cleaned==='V+了+Number+Measure word'||cleaned==='V+了+O,sentence'||cleaned==='V+了+O，sentence'){ const liaoPos=sentence.indexOf('了'); if(liaoPos>0){ const prevChar=sentence[liaoPos-1]; if(!COMMON_VERBS.has(prevChar)&&!/[\u4e00-\u9fff]/.test(prevChar)) return {valid:false, reason:'V+了: char before 了 may not be a verb'}; } } if(cleaned==='Adj+了'||cleaned==='Adj（+补语complement）+了'){ const liaoPos=sentence.indexOf('了'); if(liaoPos>0){ const prev=sentence[liaoPos-1]; if(!COMMON_ADJ.has(prev)&&COMMON_VERBS.has(prev)) return {valid:false, reason:'Adj+了: char before 了 may be verb, not adj'}; } } if(cleaned==='V+过（+O）'){ const guoPos=sentence.indexOf('过'); if(guoPos>0&&!COMMON_VERBS.has(sentence[guoPos-1])) return {valid:false, reason:'V+过: char before 过 may not be a verb'}; } return {valid:true}; }
-    async function analyzeGrammarBatch(clauses, effort){ const apiKey=apiKeyInput.value.trim(); if(!apiKey) return null; const activeList=grammarList; if(activeList.length===0) return []; const sentenceBlocks=[]; for(const clause of clauses){ const candidates=getCandidatePatterns(clause,activeList); if(candidates.length>0) sentenceBlocks.push({sentence:clause, candidates, seg:grammarSegText(clause)}); } if(sentenceBlocks.length===0) return []; const ruleLines=[]; const ruleSeen=new Set(); for(const block of sentenceBlocks){ for(const c of block.candidates){ const ruleKey=c.level+':'+c.pattern; if(ruleSeen.has(ruleKey)) continue; ruleSeen.add(ruleKey); const rm=RULE_MAPS[c.level]; if(!rm) continue; const r=rm.get(c.pattern); if(!r) continue; const bits=[]; if(r.f) bits.push('功能：'+r.f); if(r.r) bits.push('限制：'+r.r); if(r.pos) bits.push('正例：'+r.pos); if(r.neg) bits.push('反例：'+r.neg); ruleLines.push('• HSK'+c.level+' '+r.s+'（'+bits.join('；')+'）'); } } const ruleTable=ruleLines.length?('【规则明细表 - 本次候选中出现过的规则，逐条对照】\n'+ruleLines.join('\n')):''; let blocksText=''; for(const block of sentenceBlocks){ blocksText+=`【句子】${block.sentence}\n【分词（与阅读一致）】${block.seg}\n【候选语法（仅${block.candidates.length}条，必须从这里匹配）】\n${block.candidates.map(g=>g.pattern+'(HSK'+g.level+')').join('\n')}\n\n`; } const prompt=`你是中文语法匹配专家。以下每个句子已经给出了【分词】（与阅读模式一致）和【候选语法】列表——候选语法已按分词边界过滤，你要做的是：检查语法结构的占位符词性是否也匹配，并且固定汉字必须与分词边界对齐。
+    async function analyzeGrammarBatch(clauses, effort){ const apiKey=currentApiKey(); if(!apiKey) return null; const activeList=grammarList; if(activeList.length===0) return []; const sentenceBlocks=[]; for(const clause of clauses){ const candidates=getCandidatePatterns(clause,activeList); if(candidates.length>0) sentenceBlocks.push({sentence:clause, candidates, seg:grammarSegText(clause)}); } if(sentenceBlocks.length===0) return []; const ruleLines=[]; const ruleSeen=new Set(); for(const block of sentenceBlocks){ for(const c of block.candidates){ const ruleKey=c.level+':'+c.pattern; if(ruleSeen.has(ruleKey)) continue; ruleSeen.add(ruleKey); const rm=RULE_MAPS[c.level]; if(!rm) continue; const r=rm.get(c.pattern); if(!r) continue; const bits=[]; if(r.f) bits.push('功能：'+r.f); if(r.r) bits.push('限制：'+r.r); if(r.pos) bits.push('正例：'+r.pos); if(r.neg) bits.push('反例：'+r.neg); ruleLines.push('• HSK'+c.level+' '+r.s+'（'+bits.join('；')+'）'); } } const ruleTable=ruleLines.length?('【规则明细表 - 本次候选中出现过的规则，逐条对照】\n'+ruleLines.join('\n')):''; let blocksText=''; for(const block of sentenceBlocks){ blocksText+=`【句子】${block.sentence}\n【分词（与阅读一致）】${block.seg}\n【候选语法（仅${block.candidates.length}条，必须从这里匹配）】\n${block.candidates.map(g=>g.pattern+'(HSK'+g.level+')').join('\n')}\n\n`; } const prompt=`你是中文语法匹配专家。以下每个句子已经给出了【分词】（与阅读模式一致）和【候选语法】列表——候选语法已按分词边界过滤，你要做的是：检查语法结构的占位符词性是否也匹配，并且固定汉字必须与分词边界对齐。
 
 ${ruleTable}
 ${ruleTable?`【规则明细表用法 - 匹配候选语法时必读】
@@ -19919,7 +19929,7 @@ try{ const _tr=await thinkingFetch({model:'deepseek-v4-pro',reasoning_effort:(ef
     function buildCompactMistakePrompt(targetLang){
         return `你是中文教师。通读学生这段话，把有问题的句子都改正确、改地道：有错误的句子输出记录，没有错误的句子不要输出。允许为了更自然调整说法，但不改变原意、不添加原文没有的信息；数字/日期/时间原样保留；前后句说法要统一。note 用${targetLang}具体说明原因。type 从：错字、别字、漏字、多字、词语错误、离合词错误、缺词、多词、语序错误、搭配不当、成分残缺、成分多余、句式杂糅、关联词错误、语义错误、语义不完整 中选一个。输出JSON数组：[{"original":"原文句子","corrected":"改正后句子","uncertain":true或false,"type":"类型","pattern":"框式结构或空","note":"说明"}]。`;
     }
-async function analyzeMistakesBatch(userMessages, aiReplyRaw, contextMessages){ const apiKey=apiKeyInput.value.trim(); if(!apiKey||userMessages.length===0) return []; const targetLang = targetLangSelect ? targetLangSelect.value : 'English'; const compactPrompt = buildCompactMistakePrompt(targetLang); const prompt=`你是资深中文写作教师，正在给外国学生逐句批改一段中文。请改得又快又好：先通读全段，把每个有问题的句子都改正确、改地道。
+async function analyzeMistakesBatch(userMessages, aiReplyRaw, contextMessages){ const apiKey=currentApiKey(); if(!apiKey||userMessages.length===0) return []; const targetLang = targetLangSelect ? targetLangSelect.value : 'English'; const compactPrompt = buildCompactMistakePrompt(targetLang); const prompt=`你是资深中文写作教师，正在给外国学生逐句批改一段中文。请改得又快又好：先通读全段，把每个有问题的句子都改正确、改地道。
 【要求】
 1. 先通读全文：前后句说法要统一（同一事物不能一会儿写「麻辣汤」一会儿写「麻辣烫」）、时态和衔接要自然。
 2. 判断标准分四个层面，每一层都要检查：①语法层面：单句词汇、语法、语序、虚词是否规范；②语义层面：意思是否清楚、完整、符合逻辑；③语用层面：说法是否符合语境、场合和交际意图；④篇章层面：前后句衔接、指代、话题连贯是否自然。
@@ -19935,7 +19945,7 @@ async function analyzeMistakesBatch(userMessages, aiReplyRaw, contextMessages){ 
     // 无错快速判断：不开思考、约1秒，只判断有没有错。返回 true=有错/不确定（走完整分析），false=非常确定无错（跳过深度思考）。
     // 判断失败返回 null，调用方按“有错”保守处理，保证不漏纠。
     async function quickMistakeCheck(text){
-        const apiKey = apiKeyInput.value.trim();
+        const apiKey = currentApiKey();
         if(!apiKey || !text) return null;
         const prompt = '你是中文教师。快速判断下面这段话有没有明显的汉语偏误（错别字、生造词、近义词误用、搭配不当、语序错误、虚词误用、缺词多词等）。只输出JSON：{"hasError":true} 或 {"hasError":false}。拿不准、稍微有怀疑就输出 true。\n【学生原文】\n' + text;
         try{
@@ -19951,7 +19961,7 @@ async function analyzeMistakesBatch(userMessages, aiReplyRaw, contextMessages){ 
     }
     // 快速润色复检：不开思考，把初步改正里不够地道/读起来别扭的句子修成母语级自然说法（约2-3秒）
     async function polishChatCorrections(text, mistakes){
-        const apiKey = apiKeyInput.value.trim();
+        const apiKey = currentApiKey();
         if(!apiKey || !text || !mistakes || !mistakes.length) return mistakes;
         const targetLang = targetLangSelect ? targetLangSelect.value : 'English';
         const items = mistakes.map(function(m){ return { original: m.original, corrected: m.corrected, type: m.type || '' }; });
@@ -20064,7 +20074,7 @@ async function analyzeMistakesBatch(userMessages, aiReplyRaw, contextMessages){ 
     }
     // 💡 纠错块展示去重/合并：同一句（或同一错误片段）只展示一条；多个错误类型合并到这一条的 note 和 type 中
     async function doubleCheckMistakes(userMessages, firstPass, contextMessages){
-        const apiKey = apiKeyInput.value.trim();
+        const apiKey = currentApiKey();
         if(!apiKey || !userMessages || !userMessages.length) return [];
         const targetLang = targetLangSelect ? targetLangSelect.value : 'English';
         const firstDesc = (firstPass || []).map(m => '「' + (m.original||'') + '」→「' + (m.corrected||'') + '」(' + (m.type||'') + ')').join('；') || '（无）';
@@ -20091,7 +20101,7 @@ async function analyzeMistakesBatch(userMessages, aiReplyRaw, contextMessages){ 
     // 严格复核：对第一轮候选纠错逐条复查，删除误报、修正改错，并补上确凿无疑的漏报。
     // 纠错准确率高于一切：拿不准一律删除。复核失败时回退为第一轮结果。
     async function reviewMistakesStrict(userMessages, candidates, contextMessages){
-        const apiKey = apiKeyInput.value.trim();
+        const apiKey = currentApiKey();
         if(!apiKey || !userMessages || !userMessages.length) return candidates || [];
         const targetLang = targetLangSelect ? targetLangSelect.value : 'English';
         const candDesc = (candidates || []).map(m => '「' + (m.original||'') + '」→「' + (m.corrected||'') + '」(' + (m.type||'') + ')').join('；') || '（无）';
@@ -20117,7 +20127,7 @@ async function analyzeMistakesBatch(userMessages, aiReplyRaw, contextMessages){ 
     }
     // 根据用户用母语解释的意思，重新给出最合适的最小改动纠错
     async function refineMistakesWithMeaning(text, meaning, preliminary){
-        const apiKey = apiKeyInput.value.trim();
+        const apiKey = currentApiKey();
         if(!apiKey || !text || !meaning) return null;
         const targetLang = targetLangSelect ? targetLangSelect.value : 'English';
         const preDesc = (preliminary || []).map(m => '「' + (m.original||'') + '」可能应为「' + (m.corrected||'') + '」(' + (m.type||'') + ')').join('；') || '（无）';
@@ -20655,7 +20665,7 @@ async function analyzeMistakesBatch(userMessages, aiReplyRaw, contextMessages){ 
         return false;
     }
     async function explainMistakeUsages(items){
-        const apiKey = apiKeyInput.value.trim();
+        const apiKey = currentApiKey();
         if(!apiKey || !items || items.length === 0) return null;
         const targetLang = targetLangSelect ? targetLangSelect.value : 'English';
         const langNames = { 'Chinese':'中文', 'English':'英语', 'Japanese':'日语', 'Korean':'韩语', 'French':'法语', 'German':'德语', 'Spanish':'西班牙语', 'Russian':'俄语', 'Italian':'意大利语', 'Thai':'泰语', 'Vietnamese':'越南语', 'Indonesian':'印度尼西亚语', 'Slovak':'斯洛伐克语' };
@@ -21155,7 +21165,7 @@ async function analyzeMistakesBatch(userMessages, aiReplyRaw, contextMessages){ 
         }catch(e){}
     }
     function normalizePracticeStructure(s){ const str=String(s||'').trim(); if(PRACTICE_STRUCTURES.includes(str)) return str; const map={'定中结构':'定中','状中结构':'状中','动宾结构':'动宾','动补结构':'动补','联合结构':'联合','连谓结构':'连谓','连动':'连谓','连动句':'连谓'}; return map[str] || ''; }
-    async function generateVocabPractice(word, level, retryCount=0){ stopAllSpeech(); primeSpeechSynthesis(); if(practiceGenerating) return; const apiKey=apiKeyInput.value.trim(); if(!apiKey){ alert(t('api_key_required')); return; } practiceGenerating=true; const myPracticeToken = practiceSessionToken; const targetLang=targetLangSelect.value; const effectiveLevel=level===5?3:(level===6?4:level); const grammarPool=[]; for(let _gl=1;_gl<=effectiveLevel;_gl++){ if(LEVEL_MAP[_gl]) for(const _gp of LEVEL_MAP[_gl]) grammarPool.push(_gp); } shuffleArray(grammarPool); const grammarList=grammarPool.slice(0,8).join('、'); const pt=document.getElementById('practiceModalTitle'); if(pt) pt.textContent=t('practice.vocab_title'); practiceContent.innerHTML='<div class="loading">'+t('practice.generating')+'</div>'; practiceModal.style.display='block';document.body.style.overflow='hidden'; let v2=VOCAB_LEVEL_MAP[level]?.find(x=>x.w===word); const meaning=v2?v2.m:''; const pos=v2?v2.p:''; if(!lastGeneratedVocabSentences.has(word)) lastGeneratedVocabSentences.set(word,new Set()); if(!lastGeneratedCollocations.has(word)) lastGeneratedCollocations.set(word,new Set()); const historySet=lastGeneratedVocabSentences.get(word); let historyStr=""; const allHistory=[...new Set([...historySet, ...Array.from(allGeneratedVocabSet).slice(0,100)])]; if(allHistory.length>0) historyStr="每次生成全新句子，不要与以下任何句子相同："+allHistory.join("；")+"。"; const collHistorySet=lastGeneratedCollocations.get(word); let collHistoryStr=""; if(collHistorySet&&collHistorySet.size>0) collHistoryStr="不要使用以下已用过的搭配："+[...collHistorySet].join("；")+"。"; const usedStructs=Array.from(usedPracticeStructures); let structureAvoid=""; if(usedStructs.length>=PRACTICE_STRUCTURES.length){ structureAvoid="上一轮六种结构都已用过，现在重新开始循环，六种结构任选一种。"; } else if(usedStructs.length>0){ structureAvoid="已用过的句子结构："+usedStructs.join("、")+"。本次必须换一个未用过的结构。"; } else { structureAvoid="六种结构任选一种。"; } const prompt=`你是一位 HSK 汉语教师。请生成一个"${targetLang}译中文"词汇练习题。\n目标词汇：${word} (HSK${level})，词义：${meaning}\n\n【难度控制 - 必须遵守】目标词「${word}」按学生所选 HSK${level} 等级出现，但句子中除目标词外的其他所有用词和语法必须属于低一级 HSK 等级（选HSK3→其余用HSK2及以下；选HSK2→其余用HSK1；选HSK1→其余仍用HSK1），让句子简单易听懂。低于该等级的词视为学生已学会的已知成分，可自由使用；如需使用高于 HSK${level} 的超纲词，全句最多 1-2 个，且必须自然常用。原来按等级的句长/复杂度要求作废：\\n  - HSK1级：极短句（4-7字），只用最常见的基础词汇，简单主谓/主谓宾结构\\n  - HSK2级：短句（5-9字），用基础日常词汇，可用简单状动/动补结构\\n  - HSK3级：中等句（7-14字），用日常词汇，可包含趋向补语、结果补语、把字句等\\n  - HSK4级：中等偏长句（10-18字），用较丰富词汇，可包含较复杂补语结构、关联词\\n  - HSK5级：正常中文句（12-22字），用丰富词汇，可以有一定句法复杂度\\n  - 【重要】句子结构和句型要有变化，不要每次都用相同的主谓宾顺序。可以变换使用：主题句、把字句、被字句、倒装句、设问句等，但要符合当前等级。\n\n【语法多样性 - 必须遵守】本次句子要尽量自然地使用下面其中一个语法点（只选与“${word}”最搭配、最自然的一个，宁可不套用也不要硬套）：${grammarList}。这些语法点等级均≤HSK${effectiveLevel}。每次生成换不同的语法点，让句子结构有变化。\n\n【关键：搭配优先，句子服从搭配】请严格按以下顺序生成，不要跳过任何步骤：\n\n第1步：先构思一个包含"${word}"的自然常用搭配短语（collocation）。\n  - 该词的词性是"${pos}"，请根据词性选择对应的搭配类型：\n    · 若为名词（名），搭配应以名词为中心语，如：形名"好老师"、动名"吃苹果"、数量名"三个苹果"、代名"这个地方"、名名"学生宿舍"等偏正结构\n    · 若为动词（动），搭配应为：动宾"打电话"、动补"看完"、偏正/状动"快跑"等\n    · 若为形容词（形），搭配应为：副形"很大"、形补"好极了"等\n    · 若为短语/固定表达（短语、固定短语、动词短语、关联短语等），不要把它拆开或强行加「于、的、着、了」等字去造词，应整体使用；搭配只能是一个简短的凝固短语，如「程度副词+短语」（还差得远、差得远呢）或「短语+语气词」（差得远吧）。严禁把「和/跟/与...比」这类跨主语的比较结构写进搭配（如「和他比差得远」「还差得远跟...比」都是完整句子/错误语序，不是搭配）。禁止生造「差得远于」这类错误搭配。\n    · 若为其他词性，选择符合该词性常见组合的搭配类型\n  - 【重要】搭配必须是两个或多个词的组合，但不能是横跨主谓宾的完整句子结构（如"我吃饭"是句子不是搭配）\n  - 搭配应是常见的主谓搭配、动宾搭配、偏正搭配、动补搭配、并列搭配、介宾搭配等两元结构\n  - "${word}"必须是搭配的一部分但不是全部。错误：搭配等于"${word}"本身\n  - 搭配必须简短（2-6个字），是汉语母语者会自然使用的、凝固度高的短语\n  - 搭配将作为展示给学生的提示，所以一定要是地道自然的\n  ${collHistoryStr}\n\n第2步：根据这个搭配短语，构思一句自然地道的中文句子。\n  - 句子必须包含第1步生成的搭配短语，搭配短语必须在句子中连续出现\n  - 句子要让汉语母语者觉得自然，不能生硬\n  - 不要先想${targetLang}再翻译成中文\n  - 根据难度控制要求选择用词\n\n第3步：将构思好的中文句子翻译成${targetLang}。\n  - 翻译必须准确对应中文原意\n  - 只能使用${targetLang}，禁止夹杂中文\n\n第4步：自检验证：\n  (a) chineseRaw 中确实包含搭配短语？\n  (b) 搭配短语确实包含"${word}"？\n  (c) 中文语序地道？\n  (d) ${targetLang}翻译准确？\n\n【中文翻译带拼音，每个汉字单独标注，拼音之间空格分开，绝不能连写。正确：我(wǒ) 是(shì) 学(xué) 生(shēng)。错误：我们(wǒmen)】\n【同时返回不带拼音的中文纯文本 chineseRaw】\n【collocationRaw必须是第1步生成的搭配短语（纯汉字，不含拼音）】\n【用${targetLang}给一句简短词义解释 briefExplanation，不超过20字】\n【句式与结构 - 必须遵守】句子整体结构必须属于以下六种之一：定中、状中、动宾、动补、联合、连谓，并在 structure 字段填写所选结构（只能填这六个之一）。${structureAvoid}\n${historyStr}\n输出 JSON：{"english":"${targetLang}句子","chinese":"带拼音的中文","chineseRaw":"不带拼音的中文","structure":"定中/状中/动宾/动补/联合/连谓之一","collocation":"搭配短语（汉字+拼音）","collocationRaw":"搭配短语纯文本","hint":"词汇：${word}","briefExplanation":"${targetLang}词义"}\n只输出 JSON。`;    try{ const resp=await fetch(API_BASE,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${apiKey}`}, body:JSON.stringify({model:'deepseek-v4-pro',thinking:{type:'disabled'}, max_tokens:4096, messages:[{role:'user',content:prompt}], temperature:0.9, response_format:{type:'json_object'}})}); const data=await resp.json(); if(data.error) throw new Error(data.error.message||"API error"); if(!data.choices||!data.choices[0]||!data.choices[0].message) throw new Error("API error"); let c=data.choices[0].message.content; c=c.replace(/```json/g,'').replace(/```/g,'').trim(); let aiResult=safeJsonParse(c); const {chars,pinyins}=parsePinyinString(aiResult.chinese); const chineseRaw=aiResult.chineseRaw||aiResult.chinese.replace(/\([^)]+\)/g,''); if(myPracticeToken !== practiceSessionToken){ return; } const structRaw=normalizePracticeStructure(aiResult.structure); if((!structRaw || (usedPracticeStructures.size<PRACTICE_STRUCTURES.length && usedPracticeStructures.has(structRaw))) && retryCount<3){ historySet.add(chineseRaw); saveGenHistory(); practiceGenerating=false; generateVocabPractice(word,level,retryCount+1); return; } const diffCheck=validateDifficulty(chineseRaw, effectiveLevel, [word]); if(!diffCheck.valid&&retryCount<3){ practiceGenerating=false; generateVocabPractice(word,level,retryCount+1); return; } if(allGeneratedVocabSet.has(chineseRaw)){ if(retryCount<3){ historySet.add(chineseRaw); saveGenHistory(); practiceGenerating=false; generateVocabPractice(word,level,retryCount+1); return; } } if(!chineseRaw.includes(word)&&retryCount<3){ practiceGenerating=false; generateVocabPractice(word,level,retryCount+1); return; } const collRawVal=aiResult.collocationRaw||(aiResult.collocation||'').replace(/\([^)]+\)/g,''); if((collRawVal===word||!collRawVal.includes(word))&&retryCount<3){ practiceGenerating=false; generateVocabPractice(word,level,retryCount+1); return; } if(collRawVal.length>6&&retryCount<3){ practiceGenerating=false; generateVocabPractice(word,level,retryCount+1); return; } if(collRawVal&&!chineseRaw.includes(collRawVal)&&retryCount<3){ practiceGenerating=false; generateVocabPractice(word,level,retryCount+1); return; } if((()=>{const fcs=extractPatternFixedChars(word);if(fcs.length===0)return false;let li=-1;for(const c of fcs){const i=chineseRaw.indexOf(c,li+1);if(i===-1)return true;li=i;}return false;})()&&retryCount<3){ practiceGenerating=false; generateVocabPractice(word,level,retryCount+1); return; } historySet.add(chineseRaw); if(structRaw){ if(usedPracticeStructures.size>=PRACTICE_STRUCTURES.length) usedPracticeStructures.clear(); usedPracticeStructures.add(structRaw); } const collSave=aiResult.collocationRaw||(aiResult.collocation||'').replace(/\([^)]+\)/g,''); if(collSave&&collSave!==word) lastGeneratedCollocations.get(word).add(collSave); if(historySet.size>100){ const arr=Array.from(historySet); arr.shift(); lastGeneratedVocabSentences.set(word,new Set(arr)); } allGeneratedVocabSet.add(chineseRaw); saveGenHistory(); const vEntry=vocabUsedMap.get(word); if(!vEntry){ vocabUsedMap.set(word,{count:0, correctCount:0, practiceCount:0, level:level, examples:[]}); } saveVocabState(); renderVocabLibrary(level); renderVocabTrackList(); const exerciseData={grammarPattern:'词汇: '+word, grammarLevel:level, english:aiResult.english, hint:aiResult.hint||('词汇: '+word), chineseRaw, chars, pinyins, isVocab:true, briefExplanation:aiResult.briefExplanation||'', collocation:aiResult.collocation||'', collocationRaw:aiResult.collocationRaw||(aiResult.collocation||'').replace(/\([^)]+\)/g,'')}; practiceGenerating=false; renderPractice(exerciseData); }catch(err){ if(myPracticeToken === practiceSessionToken){ practiceGenerating=false; practiceContent.innerHTML=`<div class="loading" style="color:red;">`+t('practice.loading_fail')+err.message+`</div>`; } } }
+    async function generateVocabPractice(word, level, retryCount=0){ stopAllSpeech(); primeSpeechSynthesis(); if(practiceGenerating) return; const apiKey=currentApiKey(); if(!apiKey){ alert(t('api_key_required')); return; } practiceGenerating=true; const myPracticeToken = practiceSessionToken; const targetLang=targetLangSelect.value; const effectiveLevel=level===5?3:(level===6?4:level); const grammarPool=[]; for(let _gl=1;_gl<=effectiveLevel;_gl++){ if(LEVEL_MAP[_gl]) for(const _gp of LEVEL_MAP[_gl]) grammarPool.push(_gp); } shuffleArray(grammarPool); const grammarList=grammarPool.slice(0,8).join('、'); const pt=document.getElementById('practiceModalTitle'); if(pt) pt.textContent=t('practice.vocab_title'); practiceContent.innerHTML='<div class="loading">'+t('practice.generating')+'</div>'; practiceModal.style.display='block';document.body.style.overflow='hidden'; let v2=VOCAB_LEVEL_MAP[level]?.find(x=>x.w===word); const meaning=v2?v2.m:''; const pos=v2?v2.p:''; if(!lastGeneratedVocabSentences.has(word)) lastGeneratedVocabSentences.set(word,new Set()); if(!lastGeneratedCollocations.has(word)) lastGeneratedCollocations.set(word,new Set()); const historySet=lastGeneratedVocabSentences.get(word); let historyStr=""; const allHistory=[...new Set([...historySet, ...Array.from(allGeneratedVocabSet).slice(0,100)])]; if(allHistory.length>0) historyStr="每次生成全新句子，不要与以下任何句子相同："+allHistory.join("；")+"。"; const collHistorySet=lastGeneratedCollocations.get(word); let collHistoryStr=""; if(collHistorySet&&collHistorySet.size>0) collHistoryStr="不要使用以下已用过的搭配："+[...collHistorySet].join("；")+"。"; const usedStructs=Array.from(usedPracticeStructures); let structureAvoid=""; if(usedStructs.length>=PRACTICE_STRUCTURES.length){ structureAvoid="上一轮六种结构都已用过，现在重新开始循环，六种结构任选一种。"; } else if(usedStructs.length>0){ structureAvoid="已用过的句子结构："+usedStructs.join("、")+"。本次必须换一个未用过的结构。"; } else { structureAvoid="六种结构任选一种。"; } const prompt=`你是一位 HSK 汉语教师。请生成一个"${targetLang}译中文"词汇练习题。\n目标词汇：${word} (HSK${level})，词义：${meaning}\n\n【难度控制 - 必须遵守】目标词「${word}」按学生所选 HSK${level} 等级出现，但句子中除目标词外的其他所有用词和语法必须属于低一级 HSK 等级（选HSK3→其余用HSK2及以下；选HSK2→其余用HSK1；选HSK1→其余仍用HSK1），让句子简单易听懂。低于该等级的词视为学生已学会的已知成分，可自由使用；如需使用高于 HSK${level} 的超纲词，全句最多 1-2 个，且必须自然常用。原来按等级的句长/复杂度要求作废：\\n  - HSK1级：极短句（4-7字），只用最常见的基础词汇，简单主谓/主谓宾结构\\n  - HSK2级：短句（5-9字），用基础日常词汇，可用简单状动/动补结构\\n  - HSK3级：中等句（7-14字），用日常词汇，可包含趋向补语、结果补语、把字句等\\n  - HSK4级：中等偏长句（10-18字），用较丰富词汇，可包含较复杂补语结构、关联词\\n  - HSK5级：正常中文句（12-22字），用丰富词汇，可以有一定句法复杂度\\n  - 【重要】句子结构和句型要有变化，不要每次都用相同的主谓宾顺序。可以变换使用：主题句、把字句、被字句、倒装句、设问句等，但要符合当前等级。\n\n【语法多样性 - 必须遵守】本次句子要尽量自然地使用下面其中一个语法点（只选与“${word}”最搭配、最自然的一个，宁可不套用也不要硬套）：${grammarList}。这些语法点等级均≤HSK${effectiveLevel}。每次生成换不同的语法点，让句子结构有变化。\n\n【关键：搭配优先，句子服从搭配】请严格按以下顺序生成，不要跳过任何步骤：\n\n第1步：先构思一个包含"${word}"的自然常用搭配短语（collocation）。\n  - 该词的词性是"${pos}"，请根据词性选择对应的搭配类型：\n    · 若为名词（名），搭配应以名词为中心语，如：形名"好老师"、动名"吃苹果"、数量名"三个苹果"、代名"这个地方"、名名"学生宿舍"等偏正结构\n    · 若为动词（动），搭配应为：动宾"打电话"、动补"看完"、偏正/状动"快跑"等\n    · 若为形容词（形），搭配应为：副形"很大"、形补"好极了"等\n    · 若为短语/固定表达（短语、固定短语、动词短语、关联短语等），不要把它拆开或强行加「于、的、着、了」等字去造词，应整体使用；搭配只能是一个简短的凝固短语，如「程度副词+短语」（还差得远、差得远呢）或「短语+语气词」（差得远吧）。严禁把「和/跟/与...比」这类跨主语的比较结构写进搭配（如「和他比差得远」「还差得远跟...比」都是完整句子/错误语序，不是搭配）。禁止生造「差得远于」这类错误搭配。\n    · 若为其他词性，选择符合该词性常见组合的搭配类型\n  - 【重要】搭配必须是两个或多个词的组合，但不能是横跨主谓宾的完整句子结构（如"我吃饭"是句子不是搭配）\n  - 搭配应是常见的主谓搭配、动宾搭配、偏正搭配、动补搭配、并列搭配、介宾搭配等两元结构\n  - "${word}"必须是搭配的一部分但不是全部。错误：搭配等于"${word}"本身\n  - 搭配必须简短（2-6个字），是汉语母语者会自然使用的、凝固度高的短语\n  - 搭配将作为展示给学生的提示，所以一定要是地道自然的\n  ${collHistoryStr}\n\n第2步：根据这个搭配短语，构思一句自然地道的中文句子。\n  - 句子必须包含第1步生成的搭配短语，搭配短语必须在句子中连续出现\n  - 句子要让汉语母语者觉得自然，不能生硬\n  - 不要先想${targetLang}再翻译成中文\n  - 根据难度控制要求选择用词\n\n第3步：将构思好的中文句子翻译成${targetLang}。\n  - 翻译必须准确对应中文原意\n  - 只能使用${targetLang}，禁止夹杂中文\n\n第4步：自检验证：\n  (a) chineseRaw 中确实包含搭配短语？\n  (b) 搭配短语确实包含"${word}"？\n  (c) 中文语序地道？\n  (d) ${targetLang}翻译准确？\n\n【中文翻译带拼音，每个汉字单独标注，拼音之间空格分开，绝不能连写。正确：我(wǒ) 是(shì) 学(xué) 生(shēng)。错误：我们(wǒmen)】\n【同时返回不带拼音的中文纯文本 chineseRaw】\n【collocationRaw必须是第1步生成的搭配短语（纯汉字，不含拼音）】\n【用${targetLang}给一句简短词义解释 briefExplanation，不超过20字】\n【句式与结构 - 必须遵守】句子整体结构必须属于以下六种之一：定中、状中、动宾、动补、联合、连谓，并在 structure 字段填写所选结构（只能填这六个之一）。${structureAvoid}\n${historyStr}\n输出 JSON：{"english":"${targetLang}句子","chinese":"带拼音的中文","chineseRaw":"不带拼音的中文","structure":"定中/状中/动宾/动补/联合/连谓之一","collocation":"搭配短语（汉字+拼音）","collocationRaw":"搭配短语纯文本","hint":"词汇：${word}","briefExplanation":"${targetLang}词义"}\n只输出 JSON。`;    try{ const resp=await fetch(API_BASE,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${apiKey}`}, body:JSON.stringify({model:'deepseek-v4-pro',thinking:{type:'disabled'}, max_tokens:4096, messages:[{role:'user',content:prompt}], temperature:0.9, response_format:{type:'json_object'}})}); const data=await resp.json(); if(data.error) throw new Error(data.error.message||"API error"); if(!data.choices||!data.choices[0]||!data.choices[0].message) throw new Error("API error"); let c=data.choices[0].message.content; c=c.replace(/```json/g,'').replace(/```/g,'').trim(); let aiResult=safeJsonParse(c); const {chars,pinyins}=parsePinyinString(aiResult.chinese); const chineseRaw=aiResult.chineseRaw||aiResult.chinese.replace(/\([^)]+\)/g,''); if(myPracticeToken !== practiceSessionToken){ return; } const structRaw=normalizePracticeStructure(aiResult.structure); if((!structRaw || (usedPracticeStructures.size<PRACTICE_STRUCTURES.length && usedPracticeStructures.has(structRaw))) && retryCount<3){ historySet.add(chineseRaw); saveGenHistory(); practiceGenerating=false; generateVocabPractice(word,level,retryCount+1); return; } const diffCheck=validateDifficulty(chineseRaw, effectiveLevel, [word]); if(!diffCheck.valid&&retryCount<3){ practiceGenerating=false; generateVocabPractice(word,level,retryCount+1); return; } if(allGeneratedVocabSet.has(chineseRaw)){ if(retryCount<3){ historySet.add(chineseRaw); saveGenHistory(); practiceGenerating=false; generateVocabPractice(word,level,retryCount+1); return; } } if(!chineseRaw.includes(word)&&retryCount<3){ practiceGenerating=false; generateVocabPractice(word,level,retryCount+1); return; } const collRawVal=aiResult.collocationRaw||(aiResult.collocation||'').replace(/\([^)]+\)/g,''); if((collRawVal===word||!collRawVal.includes(word))&&retryCount<3){ practiceGenerating=false; generateVocabPractice(word,level,retryCount+1); return; } if(collRawVal.length>6&&retryCount<3){ practiceGenerating=false; generateVocabPractice(word,level,retryCount+1); return; } if(collRawVal&&!chineseRaw.includes(collRawVal)&&retryCount<3){ practiceGenerating=false; generateVocabPractice(word,level,retryCount+1); return; } if((()=>{const fcs=extractPatternFixedChars(word);if(fcs.length===0)return false;let li=-1;for(const c of fcs){const i=chineseRaw.indexOf(c,li+1);if(i===-1)return true;li=i;}return false;})()&&retryCount<3){ practiceGenerating=false; generateVocabPractice(word,level,retryCount+1); return; } historySet.add(chineseRaw); if(structRaw){ if(usedPracticeStructures.size>=PRACTICE_STRUCTURES.length) usedPracticeStructures.clear(); usedPracticeStructures.add(structRaw); } const collSave=aiResult.collocationRaw||(aiResult.collocation||'').replace(/\([^)]+\)/g,''); if(collSave&&collSave!==word) lastGeneratedCollocations.get(word).add(collSave); if(historySet.size>100){ const arr=Array.from(historySet); arr.shift(); lastGeneratedVocabSentences.set(word,new Set(arr)); } allGeneratedVocabSet.add(chineseRaw); saveGenHistory(); const vEntry=vocabUsedMap.get(word); if(!vEntry){ vocabUsedMap.set(word,{count:0, correctCount:0, practiceCount:0, level:level, examples:[]}); } saveVocabState(); renderVocabLibrary(level); renderVocabTrackList(); const exerciseData={grammarPattern:'词汇: '+word, grammarLevel:level, english:aiResult.english, hint:aiResult.hint||('词汇: '+word), chineseRaw, chars, pinyins, isVocab:true, briefExplanation:aiResult.briefExplanation||'', collocation:aiResult.collocation||'', collocationRaw:aiResult.collocationRaw||(aiResult.collocation||'').replace(/\([^)]+\)/g,'')}; practiceGenerating=false; renderPractice(exerciseData); }catch(err){ if(myPracticeToken === practiceSessionToken){ practiceGenerating=false; practiceContent.innerHTML=`<div class="loading" style="color:red;">`+t('practice.loading_fail')+err.message+`</div>`; } } }
     function downloadTextFile(text, filename) {
         try {
             // 老版 Edge/IE 兜底
@@ -21388,9 +21398,12 @@ renderVocabLevelProgress(); renderVocabTrackList(); const _userHanzi = sessionUs
     // 统一生成聊天失败详情：让用户能看到 API 具体报错（便于判断是 Key、网络还是模型问题）
     function chatErrorDetail(){
         const e = window._lastChatError;
-        if(!e) return '';
-        if(String(e) === 'API error') return '（服务器返回异常：请检查 API Key 是否有效、网络是否正常、模型名称是否可用）';
-        return '（' + escapeHtml(String(e)) + '）';
+        const fileHint = (location.protocol === 'file:')
+            ? '（提示：请双击「启动网站.bat」或访问 http://localhost:3001 打开页面；直接双击 index.html 无法联网）'
+            : '';
+        if(!e) return fileHint;
+        if(String(e) === 'API error') return '（服务器返回异常：请检查 API Key 是否有效、网络是否正常、模型名称是否可用）' + fileHint;
+        return '（' + escapeHtml(String(e)) + '）' + fileHint;
     }
 
     // 「怎么说」参考答案是否被学生原样复用：直接使用参考答案不算错
@@ -21797,7 +21810,7 @@ renderVocabLevelProgress(); renderVocabTrackList(); const _userHanzi = sessionUs
     }
 
     async function translateZhToNative(text){
-        const apiKey = apiKeyInput.value.trim();
+        const apiKey = currentApiKey();
         if(!apiKey) return '';
         const targetLang = targetLangSelect.value;
         const resp = await fetch(API_BASE, { method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey}, body: JSON.stringify({ model:'deepseek-v4-pro', thinking:{ type:'disabled' }, max_tokens:1024, messages:[{ role:'user', content:'请将以下中文翻译成' + targetLang + '，只输出翻译结果，不要解释：\n' + text }], temperature:0.3 }) });
@@ -21812,7 +21825,7 @@ renderVocabLevelProgress(); renderVocabTrackList(); const _userHanzi = sessionUs
         if(!clean.length) return {};
         const targetLang = targetLangSelect ? targetLangSelect.value : 'English';
         if(targetLang === 'Chinese') return {};
-        const apiKey = apiKeyInput.value.trim();
+        const apiKey = currentApiKey();
         if(!apiKey) return {};
         try{
             const resp = await fetch(API_BASE, { method:'POST', headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer ' + apiKey }, body: JSON.stringify({ model:'deepseek-v4-flash', thinking:{ type:'disabled' }, max_tokens:2048, messages:[{ role:'user', content:'请将以下中文逐行翻译成' + targetLang + '，保持每行一一对应，只输出翻译结果，不要编号、不要解释：\n' + clean.join('\n') }], temperature:0.3, signal: aiFetchSignal(null, 20000) }) });
@@ -21844,7 +21857,7 @@ renderVocabLevelProgress(); renderVocabTrackList(); const _userHanzi = sessionUs
     }
 
     async function translateNativeToChinese(native){
-        const apiKey = apiKeyInput.value.trim();
+        const apiKey = currentApiKey();
         if(!apiKey) return '';
         const targetLang = targetLangSelect.value;
         const prompt = buildZmsReferencePrompt(native, targetLang, buildZmsChatContext(), '对话上下文');
@@ -21937,7 +21950,7 @@ renderVocabLevelProgress(); renderVocabTrackList(); const _userHanzi = sessionUs
         const level = parseInt(aiLevelSelect.value) || 3;
         const canned = {1:'你好！很高兴见到你。', 2:'你好！很高兴认识你。你今天好吗？', 3:'你好！很高兴见到你。你今天过得怎么样？', 4:'你好！很高兴见到你。最近怎么样？', 5:'你好！很高兴见到你。最近过得怎么样？想聊点什么？'}[level] || '你好！很高兴见到你。';
         let replyRaw = '';
-        const apiKey = apiKeyInput.value.trim();
+        const apiKey = currentApiKey();
         if(apiKey){
             try{
                 const system = '你是HSK' + level + '级中文对话伙伴。学生刚刚跟你打招呼（「' + text + '」）。请像朋友一样，用符合HSK' + level + '级的中文简短友好地回应（1-3句），并自然地问一个简单的问题邀请他开始聊天。只输出回复本身，不要复述学生的话，不要输出任何符号、标签、解释或格式。';
@@ -23587,7 +23600,7 @@ function renderPractice(exerciseData) {
         }
     }
 
-async function generateAndShowPractice(grammarPattern, grammarLevel, forceNew=false, retryCount=0){ stopAllSpeech(); primeSpeechSynthesis(); const apiKey=apiKeyInput.value.trim(); if(!apiKey){ alert(t('api_key_required')); return; } const targetLang=targetLangSelect.value; const aiLevel=grammarLevel; const myPracticeToken = practiceSessionToken; const pt=document.getElementById('practiceModalTitle'); if(pt) pt.textContent=t('practice.title'); practiceContent.innerHTML='<div class="loading">'+t('practice.generating')+'</div>'; practiceModal.style.display='block';document.body.style.overflow='hidden'; if(!lastGeneratedSentences.has(grammarPattern)) lastGeneratedSentences.set(grammarPattern,new Set()); if(!lastGeneratedCollocations.has(grammarPattern)) lastGeneratedCollocations.set(grammarPattern,new Set()); const historySet=lastGeneratedSentences.get(grammarPattern); let historyStr=""; const allHistory2=[...new Set([...historySet, ...Array.from(allGeneratedVocabSet).slice(0,100)])]; if(allHistory2.length>0) historyStr="不要与以下任何句子相同："+allHistory2.join("；")+"。"; const usedStructsG=Array.from(usedPracticeStructures); let structureAvoid=""; if(usedStructsG.length>=PRACTICE_STRUCTURES.length){ structureAvoid="上一轮六种结构都已用过，现在重新开始循环，六种结构任选一种。"; } else if(usedStructsG.length>0){ structureAvoid="已用过的句子结构："+usedStructsG.join("、")+"。本次必须换一个未用过的结构。"; } else { structureAvoid="六种结构任选一种。"; } const ruleMetaG=((RULE_MAPS[grammarLevel]||RULE_MAPS[1]||new Map()).get(grammarPattern))||null; let ruleBlockG=''; if(ruleMetaG){ ruleBlockG='\n\n【语法点规则（教材规则表，生成的句子必须遵守）】\n结构：'+ruleMetaG.s; if(ruleMetaG.f) ruleBlockG+='\n功能：'+ruleMetaG.f+'（句中的该结构必须承担此功能）'; if(ruleMetaG.r) ruleBlockG+='\n限制：'+ruleMetaG.r+'（绝不能违反任何一条）'; if(ruleMetaG.pos) ruleBlockG+='\n正例：'+ruleMetaG.pos; if(ruleMetaG.neg) ruleBlockG+='\n反例：'+ruleMetaG.neg+'（生成的句子绝不能与反例同类）'; } const prompt=`你是一位 HSK 汉语教师。请根据以下语法点生成一个"${targetLang}译中文"练习题。\n语法点模式：${grammarPattern} (HSK${grammarLevel})${ruleBlockG}\n\n【难度控制 - 必须遵守】目标语法「${grammarPattern}」按学生所选 HSK${aiLevel} 级出现，但句子中除目标语法外的其他所有用词和语法必须属于 HSK1 级，让句子尽可能简单（句长 4-10 字为宜）。原来按等级的句长/复杂度要求作废：\n  - 句子中除指定语法结构外的其他用词和语法必须严格属于低一级 HSK 等级，让句子简单易听懂\n  - HSK1级：极短句（4-7字），只用最常见基础词汇，简单主谓/主谓宾\n  - HSK2级：短句（5-9字），用基础日常词汇，可含简单状动/动补\n  - HSK3级：中等句（7-14字），用日常词汇，可含趋向补语、结果补语、把字句\n  - HSK4级：中等偏长（10-18字），用较丰富词汇，可含复杂补语结构、关联词\n  - HSK5级：正常中文（12-22字），用丰富词汇，可有一定句法复杂度\n  - 【结构变化】每次生成的句子结构和句型要有变化，不要总用"S+V+O"顺序。可变换：主题评论句、把字句、被字句、存现句、比较句、设问句等，但必须符合当前等级\n  - 如果语法结构本身超出当前难度等级，翻译句也要尽量简单，让学生容易理解\n\n【生成步骤 - 请严格按此顺序执行】\n第1步：先构思一句自然地道的中文句子，这句中文必须使用此语法结构"${grammarPattern}"。\n  - 这句话必须是汉语母语者会自然说出的句子，语序、用词都要地道。\n  - 不要先想${targetLang}再翻译成中文——那样容易出语序错误。\n  - 根据难度控制要求选择用词。\n第2步：将构思好的中文句子翻译成${targetLang}。\n  - ${targetLang}翻译必须准确对应中文原意。\n  - 只能使用${targetLang}，禁止夹杂中文或其他语言。\n第3步：自检验证 - 请确认：\n  (a) chineseRaw 确实使用了"${grammarPattern}"这个语法结构？\n  (b) 中文语序是否地道？（主语-状语-动词-宾语 的顺序正确吗？）\n  (c) ${targetLang}翻译是否准确？\n  (d) 句子难度符合 HSK${aiLevel} 级水平吗？\n\n【写出该语法结构的具体形式作为提示】\n【中文翻译带拼音，每个汉字都必须单独用括号标注拼音，拼音之间用空格分开，绝不能将多个字的拼音连在一起。正确示例：我(wǒ) 是(shì) 学(xué) 生(shēng)。错误示例（严禁）：我们(wǒmen)——这是错误的！必须写成：我(wǒ) 们(men)。再强调：每个汉字只对应一个拼音音节！】\n【同时返回不带拼音的中文纯文本 chineseRaw】\n【用${targetLang}给一句简短用法解释 briefExplanation，不超过30字，禁止用中文】\n【句式与结构 - 必须遵守】句子整体结构必须属于以下六种之一：定中、状中、动宾、动补、联合、连谓，并在 structure 字段填写所选结构（只能填这六个之一）。${structureAvoid}\n${historyStr}\n输出 JSON：{"english":"${targetLang}句子","hint":"语法结构","chinese":"带拼音的中文","chineseRaw":"不带拼音的中文","structure":"定中/状中/动宾/动补/联合/连谓之一","briefExplanation":"简短用法解释"}\n只输出 JSON。`; try{ const resp=await fetch(API_BASE,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${apiKey}`}, body:JSON.stringify({model:'deepseek-v4-pro',thinking:{type:'disabled'}, max_tokens:4096, messages:[{role:'user',content:prompt}], temperature:0.9, response_format:{type:'json_object'}})}); const data=await resp.json(); if(data.error) throw new Error(data.error.message||"API error"); if(!data.choices||!data.choices[0]||!data.choices[0].message) throw new Error("API error"); let content=data.choices[0].message.content; content=content.replace(/```json/g,'').replace(/```/g,'').trim(); let aiResult=safeJsonParse(content); const {chars,pinyins}=parsePinyinString(aiResult.chinese); const chineseRaw=aiResult.chineseRaw||aiResult.chinese.replace(/\([^)]+\)/g,''); if(myPracticeToken !== practiceSessionToken){ return; } const structRawG=normalizePracticeStructure(aiResult.structure); if((!structRawG || (usedPracticeStructures.size<PRACTICE_STRUCTURES.length && usedPracticeStructures.has(structRawG))) && retryCount<3){ historySet.add(chineseRaw); saveGenHistory(); generateAndShowPractice(grammarPattern,grammarLevel,forceNew,retryCount+1); return; } const diffCheckG=validateDifficulty(chineseRaw, aiLevel, patternFixedCharsFlat(grammarPattern)); if(!diffCheckG.valid&&retryCount<3){ generateAndShowPractice(grammarPattern,grammarLevel,forceNew,retryCount+1); return; } if(allGeneratedVocabSet.has(chineseRaw)){ if(retryCount<3){ historySet.add(chineseRaw); saveGenHistory(); generateAndShowPractice(grammarPattern,grammarLevel,forceNew,retryCount+1); return; } } const validation=validatePracticeSentence(grammarPattern,chineseRaw); if(!validation.valid&&retryCount<3){ generateAndShowPractice(grammarPattern,grammarLevel,forceNew,retryCount+1); return; } const collRawG2=aiResult.collocationRaw||(aiResult.collocation||'').replace(/\([^)]+\)/g,''); if(collRawG2&&!chineseRaw.includes(collRawG2)&&retryCount<3){ generateAndShowPractice(grammarPattern,grammarLevel,forceNew,retryCount+1); return; } historySet.add(chineseRaw); if(structRawG){ if(usedPracticeStructures.size>=PRACTICE_STRUCTURES.length) usedPracticeStructures.clear(); usedPracticeStructures.add(structRawG); } const collSaveG=aiResult.collocationRaw||(aiResult.collocation||'').replace(/\([^)]+\)/g,''); if(collSaveG) lastGeneratedCollocations.get(grammarPattern).add(collSaveG); if(historySet.size>100){ const arr=Array.from(historySet); arr.shift(); lastGeneratedSentences.set(grammarPattern,new Set(arr)); } allGeneratedVocabSet.add(chineseRaw); saveGenHistory(); if(!forceNew||!lastGrammarMeta.has(grammarPattern)) lastGrammarMeta.set(grammarPattern,{brief:aiResult.briefExplanation||'',hint:aiResult.hint}); const meta=lastGrammarMeta.get(grammarPattern); const exerciseData={grammarPattern, grammarLevel, english:aiResult.english, hint:forceNew?meta.hint:aiResult.hint, chineseRaw, chars, pinyins, briefExplanation:forceNew?meta.brief:aiResult.briefExplanation||''}; const gEntry=usedMap.get(grammarPattern); if(!gEntry){ usedMap.set(grammarPattern,{count:0, correctCount:0, practiceCount:0, level:grammarLevel, examples:[]}); } saveFullState(); updateGrammarDisplayByLevel(grammarLevel); renderTrackList(); renderPractice(exerciseData); }catch(err){ if(myPracticeToken === practiceSessionToken){ practiceContent.innerHTML=`<div class="loading" style="color:red;">`+t('practice.loading_fail')+err.message+`</div>`; } } }
+async function generateAndShowPractice(grammarPattern, grammarLevel, forceNew=false, retryCount=0){ stopAllSpeech(); primeSpeechSynthesis(); const apiKey=currentApiKey(); if(!apiKey){ alert(t('api_key_required')); return; } const targetLang=targetLangSelect.value; const aiLevel=grammarLevel; const myPracticeToken = practiceSessionToken; const pt=document.getElementById('practiceModalTitle'); if(pt) pt.textContent=t('practice.title'); practiceContent.innerHTML='<div class="loading">'+t('practice.generating')+'</div>'; practiceModal.style.display='block';document.body.style.overflow='hidden'; if(!lastGeneratedSentences.has(grammarPattern)) lastGeneratedSentences.set(grammarPattern,new Set()); if(!lastGeneratedCollocations.has(grammarPattern)) lastGeneratedCollocations.set(grammarPattern,new Set()); const historySet=lastGeneratedSentences.get(grammarPattern); let historyStr=""; const allHistory2=[...new Set([...historySet, ...Array.from(allGeneratedVocabSet).slice(0,100)])]; if(allHistory2.length>0) historyStr="不要与以下任何句子相同："+allHistory2.join("；")+"。"; const usedStructsG=Array.from(usedPracticeStructures); let structureAvoid=""; if(usedStructsG.length>=PRACTICE_STRUCTURES.length){ structureAvoid="上一轮六种结构都已用过，现在重新开始循环，六种结构任选一种。"; } else if(usedStructsG.length>0){ structureAvoid="已用过的句子结构："+usedStructsG.join("、")+"。本次必须换一个未用过的结构。"; } else { structureAvoid="六种结构任选一种。"; } const ruleMetaG=((RULE_MAPS[grammarLevel]||RULE_MAPS[1]||new Map()).get(grammarPattern))||null; let ruleBlockG=''; if(ruleMetaG){ ruleBlockG='\n\n【语法点规则（教材规则表，生成的句子必须遵守）】\n结构：'+ruleMetaG.s; if(ruleMetaG.f) ruleBlockG+='\n功能：'+ruleMetaG.f+'（句中的该结构必须承担此功能）'; if(ruleMetaG.r) ruleBlockG+='\n限制：'+ruleMetaG.r+'（绝不能违反任何一条）'; if(ruleMetaG.pos) ruleBlockG+='\n正例：'+ruleMetaG.pos; if(ruleMetaG.neg) ruleBlockG+='\n反例：'+ruleMetaG.neg+'（生成的句子绝不能与反例同类）'; } const prompt=`你是一位 HSK 汉语教师。请根据以下语法点生成一个"${targetLang}译中文"练习题。\n语法点模式：${grammarPattern} (HSK${grammarLevel})${ruleBlockG}\n\n【难度控制 - 必须遵守】目标语法「${grammarPattern}」按学生所选 HSK${aiLevel} 级出现，但句子中除目标语法外的其他所有用词和语法必须属于 HSK1 级，让句子尽可能简单（句长 4-10 字为宜）。原来按等级的句长/复杂度要求作废：\n  - 句子中除指定语法结构外的其他用词和语法必须严格属于低一级 HSK 等级，让句子简单易听懂\n  - HSK1级：极短句（4-7字），只用最常见基础词汇，简单主谓/主谓宾\n  - HSK2级：短句（5-9字），用基础日常词汇，可含简单状动/动补\n  - HSK3级：中等句（7-14字），用日常词汇，可含趋向补语、结果补语、把字句\n  - HSK4级：中等偏长（10-18字），用较丰富词汇，可含复杂补语结构、关联词\n  - HSK5级：正常中文（12-22字），用丰富词汇，可有一定句法复杂度\n  - 【结构变化】每次生成的句子结构和句型要有变化，不要总用"S+V+O"顺序。可变换：主题评论句、把字句、被字句、存现句、比较句、设问句等，但必须符合当前等级\n  - 如果语法结构本身超出当前难度等级，翻译句也要尽量简单，让学生容易理解\n\n【生成步骤 - 请严格按此顺序执行】\n第1步：先构思一句自然地道的中文句子，这句中文必须使用此语法结构"${grammarPattern}"。\n  - 这句话必须是汉语母语者会自然说出的句子，语序、用词都要地道。\n  - 不要先想${targetLang}再翻译成中文——那样容易出语序错误。\n  - 根据难度控制要求选择用词。\n第2步：将构思好的中文句子翻译成${targetLang}。\n  - ${targetLang}翻译必须准确对应中文原意。\n  - 只能使用${targetLang}，禁止夹杂中文或其他语言。\n第3步：自检验证 - 请确认：\n  (a) chineseRaw 确实使用了"${grammarPattern}"这个语法结构？\n  (b) 中文语序是否地道？（主语-状语-动词-宾语 的顺序正确吗？）\n  (c) ${targetLang}翻译是否准确？\n  (d) 句子难度符合 HSK${aiLevel} 级水平吗？\n\n【写出该语法结构的具体形式作为提示】\n【中文翻译带拼音，每个汉字都必须单独用括号标注拼音，拼音之间用空格分开，绝不能将多个字的拼音连在一起。正确示例：我(wǒ) 是(shì) 学(xué) 生(shēng)。错误示例（严禁）：我们(wǒmen)——这是错误的！必须写成：我(wǒ) 们(men)。再强调：每个汉字只对应一个拼音音节！】\n【同时返回不带拼音的中文纯文本 chineseRaw】\n【用${targetLang}给一句简短用法解释 briefExplanation，不超过30字，禁止用中文】\n【句式与结构 - 必须遵守】句子整体结构必须属于以下六种之一：定中、状中、动宾、动补、联合、连谓，并在 structure 字段填写所选结构（只能填这六个之一）。${structureAvoid}\n${historyStr}\n输出 JSON：{"english":"${targetLang}句子","hint":"语法结构","chinese":"带拼音的中文","chineseRaw":"不带拼音的中文","structure":"定中/状中/动宾/动补/联合/连谓之一","briefExplanation":"简短用法解释"}\n只输出 JSON。`; try{ const resp=await fetch(API_BASE,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${apiKey}`}, body:JSON.stringify({model:'deepseek-v4-pro',thinking:{type:'disabled'}, max_tokens:4096, messages:[{role:'user',content:prompt}], temperature:0.9, response_format:{type:'json_object'}})}); const data=await resp.json(); if(data.error) throw new Error(data.error.message||"API error"); if(!data.choices||!data.choices[0]||!data.choices[0].message) throw new Error("API error"); let content=data.choices[0].message.content; content=content.replace(/```json/g,'').replace(/```/g,'').trim(); let aiResult=safeJsonParse(content); const {chars,pinyins}=parsePinyinString(aiResult.chinese); const chineseRaw=aiResult.chineseRaw||aiResult.chinese.replace(/\([^)]+\)/g,''); if(myPracticeToken !== practiceSessionToken){ return; } const structRawG=normalizePracticeStructure(aiResult.structure); if((!structRawG || (usedPracticeStructures.size<PRACTICE_STRUCTURES.length && usedPracticeStructures.has(structRawG))) && retryCount<3){ historySet.add(chineseRaw); saveGenHistory(); generateAndShowPractice(grammarPattern,grammarLevel,forceNew,retryCount+1); return; } const diffCheckG=validateDifficulty(chineseRaw, aiLevel, patternFixedCharsFlat(grammarPattern)); if(!diffCheckG.valid&&retryCount<3){ generateAndShowPractice(grammarPattern,grammarLevel,forceNew,retryCount+1); return; } if(allGeneratedVocabSet.has(chineseRaw)){ if(retryCount<3){ historySet.add(chineseRaw); saveGenHistory(); generateAndShowPractice(grammarPattern,grammarLevel,forceNew,retryCount+1); return; } } const validation=validatePracticeSentence(grammarPattern,chineseRaw); if(!validation.valid&&retryCount<3){ generateAndShowPractice(grammarPattern,grammarLevel,forceNew,retryCount+1); return; } const collRawG2=aiResult.collocationRaw||(aiResult.collocation||'').replace(/\([^)]+\)/g,''); if(collRawG2&&!chineseRaw.includes(collRawG2)&&retryCount<3){ generateAndShowPractice(grammarPattern,grammarLevel,forceNew,retryCount+1); return; } historySet.add(chineseRaw); if(structRawG){ if(usedPracticeStructures.size>=PRACTICE_STRUCTURES.length) usedPracticeStructures.clear(); usedPracticeStructures.add(structRawG); } const collSaveG=aiResult.collocationRaw||(aiResult.collocation||'').replace(/\([^)]+\)/g,''); if(collSaveG) lastGeneratedCollocations.get(grammarPattern).add(collSaveG); if(historySet.size>100){ const arr=Array.from(historySet); arr.shift(); lastGeneratedSentences.set(grammarPattern,new Set(arr)); } allGeneratedVocabSet.add(chineseRaw); saveGenHistory(); if(!forceNew||!lastGrammarMeta.has(grammarPattern)) lastGrammarMeta.set(grammarPattern,{brief:aiResult.briefExplanation||'',hint:aiResult.hint}); const meta=lastGrammarMeta.get(grammarPattern); const exerciseData={grammarPattern, grammarLevel, english:aiResult.english, hint:forceNew?meta.hint:aiResult.hint, chineseRaw, chars, pinyins, briefExplanation:forceNew?meta.brief:aiResult.briefExplanation||''}; const gEntry=usedMap.get(grammarPattern); if(!gEntry){ usedMap.set(grammarPattern,{count:0, correctCount:0, practiceCount:0, level:grammarLevel, examples:[]}); } saveFullState(); updateGrammarDisplayByLevel(grammarLevel); renderTrackList(); renderPractice(exerciseData); }catch(err){ if(myPracticeToken === practiceSessionToken){ practiceContent.innerHTML=`<div class="loading" style="color:red;">`+t('practice.loading_fail')+err.message+`</div>`; } } }
     // 快捷键监听（使用自定义键位）
     document.addEventListener('keydown', (e) => {
         if (practiceModal.style.display !== 'block') return;
@@ -23653,7 +23666,7 @@ async function generateAndShowPractice(grammarPattern, grammarLevel, forceNew=fa
         if(!input) return;
         const text = input.value.trim();
         if(!text) return;
-        const apiKey = apiKeyInput.value.trim();
+        const apiKey = currentApiKey();
         if(!apiKey){ alert(t('api_key_required')); return; }
         input.value = '';
         const targetLang = targetLangSelect.value;
@@ -23681,7 +23694,7 @@ async function generateAndShowPractice(grammarPattern, grammarLevel, forceNew=fa
         return 'sentence';
     }
     async function checkZmsAmbiguity(text, targetLang){
-        const apiKey = apiKeyInput.value.trim();
+        const apiKey = currentApiKey();
         if(!apiKey) return null;
         const prompt = '你是汉语教师。学生用' + targetLang + '写了一个词，想查中文怎么说：「' + text + '」。请判断这个词在中文里是否有多个常用对应词语（意思有明显差别）。\n如果只有一个最常用、无歧义的对应词：ambiguous=false，options只给这1个词。\n如果有多个：ambiguous=true，给出2-4个候选词，并用question用' + targetLang + '问学生想表达的句子意思（帮助学生区分选哪个）。\n输出JSON：{"ambiguous":true/false,"question":"用' + targetLang + '写的追问","options":[{"word":"候选中文词","pinyin":"拼音","meaning":"用' + targetLang + '解释意思","example":"中文例句"}]}';
         try{
@@ -23747,7 +23760,7 @@ async function generateAndShowPractice(grammarPattern, grammarLevel, forceNew=fa
     async function zmsDisambDoneWithMeaning(mode, original, meaning, targetLang){
         const res = zmsResult(mode);
         if(res){ res.innerHTML = '<div class="zms-original">' + escapeHtml(original) + '</div><div class="zms-chinese">' + t('zms.translating') + '</div>'; }
-        const apiKey = apiKeyInput.value.trim();
+        const apiKey = currentApiKey();
         try{
             const prompt = '请把下面这个' + targetLang + '词语翻译成中文。\n原词：「' + original + '」\n学生想表达的句子意思：' + meaning + '\n请只给出【唯一一个】最准确、最自然的中文词语。输出JSON：{"chinese":"中文词语","pinyin":"空格分隔的逐字拼音"}';
             const resp = await fetch(API_BASE, { method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey}, body: JSON.stringify({ model:'deepseek-v4-flash', thinking:{ type:'disabled' }, max_tokens:2048, messages:[{ role:'user', content:prompt }], temperature:0.3, response_format:{ type:'json_object' } }) });
@@ -23814,7 +23827,7 @@ async function generateAndShowPractice(grammarPattern, grammarLevel, forceNew=fa
         }
     }
     async function askPinyinForText(text){
-        const apiKey = apiKeyInput.value.trim();
+        const apiKey = currentApiKey();
         if(!apiKey || !text) return '';
         try{
             const resp = await fetch(API_BASE, { method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey}, body: JSON.stringify({ model:'deepseek-v4-flash', thinking:{ type:'disabled' }, max_tokens:2048, messages:[{ role:'user', content:'请给下面的中文内容标注拼音，每个汉字的拼音用空格分开（如：wǒ shì xué shēng），只输出拼音文本，不要输出任何其他内容：\n' + text }], temperature:0 }) });
@@ -23832,7 +23845,7 @@ async function generateAndShowPractice(grammarPattern, grammarLevel, forceNew=fa
             res.innerHTML = '<div class="zms-original">' + escapeHtml(st.original) + '</div>'
                 + '<div class="zms-chinese">' + t('zms.translating') + '</div>';
         }
-        const apiKey = apiKeyInput.value.trim();
+        const apiKey = currentApiKey();
         try{
             let chinese = '';
             let pinyin = '';
@@ -23921,7 +23934,7 @@ async function generateAndShowPractice(grammarPattern, grammarLevel, forceNew=fa
     }
     async function renderZmsExplainInto(box, chinese, prependHtml){
         box.innerHTML = t('zms.parsing');
-        const apiKey = apiKeyInput.value.trim();
+        const apiKey = currentApiKey();
         if(!apiKey){ box.innerHTML = (prependHtml || '') + t('api_key_required'); return; }
         const targetLang = targetLangSelect.value;
         const prompt = '你是HSK中文教师。请对以下中文内容深度解析，用' + targetLang + '回复。输出JSON：{"translation":"整句' + targetLang + '翻译","keywords":[{"cn":"关键词语","py":"拼音","tr":"' + targetLang + '翻译"}],"detail":"详细' + targetLang + '解释语法和用法","examples":[{"cn":"更多例句中文","tr":"' + targetLang + '翻译"}]}。内容：' + chinese;
@@ -24459,7 +24472,7 @@ async function generateAndShowPractice(grammarPattern, grammarLevel, forceNew=fa
         saveFullState();
     }
     async function judgeSentencePracticeAI(sentence, item, level, targetLang){
-        const apiKey = apiKeyInput.value.trim();
+        const apiKey = currentApiKey();
         if(!apiKey) return null;
         const kindLabel = item.type === 'grammar' ? '语法' : '词语';
         const prompt = '你是HSK中文教师。学生被要求用' + kindLabel + '「' + item.w + '」造一个句子，请批改。\n学生句子：' + sentence + '\n学生水平：HSK' + level + '\n\n要求：\n1. 判断句子是否自然通顺、符合常识，并且是否正确使用了「' + item.w + '」的意思和用法（不能只是出现了这个词/格式）。【重要】只有当错误发生在目标词本身时（目标词写错字/写成同音近音字、词性用错、义项用错、搭配错误），correct=false；句子其他位置的字词/语法错误不影响本词判定，本词 correct 仍可为 true。【同音字检查】如果学生把目标词写成了同音/近音的另一个字（如把「戴」写成「带」），视为用错，correct=false 并在 issue 中指出正确写法。【词性检查】句中该词的词性必须与目标词词性一致。【义项检查】先确定学生用的是目标词的哪一个义项，与该词正确词义比对，义项不一致视为语义错。\n2. 有错误就给出改正后的完整句子 corrected；没错时 corrected 填空字符串。\n3. translation 用' + targetLang + '翻译 corrected（正确时翻译原句）。\n4. grammar 只写 AI 改动涉及的语法或句式（例如：把字句、动词+得+补语、关联词“因为...所以...”）；如果 AI 没有改动任何语法/句式，就填空字符串。\n5. issue 用' + targetLang + '简要说明错误原因或正确之处。\n6. explanation 用' + targetLang + '解释正确句子的关键词、搭配、语法，像纠错解析一样（可分点）。\n7. 标点符号一律不判错、不修改：corrected 必须保持学生原句的标点符号，不得增删改标点。\n8. 最小改动：只改真正错误或不自然的部分，其余字词一字不动；原句已经正确、只是“可以换一种更地道的说法”时，必须判 correct=true 且 corrected 填空。\n9. meaningUsed：把学生句子里「' + item.w + '」实际表达的义项翻译成' + targetLang + '（≤10个词）；meaningMatches：这个义项与「' + item.w + '」的正确词义是否一致（语义错=不一致，true/false）。\n10. formOk：目标词的字形是否写对（同音/近音替代字算错，true/false）。\n11. meaningOk：与 meaningMatches 相同（true/false）。\n12. usageError：当 correct=false 且字形对、义项也对，错误只是语序错误/搭配错误/多余重复时 = true；其他情况 false。\n输出JSON：{"correct":true或false,"corrected":"正确句子","translation":"母语翻译","grammar":"AI改动的语法/句式","issue":"简要说明","explanation":"解释","meaningUsed":"学生句中该词的意思","meaningMatches":true或false,"formOk":true或false,"meaningOk":true或false,"usageError":true或false}\n只输出 JSON。';
@@ -24553,7 +24566,7 @@ async function generateAndShowPractice(grammarPattern, grammarLevel, forceNew=fa
     }
     let sentenceStageToken = 0;
     async function fetchSentenceItemInfo(item){
-        const apiKey = apiKeyInput.value.trim();
+        const apiKey = currentApiKey();
         if(!apiKey || !item) return null;
         const targetLang = targetLangSelect.value;
         let prompt;
@@ -24790,7 +24803,7 @@ async function generateAndShowPractice(grammarPattern, grammarLevel, forceNew=fa
     async function generateGapWordPractice(word, level, sentence, retryCount=0){
         stopAllSpeech(); primeSpeechSynthesis();
         if(practiceGenerating) return;
-        const apiKey = apiKeyInput.value.trim();
+        const apiKey = currentApiKey();
         if(!apiKey){ alert(t('api_key_required')); return; }
         practiceGenerating = true;
         const myPracticeToken = practiceSessionToken;
@@ -24840,7 +24853,7 @@ async function generateAndShowPractice(grammarPattern, grammarLevel, forceNew=fa
     async function generateGapPatternPractice(sentence, level, retryCount=0){
         stopAllSpeech(); primeSpeechSynthesis();
         if(practiceGenerating) return;
-        const apiKey = apiKeyInput.value.trim();
+        const apiKey = currentApiKey();
         if(!apiKey){ alert(t('api_key_required')); return; }
         practiceGenerating = true;
         const myPracticeToken = practiceSessionToken;
@@ -24930,7 +24943,7 @@ async function generateAndShowPractice(grammarPattern, grammarLevel, forceNew=fa
         const idx = window._reflectionIndex || 0;
         const reason = (window._reflectionReasons || [])[idx];
         try{
-            const apiKey = apiKeyInput.value.trim();
+            const apiKey = currentApiKey();
             if(!apiKey) return '';
             const targetLang = targetLangSelect.value;
             const resp = await fetch(API_BASE, { method:'POST', headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer ' + apiKey }, body: JSON.stringify({ model:'deepseek-v4-flash', thinking:{ type:'disabled' }, max_tokens:1024, messages:[{ role:'user', content:'请将以下中文句子翻译成' + targetLang + '，只要翻译结果，不要解释：\n' + (it.text || '') }], temperature:0.3 }) });
@@ -25472,7 +25485,7 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
     function normalizePinyinNoTone(s){ return normalizePinyin(s).replace(/[0-9]/g, ''); }
     async function getWordPinyin(word){
         if(wordPinyinCache[word]) return wordPinyinCache[word];
-        const apiKey = apiKeyInput.value.trim();
+        const apiKey = currentApiKey();
         if(!apiKey) return '';
         try{
             const resp = await fetch(API_BASE, { method:'POST', headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer ' + apiKey }, body: JSON.stringify({ model:'deepseek-v4-flash', thinking:{ type:'disabled' }, max_tokens:128, messages:[{ role:'user', content:'请给中文词语「' + word + '」标注拼音。格式：拼音之间用空格分开，每个音节带声调数字（1-4），轻声不加数字，ü 用 v 表示。例：老师 → lao3 shi1。只输出拼音，不要其他文字。' }], temperature:0 }) });
@@ -25875,7 +25888,7 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
     function saveWordUsageCache(){ try{ localStorage.setItem(WORD_USAGE_CACHE_KEY, JSON.stringify(wordUsageCache)); }catch(e){} }
     async function getWordUsageMeaning(word, lvl){
         if(wordUsageCache[word]) return wordUsageCache[word];
-        const apiKey = apiKeyInput.value.trim();
+        const apiKey = currentApiKey();
         if(!apiKey) return '';
         try{
             const resp = await fetch(API_BASE, { method:'POST', headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer ' + apiKey }, body: JSON.stringify({ model:'deepseek-v4-flash', thinking:{ type:'disabled' }, max_tokens:128, messages:[{ role:'user', content:'请用简单英语解释中文虚词「' + word + '」的用法和语法意义（不是词性），用于选择题正确选项，12 个词以内。例如：的 → possessive/attributive marker；了 → marks completed action or change. 只输出解释文本，不要其他文字。' }], temperature:0 }) });
@@ -25904,7 +25917,7 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
             need.push({ i: i, t: t });
         }
         if(need.length){
-            const apiKey = apiKeyInput.value.trim();
+            const apiKey = currentApiKey();
             if(apiKey){
                 try{
                     const listText = need.map(function(x){ return x.t; }).join('\n');
@@ -25958,7 +25971,7 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
     function saveWordPinyinOptionsCache(){ try{ localStorage.setItem(WORD_PINYIN_OPTIONS_CACHE_KEY, JSON.stringify(wordPinyinOptionsCache)); }catch(e){} }
     async function getWordPinyinOptions(word){
         if(wordPinyinOptionsCache[word]) return wordPinyinOptionsCache[word];
-        const apiKey = apiKeyInput.value.trim();
+        const apiKey = currentApiKey();
         if(!apiKey) return null;
         let correct = '';
         let distractors = [];
@@ -25992,7 +26005,7 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
     function saveWordExamplesCache(){ try{ localStorage.setItem(WORD_EXAMPLES_CACHE_KEY, JSON.stringify(wordExamplesCache)); }catch(e){} }
     async function getWordExamples(word, lvl){
         if(wordExamplesCache[word]) return wordExamplesCache[word];
-        const apiKey = apiKeyInput.value.trim();
+        const apiKey = currentApiKey();
         if(!apiKey) return null;
         try{
             const resp = await fetch(API_BASE, { method:'POST', headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer ' + apiKey }, body: JSON.stringify({ model:'deepseek-v4-flash', thinking:{ type:'disabled' }, max_tokens:1024, messages:[{ role:'user', content:'请给中文词语「' + word + '」（HSK' + lvl + '）造 3 个简单、自然的中文例句，每个例句都要包含这个词，难度符合 HSK' + lvl + ' 级。输出JSON：{"examples":[{"cn":"中文例句","en":"English translation"}]}' }], temperature:0.4, response_format:{ type:'json_object' } }) });
@@ -26061,7 +26074,7 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
             '<div style="margin-top:8px;"><button class="sr-btn" style="background:#64748b;" onclick="window._sentenceClear()">🗑 清空全部</button></div>';
     }
     async function judgeSentenceWithWord(sentence, word, level){
-        const apiKey = apiKeyInput.value.trim();
+        const apiKey = currentApiKey();
         const targetLang = targetLangSelect ? targetLangSelect.value : 'English';
         const prompt = '你是HSK中文教师。学生用指定词语造了一个句子，请判断是否正确使用了该词语。\n词语：' + word + '（HSK' + level + '）\n学生句子：' + sentence + '\n\n要求：\n1. 判断句子是否自然、通顺，并且是否正确使用了「' + word + '」的意思和用法（不能只是出现了这个词）。【同音字检查】如果学生把目标词写成了同音/近音的另一个字（如把「戴」写成「带」），视为用错，correct=false。【词性检查】句中该词的词性必须与目标词词性一致。【义项检查】先确定学生用的是目标词的哪一个义项，与该词正确词义比对，义项不一致视为语义错。\n2. 有错误就给出改正后的句子；没错就返回空字符串。\n3. note 用' + targetLang + '简要说明。\n4. meaningUsed：把学生句子里「' + word + '」实际表达的义项翻译成' + targetLang + '（≤10个词）；meaningMatches：这个义项与「' + word + '」的正确词义是否一致（true/false，语义错=不一致）。\n5. formOk：目标词的字形是否写对（同音/近音替代字算错，true/false）。\n6. meaningOk：与 meaningMatches 相同（true/false）。\n7. usageError：当 correct=false 且字形对、义项也对，错误只是语序错误/搭配错误/多余重复时 = true；其他情况 false。\n输出JSON：{"correct":true或false,"corrected":"改正后的句子（正确时填空字符串）","note":"说明","meaningUsed":"学生句中该词的意思","meaningMatches":true或false,"formOk":true或false,"meaningOk":true或false,"usageError":true或false}';
         try{
@@ -26490,7 +26503,7 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
     }
     // AI 逐词判定：判断学生在句子里用这个词对不对、意思是否与标准词义一致（看翻译）
     async function wsJudgeWordUsageBatch(items){
-        const apiKey = apiKeyInput.value.trim();
+        const apiKey = currentApiKey();
         if(!apiKey || !items || !items.length) return null;
         const targetLang = targetLangSelect ? targetLangSelect.value : 'English';
         const listText = items.map(function(it, i){
