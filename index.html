@@ -41,6 +41,12 @@
         .button-group button { background: #1e2b5e; color: white; border: none; border-radius: 40px; padding: 10px 0; font-weight: 600; font-size: 1rem; cursor: pointer; transition: 0.15s; flex: 1; }
         .button-group button:hover { background: #2f4685; transform: scale(0.97); }
         .button-group button:last-child { background: #e67e22; }
+        /* 结束对话按钮：单独放在发送下方，弱化视觉，避免误按 */
+        .end-btn-row { margin-top: 2px; }
+        #endConversationBtn { background: #f1f5f9; color: #64748b; border: 1.5px solid #d0dae8; border-radius: 40px; padding: 8px 0; font-size: 0.85rem; }
+        #endConversationBtn:hover { background: #fee2e2; color: #c0392b; border-color: #f0b8b8; transform: scale(0.98); }
+        /* 数字人只在对话模式显示（switchMode 控制），聊天时与消息区同时可见 */
+        .live2d-stage[style*="display: none"] { display: none !important; }
         .info-panel { flex: 1.3; min-width: 360px; display: flex; flex-direction: column; gap: 20px; }
         .card { background: white; border-radius: 24px; padding: 22px 20px; box-shadow: 0 8px 20px rgba(0,0,0,0.03); border: 1px solid #e9eef4; }
         .stat-title { font-weight: 700; color: #1e293b; margin-top: 0; margin-bottom: 18px; font-size: 1.25rem; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
@@ -289,6 +295,7 @@
             .chat-panel { min-width: 280px; flex: 1.5; }
             .info-panel { min-width: 280px; flex: 1; }
             .chat-messages { max-height: 350px; }
+            .live2d-stage { height: 200px; }
             .modal-content { width: 95%; padding: 14px; border-radius: 20px; }
             .practice-input-box { width: 58px; margin-top: 18px; }
             .practice-input-box input { height: 44px; font-size: 20px; }
@@ -302,7 +309,10 @@
             .chat-panel, .info-panel { min-width: 0; width: 100%; flex: none; }
             .chat-header { padding: 14px 16px; }
             .chat-header h2 { font-size: 1.2rem; }
-            .chat-messages { max-height: 55vh; min-height: 300px; padding: 12px; }
+            .chat-messages { max-height: 42vh; min-height: 200px; padding: 12px; }
+            .live2d-stage { height: 150px; }
+            .live2d-fallback { font-size: 56px; }
+            .live2d-model-picker { font-size: 0.66rem; padding: 1px 6px; }
             .bubble { font-size: 0.9rem; padding: 10px 14px; }
             .input-group input { padding: 12px 14px; font-size: 0.95rem; }
             .voice-btn { width: 42px; height: 42px; min-width: 42px; font-size: 1rem; }
@@ -827,6 +837,8 @@
             <div id="voiceInputHint" class="voice-input-hint">🎤 点击麦克风开始语音输入</div>
             <div class="button-group">
                 <button id="sendBtn">发送</button>
+            </div>
+            <div class="button-group end-btn-row">
                 <button id="endConversationBtn">结束对话</button>
             </div>
             <div class="zenmeshuo-area">
@@ -14050,6 +14062,12 @@ const HSK2_VOCAB = [
             if (mcqPanel) mcqPanel.classList.add('active');
             renderWordLab();
         }
+        // 数字人只在「对话」模式显示：写作/阅读/练习等模式隐藏，把空间留给内容
+        const _l2dStage = document.getElementById('live2dStage');
+        if(_l2dStage){
+            _l2dStage.style.display = (mode === 'chat') ? '' : 'none';
+            if(mode === 'chat' && window._live2dResizeFit){ setTimeout(window._live2dResizeFit, 60); }
+        }
     }
     const _kTabEl = document.getElementById('modeTabKnowledge');
     if (_kTabEl) _kTabEl.onclick = () => switchMode('knowledge');
@@ -19771,7 +19789,8 @@ ${gapChatGuide()}
             const raw = String(data.choices[0].message.content || '').trim();
             if (!raw) throw new Error("Empty API reply");
             const check = validateChatReplyLength(raw, level);
-            if (!check.ok && retryCount < 3){
+            // 长度超标时最多再试 1 次（比之前少试一次，优先保证约5秒内出回复），仍超标就本地截短
+            if (!check.ok && retryCount < 1){
                 return chatWithContext(userMsg, signal, retryCount + 1, check, mistakes);
             }
             const finalRaw = check.ok ? raw : truncateChatReplyToLimit(raw, level);
@@ -19941,7 +19960,7 @@ async function analyzeMistakesBatch(userMessages, aiReplyRaw, contextMessages){ 
 8. note 用${targetLang}具体说明每个错误的原因。
 9. type 必须从固定中文类型中选一个：错字、别字、漏字、多字、词语错误、离合词错误、缺词、多词、语序错误、搭配不当、成分残缺、成分多余、句式杂糅、关联词错误、语义错误、语义不完整。
 10. 拿不准学生想表达什么时 uncertain 填 true，不要猜。
-输出JSON数组：[{"original":"原文句子","corrected":"改正后句子","uncertain":true或false,"type":"类型","pattern":"框式结构或空","note":"说明"}]。`; const dictHints = buildHskDictHints((userMessages || []).join('\n')); try{ const _tr=await thinkingFetch({model:'deepseek-v4-pro',reasoning_effort:'low',thinking:{type:'enabled'}, max_tokens:8192, messages:[{role:'system',content:compactPrompt},{role:'user',content:((contextMessages?('【对话上下文】（仅用于理解学生当前句子的意思，不要纠错上下文内容）\n'+contextMessages+'\n\n'):'') + (aiReplyRaw ? ('学生句子: '+JSON.stringify(userMessages)+'\n\nAI对话伙伴的自然回复（仅供参考，可能已包含正确说法）:\n'+String(aiReplyRaw)) : ('学生句子: '+JSON.stringify(userMessages)))) + (dictHints ? ('\n\n【语料近义词提示 - 仅供参考，必须结合上下文判断：学生用对了就不要改，确实用错才纠正】\n' + dictHints.split('\n').slice(0, 8).join('\n')) : '')}], temperature:0.3}, 90000); if(!_tr) throw new Error("API timeout"); const data=_tr.data; if(data.error) throw new Error(data.error.message||"API error"); if(!data.choices||!data.choices[0]||!data.choices[0].message) throw new Error("API error"); let content=data.choices[0].message.content || data.choices[0].message.reasoning_content || ''; content=content.replace(/```json/g,'').replace(/```/g,'').trim(); let parsed=null; try{ parsed=JSON.parse(content); }catch(e){ const arrM=content.match(/\[[\s\S]*\]/); const objM=content.match(/\{[\s\S]*\}/); const cand=arrM?arrM[0]:(objM?objM[0]:''); if(cand){ try{ parsed=JSON.parse(cand); }catch(e2){ parsed=null; } } } let arr=[]; if(Array.isArray(parsed)) arr=parsed; else if(parsed&&Array.isArray(parsed.mistakes)) arr=parsed.mistakes; else if(parsed&&Array.isArray(parsed.results)) arr=parsed.results; else if(parsed&&Array.isArray(parsed.errors)) arr=parsed.errors; else if(parsed&&typeof parsed.original==='string'&&typeof parsed.corrected==='string') arr=[parsed]; return arr; }catch(e){ return []; } }
+输出JSON数组：[{"original":"原文句子","corrected":"改正后句子","uncertain":true或false,"type":"类型","pattern":"框式结构或空","note":"说明"}]。`; const dictHints = buildHskDictHints((userMessages || []).join('\n')); try{ const _tr=await thinkingFetch({model:'deepseek-v4-pro',thinking:{type:'disabled'}, max_tokens:4096, messages:[{role:'system',content:compactPrompt},{role:'user',content:((contextMessages?('【对话上下文】（仅用于理解学生当前句子的意思，不要纠错上下文内容）\n'+contextMessages+'\n\n'):'') + (aiReplyRaw ? ('学生句子: '+JSON.stringify(userMessages)+'\n\nAI对话伙伴的自然回复（仅供参考，可能已包含正确说法）:\n'+String(aiReplyRaw)) : ('学生句子: '+JSON.stringify(userMessages)))) + (dictHints ? ('\n\n【语料近义词提示 - 仅供参考，必须结合上下文判断：学生用对了就不要改，确实用错才纠正】\n' + dictHints.split('\n').slice(0, 8).join('\n')) : '')}], temperature:0.3}, 45000); if(!_tr) throw new Error("API timeout"); const data=_tr.data; if(data.error) throw new Error(data.error.message||"API error"); if(!data.choices||!data.choices[0]||!data.choices[0].message) throw new Error("API error"); let content=data.choices[0].message.content || data.choices[0].message.reasoning_content || ''; content=content.replace(/```json/g,'').replace(/```/g,'').trim(); let parsed=null; try{ parsed=JSON.parse(content); }catch(e){ const arrM=content.match(/\[[\s\S]*\]/); const objM=content.match(/\{[\s\S]*\}/); const cand=arrM?arrM[0]:(objM?objM[0]:''); if(cand){ try{ parsed=JSON.parse(cand); }catch(e2){ parsed=null; } } } let arr=[]; if(Array.isArray(parsed)) arr=parsed; else if(parsed&&Array.isArray(parsed.mistakes)) arr=parsed.mistakes; else if(parsed&&Array.isArray(parsed.results)) arr=parsed.results; else if(parsed&&Array.isArray(parsed.errors)) arr=parsed.errors; else if(parsed&&typeof parsed.original==='string'&&typeof parsed.corrected==='string') arr=[parsed]; return arr; }catch(e){ return []; } }
     // 无错快速判断：不开思考、约1秒，只判断有没有错。返回 true=有错/不确定（走完整分析），false=非常确定无错（跳过深度思考）。
     // 判断失败返回 null，调用方按“有错”保守处理，保证不漏纠。
     async function quickMistakeCheck(text){
@@ -21211,7 +21230,7 @@ rpt+='━━━━━━━━━━━━━━━━━━━━━━━━�
 rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n📊 ' + t('ws.board_title') + '\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; rpt+=t('ws.target_label') + '：'+(function(){ try{ return vocabLevelLabel(wsTargetLevel()); }catch(e){ return '—'; } })()+'\n'; (function(){ try{ const _words=Object.keys(wordStatusData.words||{}).sort((a,b)=>a.localeCompare(b,'zh')); if(!_words.length){ rpt+='(暂无词语状态记录)\n'; return; } rpt+='| 词语 | 等级 | 阶梯 | ' + t('ws.layer_knowledge_short') + ' | ' + t('ws.layer_listening_short') + ' | ' + t('ws.layer_reading_short') + ' | ' + t('ws.layer_production_short') + '(对/错/未判) | 即时 | 延时 | 首次产出 | 最近产出 |\n|---|---|---|---|---|---|---|---|---|---|---|\n'; for(const w of _words){ const s=wsStatus(w); const lv=(wordStatusData.words[w]&&wordStatusData.words[w].level)||0; rpt+='| '+String(w).replace(/\|/g,'｜')+' | '+(lv||'')+' | '+wsStageLabel(s.stage)+' | '+(s.knowledge?'✅':'❌')+' | '+(s.listening?'✅':'—')+' | '+(s.reading?'✅':'—')+' | '+s.prod.count+'（'+s.prod.correct+'/'+s.prod.wrong+'/'+s.prod.unknown+'） | '+s.prod.immediate+' | '+s.prod.delayed+' | '+(s.prod.firstDate||'—')+' | '+(s.prod.lastDate||'—')+' |\n'; } rpt+='\n词语状态卡事件明细（按词）：\n'; for(const w of _words){ const card=wordStatusData.words[w]; rpt+='\n📇 '+w+(card.note?'（评语：'+card.note+'）':'')+'\n'; const evs=(card.events||[]).slice().reverse(); for(const e of evs){ rpt+='  '+e.date+' ['+wsLayerShortLabel(e.layer)+'] '+wsSourceLabel(e.source)+(e.dim?'·'+wsDimLabel(e.dim):'')+' → '+(e.correct===true?t('ws.correct'):(e.correct===false?t('ws.wrong'):t('ws.unknown')))+(e.semantic===true?'（'+t('ws.sem_err')+'）':(e.semantic===false?'（'+t('ws.sem_ok')+'）':''))+(e.sentence?'｜'+(e.layer==='production'?'产出句：':'')+e.sentence:'')+(e.meaningUsed?'｜'+t('ws.meaning_used')+e.meaningUsed:'')+(e.meaningExpected?'｜'+t('ws.meaning_exp')+e.meaningExpected:'')+'\n'; } } }catch(e){ rpt+='(词语状态输出失败)\n'; } })();
 const ok = downloadTextFile(rpt, 'HSK_Learning_Report_' + getLocalDate() + '.md'); showToast(ok ? t('toast.download_started') : t('toast.download_failed')); }
 
-async function handleEndConversation(){ if(chatAbortController){ chatAbortController.abort(); chatAbortController=null; } if(window._hideReadingForTask) clearReadingTaskLock(); if(window._chatMeaningPending){ window._chatMeaningPending = null; const _mp = document.getElementById("chatMeaningPromptMsg"); if(_mp) _mp.remove(); } if(window._chatCorrectionPending){ window._chatCorrectionPending = null; const _cp = document.getElementById("chatCorrectionConfirmMsg"); if(_cp) _cp.remove(); } if(currentSessionClauses.length===0&&sessionUserMessages.length===0){ const _zmsOnly = (window._zmsWrongAttempts || []).slice(); if(!_zmsOnly.length){ addAssistantMessage(t('analysis.no_sentences'), false, '', '', true); return; } window._zmsWrongAttempts = []; setTimeout(function(){ startReflection(_zmsOnly); }, 300); return; } const filteredClauses=currentSessionClauses.filter(c=>!isQueriedSentence(c)&&!isZmsUsedSentence(c)); const savedClauses=[...filteredClauses]; if(filteredClauses.length===0){ const _zmsOnly2=(window._zmsWrongAttempts||[]).slice(); window._zmsWrongAttempts=[]; if(_zmsOnly2.length){ setTimeout(function(){ startReflection(_zmsOnly2); },300); } else { addAssistantMessage(t('analysis.no_sentences'), false, '', '', true); } currentSessionClauses=[]; sessionUserMessages=[]; return; } addAssistantMessage(t('analysis.analyzing_prefix')+filteredClauses.length+'...', false, '', '', true); wsSnapshotUpdates(); (async function(){ try{ const _n = await wsJudgeAndRecord('chat', sessionUserMessages.filter(u=>!isZmsUsedSentence(u))); if(_n > 0){ addAssistantMessage(t('ws.judge_chat_done').replace('{n}', _n), false, '', '', true); wsShowUpdatesModal(); } }catch(e){} })(); try{ const analysis=await analyzeGrammarBatch(filteredClauses,'medium'); if(analysis){ const foundGrams=[]; for(const item of analysis){ for(const m of (item.matches||[])){ const gm=findMatchingPattern(m.pattern); if(gm&&!foundGrams.includes(gm.pattern)) foundGrams.push(gm.pattern); } } mergeAnalysisResults(analysis, 'chat'); const gSummary=' '+foundGrams.length+' 个'; addAssistantMessage(t('analysis.grammar_done')+gSummary, false, '', '', true); } else { addAssistantMessage(t('analysis.grammar_done'), false, '', '', true); } }catch(e){ addAssistantMessage(t('analysis.grammar_timeout'), false, '', '', true); } addAssistantMessage(t('analysis.vocab_analyzing'), false, '', '', true); try{ const vocabAnalysis=await analyzeVocabBatch(savedClauses); if(vocabAnalysis){ mergeVocabResultsFiltered(vocabAnalysis, 'chat'); } const matchCount=vocabAnalysis?vocabAnalysis.reduce((sum,item)=>sum+Object.keys(item.wordCounts||{}).length,0):0; addAssistantMessage(t('analysis.vocab_done')+' 匹配到 '+matchCount+' 个词', false, '', '', true); }catch(e){ console.log('Vocab error:',e); addAssistantMessage(t('analysis.vocab_timeout'), false, '', '', true); } try{
+async function handleEndConversation(){ if(chatAbortController){ chatAbortController.abort(); chatAbortController=null; } if(window._hideReadingForTask) clearReadingTaskLock(); if(window._chatMeaningPending){ window._chatMeaningPending = null; const _mp = document.getElementById("chatMeaningPromptMsg"); if(_mp) _mp.remove(); } if(window._chatCorrectionPending){ window._chatCorrectionPending = null; const _cp = document.getElementById("chatCorrectionConfirmMsg"); if(_cp) _cp.remove(); } if(currentSessionClauses.length===0&&sessionUserMessages.length===0){ const _zmsOnly = (window._zmsWrongAttempts || []).slice(); if(!_zmsOnly.length){ addAssistantMessage(t('analysis.no_sentences'), false, '', '', true); return; } window._zmsWrongAttempts = []; setTimeout(function(){ startReflection(_zmsOnly); }, 300); return; } const filteredClauses=currentSessionClauses.filter(c=>!isQueriedSentence(c)&&!isZmsUsedSentence(c)); const savedClauses=[...filteredClauses]; if(filteredClauses.length===0){ const _zmsOnly2=(window._zmsWrongAttempts||[]).slice(); window._zmsWrongAttempts=[]; if(_zmsOnly2.length){ setTimeout(function(){ startReflection(_zmsOnly2); },300); } else { addAssistantMessage(t('analysis.no_sentences'), false, '', '', true); } currentSessionClauses=[]; sessionUserMessages=[]; return; } addAssistantMessage(t('analysis.analyzing_prefix')+filteredClauses.length+'...', false, '', '', true); wsSnapshotUpdates(); (async function(){ try{ const _n = await wsJudgeAndRecord('chat', sessionUserMessages.filter(u=>!isZmsUsedSentence(u))); if(_n > 0){ addAssistantMessage(t('ws.judge_chat_done').replace('{n}', _n), false, '', '', true); wsShowUpdatesModal(); } }catch(e){} })(); try{ const analysis=await analyzeGrammarBatch(filteredClauses,'medium'); if(analysis){ const foundGrams=[]; for(const item of analysis){ for(const m of (item.matches||[])){ const gm=findMatchingPattern(m.pattern); if(gm&&!foundGrams.includes(gm.pattern)) foundGrams.push(gm.pattern); } } mergeAnalysisResults(analysis, 'chat'); renderLevelProgress(); renderTrackList(); const gSummary='（检查 '+filteredClauses.length+' 句，发现 '+foundGrams.length+' 个语法点）'; addAssistantMessage(t('analysis.grammar_done')+gSummary, false, '', '', true); } else { renderLevelProgress(); renderTrackList(); addAssistantMessage(t('analysis.grammar_done')+'（检查 '+filteredClauses.length+' 句，未发现新语法点）', false, '', '', true); } }catch(e){ addAssistantMessage(t('analysis.grammar_timeout'), false, '', '', true); } addAssistantMessage(t('analysis.vocab_analyzing'), false, '', '', true); try{ const vocabAnalysis=await analyzeVocabBatch(savedClauses); if(vocabAnalysis){ mergeVocabResultsFiltered(vocabAnalysis, 'chat'); } const matchCount=vocabAnalysis?vocabAnalysis.reduce((sum,item)=>sum+Object.keys(item.wordCounts||{}).length,0):0; addAssistantMessage(t('analysis.vocab_done')+' 匹配到 '+matchCount+' 个词', false, '', '', true); }catch(e){ console.log('Vocab error:',e); addAssistantMessage(t('analysis.vocab_timeout'), false, '', '', true); } try{
     const _exclC = new Set();
     for(const m of (window._chatSessionMistakes || [])){
         const _mc = matchVocabInText(String(m.user || ''));
@@ -21231,7 +21250,7 @@ async function handleEndConversation(){ if(chatAbortController){ chatAbortContro
     // 四维记录只统计用户说过的句子，不统计 AI 的回复
 }catch(e){}
     // 词语状态卡：聊天中用户产出的词逐词 AI 判定已提前并行执行（见上方）
-renderVocabLevelProgress(); renderVocabTrackList(); const _userHanzi = sessionUserMessages.map(u => stripForCompare(u)); const _chatReflect = []; for(const it of (window._chatSessionMistakes || [])){ const key = stripForCompare(it.user || ''); const txt = stripForCompare(it.text || ''); if(!key) continue; if(!_userHanzi.some(u => u.includes(key))) continue; const dupIdx = _chatReflect.findIndex(x => stripForCompare(x.user || '') === key && stripForCompare(x.text || '') === txt); if(dupIdx === -1) _chatReflect.push(it); } window._chatSessionMistakes = []; const _zmsReflect = (window._zmsWrongAttempts || []).slice(); window._zmsWrongAttempts = []; for(const it of _zmsReflect){ if(it && it.text) _chatReflect.push(it); } if(_chatReflect.length) setTimeout(function(){ startReflection(_chatReflect); },600); currentSessionClauses=[]; sessionUserMessages=[]; }
+const _bgPending = (window._chatCorrectionBgTasks || []).slice(); if(_bgPending.length){ try{ await Promise.all(_bgPending.map(function(p){ return p.catch(function(){}); })); }catch(e){} } renderVocabLevelProgress(); renderVocabTrackList(); const _userHanzi = sessionUserMessages.map(u => stripForCompare(u)); const _chatReflect = []; for(const it of (window._chatSessionMistakes || [])){ const key = stripForCompare(it.user || ''); const txt = stripForCompare(it.text || ''); if(!key) continue; if(!_userHanzi.some(u => u.includes(key))) continue; const dupIdx = _chatReflect.findIndex(x => stripForCompare(x.user || '') === key && stripForCompare(x.text || '') === txt); if(dupIdx === -1) _chatReflect.push(it); } window._chatSessionMistakes = []; const _zmsReflect = (window._zmsWrongAttempts || []).slice(); window._zmsWrongAttempts = []; for(const it of _zmsReflect){ if(it && it.text) _chatReflect.push(it); } if(_chatReflect.length){ const _corrRows=[]; const _corrRawLines=[]; for(const _ci of _chatReflect){ const _o=String(_ci.user||'').trim(); const _c=String(_ci.text||'').trim(); if(!_o&&!_c) continue; let _rowHtml=''; let _rowRaw=''; if(_o){ _rowHtml+='📝 '+t('reflection.your')+'：'+escapeHtml(_o)+'<br>'; _rowRaw+='📝 '+t('reflection.your')+'：'+_o+'\n'; } if(_c){ _rowHtml+='✅ '+t('reflection.correct')+'：'+escapeHtml(_c); _rowRaw+='✅ '+t('reflection.correct')+'：'+_c; } if(_ci.note){ _rowHtml+='<br>💡 '+escapeHtml(_ci.note); _rowRaw+='\n💡 '+_ci.note; } if(_ci.native){ _rowHtml+='<br>🌐 '+t('chat.meaning_title')+'：'+escapeHtml(_ci.native); _rowRaw+='\n🌐 '+_ci.native; } if(_rowHtml){ _corrRows.push('<div style="margin-bottom:8px;">'+_rowHtml+'</div>'); _corrRawLines.push(_rowRaw); } } if(_corrRows.length){ addAssistantMessage('<div style="background:#fff7e6;border:1px solid #f0c040;border-radius:12px;padding:10px 12px;"><div style="font-weight:700;color:#1e2b5e;margin-bottom:6px;">📝 '+t('chat.correction')+'（'+_corrRows.length+'）</div>'+_corrRows.join('')+'</div>', true, '📝 '+t('chat.correction')+'\n'+_corrRawLines.join('\n'), '', true); } setTimeout(function(){ startReflection(_chatReflect); }, 600); } else { addAssistantMessage('✅ 本轮没有发现明显偏误', false, '', '', true); } currentSessionClauses=[]; sessionUserMessages=[]; }
     // 把AI回复中复述的学生原句替换为系统纠正后的句子，保证「哦，你是说……」后面的内容与纠错块完全一致
     function alignReplyWithCorrections(replyRaw, mistakes){
         let r = String(replyRaw || '');
@@ -21442,35 +21461,73 @@ renderVocabLevelProgress(); renderVocabTrackList(); const _userHanzi = sessionUs
             let reply = null;
             let chat2Early = null;
             if(opts.analyze){
-                // 无错快速判断（不开思考，约1秒）与聊天回复并行：非常确定无错就直接跳过深度思考纠错，
-                // 让无错消息像普通聊天一样快；拿不准/判断失败则保守走完整分析。
+                // 无错快速判断（不开思考，约1秒）与聊天回复并行：非常确定无错就直接跳过纠错分析，让回复像普通聊天一样快
                 const _context = buildChatContextForCorrection();
                 const [quickRes, chatRes] = await Promise.all([
                     quickMistakeCheck(text).catch(function(){ return null; }),
                     chatWithContext(text, signal, 0, null, []).then(function(r){ return r; }).catch(function(){ return null; })
                 ]);
-                let anaList = [];
-                if(quickRes !== false){
-                    // 有错（或不确定）→ 完整深度思考纠错
-                    anaList = await analyzeMistakesBatch([text], '', _context).then(function(r){ return Array.isArray(r) ? r : []; }).catch(function(){ return []; });
-                }
-                // 带纠错上下文的第二次对话与纠错分析串接（对话本身不思考、很快），
-                // 纠错块与回复由 align / 本地过滤统一把关。
-                const _candForChat2 = (anaList || []).filter(function(m){ return m && m.original && m.corrected; });
-                const [reviewedRes, chat2Res] = await Promise.all([
-                    Promise.resolve(anaList),
-                    _candForChat2.length > 0 ? chatWithContext(text, signal, 0, null, _candForChat2).then(function(r){ return r; }).catch(function(){ return null; }) : Promise.resolve(null)
-                ]);
-                if(Array.isArray(reviewedRes)) anaList = reviewedRes;
-                chat2Early = chat2Res;
-                mistakes = anaList;
-                reply = chatRes;
-                if(opts.cacheKey){
-                    // 只缓存非空结果：空结果可能是漏报（如 AI 在回复里悄悄改正），下次发送时重新分析
-                    if(mistakes.length > 0){
-                        _chatMistakeCache.set(opts.cacheKey, mistakes.map(function(m){ return Object.assign({}, m); }));
-                        if(_chatMistakeCache.size > 200){ const _firstKey = _chatMistakeCache.keys().next().value; if(_firstKey !== undefined) _chatMistakeCache.delete(_firstKey); }
+                // 回复先显示：纠错分析放到后台进行，不再拖慢聊天速度（出错场景也能约5秒内出回复）
+                if(chatRes){
+                    let _earlyRaw = stripUnwantedConfirmationEcho(stripInlineCorrectionBlock(chatRes.raw));
+                    if(!String(_earlyRaw || '').trim()) _earlyRaw = chatRes.raw;
+                    addAssistantMessage(_earlyRaw.replace(/\n/g,'<br>'), true, _earlyRaw, _earlyRaw);
+                    if(quickRes !== false){
+                        (function(){
+                            const _bgTask = (async function(){
+                                try{
+                                const _ana = await analyzeMistakesBatch([text], '', _context).then(function(r){ return Array.isArray(r) ? r : []; }).catch(function(){ return []; });
+                                let _ms = filterMistakes(_ana);
+                                _ms = _ms.filter(function(m){ return !isFalseCorrection(m.original, m.corrected); });
+                                _ms = dedupeMistakesByOriginal(_ms);
+                                _ms = _ms.filter(function(m){ return /[\u4e00-\u9fff]/.test(m.original || ''); });
+                                const _userKey = stripForCompare(text);
+                                _ms = _ms.filter(function(m){ const _ok = stripForCompare(m.original || ''); return _ok && _userKey.includes(_ok); });
+                                const _lh = localMistakeHeuristics(text);
+                                const _ch = contextMistakeHeuristics(text, _context);
+                                const _allLocal = _lh.concat(_ch).concat(corpusAutoRules(text));
+                                if(_allLocal.length){
+                                    for(const _lm of _allLocal){
+                                        const _lk = stripForCompare(_lm.original || '');
+                                        const _idx = _ms.findIndex(function(_pm){
+                                            const _pk = stripForCompare(_pm.original || '');
+                                            return _lk && _pk && (_pk === _lk || _pk.includes(_lk) || _lk.includes(_pk));
+                                        });
+                                        if(_idx === -1) _ms.push(_lm);
+                                        else _ms[_idx] = _lm;
+                                    }
+                                    _ms = dedupeMistakesByOriginal(_ms);
+                                }
+                                if(_ms.length > 0){ try{ _ms = await polishChatCorrections(text, _ms); }catch(e){} }
+                                for(const _m of _ms){
+                                    const _lang = targetLangSelect ? targetLangSelect.value : 'Chinese';
+                                    if(!_m.note || isVagueMistakeNote(_m.note) || hasNonsenseSelfCorrection(_m.note) || /^(missing|extra|缺少|多余|不足|余分|fehlt|überflüssig|falta|sobra|пропущено|лишнее|ขาด|เกิน|manca|in più)/i.test(String(_m.note||'').trim()) || (_lang !== 'Chinese' && /[\u4e00-\u9fff]/.test(String(_m.note)))) _m.note = describeMistakeReason(_m.original, _m.corrected);
+                                }
+                                await attachMistakeTranslations(_ms);
+                                window._chatSessionMistakes = window._chatSessionMistakes || [];
+                                for(const _m of _ms){
+                                    window._chatSessionMistakes.push({ mode:'聊天', text:_m.corrected, user:_m.original, note:_m.note || '', type:_m.type||'', native: _m.native || _m.translation || '', key: stripForCompare(text) });
+                                    recordGapFromMistake(_m);
+                                }
+                                for(const _m of _ms){
+                                    addWrongSentence('','对话纠错',_m.corrected,'',_m.original,_m.note||'',_m.type||'');
+                                }
+                                if(opts.cacheKey && _ms.length > 0){
+                                    _chatMistakeCache.set(opts.cacheKey, _ms.map(function(_m){ return Object.assign({}, _m); }));
+                                    if(_chatMistakeCache.size > 200){ const _firstKey = _chatMistakeCache.keys().next().value; if(_firstKey !== undefined) _chatMistakeCache.delete(_firstKey); }
+                                }
+                            }catch(e){ console.error('[chat correction bg]', e); }
+                            })();
+                            window._chatCorrectionBgTasks = window._chatCorrectionBgTasks || [];
+                            window._chatCorrectionBgTasks.push(_bgTask);
+                            _bgTask.then(function(){ const _arr = window._chatCorrectionBgTasks || []; const _i = _arr.indexOf(_bgTask); if(_i !== -1) _arr.splice(_i, 1); });
+                        })();
                     }
+                    return;
+                }
+                // 聊天回复失败时退回老路径：等纠错分析完成，用「回复失败+纠错块」兜底
+                if(quickRes !== false){
+                    mistakes = await analyzeMistakesBatch([text], '', _context).then(function(r){ return Array.isArray(r) ? r : []; }).catch(function(){ return []; });
                 }
             }
             // 统一过滤：基本过滤 → 误报守卫 → 原句校验 → 本地规则优先（两条路径共用）
@@ -22221,7 +22278,7 @@ renderVocabLevelProgress(); renderVocabTrackList(); const _userHanzi = sessionUs
                 return;
             }
             try{
-                live2dApp = new PIXI.Application({ backgroundAlpha: 0, width: stage.clientWidth || 400, height: 250, antialias: true });
+                live2dApp = new PIXI.Application({ backgroundAlpha: 0, width: stage.clientWidth || 400, height: stage.clientHeight || 250, antialias: true });
             }catch(e){
                 live2dSetStatus('⚠️ 数字人未加载：浏览器不支持 WebGL（已用占位图）');
                 return;
@@ -22238,12 +22295,25 @@ renderVocabLevelProgress(); renderVocabTrackList(); const _userHanzi = sessionUs
                     // 插件自带 XHR 失败（部分浏览器会拦截）：改用自己的 fetch 通道加载
                     model = await loadLive2DModelFallback(modelUrl);
                 }
-                // 0.4.0 没有 fit()：手动按 250px 高度等比缩放并居中
-                const l2dScale = Math.min(236 / (model.height || 1), 236 / (model.width || 1));
-                model.scale.set(l2dScale);
-                model.anchor.set(0.5, 0.5);
-                model.x = (stage.clientWidth || 400) / 2;
-                model.y = 126;
+                // 0.4.0 没有 fit()：按当前舞台高度等比缩放并居中（手机端舞台更矮，模型自动缩小）
+                let live2dBaseY = 126;
+                const _fitModel = function(){
+                    try{
+                        const w = stage.clientWidth || 400;
+                        const h = stage.clientHeight || 250;
+                        const avail = Math.max(90, h - 14);
+                        const l2dScale = Math.min(avail / (model.height || 1), avail / (model.width || 1));
+                        model.scale.set(l2dScale);
+                        model.anchor.set(0.5, 0.5);
+                        model.x = w / 2;
+                        live2dBaseY = h / 2;
+                        model.y = live2dBaseY;
+                        if(live2dApp && live2dApp.renderer) live2dApp.renderer.resize(w, h);
+                    }catch(e){}
+                };
+                _fitModel();
+                window._live2dResizeFit = _fitModel;
+                try{ window.addEventListener('resize', _fitModel); }catch(e){}
                 live2dApp.stage.addChild(model);
                 live2dModelRef = model;
                 window._live2dModel = model;
@@ -22254,7 +22324,7 @@ renderVocabLevelProgress(); renderVocabTrackList(); const _userHanzi = sessionUs
                 let t = 0;
                 live2dApp.ticker.add(function(){
                     t += 0.025;
-                    model.y = 126 + Math.sin(t) * 3;
+                    model.y = live2dBaseY + Math.sin(t) * 3;
                 });
                 // 自动待机动作循环（idle_00/01/02：自带眨眼、甩头等）
                 (async function idleLoop(){
@@ -24910,11 +24980,9 @@ async function generateAndShowPractice(grammarPattern, grammarLevel, forceNew=fa
     function startReflection(items, doneCallback){
         if(doneCallback) window._reflectionDoneCallback = doneCallback;
         const today = getLocalDate();
-        const TYPO_SKIP = ['错字','别字','漏字','多字'];
+        // 所有类型的纠错都进入反思（含错字/别字类），保证「结束对话」后纠错与反思都能看到
         const list = (items || []).filter(it => {
             if(!it || (!it.text && !it.user && !it.note)) return false;
-            const ty = normalizeMistakeType(it.type);
-            if(ty && TYPO_SKIP.includes(ty)) return false;
             if(!it.date || String(it.date).slice(0,10) === today) return true;
             return false;
         });
@@ -24976,10 +25044,9 @@ async function generateAndShowPractice(grammarPattern, grammarLevel, forceNew=fa
         const isZms = it.mode === '怎么说';
         const total = q.length;
         const prevState = (window._reflectionReasons || [])[idx] || { choice:'', why:'', meaning:'', native: it.native || '', grammar: it.grammar || '' };
-        // 聊天/写作纠错反思：展示用户原句 + 正确句子 + 母语意思
-        if(!isReading && !isZms && !it.native){
-            await ensureReflectionNative(it);
-        }
+        // 聊天/写作纠错反思：展示用户原句 + 正确句子 + 母语意思。
+        // 母语翻译改为后台加载：反思弹窗立即弹出，不再等翻译请求。
+        const _needNative = !isReading && !isZms && !it.native;
         let ov = document.getElementById('reflectionOverlay');
         if(!ov){
             ov = document.createElement('div');
@@ -24995,6 +25062,7 @@ async function generateAndShowPractice(grammarPattern, grammarLevel, forceNew=fa
             if (it.user) sentenceHtml += '<div style="background:#f1f5f9;border:1px solid #cbd5e1;border-radius:12px;padding:10px 12px;font-size:0.95rem;margin-bottom:6px;">📝 ' + escapeHtml(t('reflection.your')) + '：' + escapeHtml(it.user) + '</div>';
             if (it.text) sentenceHtml += '<div style="background:#eafaf1;border:1px solid #27ae60;border-radius:12px;padding:10px 12px;font-size:0.95rem;margin-bottom:6px;">✅ ' + escapeHtml(t('reflection.correct')) + '：' + escapeHtml(it.text) + '</div>';
             if (it.native) sentenceHtml += '<div style="background:#eef2ff;border:1px solid #c7d2fe;border-radius:12px;padding:10px 12px;font-size:0.9rem;margin-bottom:6px;">🌐 ' + escapeHtml(t('chat.meaning_title')) + '：' + escapeHtml(it.native) + '</div>';
+            if (_needNative) sentenceHtml += '<div id="reflectionNativeSlot" style="display:none;background:#eef2ff;border:1px solid #c7d2fe;border-radius:12px;padding:10px 12px;font-size:0.9rem;margin-bottom:6px;">🌐 ' + escapeHtml(t('chat.meaning_title')) + '：⏳ ...</div>';
             if (it.grammar) sentenceHtml += '<div style="background:#f3e8ff;border:1px solid #d8c4f0;border-radius:12px;padding:10px 12px;font-size:0.88rem;margin-bottom:10px;">' + escapeHtml(t('reflection.grammar_point')) + '：' + escapeHtml(it.grammar) + '</div>';
         }
         const btnStyle = 'display:block;width:100%;text-align:left;padding:12px 14px;border-radius:14px;border:1.5px solid #d0dae8;background:#f8fafc;cursor:pointer;font-size:0.95rem;font-weight:600;color:#1e2b5e;margin:0 0 8px;';
@@ -25044,6 +25112,16 @@ async function generateAndShowPractice(grammarPattern, grammarLevel, forceNew=fa
             window._reflectionIndex = Math.max(0, idx - 1);
             showReflectionPrompt();
         };
+        // 后台补母语翻译：弹窗已显示，翻译完成后原位填充，不阻塞反思流程
+        if(_needNative){
+            const _idx = idx;
+            ensureReflectionNative(it).then(function(tr){
+                if(!tr) return;
+                if((window._reflectionIndex || 0) !== _idx) return;
+                const slot = document.getElementById('reflectionNativeSlot');
+                if(slot){ slot.style.display = 'block'; slot.innerHTML = '🌐 ' + escapeHtml(t('chat.meaning_title')) + '：' + escapeHtml(tr); }
+            });
+        }
     }
     function handleReflectionChoice(choice, it){
         const idx = window._reflectionIndex || 0;
