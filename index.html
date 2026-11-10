@@ -235,20 +235,13 @@
         .live2d-status { position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); background: rgba(30,43,94,0.85); color: #fff; font-size: 0.75rem; padding: 4px 14px; border-radius: 20px; white-space: normal; max-width: 94%; line-height: 1.5; text-align: center; }
         .live2d-model-picker { position: absolute; top: 6px; right: 8px; background: rgba(255,255,255,0.92); border-radius: 14px; padding: 2px 8px; font-size: 0.72rem; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
         .live2d-model-picker select { border: none; background: transparent; font-size: 0.72rem; color: #1e2b5e; outline: none; cursor: pointer; }
-        /* ===== 对话模式布局：数字人在上、聊天窗口在下，一屏内看到数字人+最新消息+发送+怎么说，不用翻页 ===== */
-        .chat-live2d-row { display: flex; flex-direction: column; flex: 1; min-height: 0; }
-        .chat-live2d-row .live2d-stage { flex: 0 0 auto; width: auto; height: clamp(120px, 18vh, 180px); min-height: 0; border-radius: 14px; margin: 8px 8px 0; box-shadow: 0 4px 14px rgba(30,43,94,0.08); }
-        .chat-live2d-row .chat-messages-wrapper { flex: 1; min-width: 0; min-height: 0; }
-        .chat-panel.chat-fit { max-height: calc(100vh - 32px); overflow-y: auto; }
-        .chat-panel.chat-fit .chat-messages { max-height: none; min-height: 120px; }
-        .chat-panel.chat-fit .chat-input-area { flex-shrink: 0; padding: 10px 16px 14px; gap: 6px; }
-        /* 矮屏（笔记本小窗口）：数字人再缩小，优先保证消息和按钮可见 */
-        @media (max-height: 700px) {
-            .chat-panel.chat-fit .chat-live2d-row .live2d-stage { height: 100px; margin-top: 6px; }
-            .chat-panel.chat-fit .chat-messages { min-height: 90px; }
-            .chat-panel.chat-fit .chat-input-area { padding: 6px 12px 8px; gap: 3px; }
-            #endConversationBtn { padding: 6px 0; }
-        }
+        /* ===== 对话模式布局：数字人在上、聊天窗口在下；消息区内部滚动，输入区（发送/怎么说/结束对话）在消息下方，页面可整体下滚 ===== */
+        .chat-live2d-row { display: flex; flex-direction: column; flex: 0 0 auto; }
+        .chat-live2d-row .live2d-stage { flex: 0 0 auto; width: auto; height: clamp(150px, 22vh, 220px); min-height: 0; border-radius: 14px; margin: 8px 8px 0; box-shadow: 0 4px 14px rgba(30,43,94,0.08); }
+        .chat-live2d-row .chat-messages-wrapper { flex: 0 0 auto; min-width: 0; }
+        .chat-panel.chat-fit { max-height: none; }
+        .chat-panel.chat-fit .chat-messages { max-height: 400px; min-height: 180px; }
+        .chat-panel.chat-fit .chat-input-area { flex-shrink: 0; }
         .browser-tabs { display: flex; gap: 0; padding: 0 8px; background: transparent; }
         .browser-tab { padding: 7px 14px; border: 1px solid #d0dae8; border-bottom: none; background: #e8ecf2; cursor: pointer; font-size: 0.75rem; font-weight: 600; color: #64748b; border-radius: 8px 8px 0 0; margin-right: -1px; position: relative; z-index: 0; transition: 0.15s; }
         .browser-tab:hover { background: #dce3ed; color: #334155; }
@@ -324,20 +317,18 @@
             .chat-panel, .info-panel { min-width: 0; width: 100%; flex: none; }
             .chat-header { padding: 14px 16px; }
             .chat-header h2 { font-size: 1.2rem; }
-            .chat-messages { max-height: 42vh; min-height: 140px; padding: 12px; }
+            .chat-messages { max-height: 42vh; min-height: 160px; padding: 12px; }
             .chat-live2d-row { flex-direction: column; gap: 0; }
-            .chat-live2d-row .live2d-stage { flex: 0 0 120px; width: auto; height: 120px; min-height: 0; margin: 6px 6px 0; border-radius: 14px; }
-            /* 手机上点输入框（键盘弹出）时收起数字人，保证聊天框和输入框可见 */
-            .chat-live2d-row.chat-typing .live2d-stage { display: none; }
-            .chat-panel.chat-fit { max-height: calc(100dvh - 16px); overflow-y: auto; }
-            .chat-panel.chat-fit .chat-messages { max-height: none; min-height: 120px; }
-            .chat-panel.chat-fit .chat-input-area { padding: 8px 10px 10px; gap: 5px; }
+            .chat-live2d-row .live2d-stage { flex: 0 0 150px; width: auto; height: 150px; min-height: 0; margin: 6px 6px 0; border-radius: 14px; }
+            .chat-panel.chat-fit { max-height: none; }
+            .chat-panel.chat-fit .chat-messages { max-height: 42vh; min-height: 160px; }
+            .chat-panel.chat-fit .chat-input-area { padding: 12px 12px 14px; gap: 8px; }
             /* 输入框字号≥16px，防止 iOS 聚焦时自动放大页面 */
             .chat-input-area input, .chat-input-area textarea { font-size: 16px; }
             .live2d-fallback { font-size: 52px; }
             .live2d-model-picker { font-size: 0.66rem; padding: 1px 6px; }
             .bubble { font-size: 0.9rem; padding: 10px 14px; }
-            .input-group input { padding: 12px 14px; font-size: 0.95rem; }
+            .input-group input { padding: 12px 14px; font-size: 16px; }
             .voice-btn { width: 42px; height: 42px; min-width: 42px; font-size: 1rem; }
             .button-group button { padding: 12px 0; font-size: 0.95rem; }
             .card { padding: 14px 12px; border-radius: 16px; }
@@ -867,6 +858,7 @@
                         </optgroup>
                     </select>
                     <span id="chatVoiceHint" style="font-size:0.7rem;color:#94a3b8;"></span>
+                    <button id="voiceTestBtn" type="button" style="padding:3px 12px;border-radius:12px;border:1.5px solid #d0dae8;background:#f8fafc;color:#1e2b5e;font-size:0.8rem;cursor:pointer;">🔊 试听</button>
                 </label>
             </div>
             <div class="input-group">
@@ -14097,7 +14089,7 @@ const HSK2_VOCAB = [
         const _l2dRow = document.getElementById('chatLive2dRow');
         const _l2dStage = document.getElementById('live2dStage');
         const _chatPanelEl = document.querySelector('.chat-panel');
-        if(_l2dRow){ _l2dRow.style.display = (mode === 'chat') ? 'flex' : 'none'; _l2dRow.classList.remove('chat-typing'); }
+        if(_l2dRow) _l2dRow.style.display = (mode === 'chat') ? 'flex' : 'none';
         if(_l2dStage){
             _l2dStage.style.display = (mode === 'chat') ? '' : 'none';
             // 等布局完成后再重新适配画布尺寸（隐藏期间尺寸为0，_fitModel 会自动重试）
@@ -19294,6 +19286,7 @@ ${searchRule}
         const candidates = [];
         if(proxy) candidates.push(proxy);
         candidates.push('/tts-tencent');
+        let _lastErr = '';
         for(const base of candidates){
             try{
                 const r = await fetch(base + '?text=' + encodeURIComponent(cleanText) + '&voice=' + encodeURIComponent(String(_voice)) + '&speed=' + encodeURIComponent(String(_speed)) + '&lang=' + encodeURIComponent(String(_lang)));
@@ -19301,8 +19294,13 @@ ${searchRule}
                     const b = await r.blob();
                     if(b.size) return b;
                 }
-            }catch(e){}
+                try{
+                    const j = await r.json();
+                    _lastErr = (j && j.error) ? String(j.error) : ('HTTP ' + r.status);
+                }catch(e){ _lastErr = 'HTTP ' + r.status; }
+            }catch(e){ _lastErr = String((e && e.message) || e); }
         }
+        if(_lastErr) throw new Error(_lastErr);
         const keys = tencentAsrKeys();
         if(!keys) throw new Error('no-key');
         const host = 'tts.tencentcloudapi.com';
@@ -19383,9 +19381,10 @@ ${searchRule}
             }catch(e){
                 const em = String((e && e.message) || e);
                 if(/UnauthorizedOperation|权限不足/i.test(em)) showToast('腾讯云语音合成没权限：请给子用户关联「QcloudTTSFullAccess」策略');
-                else if(/SecretIdNotFound|密钥不存在/i.test(em)) showToast('腾讯云语音合成：SecretId 已失效，已自动改用 Edge 音色');
-                else showToast('腾讯云语音合成失败，已改用 Edge 音色');
-                // 失败自动回退到 Edge 中文晓晓
+                else if(/SecretIdNotFound|密钥不存在/i.test(em)) showToast('腾讯云语音合成：SecretId 已失效，请更新密钥');
+                else if(/服务器|密钥|tencent-keys|格式/i.test(em)) showToast('腾讯云语音：' + em.slice(0, 120));
+                else showToast('腾讯云语音合成失败，已自动改用备用音色');
+                // 失败自动回退到备用音色（Edge 中文晓晓）
             }
             if(myChatToken !== chatTtsToken) return;
         }
@@ -27611,6 +27610,16 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
                 try{ localStorage.setItem('AUTO_READ_AI', autoReadCheckbox.checked ? '1' : '0'); }catch(e){}
             });
         }
+        // 「试听」按钮：用当前音色读一句测试语
+        const _voiceTestBtn = document.getElementById('voiceTestBtn');
+        if(_voiceTestBtn){
+            _voiceTestBtn.onclick = function(){
+                try{ _voiceTestBtn.textContent = '🔊 试听中…'; }catch(e){}
+                showToast('🔊 正在用当前音色朗读测试句…');
+                speakChatTextWithTts('你好！我是你的汉语老师。');
+                setTimeout(function(){ try{ _voiceTestBtn.textContent = '🔊 试听'; }catch(e){} }, 3000);
+            };
+        }
         const learnRateSlider=document.getElementById('learnRateSlider'), learnRateLabel=document.getElementById('learnRateLabel');
         if(learnRateSlider){
             learnRateSlider.value = String(speechRateValue);
@@ -27649,17 +27658,14 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
         refreshApiKeyStatus();
         if(document.getElementById('downloadUnifiedBtn')) document.getElementById('downloadUnifiedBtn').onclick=downloadUnifiedReport;
         if(!userInput._chatKeyBound){ userInput._chatKeyBound=true; userInput.addEventListener('keypress',e=>{ if(e.key==='Enter' && !e.isComposing && e.keyCode!==229) handleUserMessage(); }); }
-        // 手机端：聚焦输入框（键盘弹出）时收起数字人；发送后收起键盘，恢复数字人
+        // 聚焦输入框时把它滚到可见位置（不隐藏数字人）
         (function bindChatTyping(){
-            const row = document.getElementById('chatLive2dRow');
             const bindEl = function(el){
                 if(!el || el._typingBound) return;
                 el._typingBound = true;
                 el.addEventListener('focus', function(){
-                    if(window.innerWidth <= 768 && row) row.classList.add('chat-typing');
                     setTimeout(function(){ try{ el.scrollIntoView({ behavior:'smooth', block:'nearest' }); }catch(e){} }, 250);
                 });
-                el.addEventListener('blur', function(){ if(row) row.classList.remove('chat-typing'); });
             };
             bindEl(userInput);
             bindEl(document.getElementById('zenmeshuoInput'));

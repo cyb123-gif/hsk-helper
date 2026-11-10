@@ -380,7 +380,11 @@ function loadTencentKeys() {
     try {
         const content = fs.readFileSync(keyFile, 'utf-8');
         const parts = content.split(/[\s,，;；]+/).map(s => s.trim()).filter(Boolean);
-        if (parts.length >= 3) return { secretId: parts[0], secretKey: parts[1], appId: parts[2] };
+        // 校验格式：第三个值 AppID 必须是纯数字、SecretKey 不能太短，避免把错误内容当密钥使用
+        if (parts.length >= 3 && /^\d{4,12}$/.test(parts[2]) && parts[1].length >= 8) {
+            return { secretId: parts[0], secretKey: parts[1], appId: parts[2] };
+        }
+        console.log('[TencentKeys] tencent-keys.txt 格式不正确（应为一行三个值：SecretId,SecretKey,AppID），腾讯云语音暂不可用');
     } catch (e) { /* 文件不存在 */ }
     if (process.env.TENCENT_SECRET_ID && process.env.TENCENT_SECRET_KEY) {
         return { secretId: process.env.TENCENT_SECRET_ID, secretKey: process.env.TENCENT_SECRET_KEY };
@@ -424,7 +428,7 @@ function handleTencentTtsProxy(req, res) {
     const primaryLang = (langParam >= 1 && langParam <= 4) ? langParam : 1;
     if (!TENCENT_KEYS) {
         res.writeHead(503, { 'Content-Type': 'application/json; charset=utf-8' });
-        res.end(JSON.stringify({ error: '服务器未配置腾讯云密钥，请创建 tencent-keys.txt（SecretId,SecretKey,AppID 一行）' }));
+        res.end(JSON.stringify({ error: '服务器未配置腾讯云密钥：请在 /opt/hsk-helper 创建 tencent-keys.txt（一行三个值：SecretId,SecretKey,AppID），然后 pm2 restart hsk' }));
         return;
     }
     const host = 'tts.tencentcloudapi.com';
