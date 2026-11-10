@@ -379,7 +379,10 @@ function loadTencentKeys() {
     const keyFile = path.join(__dirname, 'tencent-keys.txt');
     try {
         const content = fs.readFileSync(keyFile, 'utf-8');
-        const parts = content.split(/[\s,，;；]+/).map(s => s.trim()).filter(Boolean);
+        // 自动去掉用户可能多带的【】[]()等符号，再按逗号拆分
+        const parts = content.split(/[\s,，;；]+/)
+            .map(s => s.replace(/[【】\[\]()（）「」"'`]/g, '').trim())
+            .filter(Boolean);
         // 校验格式：第三个值 AppID 必须是纯数字、SecretKey 不能太短，避免把错误内容当密钥使用
         if (parts.length >= 3 && /^\d{4,12}$/.test(parts[2]) && parts[1].length >= 8) {
             return { secretId: parts[0], secretKey: parts[1], appId: parts[2] };

@@ -235,11 +235,11 @@
         .live2d-status { position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); background: rgba(30,43,94,0.85); color: #fff; font-size: 0.75rem; padding: 4px 14px; border-radius: 20px; white-space: normal; max-width: 94%; line-height: 1.5; text-align: center; }
         .live2d-model-picker { position: absolute; top: 6px; right: 8px; background: rgba(255,255,255,0.92); border-radius: 14px; padding: 2px 8px; font-size: 0.72rem; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
         .live2d-model-picker select { border: none; background: transparent; font-size: 0.72rem; color: #1e2b5e; outline: none; cursor: pointer; }
-        /* ===== 对话模式布局：数字人放大作为背景，覆盖聊天区域；消息区只显示最新一问一答（半透明白卡），输入区在下方正常排列 ===== */
-        .chat-live2d-row { position: relative; flex: 0 0 auto; height: clamp(320px, 46vh, 480px); }
-        .chat-live2d-row .live2d-stage { position: absolute; inset: 0; width: auto; height: auto; min-height: 0; margin: 0; border-radius: 14px; box-shadow: 0 4px 14px rgba(30,43,94,0.08); z-index: 0; }
-        .chat-live2d-row .chat-messages-wrapper { position: absolute; left: 12px; right: 12px; bottom: 12px; z-index: 2; min-width: 0; background: rgba(255,255,255,0.88); border-radius: 14px; box-shadow: 0 2px 10px rgba(15,23,42,0.12); }
-        .chat-live2d-row .chat-messages { max-height: 150px; min-height: 60px; background: transparent; }
+        /* ===== 对话模式布局：数字人放大在上、聊天框（不透明）在下；消息区只显示最新一问一答，输入区在消息下方 ===== */
+        .chat-live2d-row { display: flex; flex-direction: column; flex: 0 0 auto; }
+        .chat-live2d-row .live2d-stage { flex: 0 0 auto; width: auto; height: clamp(220px, 34vh, 400px); min-height: 0; margin: 8px 8px 0; border-radius: 14px; box-shadow: 0 4px 14px rgba(30,43,94,0.08); }
+        .chat-live2d-row .chat-messages-wrapper { flex: 0 0 auto; min-width: 0; background: #fff; margin: 8px; border-radius: 14px; overflow: hidden; }
+        .chat-live2d-row .chat-messages { max-height: 160px; min-height: 80px; background: #fafbfc; }
         .chat-panel.chat-fit { max-height: none; }
         .chat-panel.chat-fit .chat-input-area { flex-shrink: 0; }
         .browser-tabs { display: flex; gap: 0; padding: 0 8px; background: transparent; }
@@ -318,10 +318,10 @@
             .chat-header { padding: 14px 16px; }
             .chat-header h2 { font-size: 1.2rem; }
             .chat-messages { max-height: 150px; min-height: 60px; padding: 10px; }
-            .chat-live2d-row { height: clamp(280px, 42vh, 380px); }
-            .chat-live2d-row .live2d-stage { position: absolute; inset: 0; width: auto; height: auto; min-height: 0; margin: 0; border-radius: 14px; }
-            .chat-live2d-row .chat-messages-wrapper { left: 8px; right: 8px; bottom: 8px; }
-            .chat-live2d-row .chat-messages { max-height: 110px; min-height: 50px; }
+            .chat-live2d-row { display: flex; flex-direction: column; }
+            .chat-live2d-row .live2d-stage { flex: 0 0 auto; width: auto; height: clamp(200px, 30vh, 320px); min-height: 0; margin: 6px 6px 0; border-radius: 14px; }
+            .chat-live2d-row .chat-messages-wrapper { margin: 6px; background: #fff; border-radius: 14px; overflow: hidden; }
+            .chat-live2d-row .chat-messages { max-height: 120px; min-height: 60px; }
             .chat-panel.chat-fit { max-height: none; }
             .chat-panel.chat-fit .chat-input-area { padding: 12px 12px 14px; gap: 8px; }
             /* 输入框字号≥16px，防止 iOS 聚焦时自动放大页面 */
@@ -814,8 +814,6 @@
                 <div class="timestamp">刚刚</div>
             </div>
         </div>
-            </div>
-        </div>
         <div class="chat-input-area">
             <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px;font-size:0.8rem;">
                 <label style="display:flex;align-items:center;gap:6px;color:#475569;font-weight:600;">
@@ -880,6 +878,7 @@
                 <button id="zenmeshuoBtn">💬 怎么说</button>
             </div>
             <div id="zenmeshuoResult" class="zenmeshuo-result"></div>
+        </div>
         </div>
         </div>
         <div class="writing-panel" id="writingPanel">
@@ -14094,8 +14093,17 @@ const HSK2_VOCAB = [
         if(_l2dRow) _l2dRow.style.display = (mode === 'chat') ? 'flex' : 'none';
         if(_l2dStage){
             _l2dStage.style.display = (mode === 'chat') ? '' : 'none';
-            // 等布局完成后再重新适配画布尺寸（隐藏期间尺寸为0，_fitModel 会自动重试）
-            if(mode === 'chat' && window._live2dResizeFit){ setTimeout(window._live2dResizeFit, 150); setTimeout(window._live2dResizeFit, 450); }
+            if(mode === 'chat'){
+                // 每次回到聊天模式都重建数字人画布：彻底避免切换后碎片化/脸消失
+                if(window._live2dModel && !window._live2dRebuilding){
+                    window._live2dRebuilding = true;
+                    live2dInitPromise = null;
+                    initLive2DTeacher().then(function(){ window._live2dRebuilding = false; }).catch(function(){ window._live2dRebuilding = false; });
+                } else if(window._live2dResizeFit){
+                    setTimeout(window._live2dResizeFit, 150);
+                    setTimeout(window._live2dResizeFit, 450);
+                }
+            }
         }
         // 对话模式限定面板高度：一屏内同时看到数字人、最新消息、发送和「怎么说」
         if(_chatPanelEl) _chatPanelEl.classList.toggle('chat-fit', mode === 'chat');
