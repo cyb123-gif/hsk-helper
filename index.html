@@ -237,11 +237,17 @@
         .live2d-model-picker select { border: none; background: transparent; font-size: 0.72rem; color: #1e2b5e; outline: none; cursor: pointer; }
         /* ===== 对话模式布局：数字人在上、聊天窗口在下，一屏内看到数字人+最新消息+发送+怎么说，不用翻页 ===== */
         .chat-live2d-row { display: flex; flex-direction: column; flex: 1; min-height: 0; }
-        .chat-live2d-row .live2d-stage { flex: 0 0 180px; width: auto; height: 180px; min-height: 0; border-radius: 14px; margin: 10px 10px 0; box-shadow: 0 4px 14px rgba(30,43,94,0.08); }
+        .chat-live2d-row .live2d-stage { flex: 0 0 auto; width: auto; height: clamp(130px, 20vh, 200px); min-height: 0; border-radius: 14px; margin: 10px 10px 0; box-shadow: 0 4px 14px rgba(30,43,94,0.08); }
         .chat-live2d-row .chat-messages-wrapper { flex: 1; min-width: 0; min-height: 0; }
         .chat-panel.chat-fit { max-height: calc(100vh - 32px); }
-        .chat-panel.chat-fit .chat-messages { max-height: none; }
+        .chat-panel.chat-fit .chat-messages { max-height: none; min-height: 140px; }
         .chat-panel.chat-fit .chat-input-area { flex-shrink: 0; }
+        /* 矮屏（笔记本小窗口）：数字人再缩小、隐藏橙色提示条，保证对话内容可见 */
+        @media (max-height: 700px) {
+            .chat-panel.chat-fit .chat-live2d-row .live2d-stage { height: 110px; }
+            .chat-panel.chat-fit .end-conversation-hint { display: none; }
+            .chat-panel.chat-fit .chat-input-area { padding: 8px 12px 10px; gap: 4px; }
+        }
         .browser-tabs { display: flex; gap: 0; padding: 0 8px; background: transparent; }
         .browser-tab { padding: 7px 14px; border: 1px solid #d0dae8; border-bottom: none; background: #e8ecf2; cursor: pointer; font-size: 0.75rem; font-weight: 600; color: #64748b; border-radius: 8px 8px 0 0; margin-right: -1px; position: relative; z-index: 0; transition: 0.15s; }
         .browser-tab:hover { background: #dce3ed; color: #334155; }
@@ -800,8 +806,6 @@
                 <div class="live2d-model-picker" title="更换数字人">
                     🎭 <select id="live2dModelSelect">
                         <option value="shizuku">小原（默认）</option>
-                        <option value="koharu">小春</option>
-                        <option value="hibiki">响</option>
                         <option value="izumi">泉</option>
                     </select>
                 </div>
@@ -828,47 +832,33 @@
                 <label id="autoReadLabel" style="display:flex;align-items:center;gap:6px;cursor:pointer;color:#475569;">
                     <input type="checkbox" id="autoReadCheckbox"> 🔊 自动朗读AI回复
                 </label>
-                <label style="display:flex;align-items:center;gap:6px;color:#475569;" title="聊天 AI 回复的朗读音色：腾讯云音色优先，微软 Edge 多语种音色兜底">
+                <label style="display:flex;align-items:center;gap:6px;color:#475569;" title="聊天 AI 回复的朗读音色（腾讯云多语种音色）">
                     <span>🗣️ AI 音色</span>
                     <select id="chatVoiceSelect" style="padding:3px 10px;border-radius:12px;border:1.5px solid #d0dae8;font-size:0.8rem;outline:none;background:white;">
-                        <optgroup label="腾讯云音色（推荐）">
+                        <optgroup label="腾讯云 · 中文">
                             <option value="tcc:101001" selected>智瑜·女(温柔)</option>
-                            <option value="tcc:101002">智聆·女(新闻)</option>
+                            <option value="tcc:101002">智聆·女(通用)</option>
                             <option value="tcc:101003">智美·女(客服)</option>
-                            <option value="tcc:101004">智云·男(情感)</option>
+                            <option value="tcc:101004">智云·男(通用)</option>
                             <option value="tcc:101005">智莉·女(活泼)</option>
-                            <option value="tcc:101006">智言·男(磁性)</option>
+                            <option value="tcc:101006">智言·女(助手)</option>
+                            <option value="tcc:101009">智芸·女(知性)</option>
+                            <option value="tcc:101010">智华·男(通用)</option>
+                            <option value="tcc:101011">智燕·女(新闻)</option>
+                            <option value="tcc:101013">智辉·男(新闻)</option>
+                            <option value="tcc:101015">智萌·男童</option>
+                            <option value="tcc:101016">智甜·女童</option>
+                            <option value="tcc:101017">智蓉·女(情感)</option>
+                            <option value="tcc:101018">智靖·男(情感)</option>
+                            <option value="tcc:101023">智萱·女(聊天)</option>
+                            <option value="tcc:101024">智皓·男(聊天)</option>
                         </optgroup>
-                        <optgroup label="Edge 中文">
-                            <option value="zh-CN-XiaoxiaoNeural">晓晓·女声(温暖)</option>
-                            <option value="zh-CN-YunxiNeural">云希·男声</option>
-                            <option value="zh-CN-YunyangNeural">云扬·男声(新闻)</option>
-                            <option value="zh-CN-XiaoyiNeural">晓伊·女声(活泼)</option>
-                            <option value="zh-CN-YunjianNeural">云健·男声(解说)</option>
+                        <optgroup label="腾讯云 · English">
+                            <option value="tcc:101050">WeJack·男(英文)</option>
+                            <option value="tcc:101051">WeRose·女(英文)</option>
                         </optgroup>
-                        <optgroup label="Edge English">
-                            <option value="en-US-AriaNeural">Aria·女(US)</option>
-                            <option value="en-US-GuyNeural">Guy·男(US)</option>
-                            <option value="en-GB-SoniaNeural">Sonia·女(UK)</option>
-                        </optgroup>
-                        <optgroup label="Edge 日本語">
-                            <option value="ja-JP-NanamiNeural">七海·女</option>
-                            <option value="ja-JP-KeitaNeural">圭太·男</option>
-                        </optgroup>
-                        <optgroup label="Edge 한국어">
-                            <option value="ko-KR-SunHiNeural">선히·女</option>
-                            <option value="ko-KR-InJoonNeural">인준·男</option>
-                        </optgroup>
-                        <optgroup label="Edge 其他语言">
-                            <option value="es-ES-ElviraNeural">Elvira·西班牙语(女)</option>
-                            <option value="fr-FR-DeniseNeural">Denise·法语(女)</option>
-                            <option value="de-DE-KatjaNeural">Katja·德语(女)</option>
-                            <option value="ru-RU-SvetlanaNeural">Svetlana·俄语(女)</option>
-                            <option value="th-TH-PremwadeeNeural">Premwadee·泰语(女)</option>
-                            <option value="it-IT-ElsaNeural">Elsa·意大利语(女)</option>
-                            <option value="vi-VN-HoaiMyNeural">HoaiMy·越南语(女)</option>
-                            <option value="id-ID-GadisNeural">Gadis·印尼语(女)</option>
-                            <option value="sk-SK-ViktoriaNeural">Viktoria·斯洛伐克语(女)</option>
+                        <optgroup label="腾讯云 · 粤语">
+                            <option value="tcc:101019">智彤·女(粤语)</option>
                         </optgroup>
                     </select>
                     <span id="chatVoiceHint" style="font-size:0.7rem;color:#94a3b8;"></span>
@@ -19287,6 +19277,8 @@ ${searchRule}
     }
     async function tencentTtsAudio(cleanText, voiceType){
         const _voice = Number(voiceType) || 101001;
+        // 语言：英文音色(101050/101051)用 PrimaryLanguage=2，其余中文/粤语用 1
+        const _lang = (_voice === 101050 || _voice === 101051) ? 2 : 1;
         // 语速映射：页面 0.5x~2x → 腾讯云 Speed(-2~2)
         let _speed = 0;
         try{ _speed = Math.max(-2, Math.min(2, Math.round((speechRateValue - 1) * 2))); }catch(e){}
@@ -19299,7 +19291,7 @@ ${searchRule}
         candidates.push('/tts-tencent');
         for(const base of candidates){
             try{
-                const r = await fetch(base + '?text=' + encodeURIComponent(cleanText) + '&voice=' + encodeURIComponent(String(_voice)) + '&speed=' + encodeURIComponent(String(_speed)));
+                const r = await fetch(base + '?text=' + encodeURIComponent(cleanText) + '&voice=' + encodeURIComponent(String(_voice)) + '&speed=' + encodeURIComponent(String(_speed)) + '&lang=' + encodeURIComponent(String(_lang)));
                 if(r.ok){
                     const b = await r.blob();
                     if(b.size) return b;
@@ -19320,10 +19312,10 @@ ${searchRule}
             VoiceType: _voice,
             Codec: 'mp3',
             SampleRate: 16000,
-            Speed: 0,
+            Speed: _speed,
             Volume: 0,
             ProjectId: 0,
-            PrimaryLanguage: 1
+            PrimaryLanguage: _lang
         });
         const payloadU8 = new TextEncoder().encode(payload);
         const hashedPayload = ttsBytesToHex(new Uint8Array(await crypto.subtle.digest('SHA-256', payloadU8)));
@@ -22159,8 +22151,6 @@ const _bgPending = (window._chatCorrectionBgTasks || []).slice(); if(_bgPending.
             'https://cdn.jsdelivr.net/gh/guansss/pixi-live2d-display@master/test/assets/shizuku/shizuku.model.json',
             'https://fastly.jsdelivr.net/gh/guansss/pixi-live2d-display@master/test/assets/shizuku/shizuku.model.json'
         ] },
-        koharu: { name: '小春', url: 'live2d/koharu/koharu.model.json?v=20261109', fallbacks: [] },
-        hibiki: { name: '响', url: 'live2d/hibiki/hibiki.model.json?v=20261109', fallbacks: [] },
         izumi: { name: '泉', url: 'live2d/izumi/izumi.model.json?v=20261109', fallbacks: [] }
     };
     function live2dSelectedModel(){
@@ -22537,13 +22527,27 @@ const _bgPending = (window._chatCorrectionBgTasks || []).slice(); if(_bgPending.
     const EDGE_TTS_WSS = 'wss://speech.platform.bing.com/consumer/speech/synthesize/readaloud/edge/v1';
     const EDGE_VOICE_MAP = { female: 'zh-CN-XiaoxiaoNeural', male: 'zh-CN-YunxiNeural' };
     const TENCENT_TTS_CHAT_VOICES = [
-        { v: 'tcc:101001', label: '智瑜·女(温柔)' },
-        { v: 'tcc:101002', label: '智聆·女(新闻)' },
-        { v: 'tcc:101003', label: '智美·女(客服)' },
-        { v: 'tcc:101004', label: '智云·男(情感)' },
-        { v: 'tcc:101005', label: '智莉·女(活泼)' },
-        { v: 'tcc:101006', label: '智言·男(磁性)' }
+        { v: 'tcc:101001', label: '智瑜·女(温柔)', lang: 1 },
+        { v: 'tcc:101002', label: '智聆·女(通用)', lang: 1 },
+        { v: 'tcc:101003', label: '智美·女(客服)', lang: 1 },
+        { v: 'tcc:101004', label: '智云·男(通用)', lang: 1 },
+        { v: 'tcc:101005', label: '智莉·女(活泼)', lang: 1 },
+        { v: 'tcc:101006', label: '智言·女(助手)', lang: 1 },
+        { v: 'tcc:101009', label: '智芸·女(知性)', lang: 1 },
+        { v: 'tcc:101010', label: '智华·男(通用)', lang: 1 },
+        { v: 'tcc:101011', label: '智燕·女(新闻)', lang: 1 },
+        { v: 'tcc:101013', label: '智辉·男(新闻)', lang: 1 },
+        { v: 'tcc:101015', label: '智萌·男童', lang: 1 },
+        { v: 'tcc:101016', label: '智甜·女童', lang: 1 },
+        { v: 'tcc:101017', label: '智蓉·女(情感)', lang: 1 },
+        { v: 'tcc:101018', label: '智靖·男(情感)', lang: 1 },
+        { v: 'tcc:101023', label: '智萱·女(聊天)', lang: 1 },
+        { v: 'tcc:101024', label: '智皓·男(聊天)', lang: 1 },
+        { v: 'tcc:101019', label: '智彤·女(粤语)', lang: 1 },
+        { v: 'tcc:101050', label: 'WeJack·男(英文)', lang: 2 },
+        { v: 'tcc:101051', label: 'WeRose·女(英文)', lang: 2 }
     ];
+    // 备用朗读音色（下拉框里不出现，仅腾讯云合成失败时自动兜底，保证永远有声音）
     const EDGE_TTS_CHAT_VOICES = [
         { v: 'zh-CN-XiaoxiaoNeural', label: '晓晓·女声(温暖)' },
         { v: 'zh-CN-YunxiNeural', label: '云希·男声' },
@@ -22851,10 +22855,9 @@ const _bgPending = (window._chatCorrectionBgTasks || []).slice(); if(_bgPending.
     function getChatEdgeVoice(){
         try{
             const saved = localStorage.getItem('EDGE_VOICE_CHAT');
+            // 只接受腾讯云音色；历史保存的 Edge 音色一律忽略
             if(saved && saved.indexOf('tcc:') === 0 && TENCENT_TTS_CHAT_VOICES.some(o => o.v === saved)) return saved;
-            if(saved && EDGE_TTS_CHAT_VOICES.some(o => o.v === saved)) return saved;
         }catch(e){}
-        // 默认使用腾讯云音色（服务器已配置腾讯云密钥）
         return 'tcc:101001';
     }
 

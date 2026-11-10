@@ -419,6 +419,9 @@ function handleTencentTtsProxy(req, res) {
     const voiceParam = parseInt(params.get('voice') || '101001', 10);
     const voiceType = (voiceParam >= 101001 && voiceParam <= 101051) ? voiceParam : 101001;
     const speed = params.get('speed') || '0';
+    // 可选语言参数：1=中文，2=英文（腾讯云 PrimaryLanguage）
+    const langParam = parseInt(params.get('lang') || '1', 10);
+    const primaryLang = (langParam >= 1 && langParam <= 4) ? langParam : 1;
     if (!TENCENT_KEYS) {
         res.writeHead(503, { 'Content-Type': 'application/json; charset=utf-8' });
         res.end(JSON.stringify({ error: '服务器未配置腾讯云密钥，请创建 tencent-keys.txt（SecretId,SecretKey,AppID 一行）' }));
@@ -432,7 +435,7 @@ function handleTencentTtsProxy(req, res) {
     const date = new Date(ts * 1000).toISOString().slice(0, 10);
     const payload = JSON.stringify({
         Text: text, SessionId: 'hsk' + Date.now(), VoiceType: voiceType, Codec: 'mp3',
-        SampleRate: 16000, Speed: Number(speed) || 0, Volume: 0, ProjectId: 0, PrimaryLanguage: 1
+        SampleRate: 16000, Speed: Number(speed) || 0, Volume: 0, ProjectId: 0, PrimaryLanguage: primaryLang
     });
     const sha256Hex = (s) => crypto.createHash('sha256').update(s).digest('hex');
     const hmac = (key, msg) => crypto.createHmac('sha256', key).update(msg).digest();
