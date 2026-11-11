@@ -19225,18 +19225,29 @@ ${searchRule}
     let chatTtsToken = 0;
     // 用 Web Audio 实时分析音频振幅，驱动数字人嘴型（说话时嘴巴按真实声音张合，更逼真）
     function attachChatTtsAudioAnalyser(audio){
+        const doAttach = function(){
+            try{
+                const ctx = window._chatTtsAudioCtx;
+                // 关键：AudioContext 挂起时绝不能接管音频输出，否则播放进度正常但完全静音
+                if(!ctx || ctx.state !== 'running') return;
+                const src = ctx.createMediaElementSource(audio);
+                const an = ctx.createAnalyser();
+                an.fftSize = 256;
+                src.connect(an);
+                an.connect(ctx.destination);
+                window._chatTtsAnalyser = an;
+            }catch(e){}
+        };
         try{
             if(!(window.AudioContext || window.webkitAudioContext)) return;
             const AC = window.AudioContext || window.webkitAudioContext;
             if(!window._chatTtsAudioCtx) window._chatTtsAudioCtx = new AC();
             const ctx = window._chatTtsAudioCtx;
-            if(ctx.state === 'suspended'){ ctx.resume().catch(function(){}); }
-            const src = ctx.createMediaElementSource(audio);
-            const an = ctx.createAnalyser();
-            an.fftSize = 256;
-            src.connect(an);
-            an.connect(ctx.destination);
-            window._chatTtsAnalyser = an;
+            if(ctx.state === 'suspended'){
+                ctx.resume().then(doAttach).catch(function(){});
+                return;
+            }
+            doAttach();
         }catch(e){}
     }
     function playChatTtsUrl(url, isBlobUrl){
@@ -22601,6 +22612,8 @@ const _bgPending = (window._chatCorrectionBgTasks || []).slice(); if(_bgPending.
         function unlock(){
             unlockedAudio = new Audio();
             unlockedAudio.play().then(()=>{ unlockedAudio.pause(); unlockedAudio.currentTime=0; }).catch(()=>{});
+            // 顺带唤醒语音分析的 AudioContext，让数字人嘴型同步正常工作
+            if(window._chatTtsAudioCtx && window._chatTtsAudioCtx.state === 'suspended'){ try{ window._chatTtsAudioCtx.resume(); }catch(e){} }
             events.forEach(e=>document.removeEventListener(e,unlock));
         }
         events.forEach(e=>document.addEventListener(e,unlock,{once:true}));
