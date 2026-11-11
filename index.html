@@ -1214,7 +1214,7 @@
             <div class="stat-title" style="margin-top:10px;"><span>🎤 腾讯云语音识别（可选）</span></div>
             <input type="password" class="api-key-input" id="tencentKeysInput" placeholder="一次粘贴：SecretId,SecretKey,AppID（英文逗号隔开）" value="" autocomplete="off" style="margin-bottom:8px;">
             <input type="text" class="api-key-input" id="tencentTtsProxyInput" placeholder="TTS 代理地址（可选，手机出声用，如 https://xxx.workers.dev）" value="" autocomplete="off" style="margin-bottom:8px;">
-            <div class="small-note">🎤 在腾讯云开通「语音识别」后（有免费额度），把 SecretId、SecretKey、AppID 三项用英文逗号隔开，一次粘贴到这里，例如：AKIDxxxxx,xxxxx,1300000000。密钥获取：console.cloud.tencent.com/cam/capi。仅保存在你自己的浏览器本地。</div>
+            <div class="small-note">🎤 在腾讯云开通「语音识别」后（有免费额度），把 SecretId、SecretKey、AppID 三项用英文逗号隔开，一次粘贴到这里，例如：AKIDxxxxx,xxxxx,1300000000。密钥获取：console.cloud.tencent.com/cam/capi。密钥保存在你自己的浏览器本地；腾讯云语音朗读时只会临时发给「你自己的服务器」当场合成（服务器不保存）。</div>
             <div class="stat-title"><span>📊 语法点明细 (点击查看明细)</span></div>
             <div class="progress-grid" id="levelProgress"></div>
         </div>
@@ -14094,12 +14094,9 @@ const HSK2_VOCAB = [
         if(_l2dStage){
             _l2dStage.style.display = (mode === 'chat') ? '' : 'none';
             if(mode === 'chat'){
-                // 每次回到聊天模式都重建数字人画布：彻底避免切换后碎片化/脸消失
-                if(window._live2dModel && !window._live2dRebuilding){
-                    window._live2dRebuilding = true;
-                    live2dInitPromise = null;
-                    initLive2DTeacher().then(function(){ window._live2dRebuilding = false; }).catch(function(){ window._live2dRebuilding = false; });
-                } else if(window._live2dResizeFit){
+                // 回到聊天模式：先原地重新适配（画布尺寸没变时秒回，不重新下载模型）。
+                // 尺寸确实变化时由 _fitModel 内部检测并重建画布，仍能避免碎片化/脸消失。
+                if(window._live2dResizeFit){
                     setTimeout(window._live2dResizeFit, 150);
                     setTimeout(window._live2dResizeFit, 450);
                 }
@@ -19251,19 +19248,34 @@ ${searchRule}
         const audio = new Audio(url);
         try{ audio.referrerPolicy = 'no-referrer'; }catch(e){}
         chatTtsAudio = audio;
+        // 播放被拦截（自动播放策略）或失败时：清掉状态并回退到浏览器自带语音，避免卡死后连点无效
+        const chatTtsPlayFailed = function(err){
+            if(chatTtsAudio !== audio) return;
+            chatTtsAudio = null;
+            const retryText = chatTtsText;
+            chatTtsText = '';
+            stopLive2DMouth();
+            if(isBlobUrl){ try{ URL.revokeObjectURL(url); }catch(e){} }
+            const errName = (err && err.name) || '';
+            if(errName === 'NotAllowedError'){
+                if(!window._ttsAutoplayHintShown){ window._ttsAutoplayHintShown = true; showToast('浏览器拦截了自动播放，已改用系统语音朗读'); }
+            }
+            if(retryText) speakWithBrowser(retryText, false, speechVoicePref, speechToken);
+        };
         audio.onended = function(){
             chatTtsAudio = null; chatTtsText = '';
             stopLive2DMouth();
             if(isBlobUrl){ try{ URL.revokeObjectURL(url); }catch(e){} }
         };
         audio.onerror = function(){
-            chatTtsAudio = null; chatTtsText = '';
-            stopLive2DMouth();
-            if(isBlobUrl){ try{ URL.revokeObjectURL(url); }catch(e){} }
+            chatTtsPlayFailed(audio.error);
         };
         attachChatTtsAudioAnalyser(audio);
         startLive2DMouth();
-        audio.play();
+        try{
+            const p = audio.play();
+            if(p && p.catch) p.catch(function(err){ chatTtsPlayFailed(err); });
+        }catch(err){ chatTtsPlayFailed(err); }
     }
     // ===== 腾讯云语音合成（TextToVoice，TC3 签名，浏览器跨域直连；有免费额度） =====
     function ttsBytesToHex(u8){
@@ -19277,6 +19289,14 @@ ${searchRule}
         for(let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i);
         return u;
     }
+    // 带超时的 fetch：语音接口挂起时也能尽快回退到备用音色
+    function fetchWithTimeout(url, timeoutMs, opts){
+        const ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+        const timer = ctrl ? setTimeout(function(){ ctrl.abort(); }, timeoutMs || 10000) : null;
+        const p = fetch(url, Object.assign({}, opts || {}, ctrl ? { signal: ctrl.signal } : {}));
+        if(timer){ p.then(function(){ clearTimeout(timer); }, function(){ clearTimeout(timer); }); }
+        return p;
+    }
     async function ttsHmacSha256(keyData, msgStr){
         const k = await crypto.subtle.importKey('raw', keyData, { name:'HMAC', hash:'SHA-256' }, false, ['sign']);
         const s = await crypto.subtle.sign('HMAC', k, new TextEncoder().encode(msgStr));
@@ -19289,17 +19309,17 @@ ${searchRule}
         // 语速映射：页面 0.5x~2x → 腾讯云 Speed(-2~2)
         let _speed = 0;
         try{ _speed = Math.max(-2, Math.min(2, Math.round((speechRateValue - 1) * 2))); }catch(e){}
-        // 代理优先：本地服务器（localhost）或用户填的 Cloudflare Worker 地址，绕开浏览器跨域限制
+        // 1) 服务器代理优先：用户填的 Cloudflare Worker 地址 → 同源 /tts-tencent（服务器端 tencent-keys.txt）
         let proxy = '';
         try{ proxy = (localStorage.getItem('TENCENT_TTS_PROXY') || '').trim(); }catch(e){}
-        // 中转候选：用户填的代理地址 → 同源 /tts-tencent（部署在自己服务器上时自动生效；github.io 上 404 自动跳过）
         const candidates = [];
         if(proxy) candidates.push(proxy);
         candidates.push('/tts-tencent');
+        const _qs = '?text=' + encodeURIComponent(cleanText) + '&voice=' + encodeURIComponent(String(_voice)) + '&speed=' + encodeURIComponent(String(_speed)) + '&lang=' + encodeURIComponent(String(_lang));
         let _lastErr = '';
         for(const base of candidates){
             try{
-                const r = await fetch(base + '?text=' + encodeURIComponent(cleanText) + '&voice=' + encodeURIComponent(String(_voice)) + '&speed=' + encodeURIComponent(String(_speed)) + '&lang=' + encodeURIComponent(String(_lang)));
+                const r = await fetchWithTimeout(base + _qs, 10000);
                 if(r.ok){
                     const b = await r.blob();
                     if(b.size) return b;
@@ -19310,9 +19330,36 @@ ${searchRule}
                 }catch(e){ _lastErr = 'HTTP ' + r.status; }
             }catch(e){ _lastErr = String((e && e.message) || e); }
         }
-        if(_lastErr) throw new Error(_lastErr);
+        // 2) 网页设置里填的腾讯云密钥 → 提交给服务器合成（服务器当场使用、绝不保存；代理失败也不要提前抛错）
         const keys = tencentAsrKeys();
-        if(!keys) throw new Error('no-key');
+        if(!keys) throw new Error(_lastErr || 'no-key');
+        try{
+            const r = await fetchWithTimeout('/tts-tencent-keyed', 10000, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json; charset=utf-8' },
+                body: JSON.stringify({
+                    text: cleanText,
+                    voice: String(_voice),
+                    speed: String(_speed),
+                    lang: String(_lang),
+                    secretId: keys.secretId,
+                    secretKey: keys.secretKey
+                })
+            });
+            if(r.ok){
+                const b = await r.blob();
+                if(b.size) return b;
+            }
+            try{
+                const j = await r.json();
+                _lastErr = (j && j.error) ? String(j.error) : ('HTTP ' + r.status);
+            }catch(e){ _lastErr = 'HTTP ' + r.status; }
+        }catch(e){ _lastErr = String((e && e.message) || e); }
+        // 3) 浏览器直连腾讯云（没有服务器代理时的最后手段；腾讯云 API 一般不允许网页跨域，失败时用上面的代理错误提示兜底）
+        if(!(window.crypto && window.crypto.subtle)){
+            throw new Error(_lastErr || '浏览器直连腾讯云需要 https 或 localhost 访问页面');
+        }
+        try{
         const host = 'tts.tencentcloudapi.com';
         const service = 'tts';
         const action = 'TextToVoice';
@@ -19365,16 +19412,47 @@ ${searchRule}
         const audioB64 = json.Response && json.Response.Audio;
         if(!audioB64) throw new Error('腾讯云语音合成无音频返回');
         return new Blob([ttsBase64ToU8(audioB64)], { type: 'audio/mpeg' });
+        }catch(e){
+            // 直连失败时优先展示代理阶段的真实错误（浏览器直连一般被 CORS 拦截，只有“Failed to fetch”）
+            throw new Error(_lastErr || String((e && e.message) || e));
+        }
+    }
+    // 腾讯云基础合成单次上限：150 汉字 / 500 字母。按 110 单位切成多段，尽量在标点处断句
+    function splitTencentTtsText(text){
+        const t = String(text || '').trim();
+        const units = function(s){
+            let u = 0;
+            for(const ch of s){ u += /[\u3400-\u9fff\uf900-\ufaff\u3000-\u303f\uff00-\uffef]/.test(ch) ? 1 : 0.35; }
+            return u;
+        };
+        const chunks = [];
+        let start = 0;
+        while(start < t.length){
+            let end = Math.min(t.length, start + 330);
+            while(end > start + 1 && units(t.slice(start, end)) > 110) end--;
+            const slice = t.slice(start, end);
+            let cut = -1;
+            for(let i = slice.length - 1; i >= Math.floor(slice.length * 0.35); i--){
+                if('。！？；，、：,.!?;:…'.indexOf(slice[i]) >= 0){ cut = i; break; }
+            }
+            if(cut > 0) end = start + cut + 1;
+            const part = t.slice(start, end).trim();
+            if(part) chunks.push(part);
+            start = end;
+        }
+        return chunks;
     }
     async function speakChatTextWithTts(text){
         const clean = stripEmojiForSpeech(String(text || '').trim());
         if(!clean) return;
         stopAllSpeech();
         if(chatTtsAudio){
+            // 只有真的在播放时，点同一句才算“停止”；之前播放失败/被拦截时再点要能重新朗读
+            const wasPlaying = !chatTtsAudio.paused && chatTtsAudio.currentTime > 0;
             const old = chatTtsAudio;
             chatTtsAudio = null;
             try{ old.onended=null; old.onerror=null; old.pause(); old.src = ''; }catch(e){}
-            if(chatTtsText === clean){ chatTtsText = ''; chatTtsToken++; stopLive2DMouth(); return; }
+            if(wasPlaying && chatTtsText === clean){ chatTtsText = ''; chatTtsToken++; stopLive2DMouth(); return; }
         }
         // 正在请求中再点一次 → 取消
         if(!chatTtsAudio && chatTtsText === clean){ chatTtsToken++; chatTtsText = ''; stopLive2DMouth(); return; }
@@ -19384,22 +19462,45 @@ ${searchRule}
         // 1) 腾讯云音色（已付费优先）：tcc:101001 等
         if(chatVoice.indexOf('tcc:') === 0){
             try{
-                const blob = await tencentTtsAudio(clean, chatVoice.slice(4));
-                if(myChatToken !== chatTtsToken) return;
-                playChatTtsUrl(URL.createObjectURL(blob), true);
+                // 长文本切成小段逐段合成，再拼接成一段 mp3（腾讯云单次上限 150 汉字 / 500 字母）
+                const tccChunks = splitTencentTtsText(clean);
+                const tccParts = [];
+                for(let i = 0; i < tccChunks.length; i++){
+                    const blob = await tencentTtsAudio(tccChunks[i], chatVoice.slice(4));
+                    if(myChatToken !== chatTtsToken) return;
+                    tccParts.push(blob);
+                }
+                if(!tccParts.length) throw new Error('腾讯云语音合成无音频返回');
+                playChatTtsUrl(URL.createObjectURL(new Blob(tccParts, { type: 'audio/mpeg' })), true);
                 return;
             }catch(e){
                 const em = String((e && e.message) || e);
                 if(/UnauthorizedOperation|权限不足/i.test(em)) showToast('腾讯云语音合成没权限：请给子用户关联「QcloudTTSFullAccess」策略');
                 else if(/SecretIdNotFound|密钥不存在/i.test(em)) showToast('腾讯云语音合成：SecretId 已失效，请更新密钥');
+                else if(/未配置|no-key|缺少 text/i.test(em)){
+                    // 本来就没配置腾讯云语音：静默使用免费备用音色，只提示一次，不干扰朗读
+                    if(!window._ttsNoKeyHintShown){ window._ttsNoKeyHintShown = true; showToast('未配置腾讯云语音密钥，先用免费备用音色朗读（可在设置里配置）'); }
+                }
                 else if(/服务器|密钥|tencent-keys|格式/i.test(em)) showToast('腾讯云语音：' + em.slice(0, 120));
                 else showToast('腾讯云语音合成失败，已自动改用备用音色');
                 // 失败自动回退到备用音色（Edge 中文晓晓）
             }
             if(myChatToken !== chatTtsToken) return;
         }
-        // 2) 微软 Edge TTS（多语种音色）
+        // 2) 微软 Edge TTS（多语种音色）：优先走服务器代理（任何浏览器都能用，秒回），再试浏览器直连（仅 Edge）
         const edgeVoice = (chatVoice.indexOf('tcc:') === 0) ? 'zh-CN-XiaoxiaoNeural' : chatVoice;
+        try{
+            const r = await fetchWithTimeout('/tts-edge?text=' + encodeURIComponent(clean) + '&voice=' + encodeURIComponent(edgeVoice) + '&rate=' + encodeURIComponent(String(speechRateValue)), 12000);
+            if(r && r.ok && String(r.headers.get('content-type') || '').indexOf('audio') === 0){
+                const blob = await r.blob();
+                if(blob && blob.size > 300){
+                    if(myChatToken !== chatTtsToken) return;
+                    playChatTtsUrl(URL.createObjectURL(blob), true);
+                    return;
+                }
+            }
+        }catch(e){}
+        if(myChatToken !== chatTtsToken) return;
         try{
             const url = await edgeTtsSpeakCached('edge|' + edgeVoice + '|' + speechRateValue.toFixed(2) + '|' + clean, clean, edgeVoice, speechRateValue);
             if(myChatToken !== chatTtsToken) return;
@@ -22284,6 +22385,7 @@ const _bgPending = (window._chatCorrectionBgTasks || []).slice(); if(_bgPending.
         return await L2D.Live2DModel.from(s);
     }
     let live2dApp = null, live2dModelRef = null, live2dInitPromise = null;
+    let live2dProbedModelUrl = null;   // 上次探测成功的模型地址：重建画布时直接复用，跳过网络探测
     function bindLive2dModelSelect(){
         const sel = document.getElementById('live2dModelSelect');
         if(!sel || sel._l2dBound) return;
@@ -22292,6 +22394,7 @@ const _bgPending = (window._chatCorrectionBgTasks || []).slice(); if(_bgPending.
         sel.addEventListener('change', function(){
             try{ localStorage.setItem('LIVE2D_MODEL', sel.value); }catch(e){}
             live2dInitPromise = null;
+            live2dProbedModelUrl = null;
             live2dSetStatus('live2d.loading');
             initLive2DTeacher();
         });
@@ -22321,11 +22424,14 @@ const _bgPending = (window._chatCorrectionBgTasks || []).slice(); if(_bgPending.
                 [function(){ return !window.Live2D; }, LIVE2D_SCRIPT_URLS[1]],
                 [function(){ return !live2dPluginOk(); }, LIVE2D_SCRIPT_URLS[2]]
             ];
-            for(const item of live2dNeedGroups){
-                if(!item[0]()) continue;
+            const ensureLive2dGroup = async function(item){
+                if(!item[0]()) return;
                 try{ await loadScriptSeq(item[1]); }catch(e){}
                 if(item[0]()){ try{ await loadLibByFetchEval(item[1]); }catch(e){} }
-            }
+            };
+            // Pixi 与 Live2D 核心互不依赖：并行加载前两组，减少数字人出场等待时间；插件依赖两者，最后加载
+            await Promise.all([ensureLive2dGroup(live2dNeedGroups[0]), ensureLive2dGroup(live2dNeedGroups[1])]);
+            await ensureLive2dGroup(live2dNeedGroups[2]);
             if(!window.PIXI || !window.Live2D || !live2dPluginOk()){
                 const l2dDetail = 'PIXI:' + !!window.PIXI + '｜Live2D核心:' + !!window.Live2D + '｜Live2DModel:' + live2dPluginOk() + '｜本页 ' + location.host;
                 live2dSetStatus('live2d.load_fail', { detail: l2dDetail });
@@ -22335,15 +22441,21 @@ const _bgPending = (window._chatCorrectionBgTasks || []).slice(); if(_bgPending.
             const selModel = live2dSelectedModel();
             // 只探测用户当前选中的角色及其自身的备用地址；
             // 绝不能偷偷换成别的角色（否则选了小春/响/泉却一直显示小原）
-            const probeUrls = [LIVE2D_MODELS[selModel].url].concat(LIVE2D_MODELS[selModel].fallbacks || []);
-            const seenProbe = {};
-            for(const u of probeUrls){
-                if(seenProbe[u]) continue;
-                seenProbe[u] = 1;
-                try{
-                    const r = await fetch(u, { method: 'GET', headers: { Range: 'bytes=0-0' } });
-                    if(r.ok || r.status === 206){ modelUrl = u; break; }
-                }catch(e){}
+            if(live2dProbedModelUrl){
+                // 画布重建（尺寸变化）时复用上次探测成功的地址，省掉一次网络探测
+                modelUrl = live2dProbedModelUrl;
+            } else {
+                const probeUrls = [LIVE2D_MODELS[selModel].url].concat(LIVE2D_MODELS[selModel].fallbacks || []);
+                const seenProbe = {};
+                for(const u of probeUrls){
+                    if(seenProbe[u]) continue;
+                    seenProbe[u] = 1;
+                    try{
+                        const r = await fetch(u, { method: 'GET', headers: { Range: 'bytes=0-0' } });
+                        if(r.ok || r.status === 206){ modelUrl = u; break; }
+                    }catch(e){}
+                }
+                if(modelUrl) live2dProbedModelUrl = modelUrl;
             }
             if(!modelUrl){
                 live2dSetStatus('live2d.model_download_fail');
@@ -23013,7 +23125,17 @@ const _bgPending = (window._chatCorrectionBgTasks || []).slice(); if(_bgPending.
         }
         const voice = edgeVoiceFor(voicePref);
         const rateKey = speechRateValue.toFixed(2);
-        edgeTtsSpeakCached('edge|' + voice + '|' + rateKey + '|' + rawText, rawText, voice, speechRateValue).then(url => {
+        // 优先走服务器 /tts-edge 代理（任何浏览器都可用），失败再试浏览器直连（仅 Edge），最后浏览器语音兜底
+        const edgeProxyUrl = '/tts-edge?text=' + encodeURIComponent(rawText) + '&voice=' + encodeURIComponent(voice) + '&rate=' + encodeURIComponent(String(speechRateValue));
+        fetchWithTimeout(edgeProxyUrl, 12000).then(r => {
+            if(!r || !r.ok || String(r.headers.get('content-type') || '').indexOf('audio') !== 0) throw new Error('edge proxy unavailable');
+            return r.blob();
+        }).then(blob => {
+            if(!blob || blob.size <= 300) throw new Error('edge proxy empty');
+            return URL.createObjectURL(blob);
+        }).catch(() => {
+            return edgeTtsSpeakCached('edge|' + voice + '|' + rateKey + '|' + rawText, rawText, voice, speechRateValue);
+        }).then(url => {
             if(myToken !== speechToken) return;
             queueEdgeSpeechPlay(url, cleanText, myToken, retry, voicePref);
         }).catch(() => {
@@ -23027,6 +23149,9 @@ const _bgPending = (window._chatCorrectionBgTasks || []).slice(); if(_bgPending.
         const synth = window.speechSynthesis;
         if(!synth){ practiceIsSpeaking=false; currentSpeakingText=''; showToast(t('toast.no_speech_support') + (/MicroMessenger/i.test(navigator.userAgent) ? '｜微信内置浏览器没有语音引擎，请点右上角 ⋯ 用系统浏览器（Chrome/Edge/Safari）打开' : '')); return; }
         if(myToken !== speechToken) return;
+        // 标记正在朗读：让 1.5s 看门狗重试逻辑真正生效（聊天朗读路径此前没设这个标志，导致 cancel 后无声且不重试）
+        practiceIsSpeaking = true;
+        try{ synth.resume(); }catch(e){}
         const utter=new SpeechSynthesisUtterance(cleanText);
         utter.lang='zh-CN';
         const v = pickChineseVoice(synth, voicePref);
