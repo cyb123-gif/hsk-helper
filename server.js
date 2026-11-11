@@ -61,10 +61,11 @@ const MIME = {
 
 // 静态文件服务
 function serveStatic(req, res) {
-    let filePath = req.url === '/' ? '/index.html' : req.url;
+    let filePath = req.url;
     // 去掉查询参数（?v=xxx 等缓存版本号），否则会被当成文件名的一部分导致 404
     const queryIdx = filePath.indexOf('?');
     if (queryIdx >= 0) filePath = filePath.substring(0, queryIdx);
+    if (filePath === '' || filePath === '/') filePath = '/index.html';
     try { filePath = decodeURIComponent(filePath); } catch (e) { /* 保留原样 */ }
     // 安全：防止路径穿越
     filePath = path.normalize(filePath).replace(/^(\.\.[\/\\])+/, '');
