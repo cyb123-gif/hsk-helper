@@ -19281,7 +19281,8 @@ ${searchRule}
         audio.onerror = function(){
             chatTtsPlayFailed(audio.error);
         };
-        attachChatTtsAudioAnalyser(audio);
+        // 不再把音频接进 Web Audio 分析器：部分浏览器/设备上 AudioContext 会拦截输出导致静音。
+        // 嘴型动画由 startLive2DMouth() 内置的模拟波形驱动，声音走最直接的播放通路（和本地播放器一致）。
         startLive2DMouth();
         try{
             const p = audio.play();
