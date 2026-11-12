@@ -861,6 +861,11 @@
                     <span id="chatVoiceHint" style="font-size:0.7rem;color:#94a3b8;"></span>
                     <button id="voiceTestBtn" type="button" style="padding:3px 12px;border-radius:12px;border:1.5px solid #d0dae8;background:#f8fafc;color:#1e2b5e;font-size:0.8rem;cursor:pointer;">🔊 试听</button>
                 </label>
+                <label style="display:flex;align-items:center;gap:6px;color:#475569;" title="聊天 AI 回复的朗读语速（电脑语音），与听打/听写模式的语速互不影响">
+                    <span id="chatRateLabel">🗣️ 语速</span>
+                    <input type="range" id="chatRateSlider" min="0.6" max="1.5" step="0.05" value="1.0" style="width:96px;">
+                    <span id="chatRateValue" style="min-width:35px;text-align:right;">1.00x</span>
+                </label>
             </div>
             <div class="input-group">
                 <input type="text" id="userInput" placeholder="聊点什么吧..." autocomplete="off">
@@ -13747,7 +13752,7 @@ const HSK2_VOCAB = [
         }
         // 朗读语速标签
         const rateMap = { 'Chinese':'🗣️ 朗读语速', 'English':'🗣️ Speech Speed', 'Japanese':'🗣️ 読み上げ速度', 'Korean':'🗣️ 읽기 속도', 'French':'🗣️ Vitesse de lecture', 'German':'🗣️ Sprechgeschwindigkeit', 'Spanish':'🗣️ Velocidad de lectura', 'Russian':'🗣️ Скорость речи', 'Thai':'🗣️ ความเร็วในการพูด', 'Italian':'🗣️ Velocità di lettura' };
-        for (const sid of ['learnRateSlider', 'dictationRateSlider', 'dictTestRateSlider']) {
+        for (const sid of ['learnRateSlider', 'dictationRateSlider', 'dictTestRateSlider', 'chatRateSlider']) {
             const slider = document.getElementById(sid);
             if (slider && slider.previousElementSibling) slider.previousElementSibling.textContent = rateMap[lang] || rateMap['English'];
         }
@@ -14094,11 +14099,15 @@ const HSK2_VOCAB = [
         if(_l2dStage){
             _l2dStage.style.display = (mode === 'chat') ? '' : 'none';
             if(mode === 'chat'){
-                // 回到聊天模式：先原地重新适配（画布尺寸没变时秒回，不重新下载模型）。
-                // 尺寸确实变化时由 _fitModel 内部检测并重建画布，仍能避免碎片化/脸消失。
-                if(window._live2dResizeFit){
-                    setTimeout(window._live2dResizeFit, 150);
-                    setTimeout(window._live2dResizeFit, 450);
+                // 每次回到聊天模式都重建数字人画布：隐藏期间部分浏览器/设备会丢画布内容，
+                // 只做 re-fit 无法恢复（脸会消失）。重建时复用已探测成功的模型地址，几乎不额外等待。
+                if(window._live2dModel && !window._live2dRebuilding){
+                    window._live2dRebuilding = true;
+                    live2dInitPromise = null;
+                    initLive2DTeacher().then(function(){ window._live2dRebuilding = false; }).catch(function(){ window._live2dRebuilding = false; });
+                } else if(window._live2dResizeFit){
+                    setTimeout(function(){ if(window._live2dResizeFit) window._live2dResizeFit(); }, 150);
+                    setTimeout(function(){ if(window._live2dResizeFit) window._live2dResizeFit(); }, 450);
                 }
             }
         }
@@ -17903,12 +17912,42 @@ ${searchRule}
         const wDictHints = buildHskDictHints(text);
         const promptWithHints = prompt + (wDictHints ? ('\n\n【语料近义词提示 - 仅供参考，必须结合上下文判断：学生用对了就不要改，确实用错才纠正】\n' + wDictHints.split('\n').slice(0, 8).join('\n')) : '');
         try {
-            const _wr = await thinkingFetch({ model: 'deepseek-v4-pro', reasoning_effort: 'low', thinking: { type: 'enabled' }, max_tokens: 8192, messages: [{ role: 'user', content: promptWithHints }], temperature: 0 }, 120000);
-            if(!_wr) throw new Error('API timeout');
-            const data = _wr.data;
-            if (data.error) throw new Error(data.error.message || 'API error');
-            const content = (data.choices[0].message.content || data.choices[0].message.reasoning_content || '').replace(/```json/g, '').replace(/```/g, '').trim();
-            const result = JSON.parse(content);
+            // 快速通道：不开深度思考 + JSON 模式直接批改（提示词里已写全全部规则，通常 10~30 秒出结果）。
+            // 之前这里开深度思考，模型要先想 1~2 分钟才输出，导致「改错框」迟迟不出来。
+            let _wr = null;
+            try{
+                _wr = await thinkingFetch({ model: 'deepseek-v4-pro', thinking: { type: 'disabled' }, max_tokens: 4096, messages: [{ role: 'user', content: promptWithHints }], temperature: 0, response_format: { type: 'json_object' } }, 45000);
+            }catch(e){ _wr = null; }
+            const data = _wr ? _wr.data : null;
+            if (data && data.error) throw new Error(data.error.message || 'API error');
+            let content = (data && data.choices && data.choices[0] && data.choices[0].message)
+                ? (data.choices[0].message.content || data.choices[0].message.reasoning_content || '')
+                : '';
+            content = content.replace(/```json/g, '').replace(/```/g, '').trim();
+            let result = null;
+            if (content) {
+                try { result = JSON.parse(content); }
+                catch(e) {
+                    const m = content.match(/\{[\s\S]*\}/);
+                    if (m) { try { result = JSON.parse(m[0]); } catch(e2) { result = null; } }
+                }
+            }
+            if (!result) {
+                // 快速通道失败（超时/网络错误/解析失败）时，退回深度思考慢通道兜底，保证批改质量不丢
+                try {
+                    const _wrSlow = await thinkingFetch({ model: 'deepseek-v4-pro', reasoning_effort: 'low', thinking: { type: 'enabled' }, max_tokens: 8192, messages: [{ role: 'user', content: promptWithHints }], temperature: 0 }, 120000);
+                    if(!_wrSlow) throw new Error('API timeout');
+                    const _dataSlow = _wrSlow.data;
+                    if (_dataSlow.error) throw new Error(_dataSlow.error.message || 'API error');
+                    let _contentSlow = (_dataSlow.choices[0].message.content || _dataSlow.choices[0].message.reasoning_content || '').replace(/```json/g, '').replace(/```/g, '').trim();
+                    try { result = JSON.parse(_contentSlow); }
+                    catch(e) {
+                        const m = _contentSlow.match(/\{[\s\S]*\}/);
+                        if (m) result = JSON.parse(m[0]);
+                    }
+                } catch(e) {}
+            }
+            if (!result) throw new Error('批改结果解析失败');
             result.hints = applyLocalWritingCorrections(filterWritingHints(result.hints, text), text);
             let html = '';
             if (!lengthOk) html += `<div class="writing-section" style="border-left:4px solid #e74c3c;"><h4>${t('writing.length_warn')}</h4><p>${t('writing.min_chars_note').replace('{level}', info.level).replace('{min}', info.min).replace('{count}', charCount)}<br>${t('writing.length_fail_note')}</p></div>`;
@@ -19271,7 +19310,7 @@ ${searchRule}
             if(errName === 'NotAllowedError'){
                 if(!window._ttsAutoplayHintShown){ window._ttsAutoplayHintShown = true; showToast('浏览器拦截了自动播放，已改用系统语音朗读'); }
             }
-            if(retryText) speakWithBrowser(retryText, false, speechVoicePref, speechToken);
+            if(retryText) speakWithBrowser(retryText, false, speechVoicePref, speechToken, chatSpeechRateValue);
         };
         audio.onended = function(){
             chatTtsAudio = null; chatTtsText = '';
@@ -19318,9 +19357,9 @@ ${searchRule}
         const _voice = Number(voiceType) || 101001;
         // 语言：英文音色(101050/101051)用 PrimaryLanguage=2，其余中文/粤语用 1
         const _lang = (_voice === 101050 || _voice === 101051) ? 2 : 1;
-        // 语速映射：页面 0.5x~2x → 腾讯云 Speed(-2~2)
+        // 语速映射：页面 0.5x~2x → 腾讯云 Speed(-2~2)。聊天使用独立语速，不受听打/听写语速影响
         let _speed = 0;
-        try{ _speed = Math.max(-2, Math.min(2, Math.round((speechRateValue - 1) * 2))); }catch(e){}
+        try{ _speed = Math.max(-2, Math.min(2, Math.round((chatSpeechRateValue - 1) * 2))); }catch(e){}
         // 1) 服务器代理优先：用户填的 Cloudflare Worker 地址 → 同源 /tts-tencent（服务器端 tencent-keys.txt）
         let proxy = '';
         try{ proxy = (localStorage.getItem('TENCENT_TTS_PROXY') || '').trim(); }catch(e){}
@@ -19502,7 +19541,7 @@ ${searchRule}
         // 2) 微软 Edge TTS（多语种音色）：优先走服务器代理（任何浏览器都能用，秒回），再试浏览器直连（仅 Edge）
         const edgeVoice = (chatVoice.indexOf('tcc:') === 0) ? 'zh-CN-XiaoxiaoNeural' : chatVoice;
         try{
-            const r = await fetchWithTimeout('/tts-edge?text=' + encodeURIComponent(clean) + '&voice=' + encodeURIComponent(edgeVoice) + '&rate=' + encodeURIComponent(String(speechRateValue)), 12000);
+            const r = await fetchWithTimeout('/tts-edge?text=' + encodeURIComponent(clean) + '&voice=' + encodeURIComponent(edgeVoice) + '&rate=' + encodeURIComponent(String(chatSpeechRateValue)), 12000);
             if(r && r.ok && String(r.headers.get('content-type') || '').indexOf('audio') === 0){
                 const blob = await r.blob();
                 if(blob && blob.size > 300){
@@ -19514,7 +19553,7 @@ ${searchRule}
         }catch(e){}
         if(myChatToken !== chatTtsToken) return;
         try{
-            const url = await edgeTtsSpeakCached('edge|' + edgeVoice + '|' + speechRateValue.toFixed(2) + '|' + clean, clean, edgeVoice, speechRateValue);
+            const url = await edgeTtsSpeakCached('edge|' + edgeVoice + '|' + chatSpeechRateValue.toFixed(2) + '|' + clean, clean, edgeVoice, chatSpeechRateValue);
             if(myChatToken !== chatTtsToken) return;
             playChatTtsUrl(url, false);
             return;
@@ -19522,7 +19561,7 @@ ${searchRule}
         if(myChatToken !== chatTtsToken) return;
         // 3) 浏览器语音兜底
         chatTtsText = '';
-        speakWithBrowser(clean, false, speechVoicePref, speechToken);
+        speakWithBrowser(clean, false, speechVoicePref, speechToken, chatSpeechRateValue);
     }
     window._readMsg=function(text){ speakChatTextWithTts(text); };
     function splitClauses(text){ return text.split(/[，,。；;！!？?]+/).filter(s=>s.trim().length>0).map(s=>s.trim()); }
@@ -22497,17 +22536,21 @@ const _bgPending = (window._chatCorrectionBgTasks || []).slice(); if(_bgPending.
                 let live2dFitH = stage.clientHeight;
                 const _fitModel = function(){
                     try{
+                        // 旧画布的闭包在重建后不再生效：避免旧闭包继续改新模型或重复触发重建
+                        if(live2dModelRef !== model) return;
                         const w = stage.clientWidth;
                         const h = stage.clientHeight;
                         // 数字人被隐藏时（其他模式/键盘弹出）尺寸为 0：等恢复可见后重试，绝不用错误尺寸渲染
-                        if(!w || !h || h < 40){ setTimeout(_fitModel, 150); return; }
+                        if(!w || !h || h < 40){ setTimeout(function(){ if(window._live2dResizeFit === _fitModel) _fitModel(); }, 150); return; }
                         // 舞台尺寸明显变化时（切换模式/转屏）：重建整个画布。
                         // PIXI 动态 renderer.resize 会导致 Live2D 模型碎片化/脸消失，重建最稳。
                         if(live2dApp && live2dApp.renderer && (Math.abs((live2dFitW || 0) - w) > 24 || Math.abs((live2dFitH || 0) - h) > 24)){
                             live2dFitW = w; live2dFitH = h;
-                            window._live2dResizeFit = null;
+                            if(window._live2dResizeFit === _fitModel) window._live2dResizeFit = null;
+                            if(window._live2dRebuilding) return;
+                            window._live2dRebuilding = true;
                             live2dInitPromise = null;
-                            initLive2DTeacher();
+                            initLive2DTeacher().then(function(){ window._live2dRebuilding = false; }).catch(function(){ window._live2dRebuilding = false; });
                             return;
                         }
                         live2dFitW = w; live2dFitH = h;
@@ -22520,14 +22563,14 @@ const _bgPending = (window._chatCorrectionBgTasks || []).slice(); if(_bgPending.
                         model.y = live2dBaseY;
                     }catch(e){}
                 };
+                live2dApp.stage.addChild(model);
+                live2dModelRef = model;
+                window._live2dModel = model;
                 _fitModel();
                 window._live2dResizeFit = _fitModel;
                 if(window._live2dResizeHandler){ try{ window.removeEventListener('resize', window._live2dResizeHandler); }catch(e){} }
                 window._live2dResizeHandler = _fitModel;
                 try{ window.addEventListener('resize', _fitModel); }catch(e){}
-                live2dApp.stage.addChild(model);
-                live2dModelRef = model;
-                window._live2dModel = model;
                 const fb = document.getElementById('live2dFallback');
                 if(fb) fb.style.display = 'none';
                 live2dSetStatus(null);
@@ -23020,6 +23063,8 @@ const _bgPending = (window._chatCorrectionBgTasks || []).slice(); if(_bgPending.
 
     let speechToken = 0;
     let speechRateValue = parseFloat(localStorage.getItem('SPEECH_RATE') || '1.0') || 1.0;
+    // 聊天模式「电脑语速」独立保存：和听打/听写/练习模式的语速互不混用（首次无记录时沿用旧全局值）
+    let chatSpeechRateValue = parseFloat(localStorage.getItem('SPEECH_RATE_CHAT') || localStorage.getItem('SPEECH_RATE') || '1.0') || 1.0;
     let speechVoicePref = localStorage.getItem('SPEECH_VOICE') || 'female';
     function syncSpeechRateUI(){
         const s1 = document.getElementById('learnRateSlider');
@@ -23157,8 +23202,8 @@ const _bgPending = (window._chatCorrectionBgTasks || []).slice(); if(_bgPending.
             speakWithBrowser(cleanText, retry, voicePref, myToken);
         });
     }
-    // 浏览器自带语音合成（Edge TTS 失败时的兜底）
-    function speakWithBrowser(cleanText, retry, voicePref, myToken){
+    // 浏览器自带语音合成（Edge TTS 失败时的兜底）；rateVal 不传时用全局语速，聊天朗读传独立语速
+    function speakWithBrowser(cleanText, retry, voicePref, myToken, rateVal){
         if(!('speechSynthesis' in window)){ practiceIsSpeaking=false; currentSpeakingText=''; showToast(t('toast.no_speech_support') + (/MicroMessenger/i.test(navigator.userAgent) ? '｜微信内置浏览器没有语音引擎，请点右上角 ⋯ 用系统浏览器（Chrome/Edge/Safari）打开' : '')); return; }
         const synth = window.speechSynthesis;
         if(!synth){ practiceIsSpeaking=false; currentSpeakingText=''; showToast(t('toast.no_speech_support') + (/MicroMessenger/i.test(navigator.userAgent) ? '｜微信内置浏览器没有语音引擎，请点右上角 ⋯ 用系统浏览器（Chrome/Edge/Safari）打开' : '')); return; }
@@ -23170,19 +23215,19 @@ const _bgPending = (window._chatCorrectionBgTasks || []).slice(); if(_bgPending.
         utter.lang='zh-CN';
         const v = pickChineseVoice(synth, voicePref);
         if(v) utter.voice = v;
-        utter.rate=speechRateValue;
+        utter.rate=(rateVal !== undefined && rateVal !== null) ? rateVal : speechRateValue;
         let started=false;
         utter.onstart=()=>{ started=true; startLive2DMouth(); };
         utter.onend=()=>{ practiceIsSpeaking=false; if(currentSpeakingText === cleanText) currentSpeakingText=''; stopLive2DMouth(); };
-        utter.onerror=()=>{ practiceIsSpeaking=false; if(currentSpeakingText === cleanText) currentSpeakingText=''; stopLive2DMouth(); if(!started&&!retry){ synth.cancel(); if(myToken===speechToken) setTimeout(()=>speakWithBrowser(cleanText,true,voicePref,myToken),100); } else if(!started) showToast(t('toast.no_speech_support')); };
+        utter.onerror=()=>{ practiceIsSpeaking=false; if(currentSpeakingText === cleanText) currentSpeakingText=''; stopLive2DMouth(); if(!started&&!retry){ synth.cancel(); if(myToken===speechToken) setTimeout(()=>speakWithBrowser(cleanText,true,voicePref,myToken,rateVal),100); } else if(!started) showToast(t('toast.no_speech_support')); };
         setTimeout(()=>{
             if(!started&&practiceIsSpeaking&&myToken===speechToken){
                 synth.cancel(); practiceIsSpeaking=false; if(currentSpeakingText === cleanText) currentSpeakingText=''; stopLive2DMouth();
-                if(!retry){ setTimeout(()=>speakWithBrowser(cleanText,true,voicePref,myToken),100); }
+                if(!retry){ setTimeout(()=>speakWithBrowser(cleanText,true,voicePref,myToken,rateVal),100); }
                 else showToast(t('toast.no_speech_support'));
             }
         },1500);
-        try { synth.speak(utter); } catch(_) { practiceIsSpeaking=false; if(currentSpeakingText === cleanText) currentSpeakingText=''; stopLive2DMouth(); if(!retry&&myToken===speechToken) setTimeout(()=>speakWithBrowser(cleanText,true,voicePref,myToken),100); else if(!retry) showToast(t('toast.no_speech_support')); }
+        try { synth.speak(utter); } catch(_) { practiceIsSpeaking=false; if(currentSpeakingText === cleanText) currentSpeakingText=''; stopLive2DMouth(); if(!retry&&myToken===speechToken) setTimeout(()=>speakWithBrowser(cleanText,true,voicePref,myToken,rateVal),100); else if(!retry) showToast(t('toast.no_speech_support')); }
     }
     function toggleSpeakChinese(text){
         const cleanText = stripEmojiForSpeech(normalizeErhuaForTts(text));
@@ -27781,6 +27826,17 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
                 speakChatTextWithTts('你好！我是你的汉语老师。');
                 setTimeout(function(){ try{ _voiceTestBtn.textContent = '🔊 试听'; }catch(e){} }, 3000);
             };
+        }
+        // 聊天模式独立「电脑语速」：单独持久化，绝不与听打/听写/练习模式的语速互相同步
+        const chatRateSlider=document.getElementById('chatRateSlider'), chatRateValue=document.getElementById('chatRateValue');
+        if(chatRateSlider){
+            chatRateSlider.value = String(chatSpeechRateValue);
+            if(chatRateValue) chatRateValue.textContent = chatSpeechRateValue.toFixed(2)+'x';
+            chatRateSlider.addEventListener('input',()=>{
+                chatSpeechRateValue = parseFloat(chatRateSlider.value) || 1.0;
+                try{ localStorage.setItem('SPEECH_RATE_CHAT', String(chatSpeechRateValue)); }catch(e){}
+                if(chatRateValue) chatRateValue.textContent = chatSpeechRateValue.toFixed(2)+'x';
+            });
         }
         const learnRateSlider=document.getElementById('learnRateSlider'), learnRateLabel=document.getElementById('learnRateLabel');
         if(learnRateSlider){
