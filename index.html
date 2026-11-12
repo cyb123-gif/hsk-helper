@@ -17864,6 +17864,57 @@ ${searchRule}
         return out;
     }
 
+    // 严格复核补漏（不开思考，约3~6秒）：第一遍快速批改漏掉的错误在这里补上、误报在这里删掉，
+    // 让「不思考的快速通道」达到接近深度思考的纠错准确率（规则 + 逐句复核 = 用速度换质量）。
+    async function polishWritingHints(text, hints, targetLang){
+        if(!text || !hints || !hints.length) return hints;
+        const apiKey = currentApiKey();
+        if(!apiKey) return hints;
+        const langName = WRITING_LANG_NAMES[targetLang] || targetLang;
+        const items = hints.map(function(h){ return { original: h.original || '', corrected: h.corrected || '', type: h.type || '', issue: h.issue || h.note || '' }; });
+        const prompt = '你是资深中文写作教师。下面是学生作文和 AI 第一轮批改的提示，请做严格复核，纠错准确率高于一切。\n【学生作文】\n' + text + '\n\n【第一轮批改提示】\n' + JSON.stringify(items) + '\n\n【复核标准 - 逐条执行】\n1. 逐条复查：原句真的错吗？原句正确、两种说法母语者都常说、只是标点差异、「的」可加可不加、承前省略主语、口语变体等，都不是错误——该条输出 "drop":true。\n2. corrected 只改真正错误的部分：改句出现生造词、把对的部分改掉或读起来别扭，就改成最小改动的自然说法；改不出来也输出 "drop":true。\n3. 补漏 - 必须执行：先把作文按句号/问号/感叹号/分号/逗号切成分句编号，逐句对照第一轮提示；凡是有错但第一轮没报的分句，必须补上一条（original=该分句原文，corrected=改正句）；输出前再逐句核对一遍，严禁漏掉。\n4. 保持原意，不添加原文没有的信息；数字/日期/时间/数量词原样保留。\n5. 已经改得很好的条目：原样输出（不要 drop、不要改动）。\n6. type 从固定中文错误类型（' + MISTAKE_TYPE_LIST.join('、') + '）中选一个，不要翻译、不要自创。\n7. issue 用' + langName + '（' + targetLang + '）简短说明原因；引用学生错误原文时可以保留中文。\n输出JSON数组：[{"original":"错误分句","corrected":"改正句","type":"类型","issue":"说明","drop":true或false}]；全部没有问题就输出[]。';
+        try{
+            const resp = await fetch(API_BASE, { method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey}, body: JSON.stringify({ model:'deepseek-v4-pro', thinking:{ type:'disabled' }, max_tokens:4096, messages:[{ role:'user', content:prompt }], temperature:0, response_format:{ type:'json_object' } }), signal: aiFetchSignal(null, 45000) });
+            const data = await resp.json();
+            if(data.error) return hints;
+            if(!data.choices || !data.choices[0] || !data.choices[0].message) return hints;
+            let content = String(data.choices[0].message.content || '').replace(/```json/g, '').replace(/```/g, '').trim();
+            let parsed = null;
+            try{ parsed = JSON.parse(content); }catch(e){
+                const m = content.match(/\[[\s\S]*\]/) || content.match(/\{[\s\S]*\}/);
+                if(m){ try{ parsed = JSON.parse(m[0]); }catch(e2){ parsed = null; } }
+            }
+            let arr = [];
+            if(Array.isArray(parsed)) arr = parsed;
+            else if(parsed && Array.isArray(parsed.hints)) arr = parsed.hints;
+            else if(parsed && Array.isArray(parsed.mistakes)) arr = parsed.mistakes;
+            if(!arr.length) return hints;
+            const out = hints.map(function(h){ return Object.assign({}, h); });
+            const textKey = stripForCompare(text);
+            for(const p of arr){
+                if(!p || !p.original) continue;
+                const pk = stripForCompare(p.original);
+                if(!pk || !textKey.includes(pk)) continue;
+                const idx = out.findIndex(function(h){ const hk = stripForCompare(h.original || ''); return hk && (hk === pk || hk.includes(pk) || pk.includes(hk)); });
+                if(p.drop === true || p.drop === 'true'){
+                    if(idx !== -1) out.splice(idx, 1);
+                    continue;
+                }
+                const pc = stripForCompare(p.corrected || '');
+                if(!pc || pc === pk || isPunctuationOnlyDiff(p.original, p.corrected)){ if(idx !== -1) out.splice(idx, 1); continue; }
+                if(idx !== -1){
+                    out[idx].original = p.original;
+                    out[idx].corrected = p.corrected;
+                    if(p.type) out[idx].type = p.type;
+                    if(p.issue || p.note) out[idx].issue = p.issue || p.note;
+                } else {
+                    out.push({ original: p.original, corrected: p.corrected, type: p.type || '', issue: p.issue || p.note || '' });
+                }
+            }
+            return applyLocalWritingCorrections(filterWritingHints(out, text), text);
+        }catch(e){ return hints; }
+    }
+
     async function handleWritingSubmit(skipAnalysis = false) {
         const textarea = document.getElementById('writingTextarea');
         const text = textarea.value.trim();
@@ -17912,8 +17963,9 @@ ${searchRule}
         const wDictHints = buildHskDictHints(text);
         const promptWithHints = prompt + (wDictHints ? ('\n\n【语料近义词提示 - 仅供参考，必须结合上下文判断：学生用对了就不要改，确实用错才纠正】\n' + wDictHints.split('\n').slice(0, 8).join('\n')) : '');
         try {
-            // 快速通道：不开深度思考 + JSON 模式直接批改（提示词里已写全全部规则，通常 10~30 秒出结果）。
-            // 之前这里开深度思考，模型要先想 1~2 分钟才输出，导致「改错框」迟迟不出来。
+            // 快速通道（约3~10秒）：第一遍不开思考 + JSON 模式批改（提示词里已写全规则），
+            // 第二遍用「不开思考的严格复核补漏」把第一遍漏掉的错误补上、误报删掉——
+            // 两遍「规则+复核」达到接近深度思考的准确率，但比思考模式快一个数量级。
             let _wr = null;
             try{
                 _wr = await thinkingFetch({ model: 'deepseek-v4-pro', thinking: { type: 'disabled' }, max_tokens: 4096, messages: [{ role: 'user', content: promptWithHints }], temperature: 0, response_format: { type: 'json_object' } }, 45000);
@@ -17933,9 +17985,9 @@ ${searchRule}
                 }
             }
             if (!result) {
-                // 快速通道失败（超时/网络错误/解析失败）时，退回深度思考慢通道兜底，保证批改质量不丢
+                // 快速通道完全失败（超时/网络错误/解析失败）时，退回深度思考慢通道兜底，保证批改质量不丢
                 try {
-                    const _wrSlow = await thinkingFetch({ model: 'deepseek-v4-pro', reasoning_effort: 'low', thinking: { type: 'enabled' }, max_tokens: 8192, messages: [{ role: 'user', content: promptWithHints }], temperature: 0 }, 120000);
+                    const _wrSlow = await thinkingFetch({ model: 'deepseek-v4-pro', thinking: { type: 'enabled' }, max_tokens: 8192, messages: [{ role: 'user', content: promptWithHints }], temperature: 0 }, 120000);
                     if(!_wrSlow) throw new Error('API timeout');
                     const _dataSlow = _wrSlow.data;
                     if (_dataSlow.error) throw new Error(_dataSlow.error.message || 'API error');
@@ -17949,6 +18001,10 @@ ${searchRule}
             }
             if (!result) throw new Error('批改结果解析失败');
             result.hints = applyLocalWritingCorrections(filterWritingHints(result.hints, text), text);
+            // 严格复核补漏：不开思考、约3~6秒，把第一遍漏掉的错误补上、把误报删掉，让快速通道达到接近深度思考的准确率
+            if (result.hints && result.hints.length) {
+                try { result.hints = await polishWritingHints(text, result.hints, targetLang); } catch(e) {}
+            }
             let html = '';
             if (!lengthOk) html += `<div class="writing-section" style="border-left:4px solid #e74c3c;"><h4>${t('writing.length_warn')}</h4><p>${t('writing.min_chars_note').replace('{level}', info.level).replace('{min}', info.min).replace('{count}', charCount)}<br>${t('writing.length_fail_note')}</p></div>`;
             if (isRevision && writingSession) html += `<div class="writing-section" style="border-left:4px solid #1e2b5e;"><h4>${t('writing.revision_title')}</h4><p>${t('writing.revision_note').replace('{n}', writingSession.count + 1).replace('{prev}', writingSession.lastScore != null ? writingSession.lastScore : '--')}</p></div>`;
@@ -19963,8 +20019,8 @@ function saveFullState(){ if(!currentUser) return; const entries=Array.from(used
                     }
                     return rows.join('\n');
                 })()
-                + '\n回复要求（必须遵守）：\n1. 你的回复必须先自然确认改正：以「哦，你是说+【正确句子】」开头——只确认最关键的一处改正（如果有多处，选最重要的一句），必须一字不差使用下方「正确句子」里的原句，不要自己改写，也不要加「对吗？」。\n2. 直接像朋友一样自然地回应学生说的内容（1-3句）：先表达共鸣或分享你的看法，再继续话题。\n3. 如果要提问，问题必须和学生当前说的话题直接相关，一次只问一个问题。\n4. 让对话自然地继续下去。'
-            : '\n【系统纠错结果】\n（本次无纠错结果）\n学生这句话没有偏误。绝对不要使用「哦，你是说……」「你是想说……」「……，对吗？」等任何确认句式，绝对不要重复、改写或复述学生的句子（哪怕你觉得它有错——纠错由系统单独处理），更不许把你擅自改写、或添加原文没有的字的句子塞进确认句式；直接自然回应学生说的内容或问题。学生这句话如果和【错误库】里某条「改正后的句子」一模一样（只是少了句末标点或语气词也算），说明学生已经正确使用了这个表达，绝不是错误；绝对不要复述它、不要把它放进引号里确认，直接自然回应学生说的内容。';
+                + '\n回复要求（必须遵守）：\n1. 你的回复必须先自然确认改正：以「哦，你是说+【正确句子】」开头——只确认最关键的一处改正（如果有多处，选最重要的一句），必须一字不差使用下方「正确句子」里的原句，不要自己改写，也不要加「对吗？」。绝对不能把学生的原句（未改正的句子）放进「哦，你是说」里；如果「正确句子」和学生的原句一模一样，说明这处不是错误，不要确认。\n2. 直接像朋友一样自然地回应学生说的内容（1-3句）：先表达共鸣或分享你的看法，再继续话题。\n3. 如果要提问，问题必须和学生当前说的话题直接相关，一次只问一个问题。\n4. 让对话自然地继续下去。'
+            : '\n【系统纠错结果】\n（本次无纠错结果）\n学生这句话没有偏误。绝对不要使用「哦，你是说……」「你是想说……」「……，对吗？」等任何确认句式——尤其是「哦，你是说+学生原句」，这是把学生正确的句子当成错误复述，比不纠错更糟；绝对不要重复、改写或复述学生的句子（哪怕你觉得它有错——纠错由系统单独处理），更不许把你擅自改写、或添加原文没有的字的句子塞进确认句式；直接自然回应学生说的内容或问题。学生这句话如果和【错误库】里某条「改正后的句子」一模一样（只是少了句末标点或语气词也算），说明学生已经正确使用了这个表达，绝不是错误；绝对不要复述它、不要把它放进引号里确认，直接自然回应学生说的内容。';
         const topicCtx = window._chatTopicContext
             ? '\n【当前话题背景】' + String(window._chatTopicContext).slice(0, 1200) + '\n请始终围绕这个话题和学生聊天，不要跑题；提问时一次只问一个问题，等学生回答后再继续问下一个，不要一次列出多个问题。'
             : '';
@@ -19986,11 +20042,13 @@ ${gapChatGuide()}
 - 偶尔轻松地提一个问题，但不要连问两次以上
 - 不要每次都以问题结尾——有时分享完自然结束就好
 - 绝不要假装自己是人类去编造生活经历（如散步、吃饭、去了某地等）
+【知识性 - 自然分享小知识】
+聊天时偶尔（不要每轮）在自然的衔接处，用1-2句简单的话分享一个学生可能不知道的小知识：中国的文化、生活、语言趣味，或当前话题相关的常识。要像朋友随口聊天一样自然带出，不要生硬地说「我来告诉你一个知识」，不要因此偏离当前话题，也不要变成说教。
 【纠错规则】
 系统已经先分析并纠正学生句子的偏误（结果见下方「系统纠错结果」），你需要用「哦，你是说+正确句子」自然确认改正后继续聊天；完整纠错详情会在学生点「结束对话」后统一展示，所以你的回复里不要输出 ❌/✅/💡/✏️ 或「订正/纠错」等符号和标签。
 你需要做的：
-- 如果「系统纠错结果」中列出了「正确句子」且与学生原句不同：你的回复必须以「哦，你是说+正确句子」开头（一字不差使用改正句，只确认最关键的一处，不加「对吗？」），然后自然回应学生说的内容（1-3句），先回应内容再继续话题；如果要提问，问题必须和学生当前话题直接相关，一次只问一个。不要输出 ❌/✅/💡/✏️ 等符号。
-- 如果「系统纠错结果」是「（本次无纠错结果）」，说明学生这句话没有偏误：绝对不要使用「哦，你是说……」「你是想说……」等确认句式，也绝对不要重复学生的话；直接自然回应学生说的内容或问题，正常往下聊，不要先复述原句再说新话。
+- 如果「系统纠错结果」中列出了「正确句子」且与学生原句不同：你的回复必须以「哦，你是说+正确句子」开头（一字不差使用改正句，只确认最关键的一处，不加「对吗？」），然后自然回应学生说的内容（1-3句），先回应内容再继续话题；如果要提问，问题必须和学生当前话题直接相关，一次只问一个。不要输出 ❌/✅/💡/✏️ 等符号。绝对不能把学生的原句（未改正的句子）放进「哦，你是说」里——只能放「正确句子」；如果「正确句子」和学生的原句一模一样，说明这处不是错误，不要用「哦，你是说」。
+- 如果「系统纠错结果」是「（本次无纠错结果）」，说明学生这句话没有偏误：绝对不要使用「哦，你是说……」「你是想说……」等确认句式——尤其是「哦，你是说+学生原句」，这是把学生正确的句子当成错误复述；也绝对不要重复学生的话；直接自然回应学生说的内容或问题，正常往下聊，不要先复述原句再说新话。
 学生讲述自己以前说错的话或引用别人说的话时（如「我当时说『我见面他』」「其实我应该说我订错了」），转述内容不是错误，不要纠正、不要重述，正常回应即可。
 【输出前自检 - 每次回复前执行】
 (a) 用词是否都在 HSK${level} 级范围内？
@@ -20170,7 +20228,7 @@ sentence 必须逐字照抄输入【句子】的原文（句末标点可有可�
 
 try{ const _tr=await thinkingFetch({model:'deepseek-v4-pro',reasoning_effort:(effort==='medium')?'medium':'low',thinking:{type:'enabled'}, max_tokens:8192, messages:[{role:'system',content:prompt},{role:'user',content:blocksText}], temperature:0.1}, 60000); if(!_tr) throw new Error("API timeout"); const data=_tr.data; if(data.error) throw new Error(data.error.message||"API error"); if(!data.choices||!data.choices[0]||!data.choices[0].message) throw new Error("API error"); let content=data.choices[0].message.content || data.choices[0].message.reasoning_content || ''; content=content.replace(/```json/g,'').replace(/```/g,'').trim(); const parsed=JSON.parse(content); let arr=parsed.results||parsed.matches||parsed||[]; if(!Array.isArray(arr)) arr=[]; const inputSet=new Set((clauses||[]).map(c=>stripForCompare(c))); arr=arr.filter(it=>it&&it.sentence&&inputSet.has(stripForCompare(it.sentence))); const bySent=new Map(); for(const it of arr){ const k=stripForCompare(it.sentence); if(!bySent.has(k)) bySent.set(k,{sentence:it.sentence,matches:[]}); const cur=bySent.get(k); for(const mt of (it.matches||[])){ if(mt&&mt.pattern&&!cur.matches.some(x=>x.pattern===mt.pattern)) cur.matches.push(mt); } } return [...bySent.values()]; }catch(e){ return null; } }    // 精简版深度思考纠错提示词：学生句子短，压缩输入长度，让深度思考明显更快。
     function buildCompactMistakePrompt(targetLang){
-        return `你是中文教师。通读学生这段话，把有问题的句子都改正确、改地道：有错误的句子输出记录，没有错误的句子不要输出。允许为了更自然调整说法，但不改变原意、不添加原文没有的信息；数字/日期/时间原样保留；前后句说法要统一。note 用${targetLang}具体说明原因。type 从：错字、别字、漏字、多字、词语错误、离合词错误、缺词、多词、语序错误、搭配不当、成分残缺、成分多余、句式杂糅、关联词错误、语义错误、语义不完整 中选一个。输出JSON数组：[{"original":"原文句子","corrected":"改正后句子","uncertain":true或false,"type":"类型","pattern":"框式结构或空","note":"说明"}]。`;
+        return `你是中文教师。通读学生这段话，把有问题的句子都改正确、改地道：有错误的句子输出记录，没有错误的句子不要输出。原句正确、两种说法母语者都常说、标点差异、「的」可加可不加、承前省略主语、口语变体都不算错，宁可漏报不可误报。允许为了更自然调整说法，但不改变原意、不添加原文没有的信息；数字/日期/时间原样保留；前后句说法要统一。note 用${targetLang}具体说明原因。type 从：错字、别字、漏字、多字、词语错误、离合词错误、缺词、多词、语序错误、搭配不当、成分残缺、成分多余、句式杂糅、关联词错误、语义错误、语义不完整 中选一个。输出JSON数组：[{"original":"原文句子","corrected":"改正后句子","uncertain":true或false,"type":"类型","pattern":"框式结构或空","note":"说明"}]。`;
     }
 async function analyzeMistakesBatch(userMessages, aiReplyRaw, contextMessages){ const apiKey=currentApiKey(); if(!apiKey||userMessages.length===0) return []; const targetLang = targetLangSelect ? targetLangSelect.value : 'English'; const compactPrompt = buildCompactMistakePrompt(targetLang); const prompt=`你是资深中文写作教师，正在给外国学生逐句批改一段中文。请改得又快又好：先通读全段，把每个有问题的句子都改正确、改地道。
 【要求】
@@ -20180,10 +20238,11 @@ async function analyzeMistakesBatch(userMessages, aiReplyRaw, contextMessages){ 
 4. 每个有错误的句子输出一条记录，original 写学生原句，corrected 写改正后的完整句子；一个句子有多个错误要全部改好。
 5. 允许为了“更自然、更地道”调整说法和语序，但不要改变原意、不要添加原文没有的信息；数字/日期/时间/数量词原样保留。
 6. 完全没有问题的句子不要输出记录，禁止把对的句子改掉。
-7. 标点符号一般不算错，但明显重复的标点（如「，，」「。。」）要合并成单个；学生转述/引用自己或别人以前说错的话不算错。
-8. note 用${targetLang}具体说明每个错误的原因。
-9. type 必须从固定中文类型中选一个：错字、别字、漏字、多字、词语错误、离合词错误、缺词、多词、语序错误、搭配不当、成分残缺、成分多余、句式杂糅、关联词错误、语义错误、语义不完整。
-10. 拿不准学生想表达什么时 uncertain 填 true，不要猜。
+7. 【无错不报 - 最高优先级】学生原句符合现代汉语普通话规范就绝对不输出记录：两种说法母语者都常说的不算错；「的」可加可不加不算错；标点差异不算错；承前省略主语不算错；口语变体不算错。例：「我今天遇到了一个外国人」完全正确，不能动「了」；「V+了+数量词+名词」（遇到了一个外国人、吃了一个苹果）完全正确。禁止为了“更地道”把正确的句子改掉。宁可漏报不可误报：拿不准时 uncertain 填 true，或干脆不输出。
+8. 标点符号一般不算错，但明显重复的标点（如「，，」「。。」）要合并成单个；学生转述/引用自己或别人以前说错的话不算错。
+9. note 用${targetLang}具体说明每个错误的原因。
+10. type 必须从固定中文类型中选一个：错字、别字、漏字、多字、词语错误、离合词错误、缺词、多词、语序错误、搭配不当、成分残缺、成分多余、句式杂糅、关联词错误、语义错误、语义不完整。
+11. 拿不准学生想表达什么时 uncertain 填 true，不要猜。
 输出JSON数组：[{"original":"原文句子","corrected":"改正后句子","uncertain":true或false,"type":"类型","pattern":"框式结构或空","note":"说明"}]。`; const dictHints = buildHskDictHints((userMessages || []).join('\n')); try{ const _tr=await thinkingFetch({model:'deepseek-v4-pro',reasoning_effort:'low',thinking:{type:'enabled'}, max_tokens:8192, messages:[{role:'system',content:compactPrompt},{role:'user',content:((contextMessages?('【对话上下文】（仅用于理解学生当前句子的意思，不要纠错上下文内容）\n'+contextMessages+'\n\n'):'') + (aiReplyRaw ? ('学生句子: '+JSON.stringify(userMessages)+'\n\nAI对话伙伴的自然回复（仅供参考，可能已包含正确说法）:\n'+String(aiReplyRaw)) : ('学生句子: '+JSON.stringify(userMessages)))) + (dictHints ? ('\n\n【语料近义词提示 - 仅供参考，必须结合上下文判断：学生用对了就不要改，确实用错才纠正】\n' + dictHints.split('\n').slice(0, 8).join('\n')) : '')}], temperature:0.3}, 90000); if(!_tr) throw new Error("API timeout"); const data=_tr.data; if(data.error) throw new Error(data.error.message||"API error"); if(!data.choices||!data.choices[0]||!data.choices[0].message) throw new Error("API error"); let content=data.choices[0].message.content || data.choices[0].message.reasoning_content || ''; content=content.replace(/```json/g,'').replace(/```/g,'').trim(); let parsed=null; try{ parsed=JSON.parse(content); }catch(e){ const arrM=content.match(/\[[\s\S]*\]/); const objM=content.match(/\{[\s\S]*\}/); const cand=arrM?arrM[0]:(objM?objM[0]:''); if(cand){ try{ parsed=JSON.parse(cand); }catch(e2){ parsed=null; } } } let arr=[]; if(Array.isArray(parsed)) arr=parsed; else if(parsed&&Array.isArray(parsed.mistakes)) arr=parsed.mistakes; else if(parsed&&Array.isArray(parsed.results)) arr=parsed.results; else if(parsed&&Array.isArray(parsed.errors)) arr=parsed.errors; else if(parsed&&typeof parsed.original==='string'&&typeof parsed.corrected==='string') arr=[parsed]; return arr; }catch(e){ return []; } }
     // 无错快速判断：不开思考、约1秒，只判断有没有错。返回 true=有错/不确定（走完整分析），false=非常确定无错（跳过深度思考）。
     // 判断失败返回 null，调用方按“有错”保守处理，保证不漏纠。
@@ -21488,6 +21547,17 @@ const _bgPending = (window._chatCorrectionBgTasks || []).slice(); if(_bgPending.
             // 正确句子句末标点不进入确认框架，避免出现「见面。，对吗？」这类标点叠加
             c = c.replace(/[。！？!?]+$/,'');
             items.push({ o, c });
+            // 只要聊天里出现「哦，你是说+改正句」，这处纠错就必须同步进错句纠错记录。
+            // addWrongSentence 内部按「改句+原句」去重；这里再按改句重叠去重，避免窄化前后重复记录。
+            try{
+                const _cc = stripForCompare(c);
+                const _exists = wrongSentences.some(function(s){
+                    if(!s || s.type !== '对话纠错') return false;
+                    const _sc = stripForCompare(s.sentence || '');
+                    return _sc && (_sc === _cc || (_sc.length > 2 && _cc.includes(_sc)) || (_cc.length > 2 && _sc.includes(_cc)));
+                });
+                if(!_exists) addWrongSentence('','对话纠错',c,'',o,m.note||'',m.type||'');
+            }catch(e){}
         }
         if(!items.length) return r;
         // 正常情况：AI 按提示词只生成一次「哦，你是说……，对吗？」。
@@ -21859,9 +21929,7 @@ const _bgPending = (window._chatCorrectionBgTasks || []).slice(); if(_bgPending.
                 recordGapFromMistake(m);
             }
             if(reply){
-                for(const m of filtered){
-                    addWrongSentence('','对话纠错',m.corrected,'',m.original,m.note||'',m.type||'');
-                }
+                // 「哦，你是说」确认的纠错已在 alignReplyWithCorrections 里同步进错句纠错记录（按改句去重），这里不再重复
                 let html = cleanReplyRaw.replace(/\n/g,'<br>'), raw = cleanReplyRaw;
                 if(filtered.length > 0){
                     // 纠错详情不显示在聊天里：AI 已用「哦，你是说+改正句」自然确认，完整纠错在结束对话后统一展示
