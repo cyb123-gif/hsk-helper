@@ -14307,6 +14307,29 @@ const HSK2_VOCAB = [
         const edgeVoice = edgeVoiceFor(voicePref);
         const edgeText = stripEmojiForSpeech(line);
         const browserText = normalizeErhuaForTts(edgeText);
+        // 0) 腾讯云语音（所有模块统一音色）：长句分片合成后播放，失败自动回退下面的 Edge/北语/浏览器语音
+        try{
+            const tccVoice = tencentTtsVoiceFor(voicePref);
+            const tccChunks = splitTencentTtsText(edgeText);
+            const tccParts = [];
+            for(let i = 0; i < tccChunks.length; i++){
+                const blob = await tencentTtsAudio(tccChunks[i], tccVoice.slice(4), speechRateValue);
+                if(myPlayToken !== dictationPlayToken) return;
+                tccParts.push(blob);
+            }
+            if(tccParts.length){
+                const url = URL.createObjectURL(new Blob(tccParts, { type: 'audio/mpeg' }));
+                if(myPlayToken !== dictationPlayToken){ try{ URL.revokeObjectURL(url); }catch(e){} return; }
+                const audio = new Audio(url);
+                dictationSource = audio;
+                audio.onended = () => { dictationSource = null; stopLive2DMouth(); if(status) status.textContent = t('dictation.stopped'); };
+                audio.onerror = () => { dictationSource = null; stopLive2DMouth(); if(myPlayToken === dictationPlayToken) speakWithBrowser(browserText, undefined, voicePref, speechToken); if(status) status.textContent = t('dictation.stopped'); };
+                startLive2DMouth();
+                audio.play();
+                return;
+            }
+        }catch(e){}
+        if(myPlayToken !== dictationPlayToken) return;
         // 1) 微软 Edge TTS（缓存）
         try{
             const url = await edgeTtsSpeakCached('edge|' + edgeVoice + '|' + speechRateValue.toFixed(2) + '|' + edgeText, edgeText, edgeVoice, speechRateValue);
@@ -19409,13 +19432,14 @@ ${searchRule}
         const s = await crypto.subtle.sign('HMAC', k, new TextEncoder().encode(msgStr));
         return new Uint8Array(s);
     }
-    async function tencentTtsAudio(cleanText, voiceType){
+    async function tencentTtsAudio(cleanText, voiceType, rateValue){
         const _voice = Number(voiceType) || 101001;
         // 语言：英文音色(101050/101051)用 PrimaryLanguage=2，其余中文/粤语用 1
         const _lang = (_voice === 101050 || _voice === 101051) ? 2 : 1;
-        // 语速映射：页面 0.5x~2x → 腾讯云 Speed(-2~2)。聊天使用独立语速，不受听打/听写语速影响
+        // 语速映射：页面 0.5x~2x → 腾讯云 Speed(-2~2)。聊天传独立语速；练习/听写等模块传全局语速。
+        const _rate = (rateValue !== undefined && rateValue !== null) ? rateValue : chatSpeechRateValue;
         let _speed = 0;
-        try{ _speed = Math.max(-2, Math.min(2, Math.round((chatSpeechRateValue - 1) * 2))); }catch(e){}
+        try{ _speed = Math.max(-2, Math.min(2, Math.round((_rate - 1) * 2))); }catch(e){}
         // 1) 服务器代理优先：用户填的 Cloudflare Worker 地址 → 同源 /tts-tencent（服务器端 tencent-keys.txt）
         let proxy = '';
         try{ proxy = (localStorage.getItem('TENCENT_TTS_PROXY') || '').trim(); }catch(e){}
@@ -23142,6 +23166,18 @@ const _bgPending = (window._chatCorrectionBgTasks || []).slice(); if(_bgPending.
         }catch(e){}
         return 'tcc:101001';
     }
+    // 所有模块统一用腾讯云音色：优先用聊天选的腾讯云中文音色（整个 App 同一个老师的声音），
+    // 聊天选的是英文/粤语音色时按性别偏好回落到中文女声/男声。
+    function tencentTtsVoiceFor(pref){
+        try{
+            const chatVoice = getChatEdgeVoice();
+            if(chatVoice && chatVoice.indexOf('tcc:') === 0){
+                const num = parseInt(chatVoice.slice(4), 10) || 0;
+                if(num >= 101001 && num <= 101024) return chatVoice;
+            }
+        }catch(e){}
+        return (String(pref || speechVoicePref || 'female') === 'male') ? 'tcc:101004' : 'tcc:101001';
+    }
 
     let speechToken = 0;
     let speechRateValue = parseFloat(localStorage.getItem('SPEECH_RATE') || '1.0') || 1.0;
@@ -23252,37 +23288,65 @@ const _bgPending = (window._chatCorrectionBgTasks || []).slice(); if(_bgPending.
     }
     function speakChinese(text, retry, voicePref){
         const edgeOk = ('WebSocket' in window);
-        if(!edgeOk && !('speechSynthesis' in window)){ practiceIsSpeaking=false; currentSpeakingText=''; showToast(t('toast.no_speech_support') + (/MicroMessenger/i.test(navigator.userAgent) ? '｜微信内置浏览器没有语音引擎，请点右上角 ⋯ 用系统浏览器（Chrome/Edge/Safari）打开' : '')); return; }
+        // 腾讯云语音只需要 fetch；只有 fetch/WebSocket/系统语音全都没有时才提示不支持
+        if(typeof fetch !== 'function' && !edgeOk && !('speechSynthesis' in window)){ practiceIsSpeaking=false; currentSpeakingText=''; showToast(t('toast.no_speech_support') + (/MicroMessenger/i.test(navigator.userAgent) ? '｜微信内置浏览器没有语音引擎，请点右上角 ⋯ 用系统浏览器（Chrome/Edge/Safari）打开' : '')); return; }
         if(practiceAutoSpeakTimer){ clearTimeout(practiceAutoSpeakTimer); practiceAutoSpeakTimer=null; }
         const rawText = stripEmojiForSpeech(text);
-        const cleanText = normalizeErhuaForTts(rawText);   // 浏览器语音不认儿化，Edge 用保留儿化的原文
+        const cleanText = normalizeErhuaForTts(rawText);   // 浏览器语音不认儿化，腾讯云/Edge 用保留儿化的原文
         if(!rawText){ return; }
         currentSpeakingText = cleanText;
         const myToken = speechToken;
         practiceIsSpeaking=true;
-        if(!edgeOk){
-            speakWithBrowser(cleanText, retry, voicePref, myToken);
+        const fallbackToEdgeOrBrowser = function(){
+            if(myToken !== speechToken) return;
+            if(!edgeOk){
+                speakWithBrowser(cleanText, retry, voicePref, myToken);
+                return;
+            }
+            const voice = edgeVoiceFor(voicePref);
+            const rateKey = speechRateValue.toFixed(2);
+            // Edge 兜底：优先走服务器 /tts-edge 代理（任何浏览器都可用），失败再试浏览器直连（仅 Edge），最后浏览器语音兜底
+            const edgeProxyUrl = '/tts-edge?text=' + encodeURIComponent(rawText) + '&voice=' + encodeURIComponent(voice) + '&rate=' + encodeURIComponent(String(speechRateValue));
+            fetchWithTimeout(edgeProxyUrl, 12000).then(r => {
+                if(!r || !r.ok || String(r.headers.get('content-type') || '').indexOf('audio') !== 0) throw new Error('edge proxy unavailable');
+                return r.blob();
+            }).then(blob => {
+                if(!blob || blob.size <= 300) throw new Error('edge proxy empty');
+                return URL.createObjectURL(blob);
+            }).catch(() => {
+                return edgeTtsSpeakCached('edge|' + voice + '|' + rateKey + '|' + rawText, rawText, voice, speechRateValue);
+            }).then(url => {
+                if(myToken !== speechToken) return;
+                queueEdgeSpeechPlay(url, cleanText, myToken, retry, voicePref);
+            }).catch(() => {
+                if(myToken !== speechToken) return;
+                speakWithBrowser(cleanText, retry, voicePref, myToken);
+            });
+        };
+        // 1) 腾讯云语音（所有模块统一音色）：长文本分片合成、拼接后顺序播放；失败自动回退 Edge/浏览器语音
+        const tccVoice = tencentTtsVoiceFor(voicePref);
+        if(!tccVoice){
+            fallbackToEdgeOrBrowser();
             return;
         }
-        const voice = edgeVoiceFor(voicePref);
-        const rateKey = speechRateValue.toFixed(2);
-        // 优先走服务器 /tts-edge 代理（任何浏览器都可用），失败再试浏览器直连（仅 Edge），最后浏览器语音兜底
-        const edgeProxyUrl = '/tts-edge?text=' + encodeURIComponent(rawText) + '&voice=' + encodeURIComponent(voice) + '&rate=' + encodeURIComponent(String(speechRateValue));
-        fetchWithTimeout(edgeProxyUrl, 12000).then(r => {
-            if(!r || !r.ok || String(r.headers.get('content-type') || '').indexOf('audio') !== 0) throw new Error('edge proxy unavailable');
-            return r.blob();
-        }).then(blob => {
-            if(!blob || blob.size <= 300) throw new Error('edge proxy empty');
-            return URL.createObjectURL(blob);
-        }).catch(() => {
-            return edgeTtsSpeakCached('edge|' + voice + '|' + rateKey + '|' + rawText, rawText, voice, speechRateValue);
-        }).then(url => {
-            if(myToken !== speechToken) return;
-            queueEdgeSpeechPlay(url, cleanText, myToken, retry, voicePref);
-        }).catch(() => {
-            if(myToken !== speechToken) return;
-            speakWithBrowser(cleanText, retry, voicePref, myToken);
-        });
+        (async function(){
+            try{
+                const chunks = splitTencentTtsText(rawText);
+                const parts = [];
+                for(let i = 0; i < chunks.length; i++){
+                    const blob = await tencentTtsAudio(chunks[i], tccVoice.slice(4), speechRateValue);
+                    if(myToken !== speechToken) return;
+                    parts.push(blob);
+                }
+                if(!parts.length) throw new Error('腾讯云语音合成无音频返回');
+                const url = URL.createObjectURL(new Blob(parts, { type: 'audio/mpeg' }));
+                if(myToken !== speechToken){ try{ URL.revokeObjectURL(url); }catch(e){} return; }
+                queueEdgeSpeechPlay(url, cleanText, myToken, retry, voicePref);
+            }catch(e){
+                if(myToken !== speechToken) return;
+                fallbackToEdgeOrBrowser();
+            }
+        })();
     }
     // 浏览器自带语音合成（Edge TTS 失败时的兜底）；rateVal 不传时用全局语速，聊天朗读传独立语速
     function speakWithBrowser(cleanText, retry, voicePref, myToken, rateVal){
