@@ -1042,7 +1042,7 @@
             <div class="sentence-body">
                 <div id="sentenceProgress" style="display:none;font-size:0.85rem;color:#1e2b5e;font-weight:600;margin-bottom:10px;"></div>
                 <div id="sentenceStage"></div>
-                <div style="text-align:right;margin-top:8px;"><button id="sentenceEndBtn" class="sentence-btn" style="background:#fff;color:#c0392b;border:1.5px solid #c0392b;padding:4px 14px;border-radius:14px;cursor:pointer;font-size:0.78rem;display:none;">🏁 结束造句</button></div>
+                <div style="text-align:right;margin-top:10px;"><button id="sentenceEndBtn" class="sentence-btn" style="background:linear-gradient(135deg,#e74c3c,#c0392b);color:#fff;border:none;padding:10px 26px;border-radius:22px;cursor:pointer;font-size:1rem;font-weight:700;letter-spacing:1px;box-shadow:0 3px 10px rgba(192,57,43,0.35);display:none;">🏁 结束造句</button></div>
             </div>
         </div>
         <div class="dictation-panel" id="dictationPanel">
@@ -20020,7 +20020,7 @@ function saveFullState(){ if(!currentUser) return; const entries=Array.from(used
                     return rows.join('\n');
                 })()
                 + '\n回复要求（必须遵守）：\n1. 你的回复必须先自然确认改正：以「哦，你是说+【正确句子】」开头——只确认最关键的一处改正（如果有多处，选最重要的一句），必须一字不差使用下方「正确句子」里的原句，不要自己改写，也不要加「对吗？」。绝对不能把学生的原句（未改正的句子）放进「哦，你是说」里；如果「正确句子」和学生的原句一模一样，说明这处不是错误，不要确认。\n2. 直接像朋友一样自然地回应学生说的内容（1-3句）：先表达共鸣或分享你的看法，再继续话题。\n3. 如果要提问，问题必须和学生当前说的话题直接相关，一次只问一个问题。\n4. 让对话自然地继续下去。'
-            : '\n【系统纠错结果】\n（本次无纠错结果）\n学生这句话没有偏误。绝对不要使用「哦，你是说……」「你是想说……」「……，对吗？」等任何确认句式——尤其是「哦，你是说+学生原句」，这是把学生正确的句子当成错误复述，比不纠错更糟；绝对不要重复、改写或复述学生的句子（哪怕你觉得它有错——纠错由系统单独处理），更不许把你擅自改写、或添加原文没有的字的句子塞进确认句式；直接自然回应学生说的内容或问题。学生这句话如果和【错误库】里某条「改正后的句子」一模一样（只是少了句末标点或语气词也算），说明学生已经正确使用了这个表达，绝不是错误；绝对不要复述它、不要把它放进引号里确认，直接自然回应学生说的内容。';
+            : '\n【系统纠错结果】\n（本次无纠错结果）\n学生这句话没有偏误。区分两种确认：①自然的理解确认——允许你用「你是说+学生原句，对吗？」来确认自己听懂了（原句一个字都不能改，这是正常聊天，不是纠错）；②纠错式确认——绝对禁止：不要输出 ❌/✅/💡/✏️ 等任何纠错图标，不要用「哦，你是说+改写后的句子」这种纠错框架，也不要为了“更地道”把学生的句子改一个字再确认（哪怕你觉得它有错——纠错由系统单独处理）。学生这句话如果和【错误库】里某条「改正后的句子」一模一样（只是少了句末标点或语气词也算），说明学生已经正确使用了这个表达，绝不是错误；直接自然回应学生说的内容。';
         const topicCtx = window._chatTopicContext
             ? '\n【当前话题背景】' + String(window._chatTopicContext).slice(0, 1200) + '\n请始终围绕这个话题和学生聊天，不要跑题；提问时一次只问一个问题，等学生回答后再继续问下一个，不要一次列出多个问题。'
             : '';
@@ -20048,7 +20048,7 @@ ${gapChatGuide()}
 系统已经先分析并纠正学生句子的偏误（结果见下方「系统纠错结果」），你需要用「哦，你是说+正确句子」自然确认改正后继续聊天；完整纠错详情会在学生点「结束对话」后统一展示，所以你的回复里不要输出 ❌/✅/💡/✏️ 或「订正/纠错」等符号和标签。
 你需要做的：
 - 如果「系统纠错结果」中列出了「正确句子」且与学生原句不同：你的回复必须以「哦，你是说+正确句子」开头（一字不差使用改正句，只确认最关键的一处，不加「对吗？」），然后自然回应学生说的内容（1-3句），先回应内容再继续话题；如果要提问，问题必须和学生当前话题直接相关，一次只问一个。不要输出 ❌/✅/💡/✏️ 等符号。绝对不能把学生的原句（未改正的句子）放进「哦，你是说」里——只能放「正确句子」；如果「正确句子」和学生的原句一模一样，说明这处不是错误，不要用「哦，你是说」。
-- 如果「系统纠错结果」是「（本次无纠错结果）」，说明学生这句话没有偏误：绝对不要使用「哦，你是说……」「你是想说……」等确认句式——尤其是「哦，你是说+学生原句」，这是把学生正确的句子当成错误复述；也绝对不要重复学生的话；直接自然回应学生说的内容或问题，正常往下聊，不要先复述原句再说新话。
+- 如果「系统纠错结果」是「（本次无纠错结果）」，说明学生这句话没有偏误。区分两种确认：①自然的理解确认——允许你用「你是说+学生原句，对吗？」确认自己听懂了（原句一个字都不能改，这是正常聊天）；②纠错式确认——绝对禁止：不要输出 ❌/✅/💡/✏️ 等纠错图标，不要用「哦，你是说+改写后的句子」这种纠错框架，也不要为了“更地道”把学生句子改一个字再确认；直接自然回应学生说的内容或问题，正常往下聊。
 学生讲述自己以前说错的话或引用别人说的话时（如「我当时说『我见面他』」「其实我应该说我订错了」），转述内容不是错误，不要纠正、不要重述，正常回应即可。
 【输出前自检 - 每次回复前执行】
 (a) 用词是否都在 HSK${level} 级范围内？
@@ -21598,30 +21598,44 @@ const _bgPending = (window._chatCorrectionBgTasks || []).slice(); if(_bgPending.
         return r ? (frame + ' ' + r) : frame;
     }
 
-    // 系统判定无错时，AI 不应输出「哦，你是说……对吗？」；若模型仍输出，剥掉这些确认框架（句首和句中），
-    // 保留自然回应的内容，避免学生看到自己的正确句子被复述改错。
-    function stripUnwantedConfirmationEcho(raw){
+    // 系统判定无错时，区分两种确认：
+    // ① 自然的理解确认「你是说+学生原句，对吗？」→ 保留（正常聊天，不是纠错）；
+    // ② 纠错式确认「哦，你是说+改写句」/纠错图标 → 剥掉，避免学生看到自己的正确句子被复述改错。
+    function stripUnwantedConfirmationEcho(raw, userText){
         let r = String(raw || '');
-        // 剥掉所有位置的「你是说……，对吗？」框架（含「对吧/对不对/是吧」变体）
-        let cleaned = r.replace(/(?:哦[，,]?\s*)?(?:你是说|你是想说|你想说的是|你的意思是|意思是说|是说)([^。！？!?\n]*?)(?:[，,]?\s*(?:对吗|对吧|对不对|是吧)[？?]?)\s*/g, '');
-        // 再剥掉没有结尾确认词的「哦，你是说」类标记（模型偶尔连写两个确认句，第一个没有「，对吗？」）
-        cleaned = cleaned.replace(/(?:哦[，,]?\s*)?(?:你是说|你是想说|你想说的是|你的意思是|意思是说|是说)\s*/g, '');
-        // 剥掉句首「“……”吧？/「……」吧？」式确认复述（模型把学生原句放进引号里确认）
-        cleaned = cleaned.replace(/^[\s\u3000]*[“"「]([^”"」]{2,60})[”"」][\s]*(?:吧|吗)[？?]\s*/, '');
-        // 无「你是说」但模型仍写了「改过的句子，对吗？」这类确认句（如「今天去北京游，对吗？」）：
-        // 剥掉句首第一个以「，对吗/对吧/对不对/是吧」结尾的小句
-        cleaned = cleaned.replace(/^[^。！？!?\n]+?[，,]\s*(?:对吗|对吧|对不对|是吧)[？?]?\s*/, '');
+        // 任何情况下都不允许纠错图标
+        r = r.replace(/[❌✅💡✏️]\s*/g, '');
+        const cleanUser = stripForCompare(userText || '');
+        const isEchoOfUser = function(inner){
+            const ic = stripForCompare(inner || '');
+            if(!cleanUser || !ic || ic.length < 2) return false;
+            // 原句整体复述，或只复述原句里的一个分句 → 自然确认；比原句多了字 → 改写，不算复述
+            return ic === cleanUser || (cleanUser.includes(ic) && ic.length >= 2);
+        };
+        // 先剥掉连写的重复标记（「你是说你是说…」），再处理确认框架
+        r = r.replace(/(?:哦[，,]?\s*)?(?:你是说|你是想说|你想说的是|你的意思是|意思是说|是说)(?=\s*(?:你是说|你是想说|你想说的是|你的意思是|意思是说|是说))/g, '');
+        // 「你是说 X，对吗？」框架：X 与学生原句一致 → 保留（去掉「哦，」前缀，避免像纠错框架）；X 改写 → 剥掉
+        r = r.replace(/(?:哦[，,]?\s*)?(你是说|你是想说|你想说的是|你的意思是|意思是说|是说)([^。！？!?\n]*?)([，,]?\s*(?:对吗|对吧|对不对|是吧)[？?]?)/g, function(all, mark, inner, tail){
+            return isEchoOfUser(inner) ? (mark + inner + tail) : '';
+        });
+        // 剥掉悬空的「你是说」标记（后面是句尾或标点，没有内容）
+        r = r.replace(/(?:哦[，,]?\s*)?(?:你是说|你是想说|你想说的是|你的意思是|意思是说|是说)(?=\s*(?:$|[。！？]))/g, '');
+        // 句首「“……”吧？/「……」吧？」式确认：原句复述保留，改写句剥掉
+        r = r.replace(/^[\s\u3000]*[“"「]([^”"」]{2,60})[”"」][\s]*(?:吧|吗)[？?]\s*/, function(all, inner){
+            return isEchoOfUser(inner) ? all : '';
+        });
+        // 无「你是说」但句首第一个小句以「，对吗/对吧/对不对/是吧」结尾：原句自然确认保留，改写句剥掉
+        r = r.replace(/^(?!(?:哦[，,]?\s*)?(?:你是说|你是想说|你想说的是|你的意思是|意思是说|是说))[^。！？!?\n]+?([，,]\s*(?:对吗|对吧|对不对|是吧)[？?]?)\s*/, function(all, tail){
+            const inner = all.slice(0, all.length - tail.length);
+            return isEchoOfUser(inner) ? all : '';
+        });
         // 清理任何位置残留的重复「，对吗？」
-        cleaned = cleaned.replace(/([，,]\s*(?:对吗|对吧|对不对|是吧)[？?]?\s*){2,}/g, '，对吗？');
+        r = r.replace(/([，,]\s*(?:对吗|对吧|对不对|是吧)[？?]?\s*){2,}/g, '，对吗？');
         // 清理句首残留标点
-        cleaned = cleaned.replace(/^[。，,、\s]+/, '');
-        if(cleaned.trim()) return cleaned.trim();
-        // 整条回复都只是确认复述：把重复的确认框架压缩成一次，保证「哦，你是说」最多出现一次
-        if(/(?:你是说|你是想说|你想说的是|你的意思是|意思是说|是说)/.test(r)){
-            const one = r.replace(/((?:哦[，,]?\s*)?(?:你是说|你是想说|你想说的是|你的意思是|意思是说|是说)[^。！？!?\n]*?(?:[，,]?\s*(?:对吗|对吧|对不对|是吧)[？?]?)\s*){2,}/g, '$1');
-            return one.trim() || r.trim();
-        }
-        return r.trim();
+        r = r.replace(/^[。，,、\s]+/, '');
+        if(r.trim()) return r.trim();
+        // 整条回复都只是确认复述：剥掉纠错图标和句首「哦，」，保证不出现纠错式框架
+        return String(raw || '').replace(/[❌✅💡✏️]\s*/g, '').replace(/^哦[，,]?\s*/, '').trim();
     }
     // 判断 AI 回复里剥掉所有确认框架后是否还有实际内容（用于决定是否回退到自然回复）
     function hasFollowUpAfterConfirmation(raw, mistakes){
@@ -21763,7 +21777,7 @@ const _bgPending = (window._chatCorrectionBgTasks || []).slice(); if(_bgPending.
                 ]);
                 // 回复先显示：纠错分析放到后台进行，不再拖慢聊天速度（出错场景也能约5秒内出回复）
                 if(chatRes){
-                    let _earlyRaw = stripUnwantedConfirmationEcho(stripInlineCorrectionBlock(chatRes.raw));
+                    let _earlyRaw = stripUnwantedConfirmationEcho(stripInlineCorrectionBlock(chatRes.raw), text);
                     if(!String(_earlyRaw || '').trim()) _earlyRaw = chatRes.raw;
                     addAssistantMessage(_earlyRaw.replace(/\n/g,'<br>'), true, _earlyRaw, _earlyRaw);
                     if(quickRes !== false){
@@ -21883,7 +21897,7 @@ const _bgPending = (window._chatCorrectionBgTasks || []).slice(); if(_bgPending.
             let cleanReplyRaw = reply ? alignReplyWithCorrections(stripInlineCorrectionBlock(reply.raw), batch) : '';
             // 系统判定无错时，AI 不应输出「哦，你是说……对吗？」；若模型仍输出，剥掉这段确认框架，
             // 避免学生看到 AI 把自己正确的句子复述改错。
-            if(!batch.length) cleanReplyRaw = stripUnwantedConfirmationEcho(cleanReplyRaw);
+            if(!batch.length) cleanReplyRaw = stripUnwantedConfirmationEcho(cleanReplyRaw, text);
             let filtered;
             if(opts.confirmed){
                 // 用户已经确认过意思：直接使用确认后的纠错
@@ -25059,17 +25073,19 @@ async function generateAndShowPractice(grammarPattern, grammarLevel, forceNew=fa
     async function decorateSentenceStage(item){
         const myToken = sentenceStageToken;
         const meta = document.getElementById('sentenceWordMeta');
+        if(!meta) return;
+        // 造句练习不显示拼音和词义（产出练习，不给提示）；语法点名称的母语翻译保留
+        if(item.type === 'vocab'){
+            meta.textContent = '';
+            meta.style.display = 'none';
+            return;
+        }
         const info = await fetchSentenceItemInfo(item);
         if(myToken !== sentenceStageToken) return;
-        if(!meta) return;
         if(!info){ meta.textContent = ''; return; }
         if(item.type === 'grammar'){
             const tr = String(info.translation || '').trim();
             meta.textContent = tr ? ('🌐 ' + tr) : '';
-        } else {
-            const py = String(info.pinyin || '').trim();
-            const meaning = String(info.meaning || '').trim();
-            meta.textContent = (py ? '🔊 ' + py : '') + (meaning ? (py ? ' · ' : '') + '💡 ' + meaning : '');
         }
     }
     function renderSentenceStage(item){
