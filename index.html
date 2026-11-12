@@ -829,37 +829,9 @@
                 <label id="autoReadLabel" style="display:flex;align-items:center;gap:6px;cursor:pointer;color:#475569;">
                     <input type="checkbox" id="autoReadCheckbox" checked> 🔊 自动朗读AI回复
                 </label>
-                <label style="display:flex;align-items:center;gap:6px;color:#475569;" title="聊天 AI 回复的朗读音色（腾讯云多语种音色）">
+                <label style="display:flex;align-items:center;gap:6px;color:#475569;" title="聊天 AI 回复的朗读音色（多语种音色）">
                     <span>🗣️ AI 音色</span>
-                    <select id="chatVoiceSelect" style="padding:3px 10px;border-radius:12px;border:1.5px solid #d0dae8;font-size:0.8rem;outline:none;background:white;">
-                        <optgroup label="腾讯云 · 中文">
-                            <option value="tcc:101001" selected>智瑜·女(温柔)</option>
-                            <option value="tcc:101002">智聆·女(通用)</option>
-                            <option value="tcc:101003">智美·女(客服)</option>
-                            <option value="tcc:101004">智云·男(通用)</option>
-                            <option value="tcc:101005">智莉·女(活泼)</option>
-                            <option value="tcc:101006">智言·女(助手)</option>
-                            <option value="tcc:101009">智芸·女(知性)</option>
-                            <option value="tcc:101010">智华·男(通用)</option>
-                            <option value="tcc:101011">智燕·女(新闻)</option>
-                            <option value="tcc:101013">智辉·男(新闻)</option>
-                            <option value="tcc:101015">智萌·男童</option>
-                            <option value="tcc:101016">智甜·女童</option>
-                            <option value="tcc:101017">智蓉·女(情感)</option>
-                            <option value="tcc:101018">智靖·男(情感)</option>
-                            <option value="tcc:101023">智萱·女(聊天)</option>
-                            <option value="tcc:101024">智皓·男(聊天)</option>
-                        </optgroup>
-                        <optgroup label="腾讯云 · English">
-                            <option value="tcc:101050">WeJack·男(英文)</option>
-                            <option value="tcc:101051">WeRose·女(英文)</option>
-                        </optgroup>
-                        <optgroup label="腾讯云 · 粤语">
-                            <option value="tcc:101019">智彤·女(粤语)</option>
-                        </optgroup>
-                    </select>
-                    <span id="chatVoiceHint" style="font-size:0.7rem;color:#94a3b8;"></span>
-                    <button id="voiceTestBtn" type="button" style="padding:3px 12px;border-radius:12px;border:1.5px solid #d0dae8;background:#f8fafc;color:#1e2b5e;font-size:0.8rem;cursor:pointer;">🔊 试听</button>
+                    <select id="chatVoiceSelect" style="padding:3px 10px;border-radius:12px;border:1.5px solid #d0dae8;font-size:0.8rem;outline:none;background:white;"></select>
                 </label>
                 <label style="display:flex;align-items:center;gap:6px;color:#475569;" title="聊天 AI 回复的朗读语速（电脑语音），与听打/听写模式的语速互不影响">
                     <span id="chatRateLabel">🗣️ 语速</span>
@@ -871,7 +843,6 @@
                 <input type="text" id="userInput" placeholder="聊点什么吧..." autocomplete="off">
                 <button id="voiceBtn" class="voice-btn" type="button" title="🎤 语音输入">🎤</button>
             </div>
-            <div id="voiceInputHint" class="voice-input-hint">🎤 点击麦克风开始语音输入</div>
             <div class="button-group">
                 <button id="sendBtn">发送</button>
             </div>
@@ -13756,6 +13727,8 @@ const HSK2_VOCAB = [
             const slider = document.getElementById(sid);
             if (slider && slider.previousElementSibling) slider.previousElementSibling.textContent = rateMap[lang] || rateMap['English'];
         }
+        // AI 音色下拉框多语种标签
+        renderChatVoiceOptions(lang);
         // 自动朗读标签
         const autoReadLabel = document.getElementById('autoReadLabel');
         if (autoReadLabel) autoReadLabel.childNodes[autoReadLabel.childNodes.length-1].textContent = ' '+t('panel.auto_read');
@@ -19399,9 +19372,10 @@ ${searchRule}
         audio.onerror = function(){
             chatTtsPlayFailed(audio.error);
         };
-        // 不再把音频接进 Web Audio 分析器：部分浏览器/设备上 AudioContext 会拦截输出导致静音。
-        // 嘴型动画由 startLive2DMouth() 内置的模拟波形驱动，声音走最直接的播放通路（和本地播放器一致）。
         startLive2DMouth();
+        // 先启动嘴型再接入 Web Audio 分析器（startLive2DMouth 内部会先清理旧分析器），
+        // 让数字人嘴型跟着这句话的真实声音张合；AudioContext 未运行时（自动播放策略挂起）会安全跳过。
+        attachChatTtsAudioAnalyser(audio);
         try{
             const p = audio.play();
             if(p && p.catch) p.catch(function(err){ chatTtsPlayFailed(err); });
@@ -22728,10 +22702,19 @@ const _bgPending = (window._chatCorrectionBgTasks || []).slice(); if(_bgPending.
     function startLive2DMouth(){
         stopLive2DMouth();
         live2dIdlePaused = true;   // 说话时暂停待机动作
+        // 说话时不要跟着鼠标跑：停止头部跟随，直视正前方（对话人）
+        try{
+            const m = window._live2dModel;
+            if(m){
+                if(m.autoInteract) m.autoInteract = false;
+                if(m.internalModel && m.internalModel.focusController) m.internalModel.focusController.focus(0, 0, true);
+            }
+        }catch(e){}
         const t0 = Date.now();
         live2dMouthTimer = setInterval(function(){
-            let v = 0.22 + 0.78 * Math.abs(Math.sin((Date.now() - t0) / 1000 * Math.PI * 5.6)) * (0.65 + 0.35 * Math.abs(Math.sin((Date.now() - t0) / 1000 * 2.31 + 1.7)));
-            // 有实时音频分析时，嘴型按真实声音振幅张合（更逼真）
+            // 兜底模拟嘴型：放慢到接近自然语速的节奏（真实分析器可用时下面的 RMS 会接管）
+            let v = 0.16 + 0.5 * Math.abs(Math.sin((Date.now() - t0) / 1000 * Math.PI * 3.1)) * (0.7 + 0.3 * Math.abs(Math.sin((Date.now() - t0) / 1000 * 1.15 + 1.2)));
+            // 有实时音频分析时，嘴型按真实声音振幅张合（和正在说的句子对上）
             const an = window._chatTtsAnalyser;
             if(an){
                 try{
@@ -22740,14 +22723,20 @@ const _bgPending = (window._chatCorrectionBgTasks || []).slice(); if(_bgPending.
                     let sum = 0;
                     for(let i = 0; i < buf.length; i++){ const d = (buf[i] - 128) / 128; sum += d * d; }
                     const rms = Math.sqrt(sum / buf.length);
-                    v = Math.min(1, 0.12 + rms * 3.2);
+                    // 幅度越大嘴张得越大；加一点平滑，避免抖动
+                    v = Math.min(1, 0.08 + rms * 2.6 + v * 0.15);
                 }catch(e){}
             }
             if(window.setLive2DMouth) window.setLive2DMouth(v);
-        }, 50);
+        }, 40);
     }
     function stopLive2DMouth(){
         live2dIdlePaused = false;  // 恢复待机动作
+        // 说完恢复跟随鼠标（回到平时的互动状态）
+        try{
+            const m = window._live2dModel;
+            if(m && !m.autoInteract) m.autoInteract = true;
+        }catch(e){}
         if(live2dMouthTimer){ clearInterval(live2dMouthTimer); live2dMouthTimer = null; }
         if(window._chatTtsAnalyser){ try{ window._chatTtsAnalyser.disconnect(); }catch(e){} window._chatTtsAnalyser = null; }
         if(window.setLive2DMouth) window.setLive2DMouth(0);
@@ -22833,26 +22822,58 @@ const _bgPending = (window._chatCorrectionBgTasks || []).slice(); if(_bgPending.
     const EDGE_TTS_WSS = 'wss://speech.platform.bing.com/consumer/speech/synthesize/readaloud/edge/v1';
     const EDGE_VOICE_MAP = { female: 'zh-CN-XiaoxiaoNeural', male: 'zh-CN-YunxiNeural' };
     const TENCENT_TTS_CHAT_VOICES = [
-        { v: 'tcc:101001', label: '智瑜·女(温柔)', lang: 1 },
-        { v: 'tcc:101002', label: '智聆·女(通用)', lang: 1 },
-        { v: 'tcc:101003', label: '智美·女(客服)', lang: 1 },
-        { v: 'tcc:101004', label: '智云·男(通用)', lang: 1 },
-        { v: 'tcc:101005', label: '智莉·女(活泼)', lang: 1 },
-        { v: 'tcc:101006', label: '智言·女(助手)', lang: 1 },
-        { v: 'tcc:101009', label: '智芸·女(知性)', lang: 1 },
-        { v: 'tcc:101010', label: '智华·男(通用)', lang: 1 },
-        { v: 'tcc:101011', label: '智燕·女(新闻)', lang: 1 },
-        { v: 'tcc:101013', label: '智辉·男(新闻)', lang: 1 },
-        { v: 'tcc:101015', label: '智萌·男童', lang: 1 },
-        { v: 'tcc:101016', label: '智甜·女童', lang: 1 },
-        { v: 'tcc:101017', label: '智蓉·女(情感)', lang: 1 },
-        { v: 'tcc:101018', label: '智靖·男(情感)', lang: 1 },
-        { v: 'tcc:101023', label: '智萱·女(聊天)', lang: 1 },
-        { v: 'tcc:101024', label: '智皓·男(聊天)', lang: 1 },
-        { v: 'tcc:101019', label: '智彤·女(粤语)', lang: 1 },
-        { v: 'tcc:101050', label: 'WeJack·男(英文)', lang: 2 },
-        { v: 'tcc:101051', label: 'WeRose·女(英文)', lang: 2 }
+        { v: 'tcc:101001', name: '智瑜', kind: 'cn', gender: 'f', style: 'gentle' },
+        { v: 'tcc:101002', name: '智聆', kind: 'cn', gender: 'f', style: 'general' },
+        { v: 'tcc:101003', name: '智美', kind: 'cn', gender: 'f', style: 'service' },
+        { v: 'tcc:101004', name: '智云', kind: 'cn', gender: 'm', style: 'general' },
+        { v: 'tcc:101005', name: '智莉', kind: 'cn', gender: 'f', style: 'lively' },
+        { v: 'tcc:101006', name: '智言', kind: 'cn', gender: 'f', style: 'assistant' },
+        { v: 'tcc:101009', name: '智芸', kind: 'cn', gender: 'f', style: 'intellectual' },
+        { v: 'tcc:101010', name: '智华', kind: 'cn', gender: 'm', style: 'general' },
+        { v: 'tcc:101011', name: '智燕', kind: 'cn', gender: 'f', style: 'news' },
+        { v: 'tcc:101013', name: '智辉', kind: 'cn', gender: 'm', style: 'news' },
+        { v: 'tcc:101015', name: '智萌', kind: 'cn', gender: 'm', style: 'boy' },
+        { v: 'tcc:101016', name: '智甜', kind: 'cn', gender: 'f', style: 'girl' },
+        { v: 'tcc:101017', name: '智蓉', kind: 'cn', gender: 'f', style: 'emotional' },
+        { v: 'tcc:101018', name: '智靖', kind: 'cn', gender: 'm', style: 'emotional' },
+        { v: 'tcc:101023', name: '智萱', kind: 'cn', gender: 'f', style: 'chat' },
+        { v: 'tcc:101024', name: '智皓', kind: 'cn', gender: 'm', style: 'chat' },
+        { v: 'tcc:101019', name: '智彤', kind: 'yue', gender: 'f', style: 'cantonese' },
+        { v: 'tcc:101050', name: 'WeJack', kind: 'en', gender: 'm', style: 'english' },
+        { v: 'tcc:101051', name: 'WeRose', kind: 'en', gender: 'f', style: 'english' }
     ];
+    // AI 音色下拉框多语种标签：音色名保留原文，性别/风格说明按界面语言翻译
+    const VOICE_DESC_MAP = {
+        'Chinese': { group_cn:'中文', group_en:'English', group_yue:'粤语', female:'女', male:'男', gentle:'温柔', general:'通用', service:'客服', lively:'活泼', assistant:'助手', intellectual:'知性', news:'新闻', emotional:'情感', chat:'聊天', boy:'男童', girl:'女童', cantonese:'粤语', english:'英文' },
+        'English': { group_cn:'Chinese', group_en:'English', group_yue:'Cantonese', female:'Female', male:'Male', gentle:'Gentle', general:'General', service:'Customer service', lively:'Lively', assistant:'Assistant', intellectual:'Intellectual', news:'News', emotional:'Emotional', chat:'Chat', boy:'Boy', girl:'Girl', cantonese:'Cantonese', english:'English' },
+        'Japanese': { group_cn:'中国語', group_en:'英語', group_yue:'広東語', female:'女性', male:'男性', gentle:'優しい', general:'一般', service:'カスタマーサービス', lively:'明るい', assistant:'アシスタント', intellectual:'知性的', news:'ニュース', emotional:'感情豊か', chat:'チャット', boy:'男の子', girl:'女の子', cantonese:'広東語', english:'英語' },
+        'Korean': { group_cn:'중국어', group_en:'영어', group_yue:'광둥어', female:'여성', male:'남성', gentle:'부드러운', general:'일반', service:'고객 서비스', lively:'활발한', assistant:'어시스턴트', intellectual:'지적인', news:'뉴스', emotional:'감성적인', chat:'채팅', boy:'남자아이', girl:'여자아이', cantonese:'광둥어', english:'영어' },
+        'French': { group_cn:'Chinois', group_en:'Anglais', group_yue:'Cantonais', female:'Femme', male:'Homme', gentle:'Douce', general:'Général', service:'Service client', lively:'Vive', assistant:'Assistante', intellectual:'Intellectuelle', news:'Actualités', emotional:'Émotionnelle', chat:'Discussion', boy:'Garçon', girl:'Fille', cantonese:'Cantonais', english:'Anglais' },
+        'German': { group_cn:'Chinesisch', group_en:'Englisch', group_yue:'Kantonesisch', female:'Weiblich', male:'Männlich', gentle:'Sanft', general:'Allgemein', service:'Kundenservice', lively:'Lebhaft', assistant:'Assistent', intellectual:'Intellektuell', news:'Nachrichten', emotional:'Emotional', chat:'Chat', boy:'Junge', girl:'Mädchen', cantonese:'Kantonesisch', english:'Englisch' },
+        'Spanish': { group_cn:'Chino', group_en:'Inglés', group_yue:'Cantonés', female:'Mujer', male:'Hombre', gentle:'Suave', general:'General', service:'Atención al cliente', lively:'Alegre', assistant:'Asistente', intellectual:'Intelectual', news:'Noticias', emotional:'Emotiva', chat:'Charla', boy:'Niño', girl:'Niña', cantonese:'Cantonés', english:'Inglés' },
+        'Russian': { group_cn:'Китайский', group_en:'Английский', group_yue:'Кантонский', female:'Женский', male:'Мужской', gentle:'Нежный', general:'Обычный', service:'Поддержка', lively:'Живой', assistant:'Ассистент', intellectual:'Интеллектуальный', news:'Новости', emotional:'Эмоциональный', chat:'Общение', boy:'Мальчик', girl:'Девочка', cantonese:'Кантонский', english:'Английский' },
+        'Thai': { group_cn:'จีน', group_en:'อังกฤษ', group_yue:'กวางตุ้ง', female:'ผู้หญิง', male:'ผู้ชาย', gentle:'อ่อนโยน', general:'ทั่วไป', service:'บริการลูกค้า', lively:'สดใส', assistant:'ผู้ช่วย', intellectual:'มีภูมิปัญญา', news:'ข่าว', emotional:'อารมณ์', chat:'แชท', boy:'เด็กชาย', girl:'เด็กหญิง', cantonese:'กวางตุ้ง', english:'อังกฤษ' },
+        'Italian': { group_cn:'Cinese', group_en:'Inglese', group_yue:'Cantonese', female:'Donna', male:'Uomo', gentle:'Dolce', general:'Generale', service:'Servizio clienti', lively:'Vivace', assistant:'Assistente', intellectual:'Intellettuale', news:'Notizie', emotional:'Emotiva', chat:'Chat', boy:'Bambino', girl:'Bambina', cantonese:'Cantonese', english:'Inglese' }
+    };
+    function renderChatVoiceOptions(lang){
+        const sel = document.getElementById('chatVoiceSelect');
+        if(!sel) return;
+        const desc = VOICE_DESC_MAP[lang] || VOICE_DESC_MAP['English'];
+        const groups = [{ kind:'cn', label: desc.group_cn }, { kind:'en', label: desc.group_en }, { kind:'yue', label: desc.group_yue }];
+        let html = '';
+        for(const g of groups){
+            html += '<optgroup label="' + escapeHtml(g.label) + '">';
+            for(const vo of TENCENT_TTS_CHAT_VOICES){
+                if(vo.kind !== g.kind) continue;
+                const genderText = vo.gender === 'm' ? desc.male : desc.female;
+                const styleText = vo.style ? desc[vo.style] : '';
+                html += '<option value="' + vo.v + '">' + escapeHtml(vo.name + '·' + genderText + (styleText ? '(' + styleText + ')' : '')) + '</option>';
+            }
+            html += '</optgroup>';
+        }
+        sel.innerHTML = html;
+        try{ sel.value = getChatEdgeVoice(); }catch(e){}
+    }
     // 备用朗读音色（下拉框里不出现，仅腾讯云合成失败时自动兜底，保证永远有声音）
     const EDGE_TTS_CHAT_VOICES = [
         { v: 'zh-CN-XiaoxiaoNeural', label: '晓晓·女声(温暖)' },
@@ -23268,6 +23289,9 @@ const _bgPending = (window._chatCorrectionBgTasks || []).slice(); if(_bgPending.
         };
         try{
             startLive2DMouth();
+            // 先启动嘴型再接入 Web Audio 分析器（startLive2DMouth 内部会先清理旧分析器），
+            // 让数字人嘴型跟着这句话的真实声音振幅张合；AudioContext 未运行时会安全跳过。
+            attachChatTtsAudioAnalyser(audio);
             const p = audio.play();
             if(p && p.catch) p.catch(() => {
                 if(edgeSpeakAudio === audio) edgeSpeakAudio = null;
@@ -27945,9 +27969,7 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
         aiLevelSelect.addEventListener('change',()=>{ saveAiLevel(); showToast(t('toast.level_changed')+aiLevelSelect.value); });
         const chatVoiceSelect = document.getElementById('chatVoiceSelect');
         if(chatVoiceSelect){
-            chatVoiceSelect.value = getChatEdgeVoice();
-            const chatVoiceHint = document.getElementById('chatVoiceHint');
-            if(chatVoiceHint) chatVoiceHint.textContent = '（腾讯云音色）';
+            renderChatVoiceOptions(targetLangSelect.value);
             chatVoiceSelect.addEventListener('change',()=>{
                 try{ localStorage.setItem('EDGE_VOICE_CHAT', chatVoiceSelect.value); }catch(e){}
                 const opt = chatVoiceSelect.options[chatVoiceSelect.selectedIndex];
@@ -27964,16 +27986,6 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
             autoReadCheckbox.addEventListener('change', function(){
                 try{ localStorage.setItem('AUTO_READ_AI', autoReadCheckbox.checked ? '1' : '0'); }catch(e){}
             });
-        }
-        // 「试听」按钮：用当前音色读一句测试语
-        const _voiceTestBtn = document.getElementById('voiceTestBtn');
-        if(_voiceTestBtn){
-            _voiceTestBtn.onclick = function(){
-                try{ _voiceTestBtn.textContent = '🔊 试听中…'; }catch(e){}
-                showToast('🔊 正在用当前音色朗读测试句…');
-                speakChatTextWithTts('你好！我是你的汉语老师。');
-                setTimeout(function(){ try{ _voiceTestBtn.textContent = '🔊 试听'; }catch(e){} }, 3000);
-            };
         }
         // 聊天模式独立「电脑语速」：单独持久化，绝不与听打/听写/练习模式的语速互相同步
         const chatRateSlider=document.getElementById('chatRateSlider'), chatRateValue=document.getElementById('chatRateValue');
