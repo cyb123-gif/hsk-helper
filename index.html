@@ -1184,19 +1184,15 @@
                     <option value="Slovak">斯洛伐克语 Slovenčina</option>
                 </select>
             </div>
-            <div class="stat-title"><span>📚 API 设置</span><span class="level-badge">🔑</span></div>
-            <input type="password" class="api-key-input" id="apiKeyInput" placeholder="请输入老师提供的 DeepSeek API Key" value="" autocomplete="off">
-            <div class="small-note" id="apiKeyStatus">🔑 请输入老师提供的 DeepSeek API Key（不会保存，每次打开页面重新输入）。</div>
-            <div class="stat-title" style="margin-top:10px;"><span>🎤 腾讯云语音识别（可选）</span></div>
-            <input type="password" class="api-key-input" id="tencentKeysInput" placeholder="一次粘贴：SecretId,SecretKey,AppID（英文逗号隔开）" value="" autocomplete="off" style="margin-bottom:8px;">
-            <input type="text" class="api-key-input" id="tencentTtsProxyInput" placeholder="TTS 代理地址（可选，手机出声用，如 https://xxx.workers.dev）" value="" autocomplete="off" style="margin-bottom:8px;">
-            <div class="small-note">🎤 在腾讯云开通「语音识别」后（有免费额度），把 SecretId、SecretKey、AppID 三项用英文逗号隔开，一次粘贴到这里，例如：AKIDxxxxx,xxxxx,1300000000。密钥获取：console.cloud.tencent.com/cam/capi。密钥保存在你自己的浏览器本地；腾讯云语音朗读时只会临时发给「你自己的服务器」当场合成（服务器不保存）。</div>
-            <div class="stat-title"><span>📊 语法点明细 (点击查看明细)</span></div>
+        </div>
+
+        <div class="card">
+            <div class="stat-title"><span>📊 语法进度 (点击查看明细)</span></div>
             <div class="progress-grid" id="levelProgress"></div>
         </div>
 
         <div class="card">
-            <div class="stat-title"><span>📖 语法库分组展示</span></div>
+            <div class="stat-title"><span>📖 语法库</span></div>
             <div class="grammar-view-selector">
                 <select id="grammarViewLevel">
                     <option value="1">HSK 1</option><option value="2">HSK 2</option><option value="3">HSK 3</option>
@@ -1207,7 +1203,7 @@
         </div>
 
         <div class="card">
-            <div class="stat-title"><span>📋 语法追踪</span></div>
+            <div class="stat-title"><span>📋 语法记录</span></div>
             <div class="browser-tabs" id="grammarTrackTabs">
                 <button class="browser-tab active" onclick="switchGrammarTab('grammarUsedOnlyList',this)">💬 聊天出现语法</button>
                 <button class="browser-tab" onclick="switchGrammarTab('grammarPracticeOnlyList',this)">🎧 听打听写练习语法</button>
@@ -1221,18 +1217,20 @@
                 <div class="track-list" id="grammarReadingList" style="display:none;"></div>
             </div>
             <button id="downloadUnifiedBtn" class="btn" style="background:#1e2b5e; color:white; border:none; margin-bottom:6px;">⬇️ 下载完整学习报告（词语+语法+查询）</button>
-            <div class="stat-title" style="margin-top:12px;"><span>⭐ 收藏笔记本</span></div>
+        </div>
+
+        <div class="card">
+            <div class="stat-title"><span>⭐ 收藏笔记本</span></div>
             <div id="favoriteNotebookList" class="mistake-list">暂无收藏句子</div>
         </div>
 
-
         <div class="card">
-            <div class="stat-title"><span>📝 词汇掌握进度</span></div>
+            <div class="stat-title"><span>📝 词语进度</span></div>
             <div class="progress-grid" id="vocabLevelProgress"></div>
         </div>
 
         <div class="card">
-            <div class="stat-title"><span>📖 词语库分组展示</span></div>
+            <div class="stat-title"><span>📖 词语库</span></div>
             <div class="grammar-view-selector">
                 <select id="vocabViewLevel">
                     <option value="1">HSK 1</option>
@@ -1257,6 +1255,19 @@
         <div class="card">
             <div class="stat-title"><span id="gapBankTitle">🎯 错误库（错误的词/句子）</span><span class="level-badge" id="gapCountBadge">0条</span></div>
             <div id="gapBankList" class="mistake-list">暂无错误记录</div>
+        </div>
+
+        <div class="card">
+            <div class="stat-title"><span>📚 API 设置</span><span class="level-badge">🔑</span></div>
+            <input type="password" class="api-key-input" id="apiKeyInput" placeholder="请输入老师提供的 DeepSeek API Key" value="" autocomplete="off">
+            <div class="small-note" id="apiKeyStatus">🔑 请输入老师提供的 DeepSeek API Key（不会保存，每次打开页面重新输入）。</div>
+        </div>
+
+        <div class="card">
+            <div class="stat-title"><span>🎤 腾讯云语音识别（可选）</span></div>
+            <input type="password" class="api-key-input" id="tencentKeysInput" placeholder="一次粘贴：SecretId,SecretKey,AppID（英文逗号隔开）" value="" autocomplete="off" style="margin-bottom:8px;">
+            <input type="text" class="api-key-input" id="tencentTtsProxyInput" placeholder="TTS 代理地址（可选，手机出声用，如 https://xxx.workers.dev）" value="" autocomplete="off" style="margin-bottom:8px;">
+            <div class="small-note">🎤 在腾讯云开通「语音识别」后（有免费额度），把 SecretId、SecretKey、AppID 三项用英文逗号隔开，一次粘贴到这里，例如：AKIDxxxxx,xxxxx,1300000000。密钥获取：console.cloud.tencent.com/cam/capi。密钥保存在你自己的浏览器本地；腾讯云语音朗读时只会临时发给「你自己的服务器」当场合成（服务器不保存）。</div>
         </div>
     </div>
 </div>
@@ -8549,16 +8560,16 @@ const HSK2_VOCAB = [
         'panel.native_lang':'🌍 学生母语（翻译源语言）',
         'panel.ai_level':'🎛️ AI 对话难度等级', 'panel.adaptive':'自适应',
         'panel.api':'📚 API 设置',
-        'panel.progress':'📊 语法掌握进度 (点击查看明细)',
+        'panel.progress':'📊 语法进度 (点击查看明细)',
         'panel.reset':'🗑️ 重置全局语法记录',
-        'panel.grammar_lib':'📖 语法库分组展示',
-        'panel.grammar_track':'📋 语法追踪',
+        'panel.grammar_lib':'📖 语法库',
+        'panel.grammar_track':'📋 语法记录',
         'panel.download_unified':'⬇️ 下载完整学习报告',
         'panel.favorites':'⭐ 收藏笔记本',
             'panel.queried_notebook':'🔍 查询词语笔记本',
         'panel.download_fav':'⬇️ 下载收藏笔记本',
-        'panel.vocab_progress':'📝 词汇掌握进度',
-        'panel.vocab_lib':'📖 词语库分组展示',
+        'panel.vocab_progress':'📝 词语进度',
+        'panel.vocab_lib':'📖 词语库',
         'panel.vocab_track':'📋 词汇追踪',
         'panel.wrong_sentences':'❌ 错句记录',
         'panel.download_vocab':'⬇️ 下载词汇追踪报告',
@@ -13433,6 +13444,87 @@ const HSK2_VOCAB = [
             'ws.source_mig_mcq':'Migrované · cvičenie slov','ws.source_mig_prod':'Migrované · rozhovor·písanie','ws.source_mig_sentence':'Migrované · tvorba viet','ws.source_mig_reading':'Migrované · čítanie','ws.source_mig_read_unknown':'Migrované · čítanie neznáme'
         }
     };
+    // 右侧面板新增标题与腾讯云语音设置的多语种文案（面板顺序调整后新增）
+    const I18N_NEW15 = {
+        'Chinese': {
+            'panel.tencent_asr':'🎤 腾讯云语音识别（可选）',
+            'panel.tencent_keys_ph':'一次粘贴：SecretId,SecretKey,AppID（英文逗号隔开）',
+            'panel.tencent_proxy_ph':'TTS 代理地址（可选，手机出声用，如 https://xxx.workers.dev）',
+            'panel.tencent_note':'🎤 在腾讯云开通「语音识别」后（有免费额度），把 SecretId、SecretKey、AppID 三项用英文逗号隔开，一次粘贴到这里。密钥只保存在你自己的浏览器本地；腾讯云语音朗读时只会临时发给「你自己的服务器」当场合成（服务器不保存）。'
+        },
+        'English': {
+            'panel.tencent_asr':'🎤 Tencent Cloud Speech Recognition (optional)',
+            'panel.tencent_keys_ph':'Paste once: SecretId,SecretKey,AppID (comma-separated)',
+            'panel.tencent_proxy_ph':'TTS proxy URL (optional, for phone audio, e.g. https://xxx.workers.dev)',
+            'panel.tencent_note':'🎤 After enabling Tencent Cloud Speech Recognition, paste SecretId, SecretKey and AppID here (comma-separated). Keys stay in your own browser; speech is synthesized on the spot by your own server and never saved.'
+        },
+        'Japanese': {
+            'panel.tencent_asr':'🎤 テンセントクラウド音声認識（オプション）',
+            'panel.tencent_keys_ph':'一度に貼り付け：SecretId,SecretKey,AppID（カンマ区切り）',
+            'panel.tencent_proxy_ph':'TTSプロキシURL（任意、スマホで音を出す場合、例：https://xxx.workers.dev）',
+            'panel.tencent_note':'🎤 テンセントクラウドで「音声認識」を有効にしたら、SecretId・SecretKey・AppIDをカンマ区切りで貼り付けます。キーは自分のブラウザ内だけに保存され、音声は自分のサーバーがその場で合成します（保存されません）。'
+        },
+        'Korean': {
+            'panel.tencent_asr':'🎤 텐센트 클라우드 음성 인식（선택 사항）',
+            'panel.tencent_keys_ph':'한 번에 붙여넣기: SecretId,SecretKey,AppID（쉼표로 구분）',
+            'panel.tencent_proxy_ph':'TTS 프록시 주소（선택, 휴대폰 음성 출력용, 예: https://xxx.workers.dev）',
+            'panel.tencent_note':'🎤 텐센트 클라우드에서 음성 인식을 활성화한 뒤 SecretId, SecretKey, AppID를 쉼표로 구분해 붙여넣으세요. 키는 내 브라우저에만 저장되며, 음성은 내 서버가 그 자리에서 합성합니다（저장하지 않음）.'
+        },
+        'French': {
+            'panel.tencent_asr':'🎤 Reconnaissance vocale Tencent Cloud (optionnelle)',
+            'panel.tencent_keys_ph':'Collez en une fois : SecretId,SecretKey,AppID (séparés par des virgules)',
+            'panel.tencent_proxy_ph':'URL du proxy TTS (optionnel, pour le son sur mobile, ex. https://xxx.workers.dev)',
+            'panel.tencent_note':'🎤 Après avoir activé la reconnaissance vocale Tencent Cloud, collez SecretId, SecretKey et AppID ici (séparés par des virgules). Les clés restent dans votre navigateur ; la voix est synthétisée sur place par votre propre serveur (jamais enregistrée).'
+        },
+        'German': {
+            'panel.tencent_asr':'🎤 Tencent-Cloud-Spracherkennung (optional)',
+            'panel.tencent_keys_ph':'Einmal einfügen: SecretId,SecretKey,AppID (durch Kommas getrennt)',
+            'panel.tencent_proxy_ph':'TTS-Proxy-URL (optional, für Audio auf dem Handy, z. B. https://xxx.workers.dev)',
+            'panel.tencent_note':'🎤 Nach der Aktivierung der Tencent-Cloud-Spracherkennung SecretId, SecretKey und AppID hier einfügen (durch Kommas getrennt). Die Schlüssel bleiben in Ihrem Browser; die Sprache wird direkt von Ihrem eigenen Server erzeugt (nicht gespeichert).'
+        },
+        'Spanish': {
+            'panel.tencent_asr':'🎤 Reconocimiento de voz de Tencent Cloud (opcional)',
+            'panel.tencent_keys_ph':'Pega de una vez: SecretId,SecretKey,AppID (separados por comas)',
+            'panel.tencent_proxy_ph':'URL del proxy TTS (opcional, para audio en el móvil, p. ej. https://xxx.workers.dev)',
+            'panel.tencent_note':'🎤 Tras activar el reconocimiento de voz de Tencent Cloud, pega SecretId, SecretKey y AppID aquí (separados por comas). Las claves quedan solo en tu navegador; la voz se sintetiza al momento en tu propio servidor (no se guarda).'
+        },
+        'Russian': {
+            'panel.tencent_asr':'🎤 Распознавание речи Tencent Cloud (необязательно)',
+            'panel.tencent_keys_ph':'Вставьте сразу: SecretId,SecretKey,AppID (через запятую)',
+            'panel.tencent_proxy_ph':'URL TTS-прокси (необязательно, для звука на телефоне, напр. https://xxx.workers.dev)',
+            'panel.tencent_note':'🎤 После включения распознавания речи Tencent Cloud вставьте SecretId, SecretKey и AppID (через запятую). Ключи хранятся только в вашем браузере; речь синтезируется на месте вашим сервером (не сохраняется).'
+        },
+        'Thai': {
+            'panel.tencent_asr':'🎤 การรู้จำเสียง Tencent Cloud (ไม่บังคับ)',
+            'panel.tencent_keys_ph':'วางครั้งเดียว: SecretId,SecretKey,AppID (คั่นด้วยเครื่องหมายจุลภาค)',
+            'panel.tencent_proxy_ph':'URL พร็อกซี TTS (ไม่บังคับ สำหรับเสียงบนมือถือ เช่น https://xxx.workers.dev)',
+            'panel.tencent_note':'🎤 หลังจากเปิดใช้การรู้จำเสียง Tencent Cloud แล้ว ให้วาง SecretId, SecretKey และ AppID ที่นี่ (คั่นด้วยจุลภาค) คีย์จะเก็บในเบราว์เซอร์ของคุณเท่านั้น เสียงจะถูกสังเคราะห์ทันทีโดยเซิร์ฟเวอร์ของคุณเอง (ไม่บันทึก)'
+        },
+        'Italian': {
+            'panel.tencent_asr':'🎤 Riconoscimento vocale Tencent Cloud (facoltativo)',
+            'panel.tencent_keys_ph':'Incolla in una volta: SecretId,SecretKey,AppID (separati da virgole)',
+            'panel.tencent_proxy_ph':'URL proxy TTS (facoltativo, per audio su telefono, es. https://xxx.workers.dev)',
+            'panel.tencent_note':'🎤 Dopo aver attivato il riconoscimento vocale Tencent Cloud, incolla qui SecretId, SecretKey e AppID (separati da virgole). Le chiavi restano nel tuo browser; la voce viene sintetizzata al momento dal tuo server (non salvata).'
+        },
+        'Vietnamese': {
+            'panel.tencent_asr':'🎤 Nhận dạng giọng nói Tencent Cloud (tùy chọn)',
+            'panel.tencent_keys_ph':'Dán một lần: SecretId,SecretKey,AppID (phân tách bằng dấu phẩy)',
+            'panel.tencent_proxy_ph':'URL proxy TTS (tùy chọn, để phát tiếng trên điện thoại, vd https://xxx.workers.dev)',
+            'panel.tencent_note':'🎤 Sau khi bật nhận dạng giọng nói Tencent Cloud, dán SecretId, SecretKey và AppID vào đây (phân tách bằng dấu phẩy). Khóa chỉ lưu trong trình duyệt của bạn; giọng đọc do máy chủ của bạn tổng hợp ngay lập tức (không lưu trữ).'
+        },
+        'Indonesian': {
+            'panel.tencent_asr':'🎤 Pengenalan Suara Tencent Cloud (opsional)',
+            'panel.tencent_keys_ph':'Tempel sekaligus: SecretId,SecretKey,AppID (dipisah koma)',
+            'panel.tencent_proxy_ph':'URL proxy TTS (opsional, untuk suara di ponsel, mis. https://xxx.workers.dev)',
+            'panel.tencent_note':'🎤 Setelah mengaktifkan Pengenalan Suara Tencent Cloud, tempel SecretId, SecretKey, dan AppID di sini (dipisah koma). Kunci hanya tersimpan di browser Anda; suara disintesis langsung oleh server Anda sendiri (tidak disimpan).'
+        },
+        'Slovak': {
+            'panel.tencent_asr':'🎤 Rozpoznávanie reči Tencent Cloud (voliteľné)',
+            'panel.tencent_keys_ph':'Vložte naraz: SecretId,SecretKey,AppID (oddelené čiarkami)',
+            'panel.tencent_proxy_ph':'URL TTS proxy (voliteľné, pre zvuk na mobile, napr. https://xxx.workers.dev)',
+            'panel.tencent_note':'🎤 Po aktivácii rozpoznávania reči Tencent Cloud sem vložte SecretId, SecretKey a AppID (oddelené čiarkami). Kľúče zostanú len vo vašom prehliadači; hlas sa syntetizuje priamo na vašom serveri (neukladá sa).'
+        }
+    };
     // 首次登录的目标等级选择（只问一次，之后随时可在顶部更换）
     const I18N_NEW14 = {
         'Chinese': {
@@ -13651,10 +13743,10 @@ const HSK2_VOCAB = [
     function t(key) {
         const lang = targetLangSelect ? targetLangSelect.value : 'English';
         const dict = I18N[lang];
-        const extra = Object.assign({}, I18N_EXTRA['Chinese'] || {}, I18N_EXTRA2['Chinese'] || {}, I18N_EXTRA3['Chinese'] || {}, (typeof I18N_GAP !== 'undefined' && I18N_GAP['Chinese']) || {}, (typeof I18N_NEW !== 'undefined' && I18N_NEW['Chinese']) || {}, (typeof I18N_NEW2 !== 'undefined' && I18N_NEW2['Chinese']) || {}, (typeof I18N_NEW3 !== 'undefined' && I18N_NEW3['Chinese']) || {}, (typeof I18N_NEW4 !== 'undefined' && I18N_NEW4['Chinese']) || {}, (typeof I18N_NEW5 !== 'undefined' && I18N_NEW5['Chinese']) || {}, (typeof I18N_NEW6 !== 'undefined' && I18N_NEW6['Chinese']) || {}, (typeof I18N_NEW7 !== 'undefined' && I18N_NEW7['Chinese']) || {}, (typeof I18N_NEW8 !== 'undefined' && I18N_NEW8['Chinese']) || {}, (typeof I18N_NEW9 !== 'undefined' && I18N_NEW9['Chinese']) || {}, (typeof I18N_NEW12 !== 'undefined' && I18N_NEW12['Chinese']) || {}, (typeof I18N_NEW13 !== 'undefined' && I18N_NEW13['Chinese']) || {}, I18N_EXTRA[lang] || {}, I18N_EXTRA2[lang] || {}, I18N_EXTRA3[lang] || {}, (typeof I18N_GAP !== 'undefined' && I18N_GAP[lang]) || {}, (typeof I18N_NEW !== 'undefined' && I18N_NEW[lang]) || {}, (typeof I18N_NEW2 !== 'undefined' && I18N_NEW2[lang]) || {}, (typeof I18N_NEW3 !== 'undefined' && I18N_NEW3[lang]) || {}, (typeof I18N_NEW4 !== 'undefined' && I18N_NEW4[lang]) || {}, (typeof I18N_NEW5 !== 'undefined' && I18N_NEW5[lang]) || {}, (typeof I18N_NEW6 !== 'undefined' && I18N_NEW6[lang]) || {}, (typeof I18N_NEW7 !== 'undefined' && I18N_NEW7[lang]) || {}, (typeof I18N_NEW8 !== 'undefined' && I18N_NEW8[lang]) || {}, (typeof I18N_NEW9 !== 'undefined' && I18N_NEW9[lang]) || {}, (typeof I18N_NEW12 !== 'undefined' && I18N_NEW12[lang]) || {}, (typeof I18N_NEW13 !== 'undefined' && I18N_NEW13[lang]) || {}, (typeof I18N_NEW14 !== 'undefined' && I18N_NEW14[lang]) || {}, (I18N_LIVE2D[lang] || {}));
+        const extra = Object.assign({}, I18N_EXTRA['Chinese'] || {}, I18N_EXTRA2['Chinese'] || {}, I18N_EXTRA3['Chinese'] || {}, (typeof I18N_GAP !== 'undefined' && I18N_GAP['Chinese']) || {}, (typeof I18N_NEW !== 'undefined' && I18N_NEW['Chinese']) || {}, (typeof I18N_NEW2 !== 'undefined' && I18N_NEW2['Chinese']) || {}, (typeof I18N_NEW3 !== 'undefined' && I18N_NEW3['Chinese']) || {}, (typeof I18N_NEW4 !== 'undefined' && I18N_NEW4['Chinese']) || {}, (typeof I18N_NEW5 !== 'undefined' && I18N_NEW5['Chinese']) || {}, (typeof I18N_NEW6 !== 'undefined' && I18N_NEW6['Chinese']) || {}, (typeof I18N_NEW7 !== 'undefined' && I18N_NEW7['Chinese']) || {}, (typeof I18N_NEW8 !== 'undefined' && I18N_NEW8['Chinese']) || {}, (typeof I18N_NEW9 !== 'undefined' && I18N_NEW9['Chinese']) || {}, (typeof I18N_NEW12 !== 'undefined' && I18N_NEW12['Chinese']) || {}, (typeof I18N_NEW13 !== 'undefined' && I18N_NEW13['Chinese']) || {}, I18N_EXTRA[lang] || {}, I18N_EXTRA2[lang] || {}, I18N_EXTRA3[lang] || {}, (typeof I18N_GAP !== 'undefined' && I18N_GAP[lang]) || {}, (typeof I18N_NEW !== 'undefined' && I18N_NEW[lang]) || {}, (typeof I18N_NEW2 !== 'undefined' && I18N_NEW2[lang]) || {}, (typeof I18N_NEW3 !== 'undefined' && I18N_NEW3[lang]) || {}, (typeof I18N_NEW4 !== 'undefined' && I18N_NEW4[lang]) || {}, (typeof I18N_NEW5 !== 'undefined' && I18N_NEW5[lang]) || {}, (typeof I18N_NEW6 !== 'undefined' && I18N_NEW6[lang]) || {}, (typeof I18N_NEW7 !== 'undefined' && I18N_NEW7[lang]) || {}, (typeof I18N_NEW8 !== 'undefined' && I18N_NEW8[lang]) || {}, (typeof I18N_NEW9 !== 'undefined' && I18N_NEW9[lang]) || {}, (typeof I18N_NEW12 !== 'undefined' && I18N_NEW12[lang]) || {}, (typeof I18N_NEW13 !== 'undefined' && I18N_NEW13[lang]) || {}, (typeof I18N_NEW14 !== 'undefined' && I18N_NEW14[lang]) || {}, (typeof I18N_NEW15 !== 'undefined' && I18N_NEW15[lang]) || {}, (I18N_LIVE2D[lang] || {}));
         const voice = I18N_VOICE[lang] || I18N_VOICE['Chinese'] || {};
         const translated = (dict && dict[key]) ? dict[key] : (extra[key] || voice[key] || '');
-        const chinese = (ZH && ZH[key]) ? ZH[key] : ((I18N_EXTRA['Chinese'] && I18N_EXTRA['Chinese'][key]) || (I18N_EXTRA2['Chinese'] && I18N_EXTRA2['Chinese'][key]) || (I18N_EXTRA3['Chinese'] && I18N_EXTRA3['Chinese'][key]) || (typeof I18N_GAP !== 'undefined' && I18N_GAP['Chinese'] && I18N_GAP['Chinese'][key]) || (typeof I18N_NEW !== 'undefined' && I18N_NEW['Chinese'] && I18N_NEW['Chinese'][key]) || (typeof I18N_NEW2 !== 'undefined' && I18N_NEW2['Chinese'] && I18N_NEW2['Chinese'][key]) || (typeof I18N_NEW3 !== 'undefined' && I18N_NEW3['Chinese'] && I18N_NEW3['Chinese'][key]) || (typeof I18N_NEW4 !== 'undefined' && I18N_NEW4['Chinese'] && I18N_NEW4['Chinese'][key]) || (typeof I18N_NEW5 !== 'undefined' && I18N_NEW5['Chinese'] && I18N_NEW5['Chinese'][key]) || (typeof I18N_NEW6 !== 'undefined' && I18N_NEW6['Chinese'] && I18N_NEW6['Chinese'][key]) || (typeof I18N_NEW7 !== 'undefined' && I18N_NEW7['Chinese'] && I18N_NEW7['Chinese'][key]) || (typeof I18N_NEW8 !== 'undefined' && I18N_NEW8['Chinese'] && I18N_NEW8['Chinese'][key]) || (typeof I18N_NEW9 !== 'undefined' && I18N_NEW9['Chinese'] && I18N_NEW9['Chinese'][key]) || (typeof I18N_NEW12 !== 'undefined' && I18N_NEW12['Chinese'] && I18N_NEW12['Chinese'][key]) || (typeof I18N_NEW13 !== 'undefined' && I18N_NEW13['Chinese'] && I18N_NEW13['Chinese'][key]) || (typeof I18N_NEW14 !== 'undefined' && I18N_NEW14['Chinese'] && I18N_NEW14['Chinese'][key]) || (I18N_VOICE['Chinese'] && I18N_VOICE['Chinese'][key]) || (I18N_LIVE2D['Chinese'] && I18N_LIVE2D['Chinese'][key]) || '');
+        const chinese = (ZH && ZH[key]) ? ZH[key] : ((I18N_EXTRA['Chinese'] && I18N_EXTRA['Chinese'][key]) || (I18N_EXTRA2['Chinese'] && I18N_EXTRA2['Chinese'][key]) || (I18N_EXTRA3['Chinese'] && I18N_EXTRA3['Chinese'][key]) || (typeof I18N_GAP !== 'undefined' && I18N_GAP['Chinese'] && I18N_GAP['Chinese'][key]) || (typeof I18N_NEW !== 'undefined' && I18N_NEW['Chinese'] && I18N_NEW['Chinese'][key]) || (typeof I18N_NEW2 !== 'undefined' && I18N_NEW2['Chinese'] && I18N_NEW2['Chinese'][key]) || (typeof I18N_NEW3 !== 'undefined' && I18N_NEW3['Chinese'] && I18N_NEW3['Chinese'][key]) || (typeof I18N_NEW4 !== 'undefined' && I18N_NEW4['Chinese'] && I18N_NEW4['Chinese'][key]) || (typeof I18N_NEW5 !== 'undefined' && I18N_NEW5['Chinese'] && I18N_NEW5['Chinese'][key]) || (typeof I18N_NEW6 !== 'undefined' && I18N_NEW6['Chinese'] && I18N_NEW6['Chinese'][key]) || (typeof I18N_NEW7 !== 'undefined' && I18N_NEW7['Chinese'] && I18N_NEW7['Chinese'][key]) || (typeof I18N_NEW8 !== 'undefined' && I18N_NEW8['Chinese'] && I18N_NEW8['Chinese'][key]) || (typeof I18N_NEW9 !== 'undefined' && I18N_NEW9['Chinese'] && I18N_NEW9['Chinese'][key]) || (typeof I18N_NEW12 !== 'undefined' && I18N_NEW12['Chinese'] && I18N_NEW12['Chinese'][key]) || (typeof I18N_NEW13 !== 'undefined' && I18N_NEW13['Chinese'] && I18N_NEW13['Chinese'][key]) || (typeof I18N_NEW14 !== 'undefined' && I18N_NEW14['Chinese'] && I18N_NEW14['Chinese'][key]) || (typeof I18N_NEW15 !== 'undefined' && I18N_NEW15['Chinese'] && I18N_NEW15['Chinese'][key]) || (I18N_VOICE['Chinese'] && I18N_VOICE['Chinese'][key]) || (I18N_LIVE2D['Chinese'] && I18N_LIVE2D['Chinese'][key]) || '');
         if (!translated) return chinese || key;
         return translated;
     }
@@ -13737,10 +13829,24 @@ const HSK2_VOCAB = [
         if (chatAiLevelLabel) chatAiLevelLabel.textContent = t('panel.ai_level');
         // 面板卡片标题
         updatePanelTitles();
+        // 语法库 / 词语库等级下拉框多语种标签（乐学3/乐学5 等按界面语言翻译）
+        const gvLevelSel = document.getElementById('grammarViewLevel');
+        if (gvLevelSel) { for (const opt of gvLevelSel.options) opt.textContent = t('level.hsk_prefix') + opt.value; }
+        const vvLevelSel = document.getElementById('vocabViewLevel');
+        if (vvLevelSel) { for (const opt of vvLevelSel.options) opt.textContent = vocabLevelLabel(parseInt(opt.value, 10) || 1); }
         // API 设置框指导语
         const apiKeyEl = document.getElementById('apiKeyInput');
         if (apiKeyEl) apiKeyEl.placeholder = t('api.key_placeholder');
         if (typeof refreshApiKeyStatus === 'function') refreshApiKeyStatus();
+        // 腾讯云语音设置：占位符与说明按界面语言翻译
+        const tencentKeysEl = document.getElementById('tencentKeysInput');
+        if (tencentKeysEl) tencentKeysEl.placeholder = t('panel.tencent_keys_ph');
+        const tencentProxyEl = document.getElementById('tencentTtsProxyInput');
+        if (tencentProxyEl){
+            tencentProxyEl.placeholder = t('panel.tencent_proxy_ph');
+            const tencentNoteEl = tencentProxyEl.nextElementSibling;
+            if (tencentNoteEl && tencentNoteEl.classList && tencentNoteEl.classList.contains('small-note')) tencentNoteEl.textContent = t('panel.tencent_note');
+        }
         const acquiredHint = document.getElementById('acquiredHint');
         if (acquiredHint) acquiredHint.textContent = t('status.acquired_hint');
         // 下载按钮
@@ -18198,13 +18304,16 @@ ${searchRule}
         const titles = document.querySelectorAll('.stat-title');
         const keys = [
             'panel.native_lang',    // 🌍 学生母语
-            'panel.api',             // 📚 API 设置
             'panel.progress',        // 📊 语法掌握进度
             'panel.grammar_lib',     // 📖 语法库分组展示
-            'panel.grammar_track',   // 📋 语法追踪
+            'panel.grammar_track',   // 📋 语法记录
             'panel.favorites',       // ⭐ 收藏笔记本
-            'panel.vocab_progress',  // 📝 词汇掌握进度
-            'panel.vocab_lib'        // 📖 词语库分组展示（词汇追踪已并入词语状态）
+            'panel.vocab_progress',  // 📝 词语掌握进度
+            'panel.vocab_lib',       // 📖 词语库分组展示
+            'ws.card_title',         // 📊 词语状态
+            'gap.title',             // 🎯 错误库
+            'panel.api',             // 📚 API 设置
+            'panel.tencent_asr'      // 🎤 腾讯云语音识别
         ];
         for (let i = 0; i < Math.min(titles.length, keys.length); i++) {
             const span = titles[i].querySelector('span:first-child');
@@ -24145,6 +24254,7 @@ function renderPractice(exerciseData) {
             }
         };
         
+        // 语法练习/词语练习朗读统一走腾讯云音色：speakChinese 内部先腾讯云合成（跟随聊天所选音色），失败才回退 Edge/浏览器语音
         document.getElementById('practiceSpeakBtn').onclick = function () { if (window._dictationMode && hasColl && collText && !simpleMode) { speakChinese(collText); setTimeout(function () { speakChinese(chineseRaw); }, 800); } else { speakChinese(chineseRaw); } };
         var _pinyinBtn = document.getElementById('practicePinyinBtn'); if(_pinyinBtn) _pinyinBtn.onmousedown = function (e) { e.preventDefault(); document.getElementById('practiceInputContainer').classList.toggle('show-pinyin'); };
         var _revealBtn = document.getElementById('practiceRevealBtn'); if(_revealBtn) _revealBtn.onmousedown = function (e) { e.preventDefault(); if(window._togglePracticeReveal) window._togglePracticeReveal(); };
