@@ -921,6 +921,7 @@
             </div>
             <div class="button-group end-btn-row">
                 <button id="endConversationBtn">结束对话</button>
+                <button id="chatCorrectionReopenBtn" style="display:none;background:#fff7e6;border:1.5px solid #f0c040;border-radius:14px;padding:5px 14px;cursor:pointer;font-size:0.85rem;font-weight:700;color:#1e2b5e;" onclick="window._openCorrectionSummary()">📝 查看纠错</button>
             </div>
             <div class="zenmeshuo-area">
                 <input type="text" id="zenmeshuoInput" placeholder="用你的母语写一句话，点「怎么说」翻译成中文...">
@@ -21381,28 +21382,12 @@ function saveFullState(){ if(!currentUser) return; const entries=Array.from(used
         const _validMistakes = (mistakes || []).filter(m => m && m.original && m.corrected && stripForCompare(m.original) !== stripForCompare(m.corrected) && stripForCompare(m.corrected).replace(/[吧吗呢啊呀哦嘛咯喽哟]+$/, '') !== stripForCompare(m.original));
         const limUse = _validMistakes.length > 0 ? chatLengthLimitsFor(level, true) : limPlain;
         const diffGuide = level===1 ? "句子极短（每句3-6字），只能使用HSK1最基础词汇（我、你、他、是、有、去、来、吃、喝、好、大、小、喜欢等），只回复1句话，不要用任何关联词和复杂语法" : level===2 ? "句子短（每句5-9字），使用HSK1-2基础词汇，简单主谓/主谓宾，可带简单状语，回复1-2句" : level===3 ? "句子中等（每句7-14字），使用HSK3及以下词汇，可含趋向补语、结果补语、把字句，回复2-3句" : level===4 ? "句子中等偏长（每句10-18字），使用HSK4及以下词汇，可含较复杂补语和关联词，回复3-4句" : "句子正常（每句12-22字），使用HSK5及以下词汇，表达可以丰富自然，可有一定句法复杂度，回复3-5句";
-        const diffGuideUse = _validMistakes.length > 0 ? diffGuide + '（本次学生的话里有偏误，纠错块会自动显示在回复下方；不要复述或确认，直接自然回应内容，按纠错长度标准，不要长篇）' : diffGuide;
+        const diffGuideUse = _validMistakes.length > 0 ? diffGuide + '（本次学生的话里有偏误，纠错会在「结束对话」后统一展示；对话中不要复述或确认纠错，直接自然回应内容）' : diffGuide;
         const reasonNames = {total:'总字数', sentences:'句数', clausesPerSentence:'每句小句数', clause:'单个小句长度'};
         const limEnforce = prevCheck ? chatLengthLimitsFor(level, !!prevCheck.isCorrection) : limUse;
         const enforce = prevCheck ? `\n【长度修正 - 现在必须执行】你刚才的回复在「${reasonNames[prevCheck.reason]||prevCheck.reason}」上明显超标（当前值：${prevCheck.count}，参考上限：${prevCheck.reason === 'total' ? limEnforce.maxTotalChars : (prevCheck.reason === 'clausesPerSentence' ? limEnforce.maxClausesPerSentence : limEnforce.maxChars)}）。重新回复时只需把明显超长的部分说短，句数可以灵活（该少则少、该多则多），用词仍必须在HSK${level}级内。` : '';
-        const corrCtx = (_validMistakes.length > 0)
-            ? '\n【系统纠错结果】\n系统已先分析学生这句话，发现以下偏误：\n'
-                + (function(){
-                    const seen = new Set(), rows = [];
-                    for(const m of _validMistakes){
-                        const cc = String(m.corrected || '').trim().replace(/[。！？!?]+$/, '');
-                        const key = stripForCompare(cc);
-                        if(!cc || seen.has(key)) continue;
-                        seen.add(key);
-                        rows.push('- 学生原句：「' + m.original + '」 → 正确句子：「' + cc + '」（' + (m.type || '') + '）');
-                    }
-                    return rows.join('\n');
-                })()
-                + '\n回复要求（必须遵守）：\n1. 你的回复必须先自然确认改正：以「哦，你是说+【正确句子】」开头——只确认最关键的一处改正（如果有多处，选最重要的一句），必须一字不差使用下方「正确句子」里的原句，不要自己改写，也不要加「对吗？」。绝对不能把学生的原句（未改正的句子）放进「哦，你是说」里；如果「正确句子」和学生的原句一模一样，说明这处不是错误，不要确认。\n2. 直接像朋友一样自然地回应学生说的内容（1-3句）：先表达共鸣或分享你的看法，再继续话题。\n3. 如果要提问，问题必须和学生当前说的话题直接相关，一次只问一个问题。\n4. 让对话自然地继续下去。'
-            : '\n【系统纠错结果】\n（本次无纠错结果）\n学生这句话没有偏误。区分两种确认：①自然的理解确认——允许你用「你是说+学生原句，对吗？」来确认自己听懂了（原句一个字都不能改，这是正常聊天，不是纠错）；②纠错式确认——绝对禁止：不要输出 ❌/✅/💡/✏️ 等任何纠错图标，不要用「哦，你是说+改写后的句子」这种纠错框架，也不要为了“更地道”把学生的句子改一个字再确认（哪怕你觉得它有错——纠错由系统单独处理）。你的回复内容里也绝对不要悄悄把学生的话改写成正确说法再复述，直接自然回应学生说的内容即可。学生这句话如果和【错误库】里某条「改正后的句子」一模一样（只是少了句末标点或语气词也算），说明学生已经正确使用了这个表达，绝不是错误；直接自然回应学生说的内容。';
-        const corrRuleCtx = (_validMistakes.length > 0)
-            ? '\n【纠错规则】\n系统已经先分析并纠正学生句子的偏误（结果见下方「系统纠错结果」）。「哦，你是说」只用于下面明确列出的错误：如果列出了「学生原句 → 正确句子」，你的回复必须以「哦，你是说+正确句子」开头确认改正（只确认最关键的一处，一字不差使用「正确句子」，不加「对吗？」），然后自然回应学生说的内容。没有列出的内容一律不是错误，绝对不要用「哦，你是说」，也不要悄悄把学生其他句子改字。不要输出 ❌/✅/💡/✏️ 或「订正/纠错」等符号和标签。\n'
-            : '\n【纠错规则】\n本次「系统纠错结果」显示：学生这句话没有偏误。绝对禁止使用「哦，你是说」——这个框架只用于学生句子真的错了、并且系统在「系统纠错结果」里明确列出改正句的情况。也不要为了“更地道”把学生句子改一个字再复述，更不要输出 ❌/✅/💡/✏️ 等纠错图标。你只允许用「你是说+学生原句（一字不改），对吗？」做自然的理解确认（可选，不要每轮都确认），或者直接自然回应学生说的内容。\n';
+        const corrCtx = '\n【纠错提示 - 必须遵守】系统会在「结束对话」后统一展示纠错，对话过程中绝对不要纠错：\n1. 不要输出 ❌/✅/💡/✏️ 等任何纠错图标或「订正/纠错」等标签。\n2. 绝对不要使用「哦，你是说+改写后的句子」这种纠错式确认框架，也不要把学生的话改一个字再复述（哪怕你觉得它有错——纠错由系统统一处理）。\n3. 允许用「你是说+学生原句（一字不改），对吗？」做自然的理解确认（可选，不要每轮都确认）。\n4. 直接像朋友一样自然回应学生说的内容（1-3句），让对话自然地继续下去。';
+        const corrRuleCtx = corrCtx;
         const topicCtx = window._chatTopicContext
             ? '\n【当前话题背景】' + String(window._chatTopicContext).slice(0, 1200) + '\n请始终围绕这个话题和学生聊天，不要跑题；提问时一次只问一个问题，等学生回答后再继续问下一个，不要一次列出多个问题。'
             : '';
@@ -23199,7 +23184,7 @@ rpt+='━━━━━━━━━━━━━━━━━━━━━━━━�
 rpt+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n📊 ' + t('ws.board_title') + '\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n'; rpt+=t('ws.target_label') + '：'+(function(){ try{ return vocabLevelLabel(wsTargetLevel()); }catch(e){ return '—'; } })()+'\n'; (function(){ try{ const _words=Object.keys(wordStatusData.words||{}).sort((a,b)=>a.localeCompare(b,'zh')); if(!_words.length){ rpt+='(暂无词语状态记录)\n'; return; } rpt+='| 词语 | 等级 | 掌握 | 知识(音/形/义/用对) | 听(对/总) | 说(对/总) | 读(对/总) | 写(对/总) |\n|---|---|---|---|---|---|---|---|---|\n'; for(const w of _words){ const s=wsStatus(w); const lv=(wordStatusData.words[w]&&wordStatusData.words[w].level)||0; rpt+='| '+String(w).replace(/\|/g,'｜')+' | '+(lv||'')+' | '+(s.mastered?'✅'+t('ws.board_mastered')+(s.masteredDate?' '+s.masteredDate:''):'—')+' | '+s.dims.yin.c+'/'+s.dims.xing.c+'/'+s.dims.yi.c+'/'+s.dims.yong.c+' | '+s.sk.listening.correct+'/'+s.sk.listening.total+' | '+s.sk.speaking.correct+'/'+s.sk.speaking.total+' | '+s.sk.reading.correct+'/'+s.sk.reading.total+' | '+s.sk.writing.correct+'/'+s.sk.writing.total+' |\n'; } rpt+='\n词语状态事件明细（按词）：\n'; for(const w of _words){ const card=wordStatusData.words[w]; rpt+='\n📇 '+w+(card.note?'（评语：'+card.note+'）':'')+'\n'; const evs=(card.events||[]).slice().reverse(); for(const e of evs){ rpt+='  '+e.date+' ['+wsLayerShortLabel(e.layer)+'] '+wsSourceLabel(e.source)+(e.dim?'·'+wsDimLabel(e.dim):'')+' → '+(e.correct===true?t('ws.correct'):(e.correct===false?t('ws.wrong'):t('ws.unknown')))+(e.sentence?'｜'+e.sentence:'')+'\n'; } } }catch(e){ rpt+='(词语状态输出失败)\n'; } })();
 const ok = downloadTextFile(rpt, 'HSK_Learning_Report_' + getLocalDate() + '.md'); showToast(ok ? t('toast.download_started') : t('toast.download_failed')); }
 
-    // 结束对话纠错总结里的一行（与聊天中的「哦，你是说」一一对应）：
+    // 结束对话纠错总结里的一行（对话过程中不显示纠错，全部集中到这里展示）：
     // 差异高亮 + 错误类型 + 用法解释按钮 + 「这不是我想表达的意思」按钮
     function buildEndCorrectionRowHtml(ci, rowIdx, notMeaningId, explainId){
         const _o = String(ci.user || '').trim();
@@ -23333,7 +23318,8 @@ async function handleEndConversation(){
     (async function(){
         try{
             const _n = await wsJudgeAndRecord('chat', sessionUserMessages.filter(u => !isZmsUsedSentence(u)));
-            if(_n > 0){ addAssistantMessage(t('ws.judge_chat_done').replace('{n}', _n), false, '', '', true); wsShowUpdatesModal(); }
+            // 聊天结束时只弹纠错总结，词语状态不弹窗打扰（结果已记录，可在词库面板查看）
+            if(_n > 0){ addAssistantMessage(t('ws.judge_chat_done').replace('{n}', _n), false, '', '', true); }
         }catch(e){}
     })();
 
@@ -23389,12 +23375,14 @@ async function handleEndConversation(){
     let _totalShown = 0;
     let _reflectItems = [];
     let _summaryMsgEl = null;
-    // 新一轮开始：清空上一轮的纠错弹窗内容
+    // 新一轮开始：清空上一轮的纠错弹窗内容，隐藏常驻「查看纠错」入口
     try{
         const _oldRows = document.getElementById('correctionSummaryRows');
         if(_oldRows) _oldRows.innerHTML = '';
         const _oldOv = document.getElementById('correctionSummaryOverlay');
         if(_oldOv) _oldOv.style.display = 'none';
+        const _oldReopen = document.getElementById('chatCorrectionReopenBtn');
+        if(_oldReopen) _oldReopen.style.display = 'none';
     }catch(e){}
     window._endReflectItems = _reflectItems;
     const renderEndCorrection = function(){
@@ -23461,7 +23449,8 @@ async function handleEndConversation(){
         if(_titleEl) _titleEl.textContent = '📝 ' + t('analysis.correction_title') + '（' + _totalShown + '）';
         const _ov = document.getElementById('correctionSummaryOverlay');
         if(_ov) _ov.style.display = 'flex';
-        // 聊天里只放一个「查看纠错」入口，纠错内容不再塞进聊天窗口
+        // 聊天里只放一个「查看纠错」入口，纠错内容不再塞进聊天窗口；
+        // 输入区旁再放一个常驻入口，纠错弹窗误关闭后随时可以重新打开
         const _label = t('analysis.correction_view') + '（' + _totalShown + '）';
         if(!_summaryMsgEl){
             _summaryMsgEl = addAssistantMessage('<button onclick="window._openCorrectionSummary()" style="background:#fff7e6;border:1.5px solid #f0c040;border-radius:14px;padding:6px 16px;cursor:pointer;font-size:0.85rem;font-weight:700;color:#1e2b5e;">📝 ' + escapeHtml(_label) + '</button>', true, '📝 ' + _label, '', true);
@@ -23471,6 +23460,13 @@ async function handleEndConversation(){
                 if(_btn) _btn.textContent = '📝 ' + _label;
             }catch(e){}
         }
+        try{
+            const _reopenBtn = document.getElementById('chatCorrectionReopenBtn');
+            if(_reopenBtn){
+                _reopenBtn.style.display = 'inline-block';
+                _reopenBtn.textContent = '📝 ' + _label;
+            }
+        }catch(e){}
     };
     _renderEndBlock();
     const _bgPending = (window._chatCorrectionBgTasks || []).slice();
@@ -23666,6 +23662,10 @@ async function handleEndConversation(){
         });
         // 剥掉悬空的「你是说」标记（后面是句尾或标点，没有内容）
         r = r.replace(/(?:哦[，,]?\s*)?(?:你是说|你是想说|你想说的是|你的意思是|意思是说|是说)(?=\s*(?:$|[。！？]))/g, '');
+        // 无「对吗」尾巴的裸框架「哦，你是说X。」/「你是说X。」：X 是原句 → 保留自然确认；改写句 → 剥掉
+        r = r.replace(/(?:哦[，,]?\s*)?(你是说|你是想说|你想说的是|你的意思是|意思是说|是说)([^。！？!?\n]{2,80}?)(?=[。！？!?\n]|$)/g, function(all, mark, inner){
+            return isEchoOfUser(inner) ? (mark + inner) : '';
+        });
         // 句首「“……”吧？/「……」吧？」式确认：原句复述保留，改写句剥掉
         r = r.replace(/^[\s\u3000]*[“"「]([^”"」]{2,60})[”"」][\s]*(?:吧|吗)[？?]\s*/, function(all, inner){
             return isEchoOfUser(inner) ? all : '';
@@ -23677,11 +23677,12 @@ async function handleEndConversation(){
         });
         // 清理任何位置残留的重复「，对吗？」
         r = r.replace(/([，,]\s*(?:对吗|对吧|对不对|是吧)[？?]?\s*){2,}/g, '，对吗？');
-        // 清理句首残留标点
-        r = r.replace(/^[。，,、\s]+/, '');
+        // 清理句首/行首残留标点（含剥离裸框架后可能剩下的 ？/！）
+        r = r.replace(/^[。，,、\s！？!?]+/, '');
+        r = r.replace(/(\n)[。，,、\s！？!?]+/g, '$1');
         if(r.trim()) return r.trim();
-        // 整条回复都只是确认复述：剥掉纠错图标和句首「哦，」，保证不出现纠错式框架
-        return String(raw || '').replace(/[❌✅💡✏️]\s*/g, '').replace(/^哦[，,]?\s*/, '').trim();
+        // 整条回复都只是确认复述/纠错框架：返回空串，由调用方兜底——绝不把纠错框架放回聊天里
+        return '';
     }
     // 判断 AI 回复里剥掉所有确认框架后是否还有实际内容（用于决定是否回退到自然回复）
     function hasFollowUpAfterConfirmation(raw, mistakes){
@@ -23816,7 +23817,7 @@ async function handleEndConversation(){
             let chat2Early = null;
             if(opts.analyze){
                 // 聊天纠错与写作批改保持同一水平：回复先显示，完整的深度纠错分析始终在后台进行，
-                // 不再用快速判断跳过；分析完成后自动把气泡对齐为「哦，你是说+正确句子」，结束对话时统一展示错误。
+                // 不再用快速判断跳过；纠错不在对话中展示，只在「结束对话」后统一弹出纠错总结。
                 const _context = buildChatContextForCorrection();
                 const chatRes = await chatWithContext(text, signal, 0, null, []).then(function(r){ return r; }).catch(function(){ return null; });
                 // 回复先显示：纠错分析放到后台进行，不再拖慢聊天速度（出错场景也能约5秒内出回复）
@@ -23874,15 +23875,8 @@ async function handleEndConversation(){
                                     if(!_m.note || isVagueMistakeNote(_m.note) || hasNonsenseSelfCorrection(_m.note) || /^(missing|extra|缺少|多余|不足|余分|fehlt|überflüssig|falta|sobra|пропущено|лишнее|ขาด|เกิน|manca|in più)/i.test(String(_m.note||'').trim()) || (_lang !== 'Chinese' && /[\u4e00-\u9fff]/.test(String(_m.note)))) _m.note = describeMistakeReason(_m.original, _m.corrected);
                                 }
                                 await attachMistakeTranslations(_ms);
-                                // 后台纠错分析完成后：把已经显示的气泡和聊天历史统一对齐为「哦，你是说+系统改句」，
-                                // 保证聊天里说的话与结束对话后展示的纠错块完全一致
-                                try{
-                                    const _aligned = alignReplyWithCorrections(stripInlineCorrectionBlock(_earlyRef.raw), _ms);
-                                    if(_aligned && _aligned !== _earlyRef.raw && _earlyRef.el && _earlyRef.el.parentNode === chatMessages){
-                                        replaceAssistantMessageElement(_earlyRef.el, _aligned);
-                                        syncChatHistoryAssistantContent(_earlyRef.raw, _aligned);
-                                    }
-                                }catch(e){ console.error('[chat align bg]', e); }
+                                // 纠错不在对话过程中显示：气泡保持自然回复不变，
+                                // 完整纠错统一在「结束对话」后由纠错总结弹窗展示
                                 window._chatSessionMistakes = window._chatSessionMistakes || [];
                                 for(const _m of _ms){
                                     window._chatSessionMistakes.push({ mode:'聊天', text:_m.corrected, user:_m.original, note:_m.note || '', type:_m.type||'', native: _m.native || _m.translation || '', key: stripForCompare(text) });
@@ -23962,17 +23956,19 @@ async function handleEndConversation(){
                     if(_chat2) reply = _chat2;
                 }
             }
-            let cleanReplyRaw = reply ? alignReplyWithCorrections(stripInlineCorrectionBlock(reply.raw), batch) : '';
-            // 系统判定无错时，AI 不应输出「哦，你是说……对吗？」；若模型仍输出，剥掉这段确认框架，
-            // 避免学生看到 AI 把自己正确的句子复述改错。
-            if(!batch.length) cleanReplyRaw = stripUnwantedConfirmationEcho(cleanReplyRaw, text);
+            // 纠错不在对话过程中展示：去掉任何内联纠错块和纠错式确认，保留自然理解确认；
+            // 完整纠错统一在「结束对话」后由纠错总结弹窗展示
+            let cleanReplyRaw = reply ? stripUnwantedConfirmationEcho(stripInlineCorrectionBlock(reply.raw), text) : '';
+            cleanReplyRaw = stripUnwantedConfirmationEcho(cleanReplyRaw, text);
+            // 剥完确认框架后整条回复为空（模型只回了确认句）：退回原回复，保证聊天能继续
+            if(reply && !String(cleanReplyRaw || '').trim()) cleanReplyRaw = String(reply.raw || '').replace(/[❌✅💡✏️]\s*/g, '').trim();
             let filtered;
             if(opts.confirmed){
                 // 用户已经确认过意思：直接使用确认后的纠错
                 filtered = batch.slice();
             } else {
                 // 不再从 AI 复述里二次提取纠错：AI 复述可能自己编出错误的改写。
-                // 纠错只以系统严格分析 + 本地规则为准；AI 回复由 alignReplyWithCorrections 统一对齐为系统改正句。
+                // 纠错只以系统严格分析 + 本地规则为准，展示只在结束对话后的纠错总结里。
                 filtered = batch.slice();
             }
             for(const m of filtered){
@@ -24011,14 +24007,20 @@ async function handleEndConversation(){
                 recordGapFromMistake(m);
             }
             if(reply){
-                // 「哦，你是说」确认的纠错已在 alignReplyWithCorrections 里同步进错句纠错记录（按改句去重），这里不再重复
-                let html = cleanReplyRaw.replace(/\n/g,'<br>'), raw = cleanReplyRaw;
-                if(filtered.length > 0){
-                    // 纠错详情不显示在聊天里：AI 已用「哦，你是说+改正句」自然确认，完整纠错在结束对话后统一展示
-                    cleanReplyRaw = alignReplyWithCorrections(cleanReplyRaw, filtered);
-                    html = cleanReplyRaw.replace(/\n/g,'<br>');
-                    raw = cleanReplyRaw;
+                // 纠错不再内联到对话里：气泡保持自然回复，完整纠错在「结束对话」后统一展示。
+                // 这里把纠错同步进错句本（按改句去重），保证结束对话后的纠错总结与错句本都有记录。
+                for(const m of filtered){
+                    try{
+                        const _cc = stripForCompare(String(m.corrected || ''));
+                        const _exists = wrongSentences.some(function(s){
+                            if(!s || s.type !== '对话纠错') return false;
+                            const _sc = stripForCompare(s.sentence || '');
+                            return _sc && (_sc === _cc || (_sc.length > 2 && _cc.includes(_sc)) || (_cc.length > 2 && _sc.includes(_cc)));
+                        });
+                        if(!_exists) addWrongSentence('','对话纠错',m.corrected,'',m.original,m.note||'',m.type||'');
+                    }catch(e){}
                 }
+                let html = cleanReplyRaw.replace(/\n/g,'<br>'), raw = cleanReplyRaw;
                 // 聊天历史本轮只保留最终这一条 AI 回复：并行纠错聊天时可能先写入了
                 // 没有纠错块的初版回复（查看历史/报告时会出现「先无纠错块、后有纠错块」两条回复），
                 // 这里把最终内容同步到最后一条，并删掉它前面同一轮的多余 AI 记录。
@@ -24040,14 +24042,8 @@ async function handleEndConversation(){
                 for(const m of filtered){
                     addWrongSentence('','对话纠错',m.corrected,'',m.original,m.note||'',m.type||'');
                 }
-                const _errDetail = chatErrorDetail();
-                if(filtered.length){
-                    const block = buildChatCorrectionBlock(filtered, text, '');
-                    const _fallbackHtml = t('analysis.reply_fail') + _errDetail + '<br><br>' + block.html;
-                    addAssistantMessage(_fallbackHtml, true, t('analysis.reply_fail') + _errDetail + '\n' + t('chat.correction') + '\n' + block.rawLines.join('\n'));
-                } else {
-                    addAssistantMessage(t('analysis.reply_fail') + _errDetail);
-                }
+                // 回复失败时纠错也不内联展示：已记入结束对话后的纠错总结
+                addAssistantMessage(t('analysis.reply_fail') + chatErrorDetail());
             }
         }catch(e){
             if(e.name !== 'AbortError'){
