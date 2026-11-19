@@ -18352,7 +18352,14 @@ ${searchRule}
     const RULE_MAPS = {};
     for (const _lv of [1, 2, 3, 4, 5]) {
         const _m = new Map();
-        for (const _r of ALL_GRAMMAR_RULES[_lv]) _m.set(_r.s, _r);
+        for (const _r of ALL_GRAMMAR_RULES[_lv]){
+            // HSK3-5 的规则表生成时「正例/反例」两列整体接反了（pos 是病句、neg 才是正确用法），
+            // 这里换回来：语法分析提示词、悬停例句、造句规则校验都依赖这两个字段。
+            if(_lv >= 3){
+                const _t = _r.pos; _r.pos = _r.neg; _r.neg = _t;
+            }
+            _m.set(_r.s, _r);
+        }
         RULE_MAPS[_lv] = _m;
     }
     const HSK1_RULE_MAP = RULE_MAPS[1]; // 向后兼容旧引用
@@ -20201,7 +20208,60 @@ ${gapChatGuide()}
         }
     }
     const PATTERN_PLACEHOLDER_TOKENS = new Set(['方位词','数词','量词','中心语','疑问代词','离合词','动量补语','时量补语','结果补语','趋向补语','状态补语','补语']);
-    function extractPatternFixedChars(pattern){ const cleaned=pattern.replace(/[（(][^)）]*[)）]/g,''); const parts=cleaned.split('+'); const fixed=[]; for(const part of parts){ const t=part.trim(); if(!t) continue; const hasLatin=/[a-zA-Z]/.test(t); const hasChinese=/[\u4e00-\u9fff]/.test(t); if(!hasLatin&&hasChinese&&!PATTERN_PLACEHOLDER_TOKENS.has(t)) fixed.push(t); } return fixed; }
+    function extractPatternFixedChars(pattern){
+        // 「—A—B」里的破折号实为「一A一B」：换成 +一+ 拆成两个固定组
+        const cleaned=pattern.replace(/[（(][^)）]*[)）]/g,'').replace(/[—–]/g,'+一+');
+        const parts=cleaned.split('+');
+        const fixed=[];
+        for(const part of parts){
+            const t=part.trim();
+            if(!t) continue;
+            const hasLatin=/[a-zA-Z]/.test(t);
+            const hasChinese=/[\u4e00-\u9fff]/.test(t);
+            const hasBracket=/[\[［]/.test(t);
+            if(!hasLatin&&!hasBracket){
+                // 纯中文部件也可能含省略号/标点（如「没/没有……不……」）：按标点拆成独立固定组
+                const segs=t.split(/[，,。．、；;…·\s+]+/).filter(Boolean);
+                for(const seg of segs){
+                    if(/[\u4e00-\u9fff]/.test(seg)&&!PATTERN_PLACEHOLDER_TOKENS.has(seg)) fixed.push(seg);
+                }
+                continue;
+            }
+            // 含拉丁/方括号的部件（如「当然，Sentence」「Sentence，甚至+sentence」）：
+            // 去掉括号组、数字、拉丁字母与占位符名后，剩余中文按标点拆成独立固定组，
+            // 避免把「当然」「甚至」这类真实固定字整段丢掉。
+            let s=t.replace(/[\[［][^\]]*[\]］]/g,'');
+            s=s.replace(/[.．…]{2,}/g,'+');
+            s=s.replace(/[a-zA-Z0-9]/g,'');
+            for(const ph of PATTERN_PLACEHOLDER_TOKENS) s=s.split(ph).join('');
+            const segs=s.split(/[，,。．、；;…·\s+—–-]+/).filter(Boolean);
+            for(const seg of segs){
+                const alts=seg.split('/').map(x=>x.trim()).filter(x=>/[\u4e00-\u9fff]/.test(x));
+                if(alts.length) fixed.push(alts.join('/'));
+            }
+        }
+        return fixed;
+    }
+    // 提取括号里的可选固定字（如「N+（的）+方位词」→「的」、「S（patient）+V（+了）」→「了」）。
+    // 可选字不强制出现，只作为弱证据：出现时给候选加分，不出现也不拦。
+    function extractPatternOptionalChars(pattern){
+        const out=[];
+        const re=/[（(]([^)）]*)[)）]/g;
+        let m;
+        while((m=re.exec(pattern))!==null){
+            let s=String(m[1]||'');
+            s=s.replace(/[\[［][^\]]*[\]］]/g,'');
+            s=s.replace(/[.．…]{2,}/g,'+');
+            s=s.replace(/[a-zA-Z0-9]/g,'');
+            for(const ph of PATTERN_PLACEHOLDER_TOKENS) s=s.split(ph).join('');
+            const segs=s.split(/[，,。．、；;…·\s+—–-]+/).filter(Boolean);
+            for(const seg of segs){
+                const alts=seg.split('/').map(x=>x.trim()).filter(x=>/[\u4e00-\u9fff]/.test(x));
+                if(alts.length) out.push(alts.join('/'));
+            }
+        }
+        return out;
+    }
     function grammarLevelOf(pattern){ for(let lv=1;lv<=5;lv++){ const arr=LEVEL_MAP[lv]; if(arr && arr.indexOf(pattern)>=0) return lv; } return 3; }
     function patternFixedCharsFlat(pattern){
         const cleaned = pattern.replace(/[（(][^)）]*[)）]/g, '');
@@ -20271,19 +20331,191 @@ ${gapChatGuide()}
         }
         return coveredAny;
     }
-function getCandidatePatterns(sentence, allPatterns){ const candidates=[]; let noFixedCount=0; const MAX_NO_FIXED=5; const segTokens=segmentForGrammar(sentence); for(const p of allPatterns){ const groups=extractPatternFixedChars(p.pattern); if(groups.length===0){ if(noFixedCount<MAX_NO_FIXED){ candidates.push(p); noFixedCount++; } continue; } let curPos=0, allOk=true; for(const group of groups){ const alts=group.split('/').map(s=>s.trim()).filter(s=>s); let found=false, bestPos=Infinity; for(const alt of alts){ let searchFrom=curPos; while(searchFrom<=sentence.length){ const pos=indexOfFlexible(sentence,alt,searchFrom); if(pos===-1) break; if(fixedMatchAlignedWithTokens(segTokens,pos,alt.length)){ if(pos<bestPos){ bestPos=pos; found=true; } break; } searchFrom=pos+1; } } if(!found){ allOk=false; break; } curPos=bestPos+1; } if(allOk) candidates.push(p); } return candidates; }
+
+    const TOKEN_SUFFIX_OK = new Set(['了','着','过','的','地','得','里','上','下','外','前','后','边','面','头','们','吧','吗','呢','啊','呀','嘛','喽','咯','哟','就','才','都','也','不','没','还','又','再','很','太','最','更','比','把','被','叫','让','跟','和','对','从','在','到','给','向','往','用','为','来','去','起','开','会','要','能','想','是','有','住','走','自','点']);
+    // 词首函数字白名单：固定字可以是一个词的开头（如「没有」里的「没」、「就是」里的「就」）。
+    // 只放虚词功能字，绝不放上/下/前/后/里/外等内容字，避免「上海」里的「上」被误认。
+    const TOKEN_PREFIX_OK = new Set(['没','不','就','稍','再','先','才','都','也','还','又','很','太','最','更','比','把','被','叫','让','跟','和','对','从','在','到','给','向','往','用','为','来','去','会','要','能','想','是','有','可','该','正','刚','曾','将','别','只','老','总','全','分']);
+    const POS_HINT_MAP = { '名':'N','动':'V','形':'Adj','副':'Adv','介':'Prep','代':'Pron','数':'Num','量':'MW','连':'Conj','助':'Part','叹':'Interj','拟':'Onom' };
+    function segTokenTag(text, t){
+        let tag = '?';
+        try{
+            const v = vocabEntryForWord(t.word) || vocabEntryForWord(String(text || '').slice(t.start, t.end));
+            if(v && v.p){
+                const key = String(v.p).slice(0, 1);
+                if(POS_HINT_MAP[key]) tag = POS_HINT_MAP[key];
+            }
+        }catch(e){}
+        if(tag === '?'){
+            if(/^[0-9]+$/.test(t.word)) tag = 'Num';
+            else if(/^(一|两|二|三|四|五|六|七|八|九|十|百|千|万|亿|几|多少|个|只|条|张|本|件|辆|位|次|遍|块|元|岁|年|月|天|日|点|分|半|号)$/.test(t.word)) tag = 'Num';
+        }
+        return tag;
+    }
+    function segTokensWithPos(text){
+        return segmentForGrammar(text).map(function(t){ return { word: t.word, start: t.start, end: t.end, tag: segTokenTag(text, t) }; });
+    }
+    function grammarSegWithPos(text){
+        return segTokensWithPos(text).map(function(t){ return t.word + '(' + t.tag + ')'; }).join(' / ');
+    }
+    // 无固定字规则的结构检测器：对纯占位符规则（离合词/动量/时量补语/数量重叠/连动/存现/比较句），
+    // 用「分词+词性」串做小签名匹配，命中时把对应规则加入候选（AI 仍按规则表做最终裁决）。
+    function structuralCandidateHits(sentence, segTokens){
+        const hits=[];
+        const add=(pattern, level, ev, mg)=>{ if(!hits.some(h=>h.pattern===pattern)) hits.push({pattern:pattern, level:level, ev:ev, mg:mg, full:true}); };
+        const toks=segTokens.map(t=>({ word:t.word, tag:segTokenTag(sentence, t) }));
+        const n=toks.length;
+        if(!n) return hits;
+        const QCHARS=new Set('一两二三四五六七八九十百千万亿几多少半个只条张本件辆位次遍块元岁年月天日点分半号双套份杯瓶台架间家口匹头棵颗根座名把'.split(''));
+        const MWCHARS=new Set('个只条张本件辆位次遍块元岁年月天日点分半号双套份杯瓶台架间家口匹头棵颗根座名把'.split(''));
+        const ACTION=new Set(['次','遍','回','下','顿']);
+        const TIMES=['分钟','小时','钟头','钟','天','年','月','星期','礼拜','周','夜','日','号','会儿','上午','下午','早上','晚上','中午','学期','暑假','寒假'];
+        const isQ=(w)=>{ if(!w) return false; if(/^[0-9]+$/.test(w)) return true; if(w.length>2) return false; return Array.from(w).every(c=>QCHARS.has(c)); };
+        const isMW=(w)=>!!w&&w.length===1&&MWCHARS.has(w);
+        const isMWStart=(w)=>!!w&&w.length>=1&&MWCHARS.has(w[0]);
+        const isQAction=(w)=>!!w&&/^([0-9]+|[一两二三四五六七八九十百千万亿几多]+)(次|遍|回|下|顿)$/.test(w);
+        const isTime=(w)=>{ if(!w) return false; if(TIMES.includes(w)) return true; return TIMES.some(t=>t.length>1&&w.endsWith(t)); };
+        const isQTime=(w)=>{ if(!w) return false; return /^([0-9]+|[一两二三四五六七八九十百千万亿几多]+)(分钟|小时|钟头|天|年|月|星期|礼拜|周|夜|日|号|会儿)$/.test(w); };
+        const tagAt=(i)=>(i>=0&&i<n)?toks[i].tag:null;
+        const wAt=(i)=>(i>=0&&i<n)?toks[i].word:null;
+        const isNish=(i)=>{ const t=tagAt(i); return t==='N'||t==='Pron'||t==='?'; };
+        const skipPart=(k)=>{ while(k<n&&(tagAt(k)==='Part'||wAt(k)==='了'||wAt(k)==='过')) k++; return k; };
+        // 从 k 起找「Q [MW] [Adj]* Time」组合，返回 Time 的位置；找不到返回 -1
+        const qTimeAt=(k)=>{
+            if(isQTime(wAt(k))) return k;
+            if(!isQ(wAt(k))) return -1;
+            let j=k+1;
+            if(!isTime(wAt(j))&&isMW(wAt(j))) j++;
+            while(j<=k+4&&tagAt(j)==='Adj') j++;
+            if(isTime(wAt(j))) return j;
+            return -1;
+        };
+        // 数量短语：量词重叠 / 约数 / 数量重叠 / 比较句
+        for(let i=0;i<n;i++){
+            if(isMW(wAt(i))&&isMW(wAt(i+1))) add('Measure word+Measure word',3,2,2);
+            if(isQ(wAt(i))&&isQ(wAt(i+1))&&isMWStart(wAt(i+2))) add('Number1+Number2+Measure word',3,3,3);
+            if(isQ(wAt(i))&&isMW(wAt(i+1))&&isQ(wAt(i+2))&&isMW(wAt(i+3))&&tagAt(i+4)==='V') add('Number+Measure word +Number+Measure word+V',3,5,5);
+            if((tagAt(i)==='N'||tagAt(i)==='Pron')&&tagAt(i+1)==='Adj'&&(tagAt(i+2)==='N'||tagAt(i+2)==='Pron')&&isQ(wAt(i+3))) add('N1/Pronoun1+Adj+N2/Pronoun2+Number',5,4,4);
+        }
+        // 主题句 T+S1：「这/那(+量词)+N1+N2+谓词」双名词话题结构（规则正例：那件衣服颜色很好看）
+        {
+            let f=-1;
+            if(wAt(0)==='这'||wAt(0)==='那'||wAt(0)==='这些'||wAt(0)==='那些') f=1;
+            if((wAt(0)==='这'||wAt(0)==='那')&&isMW(wAt(1))) f=2;
+            if(f!==-1&&tagAt(f)==='N'&&isNish(f+1)&&(tagAt(f+2)==='Adv'||tagAt(f+2)==='V'||tagAt(f+2)==='Adj')) add('T+S1+......',3,3,3);
+        }
+        for(let i=0;i<n;i++){
+            const t=tagAt(i);
+            if(t!=='V'&&t!=='Adj') continue;
+            const k=skipPart(i+1);
+            // 动量补语三兄弟
+            if(tagAt(k)==='Pron'&&(isQ(wAt(k+1))&&ACTION.has(wAt(k+2))||isQAction(wAt(k+1)))) add('V+Pronoun+动量补语[次/下/顿/回]',3,4,4);
+            if(isQAction(wAt(k))){
+                if(isNish(k+1)) add('V+动量补语[次/下/顿/回]+O',3,4,3);
+                else add('V+动量补语[次/下/顿/回]+O',3,3,3);
+            } else if(isQ(wAt(k))&&ACTION.has(wAt(k+1))){
+                if(isNish(k+2)) add('V+动量补语[次/下/顿/回]+O',3,4,4);
+                else add('V+动量补语[次/下/顿/回]+O',3,3,3);
+            }
+            // V+O+动量补语：宾语可能是多个词（李明 → 李/明），向后扫到「Q+次/遍/回」
+            let q=k; let sawPron=false;
+            while(q<n&&q<=k+3&&isNish(q)&&!isQ(wAt(q))){ if(tagAt(q)==='Pron') sawPron=true; q++; }
+            if(isQ(wAt(q))&&ACTION.has(wAt(q+1))) add('V+O+动量补语[次/下/顿/回]',3,4,3);
+            if(sawPron&&isQ(wAt(q))&&ACTION.has(wAt(q+1))) add('V+Pronoun+动量补语[次/下/顿/回]',3,4,3);
+            // 时量补语
+            const tPos=qTimeAt(k);
+            if(tPos!==-1){
+                if(wAt(tPos+1)==='的'&&isNish(tPos+2)) add('V+时量补语[Time]（+的）+O',3,5,4);
+                else add('V+时量补语[Time]',3,3,3);
+            }
+            // V O V 时量 / V O 时量
+            if(isNish(k)){
+                const k2=k+1;
+                if(tagAt(k2)==='V'||tagAt(k2)==='Adj'){
+                    const k3=skipPart(k2+1);
+                    if(qTimeAt(k3)!==-1) add('V+O+V+时量补语[Time]',3,5,4);
+                } else if(qTimeAt(k2)!==-1) add('V+O+时量补语[Time]',3,4,3);
+            }
+            // 连动 V1+O1+V2 / 存现句
+            if(isNish(i+1)&&(tagAt(i+2)==='V'||tagAt(i+2)==='Adj')) add('V1+O1+V2（+O2）',3,3,3);
+            if(isQ(wAt(k))&&isMW(wAt(k+1))&&isNish(k+2)) add('Place+V+补语+Number+Measure word+N',4,4,3);
+        }
+        // 离合词拆分（睡一个小时觉 / 点三次头）：词头对齐词首、词尾对齐词末，中间含数量/时间成分
+        for(const w of SEPARABLE_WORDS){
+            const c1=w[0], c2=w[1];
+            let p1=sentence.indexOf(c1);
+            while(p1!==-1){
+                const p2=sentence.indexOf(c2,p1+1);
+                if(p2!==-1&&p2-p1<=7){
+                    const s1=segTokens.some(tk=>tk.start===p1);
+                    const s2=segTokens.some(tk=>tk.end===p2+1);
+                    if(s1&&s2){
+                        const bt=segTokens.filter(tk=>tk.start>=p1+1&&tk.end<=p2);
+                        let hasQ=false, hasTime=false;
+                        for(const tk of bt){ if(isQ(tk.word)) hasQ=true; if(isTime(tk.word)) hasTime=true; }
+                        if(hasTime) add('离合词V+Time word+离合词O',3,2,2);
+                        if(hasQ) add('离合词V+Number+离合词O',3,2,2);
+                    }
+                }
+                p1=sentence.indexOf(c1,p1+1);
+            }
+        }
+        return hits;
+    }
+function getCandidatePatterns(sentence, allPatterns){
+    const out=[]; let noFixedCount=0; let partialCount=0;
+    const MAX_NO_FIXED=5; const MAX_PARTIAL=8;
+    const segTokens=segmentForGrammar(sentence);
+    const findAlt=(alt,searchFrom)=>{ let sp=searchFrom; while(sp<=sentence.length){ const pos=indexOfFlexible(sentence,alt,sp); if(pos===-1) break; if(fixedMatchAlignedWithTokens(segTokens,pos,alt.length)) return pos; if(alt.length===1){ for(const tk of segTokens){ if(TOKEN_SUFFIX_OK.has(alt)&&tk.end===pos+1&&tk.start<pos&&tk.word.endsWith(alt)) return pos; if(TOKEN_PREFIX_OK.has(alt)&&tk.start===pos&&tk.end>pos+1&&tk.word.startsWith(alt)) return pos; } } sp=pos+1; } return -1; };
+    for(const p of allPatterns){
+        const groups=extractPatternFixedChars(p.pattern);
+        const optGroups=extractPatternOptionalChars(p.pattern);
+        let curPos=0; let matchedGroups=0; let evidence=0; let allOk=true;
+        for(const group of groups){
+            const alts=group.split('/').map(x=>x.trim()).filter(x=>x);
+            let found=false; let bestPos=Infinity; let bestLen=0;
+            for(const alt of alts){ const pos=findAlt(alt,curPos); if(pos!==-1&&pos<bestPos){ bestPos=pos; bestLen=alt.length; found=true; } }
+            if(!found){ allOk=false; break; }
+            matchedGroups++; evidence+=bestLen; curPos=bestPos+1;
+        }
+        // 可选固定字（括号内）只作弱证据：出现加分，不出现不拦
+        let optEv=0; let optCount=0;
+        if(optGroups.length){
+            let op=0;
+            for(const group of optGroups){
+                const alts=group.split('/').map(x=>x.trim()).filter(x=>x);
+                let best=-1; let bestLen=0;
+                for(const alt of alts){ const pos=findAlt(alt,op); if(pos!==-1&&(best===-1||pos<best)){ best=pos; bestLen=alt.length; } }
+                if(best!==-1){ optEv+=bestLen; optCount++; op=best+1; }
+            }
+        }
+        if(groups.length===0){
+            if(optEv>0){ out.push({pattern:p.pattern, level:p.level, ev:optEv, mg:optCount, full:true}); }
+            else if(noFixedCount<MAX_NO_FIXED){ out.push({pattern:p.pattern, level:p.level, ev:0, mg:0, full:true}); noFixedCount++; }
+            continue;
+        }
+        if(allOk){ out.push({pattern:p.pattern, level:p.level, ev:evidence+optEv, mg:matchedGroups+optCount, full:true}); }
+        else if(matchedGroups>0&&matchedGroups>=groups.length-1&&groups.every(g=>g.split('/').every(a=>a.length>=2))&&partialCount<MAX_PARTIAL){
+            out.push({pattern:p.pattern, level:p.level, ev:evidence+optEv, mg:matchedGroups+optCount, full:false}); partialCount++;
+        }
+        else if(optEv>=2){ out.push({pattern:p.pattern, level:p.level, ev:optEv, mg:optCount, full:false}); }
+    }
+    // 无固定字规则的结构检测器兜底
+    for(const h of structuralCandidateHits(sentence, segTokens)){
+        if(!out.some(c=>c.pattern===h.pattern&&c.level===h.level)) out.push(h);
+    }
+    return out;
+}
 function validatePracticeSentence(pattern, sentence){ const groups=extractPatternFixedChars(pattern); if(groups.length===0) return {valid:true}; let curPos=0; for(const group of groups){ const alts=group.split('/').map(s=>s.trim()).filter(s=>s); let found=false, bestPos=Infinity; for(const alt of alts){ const pos=indexOfFlexible(sentence,alt,curPos); if(pos!==-1&&pos<bestPos){ bestPos=pos; found=true; } } if(!found) return {valid:false, reason:'missing any of: '+group}; curPos=bestPos+1; } const COMMON_VERBS=new Set(['是','有','去','来','做','说','看','见','吃','喝','走','跑','写','读','听','学','买','卖','给','用','到','出','进','回','过','起','开','关','放','拿','打','想','要','会','能','可','让','叫','问','找','等','坐','住','加','记','忘','帮','送','带','洗','唱','跳','画','拍','讲','知道','觉得','喜欢','希望','开始','准备']); const COMMON_ADJ=new Set(['好','坏','大','小','多','少','快','慢','高','低','长','短','新','旧','热','冷','难','对','错','远','近','贵','便宜','漂亮','美丽','胖','瘦','忙','累','饿','渴','困','高兴','快乐','难过','紧张','轻松','够','全','早','晚','饱','香','甜']); const cleaned=pattern.replace(/[（(][^)）]*[)）]/g,''); if(cleaned==='V+了'||cleaned==='V+了+Number+Measure word'||cleaned==='V+了+O,sentence'||cleaned==='V+了+O，sentence'){ const liaoPos=sentence.indexOf('了'); if(liaoPos>0){ const prevChar=sentence[liaoPos-1]; if(!COMMON_VERBS.has(prevChar)&&!/[\u4e00-\u9fff]/.test(prevChar)) return {valid:false, reason:'V+了: char before 了 may not be a verb'}; } } if(cleaned==='Adj+了'||cleaned==='Adj（+补语complement）+了'){ const liaoPos=sentence.indexOf('了'); if(liaoPos>0){ const prev=sentence[liaoPos-1]; if(!COMMON_ADJ.has(prev)&&COMMON_VERBS.has(prev)) return {valid:false, reason:'Adj+了: char before 了 may be verb, not adj'}; } } if(cleaned==='V+过（+O）'){ const guoPos=sentence.indexOf('过'); if(guoPos>0&&!COMMON_VERBS.has(sentence[guoPos-1])) return {valid:false, reason:'V+过: char before 过 may not be a verb'}; } return {valid:true}; }
-    async function analyzeGrammarBatch(clauses, effort){ const apiKey=currentApiKey(); if(!apiKey) return null; const activeList=grammarList; if(activeList.length===0) return []; const sentenceBlocks=[]; for(const clause of clauses){ const candidates=getCandidatePatterns(clause,activeList); if(candidates.length>0) sentenceBlocks.push({sentence:clause, candidates, seg:grammarSegText(clause)}); } if(sentenceBlocks.length===0) return []; const ruleLines=[]; const ruleSeen=new Set(); for(const block of sentenceBlocks){ for(const c of block.candidates){ const ruleKey=c.level+':'+c.pattern; if(ruleSeen.has(ruleKey)) continue; ruleSeen.add(ruleKey); const rm=RULE_MAPS[c.level]; if(!rm) continue; const r=rm.get(c.pattern); if(!r) continue; const bits=[]; if(r.f) bits.push('功能：'+r.f); if(r.r) bits.push('限制：'+r.r); if(r.pos) bits.push('正例：'+r.pos); if(r.neg) bits.push('反例：'+r.neg); ruleLines.push('• HSK'+c.level+' '+r.s+'（'+bits.join('；')+'）'); } } const ruleTable=ruleLines.length?('【规则明细表 - 本次候选中出现过的规则，逐条对照】\n'+ruleLines.join('\n')):''; let blocksText=''; for(const block of sentenceBlocks){ blocksText+=`【句子】${block.sentence}\n【分词（与阅读一致）】${block.seg}\n【候选语法（仅${block.candidates.length}条，必须从这里匹配）】\n${block.candidates.map(g=>g.pattern+'(HSK'+g.level+')').join('\n')}\n\n`; } const prompt=`你是中文语法匹配专家。以下每个句子已经给出了【分词】（与阅读模式一致）和【候选语法】列表——候选语法已按分词边界过滤，你要做的是：检查语法结构的占位符词性是否也匹配，并且固定汉字必须与分词边界对齐。
-
+    // 单个批次（≤CHUNK_SIZE 句）的语法匹配：提示词 + 240 秒超时（思考模型需要更长时间）
+    async function analyzeGrammarChunk(sentenceBlocks, effort){
+        const ruleLines=[]; const ruleSeen=new Set();
+        for(const block of sentenceBlocks){ for(const c of block.candidates){ const ruleKey=c.level+':'+c.pattern; if(ruleSeen.has(ruleKey)) continue; ruleSeen.add(ruleKey); const rm=RULE_MAPS[c.level]; if(!rm) continue; const r=rm.get(c.pattern); if(!r) continue; const bits=[]; if(r.f) bits.push('功能：'+String(r.f).slice(0,60)); if(r.r) bits.push('限制：'+String(r.r).slice(0,140)); if(r.pos) bits.push('正例：'+String(r.pos).slice(0,60)); if(r.neg) bits.push('反例：'+String(r.neg).slice(0,60)); ruleLines.push('• HSK'+c.level+' '+r.s+'（'+bits.join('；')+'）'); } }
+        const ruleTable=ruleLines.length?('【规则明细表 - 本次候选中出现过的规则，逐条对照】\n'+ruleLines.join('\n')):'';
+        let blocksText=''; for(const block of sentenceBlocks){ blocksText+=`【句子】${block.sentence}\n【分词与词性参考（词性来自词典，仅供参考，可能不准，必须自己按上下文重新核对）】${block.seg}\n【候选语法（仅${block.candidates.length}条，必须从这里匹配）】\n${block.candidates.map(g=>g.pattern+'(HSK'+g.level+')').join('\n')}\n\n`; }
+        const prompt=`你是中文语法匹配专家。以下每个句子已经给出了【分词与词性参考】和【候选语法】列表——候选语法已按分词边界过滤；词性参考来自本地词典，可能不准，必须结合上下文自己核对。你要做的是：检查语法结构的占位符词性是否真的匹配，并且固定汉字必须与分词边界对齐。\n
 ${ruleTable}
-${ruleTable?`【规则明细表用法 - 匹配候选语法时必读】
-- 表中每条语法给出：功能（该语法在句中承担的成分）、限制（必须同时满足的约束）、正例（符合该规则的用法）、反例（不符合该规则的用法，通常属于同族其他规则）。
-- 候选语法除了要通过固定汉字/词性/语序/分词边界检查，还必须逐条对照该语法的【限制】：任何一条限制不满足 → 不能匹配。
-- 【功能】必须与句子中该语法实际承担的成分一致。
-- 句子的用法与【反例】同类 → 绝不能匹配该规则；应改判同族其他规则，或判为不匹配。
-- 句子的用法与【正例】同类 → 可以匹配该规则。
-
-`:''}【词性符号 - 统一英文缩写】
+${ruleTable?`【规则明细表用法 - 匹配候选语法时必读】\n- 表中每条语法给出：功能（该语法在句中承担的成分）、限制（必须同时满足的约束）、正例（符合该规则的用法）、反例（不符合该规则的用法，通常属于同族其他规则）。\n- 候选语法除了要通过固定汉字/词性/语序/分词边界检查，还必须逐条对照该语法的【限制】：任何一条限制不满足 → 不能匹配。\n- 【功能】必须与句子中该语法实际承担的成分一致。\n- 句子的用法与【反例】同类 → 绝不能匹配该规则；应改判同族其他规则，或判为不匹配。\n- 【正例优先级】正例是人工确认的标准用法，优先级最高：句子中出现了与某条规则【正例】同构的片段时，必须匹配该规则；即使本地词性标注看似不符或限制文字与正例有出入（标注可能不准），也以正例为准。\n`:''}【词性符号 - 统一英文缩写】
 N=名词, V=动词, Adj=形容词, Adv=副词, Prep=介词, Pron=代词(同Pronoun), Num=数词(同Number), MW=量词(同Measure), Conj=连词, Part=助词(的/地/得/了/着/过/吗/吧/呢/啊), Place=地点, Time=时间, O=宾语, S=主语/句子(同Sentence), Complement=补语
 
 【匹配规则 - 必须同时满足以下3条，缺一不可】
@@ -20291,7 +20523,7 @@ N=名词, V=动词, Adj=形容词, Adv=副词, Prep=介词, Pron=代词(同Prono
     重点："跟"≠"和"≠"从"≠"向"≠"对"≠"给"——不同汉字绝不能混用。
 (2) 占位符词性：语法中 [词性] 占位位置，句子中对应位置的词必须属于该词性。
 (3) 语序严格一致：语法中固定字和占位符的"先后顺序"就是句子中对应成分的顺序。先后颠倒→绝对不匹配。
-(4) 分词边界：语法中的固定汉字必须与【分词】中的词边界对齐。单字固定字（上/下/了/的/在/去/来等）必须本身是一个分词单元，不能只是某个词的一部分。例：「去上海」分词为「去 / 上海」，「上」在「上海」词内，不算出现「上」，绝不能匹配「N+上」「V+上」等含「上」的格式；「桌子上」分词为「桌子 / 上」，「上」是独立分词单元，才可匹配「N+上」。多字固定语（如「起来」「下去」）必须完整覆盖若干分词单元，不能从词的中间开始或结束。
+(4) 分词边界：语法中的固定汉字必须与【分词】中的词边界对齐。单字固定字（上/下/了/的/在/去/来等）本身是一个分词单元时算对齐；它恰好是某个词的词首或词尾时也算对齐（如「没有」里的「没」、「记住」里的「住」、「就是」里的「就」），但绝不能取词中间的字。例：「去上海」分词为「去 / 上海」，「上」在「上海」词首但「上」是方位/动词义、与「N+上」的方位后缀义不同，不算出现「上」；「桌子上」分词为「桌子 / 上」，「上」是独立分词单元，才可匹配「N+上」。多字固定语（如「起来」「下去」）必须完整覆盖若干分词单元，不能从词的中间开始或结束。没有固定汉字的候选语法（如「V+时量补语[Time]」「离合词…」「Measure word+Measure word」），按【分词与词性参考】检查占位符词性序列，结合【功能】【限制】【正例】判定，不要求固定字。
 (5) 语义与功能：句法结构拼接上之后，还要检查整个结构在句中的意思是否真的成立、是否承担该语法的功能；只靠字面凑齐固定字和词性、但意思对不上的，绝不能匹配。学生写句子可能漏了标点（如「对你去过吗」是「对（应答）+ 你去过吗」两句连写），要先按语义把句子拆开理解，再把结构匹配到它真实属于的那部分上，不能把前后两句的字硬拼成一个语法结构。
 
 【特殊符号说明 - 重要】
@@ -20303,13 +20535,13 @@ N=名词, V=动词, Adj=形容词, Adv=副词, Prep=介词, Pron=代词(同Prono
 - 占位符中的"/"也是"或"："V/Adj"表示那个位置可以是动词或形容词
 
 【高频单字陷阱 - 特别注意】
-- 以下单字\"了、的、在、是、有、也、都、就、不、没、我、你、他、这、那、上、下、来、去\"在中文中出现频率极高，仅凭这些字匹配的候选语法假阳性率很高：
-  • \"V+了\"——句子中只要有\"了\"就候选，但不一定紧挨动词
-  • \"都+Adj/V\"——有\"都\"就候选，但\"都\"可能只是\"全部\"副词而非语法结构
-  • \"N+的+N\"——有\"的\"就候选，但\"的\"的用法远不止这一种
-  • \"在+V\"——有\"在\"就候选，但\"在\"可能是介词\"在+Place\"而非\"在+V\"
-  • \"也+V/Adj\"——有\"也\"就候选
-- 遇到这类候选时，必须更严格检查：(a)固定汉字的直接相邻上下文是否吻合语法结构；(b)占位符词性是否精准对应；(c)不要因为\"句子恰好有某个字\"就认为匹配
+- 以下单字"了、的、在、是、有、也、都、就、不、没、我、你、他、这、那、上、下、来、去"在中文中出现频率极高，仅凭这些字匹配的候选语法假阳性率很高：
+  • "V+了"——句子中只要有"了"就候选，但不一定紧挨动词
+  • "都+Adj/V"——有"都"就候选，但"都"可能只是"全部"副词而非语法结构
+  • "N+的+N"——有"的"就候选，但"的"的用法远不止这一种
+  • "在+V"——有"在"就候选，但"在"可能是介词"在+Place"而非"在+V"
+  • "也+V/Adj"——有"也"就候选
+- 遇到这类候选时，必须更严格检查：(a)固定汉字的直接相邻上下文是否吻合语法结构；(b)占位符词性是否精准对应；(c)不要因为"句子恰好有某个字"就认为匹配
 
 【易错镜像模式 - 特别警惕】
 - "多少+N"：多少后面是名词→匹配；"V+多少"：多少前面是动词→匹配。同一"多少"因前后词性不同匹配不同模式。
@@ -20331,9 +20563,79 @@ N=名词, V=动词, Adj=形容词, Adv=副词, Prep=介词, Pron=代词(同Prono
 ✅"他对我很好"→"对"是介词引出对象，结构完整、语义通→可匹配"对+N/Pron+V/Adj"（若在候选中）
 
 输出JSON：{"results":[{"sentence":"句子","matches":[{"pattern":"语法格式","level":等级}]}]}
+每个句子输出 1-2 条匹配：凡是自检全部通过的候选都要输出（最多 2 条），不要只挑一条；模棱两可、需要猜测、拿不准的一律不输出（宁可漏报，不可误报）。输出前对每一条匹配逐项自检：(a)固定汉字按顺序出现且与分词边界对齐；(b)占位符词性符合；(c)满足规则明细表的【限制】、功能一致，且与【正例】同构时以正例为准；(d)与【反例】不同类。自检任何一项不通过就删掉这条。
 sentence 必须逐字照抄输入【句子】的原文（句末标点可有可无），绝对不要改写语序、不要举反例、不要新增输入里没有的句子；每个输入句子最多只输出一条记录。没有匹配的句子也要包含（matches 为空数组）。只输出纯JSON，不要任何解释文字。`;
-
-try{ const _tr=await thinkingFetch({model:'deepseek-v4-pro',reasoning_effort:(effort==='medium')?'medium':'low',thinking:{type:'enabled'}, max_tokens:8192, messages:[{role:'system',content:prompt},{role:'user',content:blocksText}], temperature:0.1}, 60000); if(!_tr) throw new Error("API timeout"); const data=_tr.data; if(data.error) throw new Error(data.error.message||"API error"); if(!data.choices||!data.choices[0]||!data.choices[0].message) throw new Error("API error"); let content=data.choices[0].message.content || data.choices[0].message.reasoning_content || ''; content=content.replace(/```json/g,'').replace(/```/g,'').trim(); const parsed=JSON.parse(content); let arr=parsed.results||parsed.matches||parsed||[]; if(!Array.isArray(arr)) arr=[]; const inputSet=new Set((clauses||[]).map(c=>stripForCompare(c))); arr=arr.filter(it=>it&&it.sentence&&inputSet.has(stripForCompare(it.sentence))); const bySent=new Map(); for(const it of arr){ const k=stripForCompare(it.sentence); if(!bySent.has(k)) bySent.set(k,{sentence:it.sentence,matches:[]}); const cur=bySent.get(k); for(const mt of (it.matches||[])){ if(mt&&mt.pattern&&!cur.matches.some(x=>x.pattern===mt.pattern)) cur.matches.push(mt); } } return [...bySent.values()]; }catch(e){ return null; } }    // 精简版深度思考纠错提示词：学生句子短，压缩输入长度，让深度思考明显更快。
+        try{
+            // 语法匹配是「核对」任务而非生成任务：关闭思考，直接输出 JSON。
+            // 开启思考时推理过程会把 max_tokens 全部烧光（finish=length、content 为空），
+            // 大提示词下经常返回空结果；关闭后快得多，规则表本身已提供判断依据。
+            const _tr=await thinkingFetch({model:'deepseek-v4-pro', thinking:{type:'disabled'}, max_tokens:8192, messages:[{role:'system',content:prompt},{role:'user',content:blocksText}], temperature:0.1}, 120000);
+            if(!_tr) return [];
+            const data=_tr.data;
+            if(!data || data.error || !data.choices||!data.choices[0]||!data.choices[0].message) return [];
+            let content=data.choices[0].message.content || '';
+            const reasonRaw=data.choices[0].message.reasoning_content || '';
+            const finishReason=data.choices[0].finish_reason || '';
+            // 思考模型偶发把最终 JSON 放进 reasoning_content，或 content 为空：先从推理文本里抠 JSON 兜底
+            if(!String(content).trim()){
+                const rArr=reasonRaw.match(/\[[\s\S]*\]/);
+                const rObj=reasonRaw.match(/\{[\s\S]*\}/);
+                content = (rArr?rArr[0]:(rObj?rObj[0]:'')) || reasonRaw;
+            }
+            content=String(content).replace(/```json/g,'').replace(/```/g,'').trim();
+            // 思考模型经常在 JSON 前后夹带解释文字：先整段解析，失败再从内容里抠出 JSON 再解析
+            let parsed=null;
+            try{ parsed=JSON.parse(content); }
+            catch(e1){
+                const arrM=content.match(/\[[\s\S]*\]/);
+                const objM=content.match(/\{[\s\S]*\}/);
+                const cand=arrM?arrM[0]:(objM?objM[0]:'');
+                if(cand){ try{ parsed=JSON.parse(cand); }catch(e2){ parsed=null; } }
+                if(!parsed) console.warn('[grammar] JSON parse failed (finish=' + finishReason + '), content head:', String(content).slice(0, 300));
+            }
+            let arr = (parsed && (parsed.results||parsed.matches)) || parsed || [];
+            if(!Array.isArray(arr)) arr=[];
+            const inputSet=new Set((sentenceBlocks||[]).map(c=>stripForCompare(c.sentence)));
+            arr=arr.filter(it=>it&&it.sentence&&inputSet.has(stripForCompare(it.sentence)));
+            const bySent=new Map();
+            for(const it of arr){ const k=stripForCompare(it.sentence); if(!bySent.has(k)) bySent.set(k,{sentence:it.sentence,matches:[]}); const cur=bySent.get(k); for(const mt of (it.matches||[])){ if(mt&&mt.pattern&&!cur.matches.some(x=>x.pattern===mt.pattern&&String(x.level||'')===String(mt.level||''))) cur.matches.push(mt); } }
+            return [...bySent.values()];
+        }catch(e){ return []; }
+    }
+    // 语法分析总入口：本地候选预筛后分批（每批 5 句）请求 AI，带进度回调。
+    // 慢一点没关系，优先保证准确率；单批 240 秒超时。
+    async function analyzeGrammarBatch(clauses, effort, onProgress){
+        const apiKey=currentApiKey(); if(!apiKey) return null;
+        const activeList=grammarList; if(activeList.length===0) return [];
+        const sentenceBlocks=[];
+        for(const clause of clauses){
+            let candidates=getCandidatePatterns(clause,activeList);
+            if(candidates.length>0){
+                // 按「实际匹配到的固定字证据」排序：证据（ev=匹配上的替代项长度之和）越长、
+                // 覆盖的固定组数（mg）越多、完整匹配的候选越可靠；同证据优先高等级（结构更具体）。
+                // 每句最多 16 条，减少干扰、提高准确率。
+                candidates=candidates.slice().sort(function(a,b){
+                    return (b.ev-a.ev) || (b.mg-a.mg) || ((a.full?0:1)-(b.full?0:1)) || (b.level-a.level) || (a.pattern<b.pattern?-1:1);
+                }).slice(0,16);
+                sentenceBlocks.push({sentence:clause, candidates, seg:grammarSegWithPos(clause)});
+            }
+        }
+        if(sentenceBlocks.length===0) return [];
+        const CHUNK_SIZE=5;
+        const out=[];
+        let done=0;
+        for(let i=0;i<sentenceBlocks.length;i+=CHUNK_SIZE){
+            const chunk=sentenceBlocks.slice(i,i+CHUNK_SIZE);
+            const res=await analyzeGrammarChunk(chunk, effort);
+            for(const r of (res||[])) out.push(r);
+            done+=chunk.length;
+            try{ if(typeof onProgress==='function') onProgress(done, sentenceBlocks.length); }catch(e){}
+        }
+        const bySent=new Map();
+        for(const it of out){ const k=stripForCompare(it.sentence); if(!bySent.has(k)) bySent.set(k,{sentence:it.sentence,matches:[]}); const cur=bySent.get(k); for(const mt of (it.matches||[])){ if(mt&&mt.pattern&&!cur.matches.some(x=>x.pattern===mt.pattern&&String(x.level||'')===String(mt.level||''))) cur.matches.push(mt); } }
+        return [...bySent.values()];
+    }
+    // 精简版深度思考纠错提示词：学生句子短，压缩输入长度，让深度思考明显更快。
     function buildCompactMistakePrompt(targetLang){
         return `你是中文教师。通读学生这段话，把有问题的句子都改正确、改地道：有错误的句子输出记录，没有错误的句子不要输出。原句正确、两种说法母语者都常说、标点差异、「的」可加可不加、承前省略主语、口语变体都不算错，宁可漏报不可误报。允许为了更自然调整说法，但不改变原意、不添加原文没有的信息；数字/日期/时间原样保留；前后句说法要统一。note 用${targetLang}具体说明原因。type 从：错字、别字、漏字、多字、词语错误、离合词错误、缺词、多词、语序错误、搭配不当、成分残缺、成分多余、句式杂糅、关联词错误、语义错误、语义不完整 中选一个。输出JSON数组：[{"original":"原文句子","corrected":"改正后句子","uncertain":true或false,"type":"类型","pattern":"框式结构或空","note":"说明"}]。`;
     }
