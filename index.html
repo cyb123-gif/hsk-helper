@@ -23197,16 +23197,17 @@ const ok = downloadTextFile(rpt, 'HSK_Learning_Report_' + getLocalDate() + '.md'
         const _dh = diffHighlightHtml(_o, _c);
         let _rowHtml = '';
         let _rowRaw = '';
-        if(_o){ _rowHtml += '📝 ' + t('reflection.your') + '：' + _dh.origHtml + '<br>'; _rowRaw += '📝 ' + t('reflection.your') + '：' + _o + '\n'; }
-        if(_c){ _rowHtml += '✅ ' + t('reflection.correct') + '：' + _dh.corrHtml; _rowRaw += '✅ ' + t('reflection.correct') + '：' + _c; }
-        if(ci.type){ _rowHtml += ' <span class="mistake-type-badge">🏷 ' + escapeHtml(mistakeTypeLabel(ci.type) || ci.type) + '</span>'; }
+        if(ci.type){ _rowHtml += '<div style="font-size:0.78rem;font-weight:700;color:#b45309;margin-bottom:10px;">🏷 ' + escapeHtml(mistakeTypeLabel(ci.type) || ci.type) + '</div>'; }
+        if(_o){ _rowHtml += '<div style="font-size:1.05rem;line-height:1.9;color:#475569;margin-bottom:8px;">📝 ' + t('reflection.your') + '：' + _dh.origHtml + '</div>'; _rowRaw += '📝 ' + t('reflection.your') + '：' + _o + '\n'; }
+        if(_c){ _rowHtml += '<div style="font-size:1.1rem;line-height:1.9;color:#1e2b5e;font-weight:700;margin-bottom:6px;">✅ ' + t('reflection.correct') + '：' + _dh.corrHtml + '</div>'; _rowRaw += '✅ ' + t('reflection.correct') + '：' + _c; }
         _rowHtml += ' <button class="corr-explain-btn" onclick="window._toggleCorrectionExplain(\'' + _eId + '\')">' + escapeHtml(t('corr.explain')) + '</button><div class="corr-explain-box" id="' + _eId + '_box"></div>';
-        if(ci.note){ _rowHtml += '<br>💡 ' + escapeHtml(ci.note); _rowRaw += '\n💡 ' + ci.note; }
-        if(ci.native){ _rowHtml += '<br>🌐 ' + t('chat.meaning_title') + '：' + escapeHtml(ci.native); _rowRaw += '\n🌐 ' + ci.native; }
-        _rowHtml += ' <button class="corr-not-meaning-btn" onclick="window._corrNotMeaning(\'' + _nId + '\')">' + escapeHtml(t('chat.not_meaning')) + '</button><div class="corr-native-area" id="corrNativeArea_' + _nId + '"></div>';
+        if(ci.note){ _rowHtml += '<div style="margin-top:10px;padding:10px 12px;background:#fffbeb;border:1px solid #fde68a;border-radius:10px;color:#92400e;font-size:0.9rem;line-height:1.7;">💡 ' + escapeHtml(ci.note) + '</div>'; _rowRaw += '\n💡 ' + ci.note; }
+        if(ci.native){ _rowHtml += '<div style="margin-top:8px;color:#64748b;font-size:0.88rem;line-height:1.6;">🌐 ' + t('chat.meaning_title') + '：' + escapeHtml(ci.native) + '</div>'; _rowRaw += '\n🌐 ' + ci.native; }
+        _rowHtml += '<div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">';
+        _rowHtml += ' <button class="corr-not-meaning-btn" onclick="window._corrNotMeaning(\'' + _nId + '\')">' + escapeHtml(t('chat.not_meaning')) + '</button></div><div class="corr-native-area" id="corrNativeArea_' + _nId + '"></div>';
         return { html: '<div class="end-corr-row" style="margin-bottom:8px;" id="endRow_' + _nId + '">' + _rowHtml + '</div>', raw: _rowRaw, notMeaningId: _nId };
     }
-    // ===== 结束对话后的纠错总结弹窗（独立于聊天窗口） =====
+    // ===== 结束对话后的纠错总结弹窗（独立于聊天窗口，一屏一条错误卡片、按顺序翻页） =====
     function ensureCorrectionSummaryOverlay(){
         let ov = document.getElementById('correctionSummaryOverlay');
         if(!ov){
@@ -23214,11 +23215,17 @@ const ok = downloadTextFile(rpt, 'HSK_Learning_Report_' + getLocalDate() + '.md'
             ov.id = 'correctionSummaryOverlay';
             ov.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,0.5);z-index:9996;display:none;align-items:center;justify-content:center;padding:16px;';
             ov.innerHTML = '<div style="background:#fff;border-radius:20px;max-width:720px;width:100%;padding:20px;box-shadow:0 10px 40px rgba(0,0,0,0.25);display:flex;flex-direction:column;max-height:92vh;">'
-                + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">'
+                + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">'
                 + '<div id="correctionSummaryTitle" style="font-weight:800;font-size:1.05rem;color:#1e2b5e;">📝 ' + escapeHtml(t('analysis.correction_title')) + '</div>'
                 + '<button id="correctionSummaryCloseBtn" style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:#94a3b8;padding:0 4px;">✕</button>'
                 + '</div>'
-                + '<div id="correctionSummaryRows" style="overflow-y:auto;background:#fffdf6;border:1px solid #f0c040;border-radius:12px;padding:12px;min-height:60px;"></div>'
+                + '<div style="height:6px;background:#f1f5f9;border-radius:6px;margin-bottom:12px;overflow:hidden;"><div id="correctionSummaryProgressBar" style="height:100%;width:0%;background:linear-gradient(90deg,#f59e0b,#e11d48);border-radius:6px;transition:width .25s;"></div></div>'
+                + '<div id="correctionSummaryCard" style="overflow-y:auto;background:#fffdf6;border:1px solid #f0c040;border-radius:14px;padding:16px;min-height:120px;"></div>'
+                + '<div style="display:flex;align-items:center;justify-content:center;gap:12px;margin-top:12px;">'
+                + '<button id="correctionPrevBtn" title="上一条" style="padding:7px 14px;border-radius:12px;border:1.5px solid #d0dae8;background:#fff;color:#1e2b5e;cursor:pointer;font-size:0.9rem;font-weight:700;">←</button>'
+                + '<span id="correctionPageInfo" style="color:#475569;font-size:0.9rem;font-weight:700;min-width:64px;text-align:center;"></span>'
+                + '<button id="correctionNextBtn" title="下一条" style="padding:7px 14px;border-radius:12px;border:1.5px solid #d0dae8;background:#fff;color:#1e2b5e;cursor:pointer;font-size:0.9rem;font-weight:700;">→</button>'
+                + '</div>'
                 + '<div style="display:flex;gap:10px;justify-content:flex-end;margin-top:12px;flex-wrap:wrap;">'
                 + '<button id="correctionSummaryReflectBtn" style="padding:9px 20px;border-radius:14px;border:none;background:linear-gradient(135deg,#1e2b5e,#2a3f7a);color:#fff;cursor:pointer;font-size:0.9rem;font-weight:700;">' + escapeHtml(t('analysis.correction_go_reflect')) + '</button>'
                 + '<button id="correctionSummaryCloseBtn2" style="padding:9px 20px;border-radius:14px;border:1.5px solid #d0dae8;background:#f8fafc;color:#1e2b5e;cursor:pointer;font-size:0.9rem;font-weight:600;">' + escapeHtml(t('analysis.correction_close')) + '</button>'
@@ -23229,6 +23236,10 @@ const ok = downloadTextFile(rpt, 'HSK_Learning_Report_' + getLocalDate() + '.md'
             if(_c1) _c1.onclick = function(){ window._closeCorrectionSummary(); };
             const _c2 = document.getElementById('correctionSummaryCloseBtn2');
             if(_c2) _c2.onclick = function(){ window._closeCorrectionSummary(); };
+            const _pv = document.getElementById('correctionPrevBtn');
+            if(_pv) _pv.onclick = function(){ window._correctionPage(-1); };
+            const _nx = document.getElementById('correctionNextBtn');
+            if(_nx) _nx.onclick = function(){ window._correctionPage(1); };
             const _r1 = document.getElementById('correctionSummaryReflectBtn');
             if(_r1) _r1.onclick = function(){
                 const items = (window._endReflectItems || []).slice();
@@ -23238,8 +23249,37 @@ const ok = downloadTextFile(rpt, 'HSK_Learning_Report_' + getLocalDate() + '.md'
         }
         return ov;
     }
+    window._endCorrectionCards = window._endCorrectionCards || [];
+    window._endCorrectionPage = window._endCorrectionPage || 0;
+    window._correctionRenderPage = function(){
+        const cards = window._endCorrectionCards || [];
+        let page = window._endCorrectionPage || 0;
+        if(cards.length && page >= cards.length) page = cards.length - 1;
+        if(!cards.length) page = 0;
+        window._endCorrectionPage = page;
+        const cardEl = document.getElementById('correctionSummaryCard');
+        if(cardEl) cardEl.innerHTML = cards.length ? (cards[page].html || '') : '';
+        const infoEl = document.getElementById('correctionPageInfo');
+        if(infoEl) infoEl.textContent = cards.length ? ((page + 1) + ' / ' + cards.length) : '';
+        const barEl = document.getElementById('correctionSummaryProgressBar');
+        if(barEl) barEl.style.width = (cards.length ? Math.round(((page + 1) / cards.length) * 100) : 0) + '%';
+        const prevBtn = document.getElementById('correctionPrevBtn');
+        if(prevBtn) prevBtn.disabled = !cards.length || page <= 0;
+        const nextBtn = document.getElementById('correctionNextBtn');
+        if(nextBtn) nextBtn.disabled = !cards.length || page >= cards.length - 1;
+    };
+    window._correctionPage = function(delta){
+        const cards = window._endCorrectionCards || [];
+        if(!cards.length) return;
+        let page = (window._endCorrectionPage || 0) + delta;
+        if(page < 0) page = 0;
+        if(page >= cards.length) page = cards.length - 1;
+        window._endCorrectionPage = page;
+        window._correctionRenderPage();
+    };
     window._openCorrectionSummary = function(){
         const ov = ensureCorrectionSummaryOverlay();
+        window._correctionRenderPage();
         ov.style.display = 'flex';
     };
     window._closeCorrectionSummary = function(){
@@ -23249,10 +23289,8 @@ const ok = downloadTextFile(rpt, 'HSK_Learning_Report_' + getLocalDate() + '.md'
     // 一次性展示一批纠错（写作/口语等模式结束时的改错总结，和聊天模式共用同一个弹窗）
     window._showCorrectionSummary = function(items, mode){
         ensureCorrectionSummaryOverlay();
-        const rowsEl = document.getElementById('correctionSummaryRows');
-        if(rowsEl) rowsEl.innerHTML = '';
         window._chatCorrectionData = window._chatCorrectionData || {};
-        const htmlParts = [];
+        const cards = [];
         const reflectItems = [];
         (items || []).forEach(function(ci, idx){
             const _o = String(ci.user || ci.original || '').trim();
@@ -23262,14 +23300,16 @@ const ok = downloadTextFile(rpt, 'HSK_Learning_Report_' + getLocalDate() + '.md'
             const row = buildEndCorrectionRowHtml(mapped, idx);
             if(!row.html) return;
             window._chatCorrectionData[row.notMeaningId] = { text: _o, mistakes: [{ original: _o, corrected: _c, type: mapped.type, note: mapped.note, native: mapped.native, translation: mapped.native }], aiRaw: '', endRow: true, mode: mode || '聊天' };
-            htmlParts.push(row.html);
+            cards.push({ html: row.html, raw: row.raw, notMeaningId: row.notMeaningId });
             reflectItems.push(mapped);
         });
         window._endReflectItems = reflectItems;
-        if(rowsEl) rowsEl.innerHTML = htmlParts.join('');
+        window._endCorrectionCards = cards;
+        window._endCorrectionPage = 0;
+        window._correctionRenderPage();
         const titleEl = document.getElementById('correctionSummaryTitle');
-        if(titleEl) titleEl.textContent = '📝 ' + t('analysis.correction_title') + (htmlParts.length ? '（' + htmlParts.length + '）' : '');
-        if(htmlParts.length){
+        if(titleEl) titleEl.textContent = '📝 ' + t('analysis.correction_title') + (cards.length ? '（' + cards.length + '）' : '');
+        if(cards.length){
             const ov = document.getElementById('correctionSummaryOverlay');
             if(ov) ov.style.display = 'flex';
         }
@@ -23377,8 +23417,10 @@ async function handleEndConversation(){
     let _summaryMsgEl = null;
     // 新一轮开始：清空上一轮的纠错弹窗内容，隐藏常驻「查看纠错」入口
     try{
-        const _oldRows = document.getElementById('correctionSummaryRows');
-        if(_oldRows) _oldRows.innerHTML = '';
+        window._endCorrectionCards = [];
+        window._endCorrectionPage = 0;
+        const _oldCard = document.getElementById('correctionSummaryCard');
+        if(_oldCard) _oldCard.innerHTML = '';
         const _oldOv = document.getElementById('correctionSummaryOverlay');
         if(_oldOv) _oldOv.style.display = 'none';
         const _oldReopen = document.getElementById('chatCorrectionReopenBtn');
@@ -23417,16 +23459,15 @@ async function handleEndConversation(){
                 if(_o && stripForCompare(u).includes(stripForCompare(_o))){ _fullText = u; break; }
             }
             if(!_fullText) _fullText = _o || _c;
-            const _row = buildEndCorrectionRowHtml(_ci, _corrRows.length);
+            const _row = buildEndCorrectionRowHtml(_ci, _corrCards.length);
             if(_row.html){
                 window._chatCorrectionData = window._chatCorrectionData || {};
                 window._chatCorrectionData[_row.notMeaningId] = { text: _fullText, mistakes: [{ original: _o, corrected: _c, type: _ci.type || '', note: _ci.note || '', native: _ci.native || '', translation: _ci.native || '' }], aiRaw: '', endRow: true };
-                _corrRows.push(_row.html);
-                _corrRawLines.push(_row.raw);
+                _corrCards.push({ html: _row.html, raw: _row.raw, notMeaningId: _row.notMeaningId });
             }
         }
-        if(!_corrRows.length) return { count: 0, items: [] };
-        return { count: _corrRows.length, html: _corrRows.join(''), raw: _corrRawLines.join('\n'), items: _chatReflect };
+        if(!_corrCards.length) return { count: 0, items: [] };
+        return { count: _corrCards.length, cards: _corrCards, items: _chatReflect };
     };
     const _mergeReflect = function(items){
         const _have = {};
@@ -23443,8 +23484,9 @@ async function handleEndConversation(){
         _mergeReflect(_res.items);
         _totalShown += _res.count;
         ensureCorrectionSummaryOverlay();
-        const _rowsEl = document.getElementById('correctionSummaryRows');
-        if(_rowsEl) _rowsEl.insertAdjacentHTML('beforeend', _res.html);
+        window._endCorrectionCards = window._endCorrectionCards || [];
+        for(const _cd of _res.cards) window._endCorrectionCards.push(_cd);
+        window._correctionRenderPage();
         const _titleEl = document.getElementById('correctionSummaryTitle');
         if(_titleEl) _titleEl.textContent = '📝 ' + t('analysis.correction_title') + '（' + _totalShown + '）';
         const _ov = document.getElementById('correctionSummaryOverlay');
@@ -24155,12 +24197,17 @@ async function handleEndConversation(){
                 const _rebuilt = buildEndCorrectionRowHtml({ user: _newCi.original, text: _newCi.corrected, type: _newCi.type || '', note: _newCi.note || '', native: meaning }, 0, token, null);
                 window._chatCorrectionData = window._chatCorrectionData || {};
                 window._chatCorrectionData[token] = { text: data.text, mistakes: newMistakes.map(function(m){ return { original: m.original, corrected: m.corrected, type: m.type || '', note: m.note || '', native: m.native || '', translation: m.translation || '' }; }), aiRaw: data.aiRaw || '', endRow: true, mode: data.mode || '聊天' };
+                // 同步翻页卡片数组：当前页直接替换 DOM，其他页更新缓存，打开弹窗时重新渲染
+                const _cardIdx = (window._endCorrectionCards || []).findIndex(function(c){ return c.notMeaningId === token; });
+                if(_cardIdx !== -1) window._endCorrectionCards[_cardIdx] = { html: _rebuilt.html, raw: _rebuilt.raw, notMeaningId: token };
                 const _rowEl = document.getElementById('endRow_' + token);
                 if(_rowEl){
                     const _tmp = document.createElement('div');
                     _tmp.innerHTML = _rebuilt.html;
                     const _newNode = _tmp.firstChild;
                     if(_newNode) _rowEl.parentNode.replaceChild(_newNode, _rowEl);
+                } else {
+                    try{ window._correctionRenderPage(); }catch(e){}
                 }
                 // 标记新句子已展示，避免后台任务补渲染时重复追加同一处纠错
                 if(window._endRenderedKeys){
