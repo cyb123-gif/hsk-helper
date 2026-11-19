@@ -305,6 +305,109 @@ function handleNewsSearchProxy(req, res) {
 }
 
 // 图片搜索代理（Bing 图片搜索，无需 API Key，国内可访问）
+// www.bing.com 会 302 到 cn.bing.com：依次尝试 www/cn/global 并自动跟随重定向；
+// 部分网络会拒绝 Node 的 TLS 指纹，最后用系统 curl 兜底（curl 的 TLS 指纹与浏览器一致）。
+// 优先返回 Bing 自己的 CDN 缩略图（turl，不会被防盗链拦截），没有时再返回原图 murl。
+function bingFetchHtml(hostname, pathAndQuery, depth, callback) {
+    if (depth <= 0) { callback(new Error('redirect too deep')); return; }
+    const options = {
+        hostname: hostname,
+        port: 443,
+        path: pathAndQuery,
+        method: 'GET',
+        headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0 Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.9'
+        },
+        timeout: 15000
+    };
+    const proxyReq = https.get(options, (proxyRes) => {
+        if ([301, 302, 303, 307, 308].includes(proxyRes.statusCode) && proxyRes.headers.location) {
+            proxyRes.resume();
+            let loc = String(proxyRes.headers.location);
+            if (loc.startsWith('//')) loc = 'https:' + loc;
+            try {
+                const u = new URL(loc);
+                if (u.protocol !== 'https:' && u.protocol !== 'http:') { callback(new Error('bad redirect')); return; }
+                bingFetchHtml(u.hostname, u.pathname + u.search, depth - 1, callback);
+            } catch (e) { callback(e); }
+            return;
+        }
+        if (proxyRes.statusCode !== 200) { callback(new Error('upstream ' + proxyRes.statusCode)); return; }
+        let body = '';
+        proxyRes.setEncoding('utf8');
+        proxyRes.on('data', chunk => { body += chunk; });
+        proxyRes.on('end', () => callback(null, body));
+    });
+    proxyReq.on('error', (err) => callback(err));
+    proxyReq.on('timeout', () => { proxyReq.destroy(); callback(new Error('timeout')); });
+}
+
+function extractBingImageUrls(body) {
+    const urls = [];
+    const seen = new Set();
+    const cleanUrl = function (u) {
+        u = String(u || '');
+        u = u.replace(/\\u002f/g, '/').replace(/\\u0026/g, '&').replace(/\\\//g, '/').replace(/&amp;/g, '&').replace(/&quot;/g, '');
+        u = u.trim();
+        if (!/^https?:\/\//i.test(u)) return '';
+        if (u.length > 800) return '';
+        return u;
+    };
+    const add = function (u) {
+        u = cleanUrl(u);
+        if (u && !seen.has(u)) { seen.add(u); urls.push(u); }
+    };
+    // ① Bing CDN 缩略图 turl（防盗链安全，优先）
+    const tRe1 = /&quot;turl&quot;:&quot;(.*?)&quot;/g;
+    const tRe2 = /"turl"\s*:\s*"(.*?)"/g;
+    let m;
+    while ((m = tRe1.exec(body)) !== null && urls.length < 8) add(m[1]);
+    while ((m = tRe2.exec(body)) !== null && urls.length < 8) add(m[1]);
+    // ② 原图 murl
+    const mRe1 = /&quot;murl&quot;:&quot;(.*?)&quot;/g;
+    const mRe2 = /"murl"\s*:\s*"(.*?)"/g;
+    while ((m = mRe1.exec(body)) !== null && urls.length < 12) add(m[1]);
+    while ((m = mRe2.exec(body)) !== null && urls.length < 12) add(m[1]);
+    // ③ 页面里的 Bing 缩略图 <img src="https://tse*.bing.net/...">
+    const sRe = /src="(https:\/\/tse[^"]*bing\.net[^"]*)"/g;
+    while ((m = sRe.exec(body)) !== null && urls.length < 12) add(m[1]);
+    return urls;
+}
+
+// Windows 上 execFile('curl.exe') 会解析到 System32 的 curl（对部分站点静默失败），
+// 优先用 Git/系统 PATH 里的 `curl`，找不到（ENOENT）再退回 `curl.exe`。
+function runCurl(args, options, callback) {
+    const { execFile } = require('child_process');
+    const tryCmd = function (name) {
+        execFile(name, args, options, function (err, stdout, stderr) {
+            if (err && (err.code === 'ENOENT' || String(err.message || '').indexOf('ENOENT') !== -1) && name !== 'curl.exe') {
+                tryCmd('curl.exe');
+                return;
+            }
+            callback(err, stdout, stderr);
+        });
+    };
+    tryCmd('curl');
+}
+
+function bingSearchViaCurl(q, aspect, mkt, callback) {
+    const mkUrl = function (host) {
+        return 'https://' + host + '/images/search?q=' + encodeURIComponent(q) + '&form=HDRSC2&mkt=' + encodeURIComponent(mkt) + (aspect === 'wide' ? '&qft=+filterui:aspect-wide' : '');
+    };
+    const urls = [mkUrl('global.bing.com'), mkUrl('www.bing.com')];
+    const tryIdx = function (idx) {
+        if (idx >= urls.length) { callback(new Error('curl 全部上游失败')); return; }
+        runCurl(['-s', '-L', '--max-time', '20', '-A', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0 Safari/537.36', urls[idx]], { maxBuffer: 4 * 1024 * 1024, windowsHide: true, timeout: 25000, encoding: 'utf8' }, (err, stdout) => {
+            const body = String(stdout || '');
+            if (err || !body || !extractBingImageUrls(body).length) { tryIdx(idx + 1); return; }
+            callback(null, body);
+        });
+    };
+    tryIdx(0);
+}
+
 function handleImageSearchProxy(req, res) {
     let query = '';
     const qIndex = req.url.indexOf('?');
@@ -320,59 +423,174 @@ function handleImageSearchProxy(req, res) {
     }
     // aspect=wide 时请求 Bing 返回横向图片；mkt=en-US 时结果更偏向英文图片（避免图片带中文文字）
     const searchPath = '/images/search?q=' + encodeURIComponent(q) + '&form=HDRSC2&mkt=' + encodeURIComponent(mkt) + (aspect === 'wide' ? '&qft=+filterui:aspect-wide' : '');
-    const options = {
-        hostname: 'www.bing.com',
-        port: 443,
-        path: searchPath,
-        method: 'GET',
-        headers: {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0 Safari/537.36',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-            'Accept-Language': 'zh-CN,zh;q=0.9'
-        },
-        timeout: 20000
+    // 国内网络：www.bing.com → 302 → cn.bing.com；其他网络再试 global.bing.com
+    const hosts = ['www.bing.com', 'cn.bing.com', 'global.bing.com'];
+    let lastErr = null;
+
+    const respondOk = function (urls) {
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ url: urls[0] || '', urls: urls }));
     };
-    const proxyReq = https.get(options, (proxyRes) => {
-        if (proxyRes.statusCode !== 200) {
-            res.writeHead(502, { 'Content-Type': 'application/json; charset=utf-8' });
-            res.end(JSON.stringify({ error: '图片搜索上游返回 ' + proxyRes.statusCode }));
+    const respondFail = function () {
+        res.writeHead(502, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ error: '图片搜索失败：' + (lastErr && lastErr.message ? lastErr.message : '所有上游均不可用') }));
+    };
+
+    function tryHost(idx) {
+        if (idx >= hosts.length) {
+            // 最后用 curl 兜底（部分网络会拒绝 Node 的 TLS 指纹，curl 与浏览器一致）
+            bingSearchViaCurl(q, aspect, mkt, (err, body) => {
+                if (err || !body) { lastErr = err || new Error('curl empty'); respondFail(); return; }
+                const urls = extractBingImageUrls(body);
+                if (!urls.length) { lastErr = new Error('curl 未解析到图片'); respondFail(); return; }
+                respondOk(urls);
+            });
             return;
         }
-        let body = '';
-        proxyRes.setEncoding('utf8');
-        proxyRes.on('data', chunk => { body += chunk; });
-        proxyRes.on('end', () => {
-            const urls = [];
-            // Bing 图片结果里 murl 属性保存原图地址
-            const re = /murl&quot;:&quot;(.*?)&quot;/g;
-            let m;
-            while ((m = re.exec(body)) !== null && urls.length < 8) {
-                const u = m[1].replace(/\\u002f/g, '/').replace(/\\\//g, '/').replace(/&amp;/g, '&');
-                if (/^https?:\/\//i.test(u) && !urls.includes(u)) urls.push(u);
-            }
-            if (!urls.length) {
-                // 兼容 Bing 返回纯 URL 属性的情况
-                const re2 = /murl&quot;:(&quot;)?(.*?)(&quot;)?,/g;
-                while ((m = re2.exec(body)) !== null && urls.length < 8) {
-                    let u = m[2].replace(/\\u002f/g, '/').replace(/\\\//g, '/').replace(/&amp;/g, '&');
-                    if (u.startsWith('http')) u = u.replace(/^"/, '');
-                    if (/^https?:\/\//i.test(u) && !urls.includes(u)) urls.push(u);
-                }
-            }
-            res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-            res.end(JSON.stringify({ url: urls[0] || '', urls }));
+        const host = hosts[idx];
+        bingFetchHtml(host, searchPath, 4, (err, body) => {
+            if (err || !body) { lastErr = err || new Error('empty body'); tryHost(idx + 1); return; }
+            const urls = extractBingImageUrls(body);
+            if (!urls.length) { lastErr = new Error(host + ' 未解析到图片'); tryHost(idx + 1); return; }
+            respondOk(urls);
         });
-    });
-    proxyReq.on('error', (err) => {
-        console.error('[ImageSearch] 请求失败:', err.message);
-        res.writeHead(502, { 'Content-Type': 'application/json; charset=utf-8' });
-        res.end(JSON.stringify({ error: '图片搜索失败: ' + err.message }));
-    });
-    proxyReq.on('timeout', () => {
-        proxyReq.destroy();
-        res.writeHead(504, { 'Content-Type': 'application/json; charset=utf-8' });
-        res.end(JSON.stringify({ error: '图片搜索超时' }));
-    });
+    }
+    tryHost(0);
+}
+
+// 图片字节代理（/reading-image?u=...）：由服务器代为下载图片，规避原图防盗链/热链限制
+function handleReadingImageProxy(req, res) {
+    const params = new URLSearchParams((req.url || '').split('?')[1] || '');
+    const rawUrl = (params.get('u') || '').trim();
+    if (!/^https?:\/\//i.test(rawUrl) || rawUrl.length > 1200) {
+        res.writeHead(400, { 'Content-Type': 'text/plain; charset=utf-8' });
+        res.end('bad url');
+        return;
+    }
+    const MAX_IMAGE_BYTES = 12 * 1024 * 1024;
+    const BROWSER_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0 Safari/537.36';
+    let curlTried = false;
+
+    const guessImageType = function (url, buf) {
+        if (buf && buf.length >= 12) {
+            if (buf[0] === 0xFF && buf[1] === 0xD8) return 'image/jpeg';
+            if (buf[0] === 0x89 && buf[1] === 0x50 && buf[2] === 0x4E) return 'image/png';
+            if (buf[0] === 0x47 && buf[1] === 0x49 && buf[2] === 0x46) return 'image/gif';
+            if (String.fromCharCode(buf[8], buf[9], buf[10], buf[11]) === 'WEBP') return 'image/webp';
+        }
+        const lower = String(url.split('?')[0] || '').toLowerCase();
+        if (lower.endsWith('.png')) return 'image/png';
+        if (lower.endsWith('.gif')) return 'image/gif';
+        if (lower.endsWith('.webp')) return 'image/webp';
+        return 'image/jpeg';
+    };
+    // 部分网络会拒绝 Node 的 TLS 指纹（Bing CDN 也会 ECONNRESET），curl 的 TLS 与浏览器一致
+    const sendViaCurl = function (url) {
+        if (res.headersSent) return;
+        if (curlTried) { res.writeHead(502, { 'Content-Type': 'text/plain; charset=utf-8' }); res.end('fetch fail (tls reset)'); return; }
+        curlTried = true;
+        runCurl(['-s', '-L', '--max-time', '25', '-A', BROWSER_UA, '-e', 'https://www.bing.com/', url], { maxBuffer: 16 * 1024 * 1024, windowsHide: true, timeout: 30000, encoding: 'buffer' }, (err, stdout) => {
+            if (res.headersSent) return;
+            if (err || !stdout || !stdout.length) {
+                res.writeHead(502, { 'Content-Type': 'text/plain; charset=utf-8' });
+                res.end('fetch fail: ' + (err && err.message ? err.message : 'empty'));
+                return;
+            }
+            if (stdout.length > MAX_IMAGE_BYTES) {
+                res.writeHead(413, { 'Content-Type': 'text/plain; charset=utf-8' });
+                res.end('image too large');
+                return;
+            }
+            res.writeHead(200, {
+                'Content-Type': guessImageType(url, stdout),
+                'Content-Length': stdout.length,
+                'Cache-Control': 'public, max-age=86400',
+                'Access-Control-Allow-Origin': '*'
+            });
+            res.end(stdout);
+        });
+    };
+    const fetchImage = function (url, depth) {
+        if (depth <= 0) { sendViaCurl(url); return; }
+        let parsed;
+        try { parsed = new URL(url); } catch (e) { sendViaCurl(url); return; }
+        if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') { res.writeHead(400); res.end('bad protocol'); return; }
+        const mod = parsed.protocol === 'https:' ? https : http;
+        const options = {
+            hostname: parsed.hostname,
+            port: parsed.port ? parseInt(parsed.port, 10) : (parsed.protocol === 'https:' ? 443 : 80),
+            path: parsed.pathname + parsed.search,
+            method: 'GET',
+            headers: {
+                'User-Agent': BROWSER_UA,
+                'Accept': 'image/avif,image/webp,image/apng,image/*,*/*;q=0.8',
+                'Referer': 'https://www.bing.com/'
+            },
+            timeout: 20000
+        };
+        const imgReq = mod.get(options, (imgRes) => {
+            if ([301, 302, 303, 307, 308].includes(imgRes.statusCode) && imgRes.headers.location) {
+                imgRes.resume();
+                let loc = String(imgRes.headers.location);
+                if (loc.startsWith('//')) loc = parsed.protocol + ':' + loc;
+                else if (loc.startsWith('/')) loc = parsed.protocol + '://' + parsed.host + loc;
+                else if (!/^https?:\/\//i.test(loc)) loc = parsed.protocol + '://' + parsed.host + '/' + loc;
+                fetchImage(loc, depth - 1);
+                return;
+            }
+            if (imgRes.statusCode !== 200) {
+                imgRes.resume();
+                res.writeHead(502, { 'Content-Type': 'text/plain; charset=utf-8' });
+                res.end('upstream ' + imgRes.statusCode);
+                return;
+            }
+            const ct = String(imgRes.headers['content-type'] || '').toLowerCase();
+            if (ct && ct.indexOf('image/') !== 0) {
+                imgRes.resume();
+                res.writeHead(415, { 'Content-Type': 'text/plain; charset=utf-8' });
+                res.end('not an image (' + ct + ')');
+                return;
+            }
+            const len = parseInt(String(imgRes.headers['content-length'] || '0'), 10);
+            if (len > MAX_IMAGE_BYTES) {
+                imgRes.resume();
+                res.writeHead(413, { 'Content-Type': 'text/plain; charset=utf-8' });
+                res.end('image too large');
+                return;
+            }
+            res.writeHead(200, {
+                'Content-Type': ct || 'image/jpeg',
+                'Cache-Control': 'public, max-age=86400',
+                'Access-Control-Allow-Origin': '*'
+            });
+            let size = 0;
+            imgRes.on('data', chunk => {
+                size += chunk.length;
+                if (size > MAX_IMAGE_BYTES) {
+                    try { imgRes.destroy(); } catch (e) {}
+                    try { res.destroy(); } catch (e) {}
+                    return;
+                }
+                res.write(chunk);
+            });
+            imgRes.on('end', () => { try { res.end(); } catch (e) {} });
+            imgRes.on('error', () => { try { res.destroy(); } catch (e) {} });
+        });
+        imgReq.on('error', (err) => {
+            if (res.headersSent) { try { res.destroy(); } catch (e) {} return; }
+            if (String(err && err.message || '').indexOf('ECONNRESET') !== -1 || String(err && err.code || '').indexOf('ECONNRESET') !== -1) {
+                sendViaCurl(url);
+                return;
+            }
+            res.writeHead(502, { 'Content-Type': 'text/plain; charset=utf-8' });
+            res.end('fetch fail: ' + (err && err.message ? err.message : 'error'));
+        });
+        imgReq.on('timeout', () => {
+            imgReq.destroy();
+            if (!res.headersSent) sendViaCurl(url);
+        });
+    };
+    fetchImage(rawUrl, 4);
 }
 
 // 腾讯云语音合成密钥（可选，本地文件 tencent-keys.txt，格式：SecretId,SecretKey,AppID）
@@ -892,6 +1110,12 @@ const server = http.createServer((req, res) => {
     // 图片搜索代理
     if (req.url.startsWith('/search-image?')) {
         handleImageSearchProxy(req, res);
+        return;
+    }
+
+    // 图片字节代理：服务器代为下载图片，规避原图防盗链
+    if (req.url.startsWith('/reading-image?')) {
+        handleReadingImageProxy(req, res);
         return;
     }
 
