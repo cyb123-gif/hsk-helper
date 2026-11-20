@@ -80,7 +80,12 @@ function serveStatic(req, res) {
             res.end('404 Not Found');
             return;
         }
-        res.writeHead(200, { 'Content-Type': contentType });
+        const headers = { 'Content-Type': contentType };
+        // 代码文件（HTML/JS/CSS）禁止缓存：开发中频繁改动，避免浏览器一直用旧版页面/脚本
+        if (ext === '.html' || ext === '.js' || ext === '.css') {
+            headers['Cache-Control'] = 'no-store, no-cache, must-revalidate';
+        }
+        res.writeHead(200, headers);
         res.end(data);
     });
 }
