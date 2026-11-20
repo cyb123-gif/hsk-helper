@@ -17,7 +17,6 @@ const GROQ_CLIENT_PATH = '/groq' + GROQ_PATH;
 const DOUBAO_HOST = 'ark.cn-beijing.volces.com';
 const DOUBAO_PATH = '/api/v3/chat/completions';
 const DOUBAO_CLIENT_PATH = '/v1/doubao/chat/completions';
-const DOUBAO_DEFAULT_MODEL = 'doubao-seed-1-6-250615';
 
 // 从 api-key.txt 读取 API Key
 function loadApiKey() {
@@ -51,16 +50,16 @@ function loadGroqKey() {
 
 let GROQ_API_KEY = loadGroqKey();
 
-// 从 doubao-key.txt 读取豆包配置：第 1 行 = API Key，第 2 行（可选）= 模型名
+// 从 doubao-key.txt 读取豆包配置：第 1 行 = API Key，第 2 行（必填）= 模型名或端点 ID（如 doubao-seed-2-0-lite-xxx 或 ep-xxx）
 function loadDoubaoConfig() {
     const keyFile = path.join(__dirname, 'doubao-key.txt');
     try {
         const content = fs.readFileSync(keyFile, 'utf-8');
         const lines = content.split(/\r?\n/).map(l => l.trim()).filter(l => l && !l.startsWith('#'));
         if (!lines.length) return null;
-        return { key: lines[0], model: lines[1] || process.env.DOUBAO_MODEL || DOUBAO_DEFAULT_MODEL };
+        return { key: lines[0], model: lines[1] || process.env.DOUBAO_MODEL || '' };
     } catch (e) { /* 文件不存在 */ }
-    if (process.env.DOUBAO_API_KEY) return { key: process.env.DOUBAO_API_KEY, model: process.env.DOUBAO_MODEL || DOUBAO_DEFAULT_MODEL };
+    if (process.env.DOUBAO_API_KEY) return { key: process.env.DOUBAO_API_KEY, model: process.env.DOUBAO_MODEL || '' };
     return null;
 }
 
@@ -168,9 +167,9 @@ function handleProxy(req, res) {
 
 // 豆包（火山方舟 Ark）纠错复核代理：模型名由服务器强制指定，客户端只传消息
 function handleDoubaoProxy(req, res) {
-    if (!DOUBAO_CONFIG || !DOUBAO_CONFIG.key) {
+    if (!DOUBAO_CONFIG || !DOUBAO_CONFIG.key || !DOUBAO_CONFIG.model) {
         res.writeHead(503, { 'Content-Type': 'application/json; charset=utf-8' });
-        res.end(JSON.stringify({ error: '服务器未配置豆包 Key，请创建 doubao-key.txt' }));
+        res.end(JSON.stringify({ error: '豆包未配置完整：请在 doubao-key.txt 第1行填 API Key、第2行填模型名或端点 ID（如 ep-xxx 或 doubao-seed-2-0-lite-xxx），然后 POST /reload-key' }));
         return;
     }
 
@@ -1254,7 +1253,7 @@ const server = http.createServer((req, res) => {
     // 豆包可用状态（前端决定是否发起复核）
     if (req.url === '/v1/doubao/status') {
         res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ available: !!(DOUBAO_CONFIG && DOUBAO_CONFIG.key), model: (DOUBAO_CONFIG && DOUBAO_CONFIG.model) || '' }));
+        res.end(JSON.stringify({ available: !!(DOUBAO_CONFIG && DOUBAO_CONFIG.key && DOUBAO_CONFIG.model), model: (DOUBAO_CONFIG && DOUBAO_CONFIG.model) || '' }));
         return;
     }
 
@@ -1267,7 +1266,7 @@ const server = http.createServer((req, res) => {
     // 健康检查
     if (req.url === '/health') {
         res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ status: 'ok', key_configured: !!API_KEY, groq_key_configured: !!GROQ_API_KEY, tencent_tts_configured: !!TENCENT_KEYS, doubao_configured: !!(DOUBAO_CONFIG && DOUBAO_CONFIG.key) }));
+        res.end(JSON.stringify({ status: 'ok', key_configured: !!API_KEY, groq_key_configured: !!GROQ_API_KEY, tencent_tts_configured: !!TENCENT_KEYS, doubao_configured: !!(DOUBAO_CONFIG && DOUBAO_CONFIG.key && DOUBAO_CONFIG.model) }));
         return;
     }
 
@@ -1278,7 +1277,7 @@ const server = http.createServer((req, res) => {
         TENCENT_KEYS = loadTencentKeys();
         DOUBAO_CONFIG = loadDoubaoConfig();
         res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ status: 'ok', key_configured: !!API_KEY, groq_key_configured: !!GROQ_API_KEY, tencent_tts_configured: !!TENCENT_KEYS, doubao_configured: !!(DOUBAO_CONFIG && DOUBAO_CONFIG.key) }));
+        res.end(JSON.stringify({ status: 'ok', key_configured: !!API_KEY, groq_key_configured: !!GROQ_API_KEY, tencent_tts_configured: !!TENCENT_KEYS, doubao_configured: !!(DOUBAO_CONFIG && DOUBAO_CONFIG.key && DOUBAO_CONFIG.model) }));
         console.log('[Server] 密钥已重载：DeepSeek ' + (API_KEY ? '有效' : '未配置') + '，Groq ' + (GROQ_API_KEY ? '有效' : '未配置') + '，腾讯云语音 ' + (TENCENT_KEYS ? '有效' : '未配置') + '，豆包 ' + (DOUBAO_CONFIG && DOUBAO_CONFIG.key ? '有效' : '未配置'));
         return;
     }
