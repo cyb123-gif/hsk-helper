@@ -17,6 +17,7 @@ const GROQ_CLIENT_PATH = '/groq' + GROQ_PATH;
 const DOUBAO_HOST = 'ark.cn-beijing.volces.com';
 const DOUBAO_PATH = '/api/v3/chat/completions';
 const DOUBAO_CLIENT_PATH = '/v1/doubao/chat/completions';
+const DOUBAO_DEFAULT_MODEL = 'doubao-seed-2-0-pro-260215';
 
 // 从 api-key.txt 读取 API Key
 function loadApiKey() {
@@ -50,16 +51,16 @@ function loadGroqKey() {
 
 let GROQ_API_KEY = loadGroqKey();
 
-// 从 doubao-key.txt 读取豆包配置：第 1 行 = API Key，第 2 行（必填）= 模型名或端点 ID（如 doubao-seed-2-0-lite-xxx 或 ep-xxx）
+// 从 doubao-key.txt 读取豆包配置：第 1 行 = API Key，第 2 行（可选）= 模型名或端点 ID，默认 doubao-seed-2-0-pro-260215
 function loadDoubaoConfig() {
     const keyFile = path.join(__dirname, 'doubao-key.txt');
     try {
         const content = fs.readFileSync(keyFile, 'utf-8');
         const lines = content.split(/\r?\n/).map(l => l.trim()).filter(l => l && !l.startsWith('#'));
         if (!lines.length) return null;
-        return { key: lines[0], model: lines[1] || process.env.DOUBAO_MODEL || '' };
+        return { key: lines[0], model: lines[1] || process.env.DOUBAO_MODEL || DOUBAO_DEFAULT_MODEL };
     } catch (e) { /* 文件不存在 */ }
-    if (process.env.DOUBAO_API_KEY) return { key: process.env.DOUBAO_API_KEY, model: process.env.DOUBAO_MODEL || '' };
+    if (process.env.DOUBAO_API_KEY) return { key: process.env.DOUBAO_API_KEY, model: process.env.DOUBAO_MODEL || DOUBAO_DEFAULT_MODEL };
     return null;
 }
 
