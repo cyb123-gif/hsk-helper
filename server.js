@@ -13,6 +13,11 @@ const DEEPSEEK_PATH = '/v1/chat/completions';
 const GROQ_HOST = 'api.groq.com';
 const GROQ_PATH = '/openai/v1/audio/transcriptions';
 const GROQ_CLIENT_PATH = '/groq' + GROQ_PATH;
+// 豆包（火山方舟 Ark）纠错复核代理：Key 只存服务器端 doubao-key.txt
+const DOUBAO_HOST = 'ark.cn-beijing.volces.com';
+const DOUBAO_PATH = '/api/v3/chat/completions';
+const DOUBAO_CLIENT_PATH = '/v1/doubao/chat/completions';
+const DOUBAO_DEFAULT_MODEL = 'doubao-seed-1-6-250615';
 
 // 从 api-key.txt 读取 API Key
 function loadApiKey() {
@@ -45,6 +50,21 @@ function loadGroqKey() {
 }
 
 let GROQ_API_KEY = loadGroqKey();
+
+// 从 doubao-key.txt 读取豆包配置：第 1 行 = API Key，第 2 行（可选）= 模型名
+function loadDoubaoConfig() {
+    const keyFile = path.join(__dirname, 'doubao-key.txt');
+    try {
+        const content = fs.readFileSync(keyFile, 'utf-8');
+        const lines = content.split(/\r?\n/).map(l => l.trim()).filter(l => l && !l.startsWith('#'));
+        if (!lines.length) return null;
+        return { key: lines[0], model: lines[1] || process.env.DOUBAO_MODEL || DOUBAO_DEFAULT_MODEL };
+    } catch (e) { /* 文件不存在 */ }
+    if (process.env.DOUBAO_API_KEY) return { key: process.env.DOUBAO_API_KEY, model: process.env.DOUBAO_MODEL || DOUBAO_DEFAULT_MODEL };
+    return null;
+}
+
+let DOUBAO_CONFIG = loadDoubaoConfig();
 
 // MIME 类型映射
 const MIME = {
@@ -142,6 +162,71 @@ function handleProxy(req, res) {
         });
 
         proxyReq.write(body);
+        proxyReq.end();
+    });
+}
+
+// 豆包（火山方舟 Ark）纠错复核代理：模型名由服务器强制指定，客户端只传消息
+function handleDoubaoProxy(req, res) {
+    if (!DOUBAO_CONFIG || !DOUBAO_CONFIG.key) {
+        res.writeHead(503, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ error: '服务器未配置豆包 Key，请创建 doubao-key.txt' }));
+        return;
+    }
+
+    let body = '';
+    req.on('data', chunk => { body += chunk; });
+    req.on('end', () => {
+        let payload;
+        try {
+            payload = JSON.parse(body || '{}');
+        } catch (e) {
+            res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+            res.end(JSON.stringify({ error: '无效的 JSON 请求体' }));
+            return;
+        }
+        payload.model = DOUBAO_CONFIG.model;
+        const outBody = JSON.stringify(payload);
+        console.log(`[Doubao] → 豆包复核  ${new Date().toLocaleTimeString()}  ${outBody.length} bytes  model=${DOUBAO_CONFIG.model}`);
+
+        const options = {
+            hostname: DOUBAO_HOST,
+            port: 443,
+            path: DOUBAO_PATH,
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + DOUBAO_CONFIG.key,
+                'Content-Length': Buffer.byteLength(outBody)
+            },
+            timeout: 120000
+        };
+
+        const proxyReq = https.request(options, (proxyRes) => {
+            res.writeHead(proxyRes.statusCode, {
+                'Content-Type': 'application/json; charset=utf-8'
+            });
+            let responseBody = '';
+            proxyRes.on('data', chunk => { responseBody += chunk; });
+            proxyRes.on('end', () => {
+                console.log(`[Doubao] ← 豆包复核  ${proxyRes.statusCode}  ${responseBody.length} bytes`);
+                res.end(responseBody);
+            });
+        });
+
+        proxyReq.on('error', (err) => {
+            console.error('[Doubao] 请求失败:', err.message);
+            res.writeHead(502, { 'Content-Type': 'application/json; charset=utf-8' });
+            res.end(JSON.stringify({ error: '豆包请求失败: ' + err.message }));
+        });
+
+        proxyReq.on('timeout', () => {
+            proxyReq.destroy();
+            res.writeHead(504, { 'Content-Type': 'application/json; charset=utf-8' });
+            res.end(JSON.stringify({ error: '豆包请求超时' }));
+        });
+
+        proxyReq.write(outBody);
         proxyReq.end();
     });
 }
@@ -1160,6 +1245,19 @@ const server = http.createServer((req, res) => {
         return;
     }
 
+    // 豆包复核代理（纠错第二意见）
+    if (req.url === DOUBAO_CLIENT_PATH && req.method === 'POST') {
+        handleDoubaoProxy(req, res);
+        return;
+    }
+
+    // 豆包可用状态（前端决定是否发起复核）
+    if (req.url === '/v1/doubao/status') {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ available: !!(DOUBAO_CONFIG && DOUBAO_CONFIG.key), model: (DOUBAO_CONFIG && DOUBAO_CONFIG.model) || '' }));
+        return;
+    }
+
     // Groq 语音转文字代理
     if (req.url === GROQ_CLIENT_PATH && req.method === 'POST') {
         handleGroqProxy(req, res);
@@ -1169,7 +1267,7 @@ const server = http.createServer((req, res) => {
     // 健康检查
     if (req.url === '/health') {
         res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ status: 'ok', key_configured: !!API_KEY, groq_key_configured: !!GROQ_API_KEY, tencent_tts_configured: !!TENCENT_KEYS }));
+        res.end(JSON.stringify({ status: 'ok', key_configured: !!API_KEY, groq_key_configured: !!GROQ_API_KEY, tencent_tts_configured: !!TENCENT_KEYS, doubao_configured: !!(DOUBAO_CONFIG && DOUBAO_CONFIG.key) }));
         return;
     }
 
@@ -1178,9 +1276,10 @@ const server = http.createServer((req, res) => {
         API_KEY = loadApiKey();
         GROQ_API_KEY = loadGroqKey();
         TENCENT_KEYS = loadTencentKeys();
+        DOUBAO_CONFIG = loadDoubaoConfig();
         res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ status: 'ok', key_configured: !!API_KEY, groq_key_configured: !!GROQ_API_KEY, tencent_tts_configured: !!TENCENT_KEYS }));
-        console.log('[Server] 密钥已重载：DeepSeek ' + (API_KEY ? '有效' : '未配置') + '，Groq ' + (GROQ_API_KEY ? '有效' : '未配置') + '，腾讯云语音 ' + (TENCENT_KEYS ? '有效' : '未配置'));
+        res.end(JSON.stringify({ status: 'ok', key_configured: !!API_KEY, groq_key_configured: !!GROQ_API_KEY, tencent_tts_configured: !!TENCENT_KEYS, doubao_configured: !!(DOUBAO_CONFIG && DOUBAO_CONFIG.key) }));
+        console.log('[Server] 密钥已重载：DeepSeek ' + (API_KEY ? '有效' : '未配置') + '，Groq ' + (GROQ_API_KEY ? '有效' : '未配置') + '，腾讯云语音 ' + (TENCENT_KEYS ? '有效' : '未配置') + '，豆包 ' + (DOUBAO_CONFIG && DOUBAO_CONFIG.key ? '有效' : '未配置'));
         return;
     }
 
