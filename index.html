@@ -18301,7 +18301,7 @@ ${searchRule}
             const el = document.getElementById(kind + 'ChatMessages');
             if(el) el.innerHTML += '<div style="color:#e67e22;font-size:0.82rem;">⏳ 正在分析语法和词汇…</div>';
             let _modeFoundGrams=[], _modeVocabCount=0;
-            const _gramJob = (async function(){ try{ const _parentOf = new Map(); for(const _um of (msgs||[])){ if(_um.role !== 'user') continue; for(const _seg of String(_um.content||'').split(/[。！？!?]+/)){ const _t = _seg.trim(); if(!_t) continue; for(const _c of splitClauses(_t)){ if(_c && !_parentOf.has(_c)) _parentOf.set(_c, _t); } } } const _exp = await expandCompoundClauses(userClauses); for(const _k of _exp.parentOf.keys()){ _parentOf.set(_k, _exp.parentOf.get(_k)); } const analysis = await analyzeGrammarBatch(_exp.sentences,'medium'); if(analysis){ for(const item of analysis){ const _full = _parentOf.get(item.sentence); if(_full) item.sentence = _full; } for(const item of analysis){ for(const m of (item.matches||[])){ const gm=findMatchingPattern(m.pattern); if(gm&&!_modeFoundGrams.includes(gm.pattern)) _modeFoundGrams.push(gm.pattern); } } mergeAnalysisResults(analysis, 'chat'); } }catch(e){} })();
+            const _gramJob = (async function(){ try{ const _parentOf = new Map(); const _exp = await expandCompoundClauses(userClauses); for(const _k of _exp.parentOf.keys()){ _parentOf.set(_k, _exp.parentOf.get(_k)); } const analysis = await analyzeGrammarBatch(_exp.sentences,'medium'); if(analysis){ for(const item of analysis){ const _full = _parentOf.get(item.sentence); if(_full) item.sentence = _full; } for(const item of analysis){ for(const m of (item.matches||[])){ const gm=findMatchingPattern(m.pattern); if(gm&&!_modeFoundGrams.includes(gm.pattern)) _modeFoundGrams.push(gm.pattern); } } mergeAnalysisResults(analysis, 'chat'); } }catch(e){} })();
             const _vocabJob = (async function(){ try{ const vocabAnalysis = await analyzeVocabBatch(userClauses); if(vocabAnalysis){ mergeVocabResultsFiltered(vocabAnalysis, 'chat'); const _vs=new Set(); for(const vi of vocabAnalysis){ for(const w of Object.keys(vi.wordCounts||{})) _vs.add(w); } _modeVocabCount=_vs.size; } }catch(e){} })();
             await Promise.all([_gramJob, _vocabJob]);
             renderVocabLevelProgress(); renderVocabTrackList(); renderLevelProgress(); renderTrackList();
@@ -23597,14 +23597,10 @@ async function handleEndConversation(){
                     }
                 }catch(e){}
             };
-            // 例句归属：把切分出来的小句例句归回学生写的整个句子；同一句子同一语法点只计一次
+            // 例句归属规则：
+            // 1) 有标点分开的小句各自独立计数——同一语法点在一句里出现两次（如「我很喜欢苹果，苹果很甜」的「很+Adj」）计两次；
+            // 2) 只有「无标点复句被 AI 切分」产生的小句才归回原复句，同一次识别不重复计数，例句写完整原句。
             const _parentOf = new Map();
-            for(const u of sessionUserMessages){
-                for(const _seg of String(u||'').split(/[。！？!?]+/)){
-                    const _t = _seg.trim(); if(!_t) continue;
-                    for(const _c of splitClauses(_t)){ if(_c && !_parentOf.has(_c)) _parentOf.set(_c, _t); }
-                }
-            }
             const _exp = await expandCompoundClauses(filteredClauses);
             for(const _k of _exp.parentOf.keys()){ _parentOf.set(_k, _exp.parentOf.get(_k)); }
             const analysis = await analyzeGrammarBatch(_exp.sentences, 'medium', _showProg);
