@@ -22072,7 +22072,7 @@ sentence 必须逐字照抄输入【句子】的原文（句末标点可有可�
                 '5. note 用' + targetLang + '说明原因；type 从：错字、别字、漏字、多字、词语错误、离合词错误、缺词、多词、语序错误、搭配不当、成分残缺、成分多余、句式杂糅、关联词错误、语义错误、语义不完整 中选一个。\n' +
                 '输出JSON数组：[{"original":"原文","corrected":"改正句","uncertain":true或false,"type":"类型","pattern":"","note":"说明"}]；全部没有问题就输出[]。\n\n' +
                 '【学生句子】\n' + JSON.stringify(userMessages) + '\n\n【第一轮纠错结果】\n' + JSON.stringify(deepseekItems || []);
-            const resp = await fetch('/v1/doubao/chat/completions', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ max_tokens:4096, messages:[{role:'user', content:prompt}], temperature:0 }), signal: aiFetchSignal(null, 60000) });
+            const resp = await fetch('/v1/doubao/chat/completions', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ max_tokens:4096, thinking:{type:'disabled'}, messages:[{role:'user', content:prompt}], temperature:0 }), signal: aiFetchSignal(null, 60000) });
             const data = await resp.json();
             if(data.error) return null;
             let content = data.choices && data.choices[0] && data.choices[0].message ? (data.choices[0].message.content || '') : '';
@@ -22082,6 +22082,27 @@ sentence 必须逐字照抄输入【句子】的原文（句末标点可有可�
             if(!Array.isArray(parsed)) return null;
             return parsed.filter(m => m && m.original && m.corrected);
         }catch(e){ return null; }
+    }
+    // 页面左下角常驻徽章：直观显示豆包复核是否接入（只在服务器模式显示；GitHub Pages 直连模式不显示）
+    function initDoubaoStatusBadge(){
+        try{
+            if(typeof IS_GITHUB_IO !== 'undefined' && IS_GITHUB_IO) return;
+            if(document.getElementById('doubaoStatusBadge')) return;
+            const badge = document.createElement('div');
+            badge.id = 'doubaoStatusBadge';
+            badge.style.cssText = 'position:fixed;left:10px;bottom:10px;z-index:9999;padding:4px 10px;border-radius:12px;font-size:0.7rem;background:#f1f5f9;border:1px solid #d0dae8;color:#64748b;font-family:inherit;';
+            badge.textContent = '⏳ 豆包复核检测中…';
+            document.body.appendChild(badge);
+            fetch('/v1/doubao/status', { signal: aiFetchSignal(null, 4000) }).then(function(r){ return r.json(); }).then(function(d){
+                if(d && d.available){
+                    badge.textContent = '✅ 豆包复核已启用（' + (d.model || '') + '）';
+                    badge.style.color = '#2e7d32'; badge.style.borderColor = '#a5d6a7'; badge.style.background = '#e8f5e9';
+                } else {
+                    badge.textContent = '⚠️ 豆包复核未启用（纠错仍用 DeepSeek）';
+                    badge.style.color = '#b45309'; badge.style.borderColor = '#fde68a'; badge.style.background = '#fffbeb';
+                }
+            }).catch(function(){ badge.style.display = 'none'; });
+        }catch(e){}
     }
 async function analyzeMistakesBatch(userMessages, aiReplyRaw, contextMessages){ const apiKey=currentApiKey(); if(!apiKey||userMessages.length===0) return []; const targetLang = targetLangSelect ? targetLangSelect.value : 'English'; const compactPrompt = buildCompactMistakePrompt(targetLang); const prompt=`你是资深中文写作教师，正在给外国学生逐句批改一段中文。请改得又快又好：先通读全段，把每个有问题的句子都改正确、改地道。
 【要求】
@@ -30375,7 +30396,7 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
         if(wlSession && wlSession.current) window._wlSpeak(wlSession.current.word);
     });
 
-    function finishInit(){ detectSpeechSupport(); primeSpeechSynthesis(); loadFullState(); maybeMarkNewChatSession(); loadTencentAsrKeys(); hideKeyInputsOnServer(); bindTencentAsrKeyInputs(); initLive2DTeacher(); sessionStart = Date.now(); loadCandidateLevel(); pickCandidateWords(); updateStatsUI(); applyLanguage(); refreshAll(); try{ wsInitUI(); wsSyncTargetToModules(); renderWsSummary(); }catch(e){} try{ if(typeof trInit === 'function') trInit(); }catch(e){} switchMode('chat'); sendBtn.onclick=handleUserMessage; endBtn.onclick=handleEndConversation;
+    function finishInit(){ detectSpeechSupport(); primeSpeechSynthesis(); loadFullState(); maybeMarkNewChatSession(); loadTencentAsrKeys(); hideKeyInputsOnServer(); bindTencentAsrKeyInputs(); initLive2DTeacher(); sessionStart = Date.now(); loadCandidateLevel(); pickCandidateWords(); updateStatsUI(); applyLanguage(); refreshAll(); try{ wsInitUI(); wsSyncTargetToModules(); renderWsSummary(); }catch(e){} try{ if(typeof trInit === 'function') trInit(); }catch(e){} try{ initDoubaoStatusBadge(); }catch(e){} switchMode('chat'); sendBtn.onclick=handleUserMessage; endBtn.onclick=handleEndConversation;
             initVoiceRecognition();
         bindReadingEvents();
         document.getElementById('chatHistoryBtn').onclick = showChatHistory;
