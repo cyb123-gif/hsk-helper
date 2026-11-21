@@ -17,7 +17,7 @@ const GROQ_CLIENT_PATH = '/groq' + GROQ_PATH;
 const DOUBAO_HOST = 'ark.cn-beijing.volces.com';
 const DOUBAO_PATH = '/api/v3/chat/completions';
 const DOUBAO_CLIENT_PATH = '/v1/doubao/chat/completions';
-const DOUBAO_DEFAULT_MODEL = 'doubao-seed-2-0-pro-260215';
+const DOUBAO_DEFAULT_MODEL = 'doubao-seed-2-1-pro-260628';
 
 // 从 api-key.txt 读取 API Key
 function loadApiKey() {
@@ -51,7 +51,7 @@ function loadGroqKey() {
 
 let GROQ_API_KEY = loadGroqKey();
 
-// 从 doubao-key.txt 读取豆包配置：第 1 行 = API Key，第 2 行（可选）= 模型名或端点 ID，默认 doubao-seed-2-0-pro-260215
+// 从 doubao-key.txt 读取豆包配置：第 1 行 = API Key，第 2 行（可选）= 模型名或端点 ID，默认 doubao-seed-2-1-pro-260628（Seed 2.1 Pro）
 function loadDoubaoConfig() {
     const keyFile = path.join(__dirname, 'doubao-key.txt');
     try {
