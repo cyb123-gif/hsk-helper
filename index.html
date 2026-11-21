@@ -23428,21 +23428,20 @@ const ok = downloadTextFile(rpt, 'HSK_Learning_Report_' + getLocalDate() + '.md'
         _rowHtml += ' <button class="corr-not-meaning-btn" onclick="window._corrNotMeaning(\'' + _nId + '\')">' + escapeHtml(t('chat.not_meaning')) + '</button></div><div class="corr-native-area" id="corrNativeArea_' + _nId + '"></div>';
         return { html: '<div class="end-corr-row" style="margin-bottom:8px;" id="endRow_' + _nId + '">' + _rowHtml + '</div>', raw: _rowRaw, notMeaningId: _nId };
     }
-    // ===== 结束对话后的纠错总结弹窗（独立于聊天窗口，一屏一条错误卡片、按顺序翻页） =====
+    // ===== 结束对话后的纠错总结：下拉栏形式（点击「查看纠错」在页面右上角展开/收起，全部纠错竖向排列） =====
     function ensureCorrectionSummaryOverlay(){
         let ov = document.getElementById('correctionSummaryOverlay');
         if(!ov){
             ov = document.createElement('div');
             ov.id = 'correctionSummaryOverlay';
-            ov.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,0.5);z-index:9996;display:none;align-items:center;justify-content:center;padding:16px;';
-            ov.innerHTML = '<div style="background:#fff;border-radius:20px;max-width:720px;width:100%;padding:20px;box-shadow:0 10px 40px rgba(0,0,0,0.25);display:flex;flex-direction:column;max-height:92vh;">'
-                + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">'
+            ov.style.cssText = 'position:fixed;top:58px;right:12px;width:min(560px,94vw);max-height:82vh;background:#fff;border:1px solid #f0c040;border-radius:16px;box-shadow:0 10px 40px rgba(0,0,0,0.25);z-index:9996;display:none;flex-direction:column;padding:16px;';
+            ov.innerHTML = '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">'
                 + '<div id="correctionSummaryTitle" style="font-weight:800;font-size:1.05rem;color:#1e2b5e;">📝 ' + escapeHtml(t('analysis.correction_title')) + '</div>'
                 + '<button id="correctionSummaryCloseBtn" style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:#94a3b8;padding:0 4px;">✕</button>'
                 + '</div>'
-                + '<div style="height:6px;background:#f1f5f9;border-radius:6px;margin-bottom:12px;overflow:hidden;"><div id="correctionSummaryProgressBar" style="height:100%;width:0%;background:linear-gradient(90deg,#f59e0b,#e11d48);border-radius:6px;transition:width .25s;"></div></div>'
-                + '<div id="correctionSummaryCard" style="overflow-y:auto;background:#fffdf6;border:1px solid #f0c040;border-radius:14px;padding:16px;min-height:120px;"></div>'
-                + '<div style="display:flex;align-items:center;justify-content:center;gap:12px;margin-top:12px;">'
+                + '<div id="correctionSummaryProgressBar" style="display:none;"></div>'
+                + '<div id="correctionSummaryCard" style="overflow-y:auto;background:#fffdf6;border:1px solid #f0c040;border-radius:14px;padding:16px;min-height:80px;max-height:60vh;"></div>'
+                + '<div id="correctionSummaryPager" style="display:none;">'
                 + '<button id="correctionPrevBtn" title="上一条" style="padding:7px 14px;border-radius:12px;border:1.5px solid #d0dae8;background:#fff;color:#1e2b5e;cursor:pointer;font-size:0.9rem;font-weight:700;">←</button>'
                 + '<span id="correctionPageInfo" style="color:#475569;font-size:0.9rem;font-weight:700;min-width:64px;text-align:center;"></span>'
                 + '<button id="correctionNextBtn" title="下一条" style="padding:7px 14px;border-radius:12px;border:1.5px solid #d0dae8;background:#fff;color:#1e2b5e;cursor:pointer;font-size:0.9rem;font-weight:700;">→</button>'
@@ -23452,7 +23451,6 @@ const ok = downloadTextFile(rpt, 'HSK_Learning_Report_' + getLocalDate() + '.md'
                 + '<button id="correctionSummaryCloseBtn2" style="padding:9px 20px;border-radius:14px;border:1.5px solid #d0dae8;background:#f8fafc;color:#1e2b5e;cursor:pointer;font-size:0.9rem;font-weight:600;">' + escapeHtml(t('analysis.correction_close')) + '</button>'
                 + '</div></div>';
             document.body.appendChild(ov);
-            ov.addEventListener('click', function(e){ if(e.target === ov) window._closeCorrectionSummary(); });
             const _c1 = document.getElementById('correctionSummaryCloseBtn');
             if(_c1) _c1.onclick = function(){ window._closeCorrectionSummary(); };
             const _c2 = document.getElementById('correctionSummaryCloseBtn2');
@@ -23467,39 +23465,39 @@ const ok = downloadTextFile(rpt, 'HSK_Learning_Report_' + getLocalDate() + '.md'
                 window._closeCorrectionSummary();
                 if(items.length) setTimeout(function(){ startReflection(items); }, 150);
             };
+            // 点击下拉栏以外的地方自动收起（点击「查看纠错」按钮本身除外）
+            document.addEventListener('click', function(e){
+                try{
+                    if(!ov || ov.style.display !== 'flex') return;
+                    if(ov.contains(e.target)) return;
+                    const _btn = e.target && e.target.closest ? e.target.closest('button') : null;
+                    if(_btn && String(_btn.getAttribute('onclick') || '').indexOf('_openCorrectionSummary') !== -1) return;
+                    window._closeCorrectionSummary();
+                }catch(_e){}
+            });
         }
         return ov;
     }
     window._endCorrectionCards = window._endCorrectionCards || [];
     window._endCorrectionPage = window._endCorrectionPage || 0;
     window._correctionRenderPage = function(){
+        // 下拉栏：全部纠错卡片竖向排列，不再翻页
         const cards = window._endCorrectionCards || [];
-        let page = window._endCorrectionPage || 0;
-        if(cards.length && page >= cards.length) page = cards.length - 1;
-        if(!cards.length) page = 0;
-        window._endCorrectionPage = page;
         const cardEl = document.getElementById('correctionSummaryCard');
-        if(cardEl) cardEl.innerHTML = cards.length ? (cards[page].html || '') : '';
-        const infoEl = document.getElementById('correctionPageInfo');
-        if(infoEl) infoEl.textContent = cards.length ? ((page + 1) + ' / ' + cards.length) : '';
-        const barEl = document.getElementById('correctionSummaryProgressBar');
-        if(barEl) barEl.style.width = (cards.length ? Math.round(((page + 1) / cards.length) * 100) : 0) + '%';
-        const prevBtn = document.getElementById('correctionPrevBtn');
-        if(prevBtn) prevBtn.disabled = !cards.length || page <= 0;
-        const nextBtn = document.getElementById('correctionNextBtn');
-        if(nextBtn) nextBtn.disabled = !cards.length || page >= cards.length - 1;
+        if(cardEl){
+            if(cards.length){
+                cardEl.innerHTML = cards.map(function(c, i){
+                    return '<div style="' + (i > 0 ? 'border-top:1px dashed #f0c040;margin-top:10px;padding-top:10px;' : '') + '">' + (c.html || '') + '</div>';
+                }).join('');
+            } else {
+                cardEl.innerHTML = '';
+            }
+        }
     };
-    window._correctionPage = function(delta){
-        const cards = window._endCorrectionCards || [];
-        if(!cards.length) return;
-        let page = (window._endCorrectionPage || 0) + delta;
-        if(page < 0) page = 0;
-        if(page >= cards.length) page = cards.length - 1;
-        window._endCorrectionPage = page;
-        window._correctionRenderPage();
-    };
+    window._correctionPage = function(delta){ /* 下拉栏模式无翻页 */ };
     window._openCorrectionSummary = function(){
         const ov = ensureCorrectionSummaryOverlay();
+        if(ov.style.display === 'flex'){ window._closeCorrectionSummary(); return; }
         window._correctionRenderPage();
         ov.style.display = 'flex';
     };
