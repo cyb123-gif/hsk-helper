@@ -17,7 +17,7 @@ const GROQ_CLIENT_PATH = '/groq' + GROQ_PATH;
 const DOUBAO_HOST = 'ark.cn-beijing.volces.com';
 const DOUBAO_PATH = '/api/v3/chat/completions';
 const DOUBAO_CLIENT_PATH = '/v1/doubao/chat/completions';
-const DOUBAO_DEFAULT_MODEL = 'doubao-seed-2-1-pro-260628';
+const DOUBAO_DEFAULT_MODEL = 'doubao-seed-2-1-pro-260915';
 
 // 从 api-key.txt 读取 API Key
 function loadApiKey() {
