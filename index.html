@@ -634,6 +634,44 @@
         /* 听打逐字输入框：目标词/错词的横线标红 */
         .practice-input-box input.hl-target { border-bottom-color: #e74c3c; }
         .practice-input-box input.hl-target:focus { border-bottom-color: #e74c3c; }
+        /* 听打录音模式：标不懂 → 录音输入 → AI检查 */
+        .dict-voice-toolbar { margin: 2px 0 14px; text-align: center; }
+        .dict-voice-hint { display: inline-block; background: #fff7ed; border: 1.5px solid #fdba74; color: #b45309; border-radius: 14px; padding: 8px 14px; font-size: 0.85rem; font-weight: 600; line-height: 1.6; max-width: 640px; }
+        .dict-asr-result { margin-top: 10px; background: #f0fdf4; border: 1.5px solid #86efac; color: #14532d; border-radius: 12px; padding: 6px 12px; font-size: 0.9rem; line-height: 1.7; }
+        /* 检查后的标准答案对比 */
+        .practice-compare { margin: 6px 0 14px; background: #fff; border: 1.5px solid #e2e8f0; border-radius: 12px; padding: 10px 12px; font-size: 1.05rem; line-height: 2; word-break: break-all; text-align: center; }
+        .practice-compare .ok { color: #27ae60; font-weight: 700; }
+        .practice-compare .bad { color: #c0392b; background: #ffebee; border-radius: 4px; padding: 1px 3px; font-weight: 700; }
+        .practice-compare .extra { color: #c0392b; background: #ffe0e0; border-radius: 4px; padding: 1px 3px; text-decoration: line-through; }
+        .practice-input-box input.mark-cursor { outline: 3px solid #f59e0b; outline-offset: 2px; border-bottom-color: #f59e0b; background: #fffbeb; }
+        .practice-input-box input.unknown-mark { border-bottom-color: #f97316; background: #fff7ed; }
+        .practice-input-box .unknown-badge { position: absolute; top: -20px; right: -10px; background: #f97316; color: #fff; font-size: 10px; padding: 1px 6px; border-radius: 8px; font-weight: 700; display: none; box-shadow: 0 1px 4px rgba(0,0,0,0.2); z-index: 2; }
+        .practice-input-box input.unknown-mark + .unknown-badge { display: inline-block; }
+        .practice-input-box input.unknown-wrong { border-bottom-color: #e67e22; background: #fff3e0; }
+        .practice-input-box input.incorrect.unknown-wrong { color: #c0392b; }
+        .practice-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+        #dictRecordBtn.recording { animation: dictRecPulse 1s ease infinite; }
+        @keyframes dictRecPulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(231,76,60,0.45); } 50% { box-shadow: 0 0 0 9px rgba(231,76,60,0); } }
+        /* 听打分块录音：当前块高亮，其他块变淡 */
+        .practice-input-box input.chunk-active { outline: 2px solid #1e2b5e; outline-offset: 1px; border-bottom-color: #1e2b5e; }
+        .practice-input-box input.chunk-inactive { opacity: 0.35; }
+        /* 词语状态卡顶部：正确/错误两栏 */
+        .ws-cols { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; }
+        .ws-col { flex: 1; min-width: 230px; border-radius: 12px; padding: 10px 12px; }
+        .ws-col.good { background: #f2fbf3; border: 1.5px solid #b7e4c7; }
+        .ws-col.bad { background: #fef2f2; border: 1.5px solid #f5c6cb; }
+        .ws-col .ws-col-title { font-weight: 800; font-size: 0.9rem; margin-bottom: 4px; }
+        .ws-col.good .ws-col-title { color: #1e8449; }
+        .ws-col.bad .ws-col-title { color: #c0392b; }
+        .ws-col-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 0.85rem; padding: 2px 0; color: #334155; }
+        .ws-col-row b { font-variant-numeric: tabular-nums; }
+        .ws-col.good .ws-col-row b { color: #1e8449; }
+        .ws-col.bad .ws-col-row b { color: #c0392b; }
+        .ws-col .ws-col-sents { margin-top: 6px; border-top: 1px dashed #e2e8f0; padding-top: 6px; font-size: 0.78rem; color: #94a3b8; line-height: 1.6; max-height: 90px; overflow-y: auto; }
+        .ws-col .ws-col-sents div { color: #475569; }
+        /* 听力错题练习：数字编号 + 整条可点 */
+        .listen-err-item .err-no { min-width: 18px; color: #1e2b5e; font-weight: 800; }
+        .listen-err-item .err-word-btn { background: none; border: none; padding: 0; font: inherit; cursor: pointer; }
         /* ===== 口语练习面板 ===== */
         .speaking-panel { display: none; flex: 1; flex-direction: column; overflow-y: auto; background: #fafbff; }
         .speaking-panel.active { display: flex; }
@@ -860,7 +898,7 @@
         <div class="mode-tabs" id="modeTabs">
             <button class="mode-tab active" data-group="knowledge" id="modeTabKnowledge">🎯 知识练习</button>
             <button class="mode-tab" data-group="skills" id="modeTabSkills">🎧 技能练习</button>
-            <button class="mode-tab" data-group="wordlab" id="modeTabWordLab">📚 练习模式</button>
+            <button class="mode-tab" data-group="wordlab" id="modeTabWordLab" style="display:none;">📚 练习模式</button>
         </div>
         <div class="sub-tabs" id="knowledgeSubTabs">
             <button class="mode-tab sub active" data-mode="mcq" id="modeTabMcq">🎯 音形义选择题</button>
@@ -940,7 +978,6 @@
             <div class="listen-sub-tabs">
                 <button class="listen-sub-tab active" id="writingEssayTabBtn">✏️ 作文练习</button>
                 <button class="listen-sub-tab" id="writingSentenceTabBtn">📝 造句练习</button>
-                <button class="listen-sub-tab" id="writingErrorTabBtn">❌ 错题练习 <span class="listen-error-badge" id="writingErrorBadge" style="display:none;">0</span></button>
             </div>
             <div class="listen-section" id="writingEssaySection">
             <div id="writingRetellBar" class="writing-retell-bar" style="display:none;">
@@ -1097,7 +1134,7 @@
         <div class="listen-panel" id="listenPanel">
             <div class="listen-sub-tabs">
                 <button class="listen-sub-tab active" id="listenDictTabBtn">🎧 听打</button>
-                <button class="listen-sub-tab" id="listenWriteTabBtn">✏️ 听写</button>
+                <button class="listen-sub-tab" id="listenWriteTabBtn">🌊 泛听</button>
                 <button class="listen-sub-tab" id="listenErrorTabBtn">❌ 错题练习 <span class="listen-error-badge" id="listenErrorBadge" style="display:none;">0</span></button>
             </div>
             <div class="listen-section" id="listenDictSection">
@@ -1143,20 +1180,17 @@
         <div class="dictation-panel" id="dictationPanel">
             <div class="dictation-toolbar">
                 <div class="dictation-title-row">
-                    <span id="dictationPanelTitle">🎧 听写模式</span>
-                    <button id="dictationStartBtn" class="dictation-btn orange" disabled>▶ 开始听写</button>
-                    <button id="dictationResetBtn" class="dictation-btn" disabled>🆕 重新开始</button>
+                    <span id="dictationPanelTitle">🌊 泛听模式（只播放听力，文本不显示）</span>
+                    <button id="dictationStartBtn" class="dictation-btn orange" style="display:none;">▶ 开始听写</button>
+                    <button id="dictationResetBtn" class="dictation-btn" style="display:none;">🆕 重新开始</button>
                 </div>
-                <p class="dictation-subtitle" id="dictationSubtitle">上传 mp3/mp4 用原声听写；或让 AI 生成文章，用 AI 声音逐句朗读。提交后自动批改并统计正确率。</p>
+                <p class="dictation-subtitle" id="dictationSubtitle">用阅读同款 AI 技术生成听力文章（自动带上错词和目标等级词，也可加提示词），转成录音整篇播放；文本不显示，只听不写。</p>
                 <div class="dictation-upload-row">
                     <label style="display:flex;align-items:center;gap:6px;font-size:0.82rem;color:#475569;min-width:170px;">
-                        <span id="dictRateLabel">🔉 播放倍速（AI 声音和上传音频都适用）</span>
+                        <span id="dictRateLabel">🔉 播放倍速</span>
                         <input type="range" id="dictationRateSlider" min="0.6" max="1.5" step="0.05" value="1.0" style="flex:1;">
                         <span id="dictationRateLabel" style="min-width:35px;text-align:right;">1.00x</span>
                     </label>
-                </div>
-                <div class="dictation-upload-row">
-                    <span id="dictAiGroup" style="font-weight:700;color:#7b1fa2;font-size:0.82rem;">✨ AI 生成（用 AI 声音）：</span>
                     <label style="display:flex;align-items:center;gap:6px;font-size:0.82rem;color:#475569;">
                         <span id="dictationVoiceLabel">🗣️ 音色</span>
                         <select id="dictationVoiceSelect" style="padding:4px 8px;border-radius:12px;border:1.5px solid #d0dae8;font-size:0.82rem;background:white;">
@@ -1167,7 +1201,7 @@
                         </select>
                     </label>
                     <label style="display:flex;align-items:center;gap:6px;font-size:0.82rem;color:#475569;">
-                        <span id="dictationGenLevelLabel">📖 生成等级</span>
+                        <span id="dictationGenLevelLabel">📖 等级</span>
                         <select id="dictationGenLevelSelect" style="padding:4px 8px;border-radius:12px;border:1.5px solid #d0dae8;font-size:0.82rem;background:white;">
                             <option value="1">HSK 1</option>
                             <option value="2">HSK 2</option>
@@ -1176,36 +1210,32 @@
                             <option value="5">HSK 5</option>
                         </select>
                     </label>
-                    <label style="display:flex;align-items:center;gap:6px;font-size:0.82rem;color:#475569;">
-                        <span id="dictationGenSourceLabel">🎯 内容侧重</span>
-                        <select id="dictationGenSourceSelect" style="padding:4px 8px;border-radius:12px;border:1.5px solid #d0dae8;font-size:0.82rem;background:white;">
-                            <option value="gap" selected>缺口词优先</option>
-                            <option value="hsk">HSK 词汇</option>
-                            <option value="mix">缺口词 + HSK 词汇</option>
-                        </select>
-                    </label>
-                    <button id="dictationGenBtn" class="dictation-btn" style="background:linear-gradient(135deg,#7b1fa2,#4a148c);color:#fff;border:none;padding:8px 18px;border-radius:16px;cursor:pointer;font-size:0.85rem;">✨ AI 生成听写文章</button>
                 </div>
                 <div class="dictation-upload-row">
-                    <span id="dictFileGroup" style="font-weight:700;color:#0f766e;font-size:0.82rem;">🎙️ 上传音频（用原声，AI 设置不生效）：</span>
-                    <button id="dictationUploadBtn" class="dictation-btn" style="background:linear-gradient(135deg,#0f766e,#115e59);color:#fff;border:none;padding:8px 18px;border-radius:16px;cursor:pointer;font-size:0.85rem;">📁 上传音频 (mp3/mp4)</button>
-                    <input type="file" id="dictationFileInput" accept="audio/*,.mp3,.mp4,.m4a,.wav" style="display:none;">
-                    <span id="dictationFileStatus" style="font-size:0.8rem;color:#64748b;"></span>
+                    <span id="listenExtTopicLabel" style="font-weight:700;color:#7b1fa2;font-size:0.82rem;">📌 话题（和阅读一样）：</span>
+                    <select id="listenExtTopicSelect" style="padding:4px 8px;border-radius:12px;border:1.5px solid #d0dae8;font-size:0.82rem;background:white;max-width:220px;"></select>
+                    <button id="listenExtFreshBtn" title="联网获取今天的最新话题" style="background:#fff7ed;border:1px solid #fdba74;color:#9a3412;border-radius:14px;padding:4px 12px;cursor:pointer;font-size:0.8rem;white-space:nowrap;">🌐 最新话题</button>
+                    <input type="text" id="listenExtTopicInput" placeholder="✍️ 自己写话题（留空用上面选的话题）" autocomplete="off" style="flex:1;min-width:200px;padding:6px 10px;border-radius:12px;border:1.5px solid #d0dae8;font-size:0.82rem;">
                 </div>
-                <textarea class="dictation-textarea" id="dictationTextInput" placeholder="听写文本（每句一行，标点不影响批改）..."></textarea>
+                <div class="dictation-upload-row">
+                    <span id="listenExtWordsLabel" style="font-weight:700;color:#0f766e;font-size:0.82rem;">🔑 提示词：</span>
+                    <input type="text" id="listenExtWordsInput" placeholder="输入必须出现在文章里的词语，用空格或逗号分开" autocomplete="off" style="flex:1;min-width:200px;padding:6px 10px;border-radius:12px;border:1.5px solid #d0dae8;font-size:0.82rem;">
+                    <button id="dictationGenBtn" class="dictation-btn" style="background:linear-gradient(135deg,#7b1fa2,#4a148c);color:#fff;border:none;padding:8px 18px;border-radius:16px;cursor:pointer;font-size:0.85rem;">✨ AI 生成听力文章</button>
+                </div>
+                <textarea class="dictation-textarea" id="dictationTextInput" style="display:none;"></textarea>
             </div>
             <div class="dictation-body">
                 <div id="dictationProgress" class="dictation-progress" style="display:none;"></div>
                 <div id="dictationStage" style="display:none;">
                     <div class="dictation-audio-row">
-                        <button id="dictationPlayBtn" class="dictation-btn">🔊 播放本句</button>
-                        <button id="dictationReplayBtn" class="dictation-btn orange">🔄 重复播放</button>
+                        <button id="dictationPlayBtn" class="dictation-btn">▶ 播放全文</button>
+                        <button id="dictationReplayBtn" class="dictation-btn orange">🔁 从头播放</button>
                         <span id="dictationAudioStatus" style="font-size:0.78rem;color:#64748b;"></span>
                     </div>
-                    <input type="text" id="dictationUserInput" class="dictation-input" placeholder="在这里写出你听到的句子..." autocomplete="off">
-                    <div class="dictation-actions">
+                    <input type="text" id="dictationUserInput" class="dictation-input" style="display:none;" autocomplete="off">
+                    <div class="dictation-actions" style="display:none;">
                         <button id="dictationSubmitBtn" class="dictation-btn green">✓ 提交本句</button>
-                        <button id="dictationNextBtn" class="dictation-btn" style="display:none;">⏩ 下一句</button>
+                        <button id="dictationNextBtn" class="dictation-btn">⏩ 下一句</button>
                     </div>
                     <div id="dictationDiffArea" class="dictation-diff"></div>
                     <div id="dictationScoreArea" class="dictation-score"></div>
@@ -1218,7 +1248,6 @@
                     <span class="listen-error-title">❌ 错词练习（听力）</span>
                     <button id="listenErrPracticeAllBtn" class="dictation-btn green">▶ 练习全部错词</button>
                 </div>
-                <p class="listen-error-hint">听打/听写里打错、漏打、替换成别的词，都会进这里。点「练」AI 会生成包含这个词的句子来听写；打对后进入艾宾浩斯复习计划，打错继续留在这里。也可以手动删除（比如手误打错的「我」）。</p>
                 <div id="listenErrorList" class="layer-err-list"></div>
                 <div id="listenErrorPracticeArea"></div>
             </div>
@@ -1297,7 +1326,6 @@
         <div class="speaking-panel" id="speakingPanel">
             <div class="listen-sub-tabs">
                 <button class="listen-sub-tab active" id="speakingMainTabBtn">🗣️ 口语</button>
-                <button class="listen-sub-tab" id="speakingErrorTabBtn">❌ 错题练习 <span class="listen-error-badge" id="speakingErrorBadge" style="display:none;">0</span></button>
             </div>
             <div class="listen-section" id="speakingMainSection">
                 <div class="writing-submit-area" style="background:#f8fafc;border-bottom:1px solid #e9eef4;position:sticky;top:0;z-index:10;">
@@ -14000,6 +14028,295 @@ const HSK2_VOCAB = [
             'live2d.model_download_fail':'⚠️ AI učiteľ nenačítaný: sťahovanie modelu zlyhalo (zobrazuje sa zástupný obrázok)'
         }
     };
+    // 本轮新增：听打/改错/泛听 文案多语种字典
+    const I18N_NEW16 = {
+        'Chinese': {
+            'lt.tab_dict':'🎧 听打', 'lt.tab_ext':'🌊 泛听', 'lt.tab_err':'❌ 错题练习',
+            'ext.subtitle':'用阅读同款 AI 技术生成听力文章（自动带上错词和目标等级词，也可加提示词），转成录音整篇播放；文本不显示，只听不写。',
+            'ext.rate_label':'🔉 播放倍速', 'ext.voice_label':'🗣️ 音色', 'ext.level_label':'📖 等级', 'ext.topic_label':'📌 话题（和阅读一样）：', 'ext.fresh_btn':'🌐 最新话题',
+            'ext.custom_ph':'✍️ 自己写话题（留空用上面选的话题）', 'ext.words_label':'🔑 提示词：', 'ext.words_ph':'输入必须出现在文章里的词语，用空格或逗号分开',
+            'ext.gen_btn':'✨ AI 生成听力文章', 'ext.gen_ing':'⏳ 生成中…', 'ext.gen_fail':'⚠️ 生成失败：', 'ext.gen_writing':'⏳ AI 正在写听力文章…',
+            'ext.progress':'泛听：共 {n} 句 · 约 {m} 字 · 🔒 文本不显示', 'ext.hidden':'🔒 文本已隐藏，只听不写。', 'ext.need_gen':'请先「✨ AI 生成听力文章」',
+            'ext.play':'▶ 播放全文', 'ext.pause':'⏸ 暂停', 'ext.replay':'🔁 从头播放', 'ext.file_loaded':'✅ 已加载：',
+            'err.empty':'✅ {layer}错误栏是空的', 'err.preparing':'⏳ 改错模式：「{word}」准备 1 个原句 + 3 个新句…（{a}/{b}）',
+            'err.progress':'改错模式：「{word}」第 {a}/{b} 句（{kind}）', 'err.kind_orig':'原句', 'err.kind_new':'新句',
+            'err.done_all':'🎉 「{word}」{n} 句全对，改错完成，已进入复习计划', 'err.done_part':'「{word}」{n} 句中 {c} 句对，继续加油', 'err.gen_fail':'⚠️ 生成失败，点「练」重试',
+            'err.finished':'错题练习完成：4 句全对的词已进入复习计划，没全对的词还在错误栏',
+            'dv.mark_hint':'👂 先听句子：←/→ 按词移动光标，空格把不懂的整个词标出来（橙色），标完点「✅ 标好了」或按回车',
+            'dv.recording':'🎤 正在听你说话…把{part}念出来，会自动填入横线（停一下自动结束，再点一次提前结束）',
+            'dv.done':'✅ 全部{part}识别完成，点「检查」批改：标不懂的位置默认算错，其他位置错字也算错；不满意可重新录音',
+            'dv.after_mark_whole':'🔒 已标好 {n} 处不懂。点「🎤 录音」，把整句念出来',
+            'dv.after_mark_chunk':'🔒 已标好 {n} 处不懂｜{chunk}：{state}', 'dv.chunk_done_state':'这个语块已录好，可「下一块」或重录', 'dv.chunk_listen_state':'先听这个语块，再点「🎤 录音」念出来',
+            'dv.btn_mark_done':'✅ 标好了', 'dv.btn_record':'🎤 录整句', 'dv.btn_record_chunk':'🎤 录{chunk}', 'dv.btn_recording':'🔴 录音中…点此结束',
+            'dv.btn_rerecord':'🎤 重新录音', 'dv.btn_rerecord_chunk':'🎤 重新录音（{chunk}）', 'dv.btn_rerecord_block':'🎤 重录本块', 'dv.btn_next_chunk':'⏭ 下一块',
+            'dv.cmp_you':'✏️ 你的：', 'dv.cmp_ref':'✅ 标准：', 'dv.toast_no_record':'🎤 请先点「录音」把句子念出来，再按回车检查',
+            'dv.chunk_label':'第{a}块（共{b}块）', 'dv.unknown_badge':'不懂'
+        },
+        'English': {
+            'lt.tab_dict':'🎧 Listen & Type', 'lt.tab_ext':'🌊 Extensive Listening', 'lt.tab_err':'❌ Error Practice',
+            'ext.subtitle':'AI generates listening articles with the same technology as Reading (auto-includes error words and target-level words, plus your prompt words), then reads them aloud. The text is never shown — listen only.',
+            'ext.rate_label':'🔉 Playback speed', 'ext.voice_label':'🗣️ Voice', 'ext.level_label':'📖 Level', 'ext.topic_label':'📌 Topic (same as Reading):', 'ext.fresh_btn':'🌐 Latest topics',
+            'ext.custom_ph':'✍️ Write your own topic (leave empty to use the selected one)', 'ext.words_label':'🔑 Prompt words:', 'ext.words_ph':'Words that must appear in the article, separated by spaces or commas',
+            'ext.gen_btn':'✨ Generate Listening Article', 'ext.gen_ing':'⏳ Generating…', 'ext.gen_fail':'⚠️ Generation failed: ', 'ext.gen_writing':'⏳ AI is writing the listening article…',
+            'ext.progress':'Extensive listening: {n} sentences · about {m} characters · 🔒 text hidden', 'ext.hidden':'🔒 Text hidden — listen only.', 'ext.need_gen':'Please "✨ Generate Listening Article" first',
+            'ext.play':'▶ Play All', 'ext.pause':'⏸ Pause', 'ext.replay':'🔁 Play from Start', 'ext.file_loaded':'✅ Loaded: ',
+            'err.empty':'✅ {layer} error list is empty', 'err.preparing':'⏳ Correction mode: preparing 1 original sentence + 3 new sentences for 「{word}」… ({a}/{b})',
+            'err.progress':'Correction mode: 「{word}」 sentence {a}/{b} ({kind})', 'err.kind_orig':'original', 'err.kind_new':'new',
+            'err.done_all':'🎉 All {n} sentences correct for 「{word}」 — correction complete, added to review plan', 'err.done_part':'「{word}」: {c} of {n} sentences correct, keep going', 'err.gen_fail':'⚠️ Generation failed, tap "Practice" to retry',
+            'err.finished':'Error practice finished: words with all 4 sentences correct entered the review plan; the rest stay in the error list',
+            'dv.mark_hint':'👂 Listen first: ←/→ move the cursor, Space marks the parts you don\'t understand (orange), then tap "✅ Done marking"',
+            'dv.recording':'🎤 Listening… read the {part} aloud; it fills the boxes automatically (pause to auto-stop, tap again to stop early)',
+            'dv.done':'✅ All {part} recognized. Tap "Check": marked-unknown spots always count wrong, and other wrong characters count wrong too. You can re-record.',
+            'dv.after_mark_whole':'🔒 {n} spot(s) marked unknown. Tap "🎤 Record" and read the whole sentence',
+            'dv.after_mark_chunk':'🔒 {n} spot(s) marked unknown｜{chunk}: {state}', 'dv.chunk_done_state':'this chunk is recorded — "Next chunk" or re-record', 'dv.chunk_listen_state':'listen to this chunk first, then tap "🎤 Record" and read it',
+            'dv.btn_mark_done':'✅ Done marking', 'dv.btn_record':'🎤 Record sentence', 'dv.btn_record_chunk':'🎤 Record {chunk}', 'dv.btn_recording':'🔴 Recording… tap to stop',
+            'dv.btn_rerecord':'🎤 Re-record', 'dv.btn_rerecord_chunk':'🎤 Re-record ({chunk})', 'dv.btn_rerecord_block':'🎤 Re-record chunk', 'dv.btn_next_chunk':'⏭ Next chunk',
+            'dv.cmp_you':'✏️ You: ', 'dv.cmp_ref':'✅ Answer: ', 'dv.toast_no_record':'🎤 Please tap "Record" and read the sentence before pressing Enter',
+            'dv.chunk_label':'chunk {a}/{b}', 'dv.unknown_badge':'not known'
+        },
+        'Japanese': {
+            'lt.tab_dict':'🎧 聞き取り入力', 'lt.tab_ext':'🌊 多聴', 'lt.tab_err':'❌ 間違い練習',
+            'ext.subtitle':'リーディングと同じ AI 技術で聴解文章を生成（間違い語・目標レベル語・ヒント語を自動で含む）し、音声で再生。テキストは表示せず、聞くだけ。',
+            'ext.rate_label':'🔉 再生速度', 'ext.voice_label':'🗣️ 音声', 'ext.level_label':'📖 レベル', 'ext.topic_label':'📌 トピック（リーディングと同じ）：', 'ext.fresh_btn':'🌐 最新トピック',
+            'ext.custom_ph':'✍️ 自分でトピックを書く（空欄なら上の選択を使用）', 'ext.words_label':'🔑 ヒント語：', 'ext.words_ph':'記事に必ず含める語（スペースかカンマ区切り）',
+            'ext.gen_btn':'✨ 聴解文章を生成', 'ext.gen_ing':'⏳ 生成中…', 'ext.gen_fail':'⚠️ 生成失敗：', 'ext.gen_writing':'⏳ AIが聴解文章を書いています…',
+            'ext.progress':'多聴：{n} 文 · 約 {m} 字 · 🔒 テキスト非表示', 'ext.hidden':'🔒 テキストは非表示。聞くだけ。', 'ext.need_gen':'先に「✨ 聴解文章を生成」してください',
+            'ext.play':'▶ 全文再生', 'ext.pause':'⏸ 一時停止', 'ext.replay':'🔁 最初から再生', 'ext.file_loaded':'✅ 読み込み済み：',
+            'err.empty':'✅ {layer}の間違いリストは空です', 'err.preparing':'⏳ 直しモード：「{word}」の元の文1つ＋新しい文3つを準備中…（{a}/{b}）',
+            'err.progress':'直しモード：「{word}」{a}/{b} 文目（{kind}）', 'err.kind_orig':'元の文', 'err.kind_new':'新しい文',
+            'err.done_all':'🎉 「{word}」{n} 文全問正解！直し完了、復習計画へ追加', 'err.done_part':'「{word}」{n} 文中 {c} 文正解、がんばって', 'err.gen_fail':'⚠️ 生成失敗。「練習」を押して再試行',
+            'err.finished':'間違い練習終了：4文全問正解の語は復習計画へ、残りは間違いリストに残ります',
+            'dv.mark_hint':'👂 まず聞く：←/→で移動、スペースでわからない場所をマーク（オレンジ）、終わったら「✅ マーク完了」',
+            'dv.recording':'🎤 聞いています…{part}を声に出して読むと自動で入力されます（少し止まると自動終了、もう一度押すと手動終了）',
+            'dv.done':'✅ 全部{part}を認識しました。「チェック」で採点：マークした場所は必ず不正解、他の間違いも不正解。録り直し可。',
+            'dv.after_mark_whole':'🔒 {n} か所マーク済み。「🎤 録音」を押して全文を読んでください',
+            'dv.after_mark_chunk':'🔒 {n} か所マーク済み｜{chunk}：{state}', 'dv.chunk_done_state':'この語塊は録音済み — 「次の語塊」か録り直し', 'dv.chunk_listen_state':'まずこの語塊を聞き、「🎤 録音」を押して読んでください',
+            'dv.btn_mark_done':'✅ マーク完了', 'dv.btn_record':'🎤 全文録音', 'dv.btn_record_chunk':'🎤 {chunk}を録音', 'dv.btn_recording':'🔴 録音中…押すと停止',
+            'dv.btn_rerecord':'🎤 録り直す', 'dv.btn_rerecord_chunk':'🎤 録り直す（{chunk}）', 'dv.btn_rerecord_block':'🎤 この語塊を録り直す', 'dv.btn_next_chunk':'⏭ 次の語塊',
+            'dv.cmp_you':'✏️ あなた：', 'dv.cmp_ref':'✅ 正解：', 'dv.toast_no_record':'🎤 先に「録音」で文を読んでからエンターを押してください',
+            'dv.chunk_label':'第{a}語塊（全{b}語塊）', 'dv.unknown_badge':'わからない'
+        },
+        'Korean': {
+            'lt.tab_dict':'🎧 받아쓰기', 'lt.tab_ext':'🌊 다청', 'lt.tab_err':'❌ 오답 연습',
+            'ext.subtitle':'읽기와 같은 AI 기술로 듣기 글을 생성(오답 단어·목표 레벨 단어·힌트 단어 자동 포함)하고 음성으로 재생합니다. 텍스트는 표시되지 않으며 듣기만 합니다.',
+            'ext.rate_label':'🔉 재생 속도', 'ext.voice_label':'🗣️ 음성', 'ext.level_label':'📖 레벨', 'ext.topic_label':'📌 주제(읽기와 동일):', 'ext.fresh_btn':'🌐 최신 주제',
+            'ext.custom_ph':'✍️ 직접 주제 입력(비우면 위 선택 사용)', 'ext.words_label':'🔑 힌트 단어:', 'ext.words_ph':'글에 반드시 들어갈 단어(공백/쉼표 구분)',
+            'ext.gen_btn':'✨ 듣기 글 생성', 'ext.gen_ing':'⏳ 생성 중…', 'ext.gen_fail':'⚠️ 생성 실패: ', 'ext.gen_writing':'⏳ AI가 듣기 글을 쓰는 중…',
+            'ext.progress':'다청: {n}문장 · 약 {m}자 · 🔒 텍스트 숨김', 'ext.hidden':'🔒 텍스트 숨김 — 듣기만.', 'ext.need_gen':'먼저 「✨ 듣기 글 생성」을 눌러주세요',
+            'ext.play':'▶ 전체 재생', 'ext.pause':'⏸ 일시정지', 'ext.replay':'🔁 처음부터 재생', 'ext.file_loaded':'✅ 로드됨: ',
+            'err.empty':'✅ {layer} 오답 목록이 비어 있습니다', 'err.preparing':'⏳ 교정 모드: 「{word}」 원문 1개 + 새 문장 3개 준비 중… ({a}/{b})',
+            'err.progress':'교정 모드: 「{word}」 {a}/{b}번째 문장({kind})', 'err.kind_orig':'원문', 'err.kind_new':'새 문장',
+            'err.done_all':'🎉 「{word}」 {n}문장 모두 정답! 교정 완료, 복습 계획에 추가', 'err.done_part':'「{word}」 {n}문장 중 {c}문장 정답, 힘내세요', 'err.gen_fail':'⚠️ 생성 실패, 「연습」을 눌러 다시 시도',
+            'err.finished':'오답 연습 완료: 4문장 모두 맞힌 단어는 복습 계획에 들어가고 나머지는 오답 목록에 남습니다',
+            'dv.mark_hint':'👂 먼저 듣기: ←/→로 이동, 스페이스로 모르는 곳 표시(주황색), 끝나면 「✅ 표시 완료」',
+            'dv.recording':'🎤 듣는 중… {part}을(를) 소리 내어 읽으면 자동 입력됩니다(잠깐 멈추면 자동 종료, 다시 누르면 수동 종료)',
+            'dv.done':'✅ {part} 인식 완료. 「확인」으로 채점: 표시한 곳은 항상 오답, 다른 틀린 글자도 오답. 다시 녹음 가능.',
+            'dv.after_mark_whole':'🔒 {n}곳 표시됨. 「🎤 녹음」을 누르고 문장 전체를 읽으세요',
+            'dv.after_mark_chunk':'🔒 {n}곳 표시됨｜{chunk}: {state}', 'dv.chunk_done_state':'이 덩어리는 녹음됨 — 「다음 덩어리」 또는 다시 녹음', 'dv.chunk_listen_state':'먼저 이 덩어리를 듣고 「🎤 녹음」을 눌러 읽으세요',
+            'dv.btn_mark_done':'✅ 표시 완료', 'dv.btn_record':'🎤 문장 녹음', 'dv.btn_record_chunk':'🎤 {chunk} 녹음', 'dv.btn_recording':'🔴 녹음 중… 누르면 중지',
+            'dv.btn_rerecord':'🎤 다시 녹음', 'dv.btn_rerecord_chunk':'🎤 다시 녹음({chunk})', 'dv.btn_rerecord_block':'🎤 이 덩어리 다시 녹음', 'dv.btn_next_chunk':'⏭ 다음 덩어리',
+            'dv.cmp_you':'✏️ 당신: ', 'dv.cmp_ref':'✅ 정답: ', 'dv.toast_no_record':'🎤 먼저 「녹음」으로 문장을 읽은 후 엔터를 누르세요',
+            'dv.chunk_label':'{a}번째 덩어리(총 {b}개)', 'dv.unknown_badge':'모름'
+        },
+        'French': {
+            'lt.tab_dict':'🎧 Dictée orale', 'lt.tab_ext':'🌊 Écoute extensive', 'lt.tab_err':'❌ Exercices sur erreurs',
+            'ext.subtitle':'L\'IA génère des articles d\'écoute avec la même technologie que la lecture (mots erronés et mots du niveau cible inclus automatiquement, plus vos mots-indices), puis les lit à voix haute. Le texte n\'est jamais affiché — écouter seulement.',
+            'ext.rate_label':'🔉 Vitesse de lecture', 'ext.voice_label':'🗣️ Voix', 'ext.level_label':'📖 Niveau', 'ext.topic_label':'📌 Sujet (comme la lecture) :', 'ext.fresh_btn':'🌐 Derniers sujets',
+            'ext.custom_ph':'✍️ Écrivez votre sujet (vide = sujet sélectionné)', 'ext.words_label':'🔑 Mots-indices :', 'ext.words_ph':'Mots qui doivent apparaître dans l\'article, séparés par des espaces ou virgules',
+            'ext.gen_btn':'✨ Générer l\'article d\'écoute', 'ext.gen_ing':'⏳ Génération…', 'ext.gen_fail':'⚠️ Échec de la génération : ', 'ext.gen_writing':'⏳ L\'IA rédige l\'article d\'écoute…',
+            'ext.progress':'Écoute extensive : {n} phrases · environ {m} caractères · 🔒 texte masqué', 'ext.hidden':'🔒 Texte masqué — écouter seulement.', 'ext.need_gen':'Veuillez d\'abord « ✨ Générer l\'article d\'écoute »',
+            'ext.play':'▶ Tout lire', 'ext.pause':'⏸ Pause', 'ext.replay':'🔁 Lire depuis le début', 'ext.file_loaded':'✅ Chargé : ',
+            'err.empty':'✅ La liste d\'erreurs {layer} est vide', 'err.preparing':'⏳ Mode correction : préparation d\'1 phrase originale + 3 nouvelles phrases pour « {word} »… ({a}/{b})',
+            'err.progress':'Mode correction : « {word} » phrase {a}/{b} ({kind})', 'err.kind_orig':'originale', 'err.kind_new':'nouvelle',
+            'err.done_all':'🎉 « {word} » : {n} phrases toutes correctes — correction terminée, ajouté au plan de révision', 'err.done_part':'« {word} » : {c} phrases correctes sur {n}, continuez', 'err.gen_fail':'⚠️ Échec de la génération, appuyez sur « Pratiquer » pour réessayer',
+            'err.finished':'Exercices terminés : les mots avec 4 phrases correctes sont entrés dans le plan de révision, les autres restent dans la liste d\'erreurs',
+            'dv.mark_hint':'👂 Écoutez d\'abord : ←/→ pour déplacer le curseur, Espace pour marquer ce que vous ne comprenez pas (orange), puis « ✅ Marquer terminé »',
+            'dv.recording':'🎤 Écoute en cours… lisez {part} à voix haute, cela remplit les cases automatiquement (pause = arrêt auto, nouveau clic = arrêt manuel)',
+            'dv.done':'✅ Tout {part} est reconnu. Cliquez sur « Vérifier » : les endroits marqués comptent toujours faux, les autres caractères faux comptent faux aussi. Vous pouvez réenregistrer.',
+            'dv.after_mark_whole':'🔒 {n} endroit(s) marqué(s) inconnu(s). Cliquez sur « 🎤 Enregistrer » et lisez toute la phrase',
+            'dv.after_mark_chunk':'🔒 {n} endroit(s) marqué(s)｜{chunk} : {state}', 'dv.chunk_done_state':'ce bloc est enregistré — « Bloc suivant » ou réenregistrer', 'dv.chunk_listen_state':'écoutez d\'abord ce bloc, puis cliquez sur « 🎤 Enregistrer » et lisez-le',
+            'dv.btn_mark_done':'✅ Marquer terminé', 'dv.btn_record':'🎤 Enregistrer la phrase', 'dv.btn_record_chunk':'🎤 Enregistrer {chunk}', 'dv.btn_recording':'🔴 Enregistrement… cliquer pour arrêter',
+            'dv.btn_rerecord':'🎤 Réenregistrer', 'dv.btn_rerecord_chunk':'🎤 Réenregistrer ({chunk})', 'dv.btn_rerecord_block':'🎤 Réenregistrer ce bloc', 'dv.btn_next_chunk':'⏭ Bloc suivant',
+            'dv.cmp_you':'✏️ Vous : ', 'dv.cmp_ref':'✅ Réponse : ', 'dv.toast_no_record':'🎤 Veuillez d\'abord cliquer sur « Enregistrer » et lire la phrase avant d\'appuyer sur Entrée',
+            'dv.chunk_label':'bloc {a}/{b}', 'dv.unknown_badge':'inconnu'
+        },
+        'German': {
+            'lt.tab_dict':'🎧 Hör-Diktat', 'lt.tab_ext':'🌊 Extensives Hören', 'lt.tab_err':'❌ Fehlerübungen',
+            'ext.subtitle':'KI erstellt Hörartikel mit derselben Technik wie beim Lesen (Fehlerwörter und Wörter der Zielstufe automatisch enthalten, plus deine Hinweiswörter) und liest sie vor. Der Text wird nie angezeigt — nur zuhören.',
+            'ext.rate_label':'🔉 Wiedergabegeschwindigkeit', 'ext.voice_label':'🗣️ Stimme', 'ext.level_label':'📖 Stufe', 'ext.topic_label':'📌 Thema (wie beim Lesen):', 'ext.fresh_btn':'🌐 Neueste Themen',
+            'ext.custom_ph':'✍️ Eigenes Thema schreiben (leer = gewähltes Thema)', 'ext.words_label':'🔑 Hinweiswörter:', 'ext.words_ph':'Wörter, die im Artikel vorkommen müssen (Leerzeichen/Komma getrennt)',
+            'ext.gen_btn':'✨ Hörartikel generieren', 'ext.gen_ing':'⏳ Generieren…', 'ext.gen_fail':'⚠️ Generieren fehlgeschlagen: ', 'ext.gen_writing':'⏳ KI schreibt den Hörartikel…',
+            'ext.progress':'Extensives Hören: {n} Sätze · ca. {m} Zeichen · 🔒 Text ausgeblendet', 'ext.hidden':'🔒 Text ausgeblendet — nur zuhören.', 'ext.need_gen':'Bitte zuerst „✨ Hörartikel generieren“',
+            'ext.play':'▶ Alles abspielen', 'ext.pause':'⏸ Pause', 'ext.replay':'🔁 Von vorn abspielen', 'ext.file_loaded':'✅ Geladen: ',
+            'err.empty':'✅ {layer}-Fehlerliste ist leer', 'err.preparing':'⏳ Korrekturmodus: bereite 1 Originalsatz + 3 neue Sätze für „{word}“ vor… ({a}/{b})',
+            'err.progress':'Korrekturmodus: „{word}“ Satz {a}/{b} ({kind})', 'err.kind_orig':'Original', 'err.kind_new':'neu',
+            'err.done_all':'🎉 „{word}“: alle {n} Sätze richtig — Korrektur abgeschlossen, zum Wiederholungsplan hinzugefügt', 'err.done_part':'„{word}“: {c} von {n} Sätzen richtig, weiter so', 'err.gen_fail':'⚠️ Generieren fehlgeschlagen, „Üben“ zum erneuten Versuch',
+            'err.finished':'Fehlerübungen beendet: Wörter mit 4 richtigen Sätzen kamen in den Wiederholungsplan, der Rest bleibt in der Fehlerliste',
+            'dv.mark_hint':'👂 Zuerst zuhören: ←/→ bewegt den Cursor, Leertaste markiert Unverstandenes (orange), dann „✅ Markieren fertig“',
+            'dv.recording':'🎤 Höre zu… lies {part} laut vor, die Kästchen füllen sich automatisch (Pause = automatischer Stopp, erneuter Klick = manueller Stopp)',
+            'dv.done':'✅ Alles {part} erkannt. „Prüfen“: markierte Stellen zählen immer falsch, andere falsche Zeichen ebenfalls. Du kannst neu aufnehmen.',
+            'dv.after_mark_whole':'🔒 {n} Stelle(n) als unbekannt markiert. Klicke „🎤 Aufnehmen“ und lies den ganzen Satz',
+            'dv.after_mark_chunk':'🔒 {n} Stelle(n) markiert｜{chunk}: {state}', 'dv.chunk_done_state':'dieser Block ist aufgenommen — „Nächster Block“ oder neu aufnehmen', 'dv.chunk_listen_state':'höre zuerst diesen Block, dann „🎤 Aufnehmen“ und vorlesen',
+            'dv.btn_mark_done':'✅ Markieren fertig', 'dv.btn_record':'🎤 Satz aufnehmen', 'dv.btn_record_chunk':'🎤 {chunk} aufnehmen', 'dv.btn_recording':'🔴 Aufnahme… Klick zum Stoppen',
+            'dv.btn_rerecord':'🎤 Neu aufnehmen', 'dv.btn_rerecord_chunk':'🎤 Neu aufnehmen ({chunk})', 'dv.btn_rerecord_block':'🎤 Diesen Block neu aufnehmen', 'dv.btn_next_chunk':'⏭ Nächster Block',
+            'dv.cmp_you':'✏️ Du: ', 'dv.cmp_ref':'✅ Antwort: ', 'dv.toast_no_record':'🎤 Bitte erst „Aufnehmen“ drücken und den Satz vorlesen, dann Enter',
+            'dv.chunk_label':'Block {a}/{b}', 'dv.unknown_badge':'unbekannt'
+        },
+        'Spanish': {
+            'lt.tab_dict':'🎧 Dictado auditivo', 'lt.tab_ext':'🌊 Escucha extensiva', 'lt.tab_err':'❌ Práctica de errores',
+            'ext.subtitle':'La IA genera artículos de escucha con la misma tecnología que Lectura (incluye automáticamente palabras erróneas y del nivel objetivo, más tus palabras clave) y los lee en voz alta. El texto nunca se muestra: solo escucha.',
+            'ext.rate_label':'🔉 Velocidad de reproducción', 'ext.voice_label':'🗣️ Voz', 'ext.level_label':'📖 Nivel', 'ext.topic_label':'📌 Tema (igual que Lectura):', 'ext.fresh_btn':'🌐 Temas recientes',
+            'ext.custom_ph':'✍️ Escribe tu tema (vacío = tema seleccionado)', 'ext.words_label':'🔑 Palabras clave:', 'ext.words_ph':'Palabras que deben aparecer en el artículo, separadas por espacios o comas',
+            'ext.gen_btn':'✨ Generar artículo de escucha', 'ext.gen_ing':'⏳ Generando…', 'ext.gen_fail':'⚠️ Falló la generación: ', 'ext.gen_writing':'⏳ La IA está escribiendo el artículo de escucha…',
+            'ext.progress':'Escucha extensiva: {n} frases · unos {m} caracteres · 🔒 texto oculto', 'ext.hidden':'🔒 Texto oculto: solo escucha.', 'ext.need_gen':'Primero «✨ Generar artículo de escucha»',
+            'ext.play':'▶ Reproducir todo', 'ext.pause':'⏸ Pausa', 'ext.replay':'🔁 Reproducir desde el inicio', 'ext.file_loaded':'✅ Cargado: ',
+            'err.empty':'✅ La lista de errores de {layer} está vacía', 'err.preparing':'⏳ Modo corrección: preparando 1 frase original + 3 frases nuevas para «{word}»… ({a}/{b})',
+            'err.progress':'Modo corrección: «{word}» frase {a}/{b} ({kind})', 'err.kind_orig':'original', 'err.kind_new':'nueva',
+            'err.done_all':'🎉 «{word}»: las {n} frases correctas — corrección completa, añadida al plan de repaso', 'err.done_part':'«{word}»: {c} de {n} frases correctas, sigue así', 'err.gen_fail':'⚠️ Falló la generación, pulsa «Practicar» para reintentar',
+            'err.finished':'Práctica terminada: las palabras con 4 frases correctas entraron al plan de repaso; el resto sigue en la lista de errores',
+            'dv.mark_hint':'👂 Escucha primero: ←/→ mueve el cursor, Espacio marca lo que no entiendes (naranja), luego «✅ Marcar listo»',
+            'dv.recording':'🎤 Escuchando… lee {part} en voz alta y se rellena automáticamente (pausa = fin automático, otro clic = fin manual)',
+            'dv.done':'✅ Todo {part} reconocido. Pulsa «Comprobar»: lo marcado cuenta siempre mal, otros caracteres mal también. Puedes regrabar.',
+            'dv.after_mark_whole':'🔒 {n} lugar(es) marcado(s) como desconocido. Pulsa «🎤 Grabar» y lee toda la frase',
+            'dv.after_mark_chunk':'🔒 {n} lugar(es) marcado(s)｜{chunk}: {state}', 'dv.chunk_done_state':'este bloque está grabado: «Bloque siguiente» o regrabar', 'dv.chunk_listen_state':'escucha primero este bloque y luego pulsa «🎤 Grabar» y léelo',
+            'dv.btn_mark_done':'✅ Marcar listo', 'dv.btn_record':'🎤 Grabar frase', 'dv.btn_record_chunk':'🎤 Grabar {chunk}', 'dv.btn_recording':'🔴 Grabando… clic para parar',
+            'dv.btn_rerecord':'🎤 Regrabar', 'dv.btn_rerecord_chunk':'🎤 Regrabar ({chunk})', 'dv.btn_rerecord_block':'🎤 Regrabar este bloque', 'dv.btn_next_chunk':'⏭ Bloque siguiente',
+            'dv.cmp_you':'✏️ Tú: ', 'dv.cmp_ref':'✅ Respuesta: ', 'dv.toast_no_record':'🎤 Primero pulsa «Grabar» y lee la frase antes de pulsar Enter',
+            'dv.chunk_label':'bloque {a}/{b}', 'dv.unknown_badge':'no sé'
+        },
+        'Russian': {
+            'lt.tab_dict':'🎧 Аудиодиктант', 'lt.tab_ext':'🌊 Обширное аудирование', 'lt.tab_err':'❌ Работа над ошибками',
+            'ext.subtitle':'ИИ создаёт аудиотексты по той же технологии, что и чтение (слова с ошибками и слова целевого уровня добавляются автоматически, плюс ваши подсказки), и озвучивает их. Текст не показывается — только слушайте.',
+            'ext.rate_label':'🔉 Скорость воспроизведения', 'ext.voice_label':'🗣️ Голос', 'ext.level_label':'📖 Уровень', 'ext.topic_label':'📌 Тема (как в чтении):', 'ext.fresh_btn':'🌐 Свежие темы',
+            'ext.custom_ph':'✍️ Своя тема (пусто = выбранная тема)', 'ext.words_label':'🔑 Слова-подсказки:', 'ext.words_ph':'Слова, которые должны быть в тексте (через пробел или запятую)',
+            'ext.gen_btn':'✨ Создать аудиотекст', 'ext.gen_ing':'⏳ Создание…', 'ext.gen_fail':'⚠️ Ошибка создания: ', 'ext.gen_writing':'⏳ ИИ пишет аудиотекст…',
+            'ext.progress':'Обширное аудирование: {n} предл. · около {m} знаков · 🔒 текст скрыт', 'ext.hidden':'🔒 Текст скрыт — только слушайте.', 'ext.need_gen':'Сначала «✨ Создать аудиотекст»',
+            'ext.play':'▶ Воспроизвести всё', 'ext.pause':'⏸ Пауза', 'ext.replay':'🔁 Сначала', 'ext.file_loaded':'✅ Загружено: ',
+            'err.empty':'✅ Список ошибок ({layer}) пуст', 'err.preparing':'⏳ Режим исправления: готовлю 1 исходное предложение + 3 новых для «{word}»… ({a}/{b})',
+            'err.progress':'Режим исправления: «{word}» предложение {a}/{b} ({kind})', 'err.kind_orig':'исходное', 'err.kind_new':'новое',
+            'err.done_all':'🎉 «{word}»: все {n} предложений верны — исправление завершено, добавлено в план повторения', 'err.done_part':'«{word}»: верно {c} из {n} предложений, продолжайте', 'err.gen_fail':'⚠️ Ошибка создания, нажмите «Тренировать» ещё раз',
+            'err.finished':'Тренировка завершена: слова с 4 верными предложениями попали в план повторения, остальные остаются в списке ошибок',
+            'dv.mark_hint':'👂 Сначала слушайте: ←/→ — курсор, пробел — отметить непонятное (оранжевым), затем «✅ Готово»',
+            'dv.recording':'🎤 Слушаю… прочитайте {part} вслух, клетки заполнятся сами (пауза = автостоп, повторный клик = ручной стоп)',
+            'dv.done':'✅ Всё {part} распознано. «Проверить»: отмеченные места всегда считаются ошибкой, другие неверные знаки — тоже. Можно перезаписать.',
+            'dv.after_mark_whole':'🔒 Отмечено непонятных мест: {n}. Нажмите «🎤 Запись» и прочитайте всё предложение',
+            'dv.after_mark_chunk':'🔒 Отмечено мест: {n}｜{chunk}: {state}', 'dv.chunk_done_state':'этот блок записан — «Следующий блок» или перезапись', 'dv.chunk_listen_state':'сначала послушайте этот блок, затем «🎤 Запись» и прочитайте',
+            'dv.btn_mark_done':'✅ Готово', 'dv.btn_record':'🎤 Записать предложение', 'dv.btn_record_chunk':'🎤 Записать {chunk}', 'dv.btn_recording':'🔴 Запись… клик — стоп',
+            'dv.btn_rerecord':'🎤 Перезаписать', 'dv.btn_rerecord_chunk':'🎤 Перезаписать ({chunk})', 'dv.btn_rerecord_block':'🎤 Перезаписать блок', 'dv.btn_next_chunk':'⏭ Следующий блок',
+            'dv.cmp_you':'✏️ Вы: ', 'dv.cmp_ref':'✅ Ответ: ', 'dv.toast_no_record':'🎤 Сначала нажмите «Запись» и прочитайте предложение, затем Enter',
+            'dv.chunk_label':'блок {a}/{b}', 'dv.unknown_badge':'не знаю'
+        },
+        'Thai': {
+            'lt.tab_dict':'🎧 ฟัง-เขียน', 'lt.tab_ext':'🌊 ฟังแบบกว้าง', 'lt.tab_err':'❌ ฝึกจากข้อผิดพลาด',
+            'ext.subtitle':'AI สร้างบทความฟังด้วยเทคโนโลยีเดียวกับการอ่าน (รวมคำที่ผิดและคำระดับเป้าหมายให้อัตโนมัติ พร้อมคำใบ้ของคุณ) แล้วอ่านออกเสียง ไม่แสดงข้อความ — ฟังอย่างเดียว',
+            'ext.rate_label':'🔉 ความเร็วการเล่น', 'ext.voice_label':'🗣️ เสียง', 'ext.level_label':'📖 ระดับ', 'ext.topic_label':'📌 หัวข้อ (เหมือนการอ่าน):', 'ext.fresh_btn':'🌐 หัวข้อล่าสุด',
+            'ext.custom_ph':'✍️ เขียนหัวข้อเอง (เว้นว่าง = ใช้หัวข้อที่เลือก)', 'ext.words_label':'🔑 คำใบ้:', 'ext.words_ph':'คำที่ต้องมีในบทความ คั่นด้วยช่องว่างหรือจุลภาค',
+            'ext.gen_btn':'✨ สร้างบทความฟัง', 'ext.gen_ing':'⏳ กำลังสร้าง…', 'ext.gen_fail':'⚠️ สร้างไม่สำเร็จ: ', 'ext.gen_writing':'⏳ AI กำลังเขียนบทความฟัง…',
+            'ext.progress':'ฟังแบบกว้าง: {n} ประโยค · ประมาณ {m} ตัวอักษร · 🔒 ซ่อนข้อความ', 'ext.hidden':'🔒 ซ่อนข้อความ — ฟังอย่างเดียว', 'ext.need_gen':'กรุณากด「✨ สร้างบทความฟัง」ก่อน',
+            'ext.play':'▶ เล่นทั้งหมด', 'ext.pause':'⏸ หยุดชั่วคราว', 'ext.replay':'🔁 เล่นตั้งแต่ต้น', 'ext.file_loaded':'✅ โหลดแล้ว: ',
+            'err.empty':'✅ รายการคำผิด{layer}ว่างเปล่า', 'err.preparing':'⏳ โหมดแก้ไข: กำลังเตรียม 1 ประโยคเดิม + 3 ประโยคใหม่สำหรับ「{word}」… ({a}/{b})',
+            'err.progress':'โหมดแก้ไข: 「{word}」ประโยคที่ {a}/{b} ({kind})', 'err.kind_orig':'ประโยคเดิม', 'err.kind_new':'ประโยคใหม่',
+            'err.done_all':'🎉 「{word}」ถูกทั้ง {n} ประโยค — แก้ไขสำเร็จ เข้าแผนทบทวนแล้ว', 'err.done_part':'「{word}」ถูก {c} จาก {n} ประโยค สู้ต่อไป', 'err.gen_fail':'⚠️ สร้างไม่สำเร็จ กด「ฝึก」เพื่อลองใหม่',
+            'err.finished':'ฝึกจบแล้ว: คำที่ถูกครบ 4 ประโยคเข้าแผนทบทวน ที่เหลือยังอยู่ในรายการคำผิด',
+            'dv.mark_hint':'👂 ฟังก่อน: ←/→ เลื่อนเคอร์เซอร์ สเปซบาร์ทำเครื่องหมายที่ไม่เข้าใจ (สีส้ม) แล้วกด「✅ ทำเครื่องหมายเสร็จ」',
+            'dv.recording':'🎤 กำลังฟัง… อ่าน{part}ออกเสียง จะเติมช่องให้อัตโนมัติ (หยุดนิ่ง = จบอัตโนมัติ กดอีกครั้ง = จบเอง)',
+            'dv.done':'✅ จำเสียง{part}ครบแล้ว กด「ตรวจ」: จุดที่ทำเครื่องหมายนับผิดเสมอ ตัวอื่นที่ผิดก็นับผิด บันทึกใหม่ได้',
+            'dv.after_mark_whole':'🔒 ทำเครื่องหมายไม่เข้าใจ {n} จุด กด「🎤 บันทึกเสียง」แล้วอ่านทั้งประโยค',
+            'dv.after_mark_chunk':'🔒 ทำเครื่องหมาย {n} จุด｜{chunk}: {state}', 'dv.chunk_done_state':'บล็อกนี้บันทึกแล้ว — 「บล็อกถัดไป」หรือบันทึกใหม่', 'dv.chunk_listen_state':'ฟังบล็อกนี้ก่อน แล้วกด「🎤 บันทึกเสียง」อ่าน',
+            'dv.btn_mark_done':'✅ ทำเครื่องหมายเสร็จ', 'dv.btn_record':'🎤 บันทึกทั้งประโยค', 'dv.btn_record_chunk':'🎤 บันทึก{chunk}', 'dv.btn_recording':'🔴 กำลังบันทึก… กดเพื่อหยุด',
+            'dv.btn_rerecord':'🎤 บันทึกใหม่', 'dv.btn_rerecord_chunk':'🎤 บันทึกใหม่ ({chunk})', 'dv.btn_rerecord_block':'🎤 บันทึกบล็อกนี้ใหม่', 'dv.btn_next_chunk':'⏭ บล็อกถัดไป',
+            'dv.cmp_you':'✏️ คุณ: ', 'dv.cmp_ref':'✅ เฉลย: ', 'dv.toast_no_record':'🎤 กด「บันทึกเสียง」และอ่านประโยคก่อน แล้วค่อยกด Enter',
+            'dv.chunk_label':'บล็อกที่ {a}/{b}', 'dv.unknown_badge':'ไม่รู้'
+        },
+        'Italian': {
+            'lt.tab_dict':'🎧 Dettato orale', 'lt.tab_ext':'🌊 Ascolto estensivo', 'lt.tab_err':'❌ Esercizi sugli errori',
+            'ext.subtitle':'L\'IA genera articoli d\'ascolto con la stessa tecnologia della lettura (parole errate e parole del livello obiettivo incluse automaticamente, più le tue parole indizio) e li legge ad alta voce. Il testo non viene mai mostrato: solo ascolto.',
+            'ext.rate_label':'🔉 Velocità di riproduzione', 'ext.voice_label':'🗣️ Voce', 'ext.level_label':'📖 Livello', 'ext.topic_label':'📌 Argomento (come la lettura):', 'ext.fresh_btn':'🌐 Argomenti recenti',
+            'ext.custom_ph':'✍️ Scrivi il tuo argomento (vuoto = argomento selezionato)', 'ext.words_label':'🔑 Parole indizio:', 'ext.words_ph':'Parole che devono apparire nell\'articolo, separate da spazi o virgole',
+            'ext.gen_btn':'✨ Genera articolo d\'ascolto', 'ext.gen_ing':'⏳ Generazione…', 'ext.gen_fail':'⚠️ Generazione non riuscita: ', 'ext.gen_writing':'⏳ L\'IA sta scrivendo l\'articolo d\'ascolto…',
+            'ext.progress':'Ascolto estensivo: {n} frasi · circa {m} caratteri · 🔒 testo nascosto', 'ext.hidden':'🔒 Testo nascosto — solo ascolto.', 'ext.need_gen':'Prima «✨ Genera articolo d\'ascolto»',
+            'ext.play':'▶ Riproduci tutto', 'ext.pause':'⏸ Pausa', 'ext.replay':'🔁 Riproduci dall\'inizio', 'ext.file_loaded':'✅ Caricato: ',
+            'err.empty':'✅ La lista errori {layer} è vuota', 'err.preparing':'⏳ Modalità correzione: preparo 1 frase originale + 3 nuove frasi per «{word}»… ({a}/{b})',
+            'err.progress':'Modalità correzione: «{word}» frase {a}/{b} ({kind})', 'err.kind_orig':'originale', 'err.kind_new':'nuova',
+            'err.done_all':'🎉 «{word}»: tutte le {n} frasi corrette — correzione completata, aggiunta al piano di ripasso', 'err.done_part':'«{word}»: {c} frasi corrette su {n}, continua così', 'err.gen_fail':'⚠️ Generazione non riuscita, premi «Esercitati» per riprovare',
+            'err.finished':'Esercizi finiti: le parole con 4 frasi corrette sono entrate nel piano di ripasso, le altre restano nella lista errori',
+            'dv.mark_hint':'👂 Prima ascolta: ←/→ muove il cursore, Spazio segna ciò che non capisci (arancione), poi «✅ Segnato»',
+            'dv.recording':'🎤 In ascolto… leggi {part} ad alta voce, le caselle si riempiono da sole (pausa = stop automatico, nuovo clic = stop manuale)',
+            'dv.done':'✅ Tutto {part} riconosciuto. «Controlla»: i punti segnati contano sempre errore, anche gli altri caratteri sbagliati. Puoi registrare di nuovo.',
+            'dv.after_mark_whole':'🔒 {n} punto/i segnato/i come non capito/i. Premi «🎤 Registra» e leggi tutta la frase',
+            'dv.after_mark_chunk':'🔒 {n} punto/i segnato/i｜{chunk}: {state}', 'dv.chunk_done_state':'questo blocco è registrato — «Blocco successivo» o registra di nuovo', 'dv.chunk_listen_state':'ascolta prima questo blocco, poi «🎤 Registra» e leggilo',
+            'dv.btn_mark_done':'✅ Segnato', 'dv.btn_record':'🎤 Registra frase', 'dv.btn_record_chunk':'🎤 Registra {chunk}', 'dv.btn_recording':'🔴 Registrazione… clic per fermare',
+            'dv.btn_rerecord':'🎤 Registra di nuovo', 'dv.btn_rerecord_chunk':'🎤 Registra di nuovo ({chunk})', 'dv.btn_rerecord_block':'🎤 Registra di nuovo questo blocco', 'dv.btn_next_chunk':'⏭ Blocco successivo',
+            'dv.cmp_you':'✏️ Tu: ', 'dv.cmp_ref':'✅ Risposta: ', 'dv.toast_no_record':'🎤 Prima premi «Registra» e leggi la frase, poi Invio',
+            'dv.chunk_label':'blocco {a}/{b}', 'dv.unknown_badge':'non so'
+        },
+        'Vietnamese': {
+            'lt.tab_dict':'🎧 Nghe-viết', 'lt.tab_ext':'🌊 Nghe mở rộng', 'lt.tab_err':'❌ Luyện lỗi sai',
+            'ext.subtitle':'AI tạo bài nghe bằng công nghệ giống phần Đọc (tự động đưa vào từ sai và từ cấp mục tiêu, kèm từ gợi ý của bạn) rồi đọc thành tiếng. Không hiển thị văn bản — chỉ nghe.',
+            'ext.rate_label':'🔉 Tốc độ phát', 'ext.voice_label':'🗣️ Giọng', 'ext.level_label':'📖 Cấp độ', 'ext.topic_label':'📌 Chủ đề (giống Đọc):', 'ext.fresh_btn':'🌐 Chủ đề mới nhất',
+            'ext.custom_ph':'✍️ Tự viết chủ đề (bỏ trống = dùng chủ đề đã chọn)', 'ext.words_label':'🔑 Từ gợi ý:', 'ext.words_ph':'Từ bắt buộc có trong bài, cách nhau bằng dấu cách hoặc phẩy',
+            'ext.gen_btn':'✨ Tạo bài nghe', 'ext.gen_ing':'⏳ Đang tạo…', 'ext.gen_fail':'⚠️ Tạo thất bại: ', 'ext.gen_writing':'⏳ AI đang viết bài nghe…',
+            'ext.progress':'Nghe mở rộng: {n} câu · khoảng {m} ký tự · 🔒 ẩn văn bản', 'ext.hidden':'🔒 Đã ẩn văn bản — chỉ nghe.', 'ext.need_gen':'Hãy nhấn「✨ Tạo bài nghe」trước',
+            'ext.play':'▶ Phát tất cả', 'ext.pause':'⏸ Tạm dừng', 'ext.replay':'🔁 Phát lại từ đầu', 'ext.file_loaded':'✅ Đã tải: ',
+            'err.empty':'✅ Danh sách lỗi {layer} đang trống', 'err.preparing':'⏳ Chế độ sửa lỗi: đang chuẩn bị 1 câu gốc + 3 câu mới cho「{word}」… ({a}/{b})',
+            'err.progress':'Chế độ sửa lỗi: 「{word}」câu {a}/{b} ({kind})', 'err.kind_orig':'câu gốc', 'err.kind_new':'câu mới',
+            'err.done_all':'🎉 「{word}」đúng cả {n} câu — sửa lỗi hoàn tất, đã vào kế hoạch ôn tập', 'err.done_part':'「{word}」đúng {c}/{n} câu, cố lên', 'err.gen_fail':'⚠️ Tạo thất bại, nhấn「Luyện」để thử lại',
+            'err.finished':'Luyện xong: từ đúng cả 4 câu đã vào kế hoạch ôn tập, còn lại vẫn ở danh sách lỗi',
+            'dv.mark_hint':'👂 Nghe trước: ←/→ di chuyển con trỏ, Phím cách đánh dấu chỗ không hiểu (màu cam), xong nhấn「✅ Đánh dấu xong」',
+            'dv.recording':'🎤 Đang nghe… đọc {part} thành tiếng sẽ tự điền vào ô (ngừng = tự kết thúc, nhấn lần nữa = kết thúc sớm)',
+            'dv.done':'✅ Đã nhận dạng xong {part}. Nhấn「Kiểm tra」: chỗ đánh dấu luôn tính sai, chữ sai khác cũng tính sai. Có thể ghi âm lại.',
+            'dv.after_mark_whole':'🔒 Đã đánh dấu {n} chỗ không hiểu. Nhấn「🎤 Ghi âm」và đọc cả câu',
+            'dv.after_mark_chunk':'🔒 Đã đánh dấu {n} chỗ｜{chunk}: {state}', 'dv.chunk_done_state':'cụm này đã ghi — 「Cụm tiếp theo」hoặc ghi lại', 'dv.chunk_listen_state':'nghe cụm này trước, rồi nhấn「🎤 Ghi âm」và đọc',
+            'dv.btn_mark_done':'✅ Đánh dấu xong', 'dv.btn_record':'🎤 Ghi cả câu', 'dv.btn_record_chunk':'🎤 Ghi {chunk}', 'dv.btn_recording':'🔴 Đang ghi… nhấn để dừng',
+            'dv.btn_rerecord':'🎤 Ghi lại', 'dv.btn_rerecord_chunk':'🎤 Ghi lại ({chunk})', 'dv.btn_rerecord_block':'🎤 Ghi lại cụm này', 'dv.btn_next_chunk':'⏭ Cụm tiếp theo',
+            'dv.cmp_you':'✏️ Bạn: ', 'dv.cmp_ref':'✅ Đáp án: ', 'dv.toast_no_record':'🎤 Hãy nhấn「Ghi âm」đọc câu trước khi nhấn Enter',
+            'dv.chunk_label':'cụm {a}/{b}', 'dv.unknown_badge':'không biết'
+        },
+        'Indonesian': {
+            'lt.tab_dict':'🎧 Dengar-Tulis', 'lt.tab_ext':'🌊 Mendengar Luas', 'lt.tab_err':'❌ Latihan Kesalahan',
+            'ext.subtitle':'AI membuat artikel dengar dengan teknologi yang sama seperti Membaca (otomatis menyertakan kata salah dan kata level target, plus kata kunci Anda) lalu membacakannya. Teks tidak pernah ditampilkan — cukup dengarkan.',
+            'ext.rate_label':'🔉 Kecepatan putar', 'ext.voice_label':'🗣️ Suara', 'ext.level_label':'📖 Level', 'ext.topic_label':'📌 Topik (sama seperti Membaca):', 'ext.fresh_btn':'🌐 Topik terbaru',
+            'ext.custom_ph':'✍️ Tulis topik sendiri (kosong = pakai topik terpilih)', 'ext.words_label':'🔑 Kata kunci:', 'ext.words_ph':'Kata yang wajib muncul di artikel, dipisah spasi/koma',
+            'ext.gen_btn':'✨ Buat Artikel Dengar', 'ext.gen_ing':'⏳ Membuat…', 'ext.gen_fail':'⚠️ Gagal membuat: ', 'ext.gen_writing':'⏳ AI sedang menulis artikel dengar…',
+            'ext.progress':'Mendengar luas: {n} kalimat · sekitar {m} karakter · 🔒 teks disembunyikan', 'ext.hidden':'🔒 Teks disembunyikan — cukup dengarkan.', 'ext.need_gen':'Silakan tekan「✨ Buat Artikel Dengar」dulu',
+            'ext.play':'▶ Putar Semua', 'ext.pause':'⏸ Jeda', 'ext.replay':'🔁 Putar dari Awal', 'ext.file_loaded':'✅ Dimuat: ',
+            'err.empty':'✅ Daftar kesalahan {layer} kosong', 'err.preparing':'⏳ Mode koreksi: menyiapkan 1 kalimat asli + 3 kalimat baru untuk「{word}」… ({a}/{b})',
+            'err.progress':'Mode koreksi: 「{word}」kalimat {a}/{b} ({kind})', 'err.kind_orig':'asli', 'err.kind_new':'baru',
+            'err.done_all':'🎉 「{word}」benar semua {n} kalimat — koreksi selesai, masuk rencana ulasan', 'err.done_part':'「{word}」benar {c} dari {n} kalimat, terus semangat', 'err.gen_fail':'⚠️ Gagal membuat, tekan「Latih」untuk coba lagi',
+            'err.finished':'Latihan selesai: kata yang benar 4 kalimat masuk rencana ulasan, sisanya tetap di daftar kesalahan',
+            'dv.mark_hint':'👂 Dengarkan dulu: ←/→ pindah kursor, Spasi tandai bagian yang tidak paham (oranye), lalu「✅ Tandai selesai」',
+            'dv.recording':'🎤 Mendengarkan… baca {part} dengan suara, kotak terisi otomatis (berhenti sebentar = selesai otomatis, klik lagi = selesai manual)',
+            'dv.done':'✅ Semua {part} dikenali. Tekan「Periksa」: bagian yang ditandai selalu dihitung salah, karakter salah lain juga salah. Bisa rekam ulang.',
+            'dv.after_mark_whole':'🔒 {n} bagian ditandai tidak paham. Tekan「🎤 Rekam」dan baca seluruh kalimat',
+            'dv.after_mark_chunk':'🔒 {n} bagian ditandai｜{chunk}: {state}', 'dv.chunk_done_state':'potongan ini sudah direkam — 「Potongan berikut」atau rekam ulang', 'dv.chunk_listen_state':'dengarkan potongan ini dulu, lalu tekan「🎤 Rekam」dan baca',
+            'dv.btn_mark_done':'✅ Tandai selesai', 'dv.btn_record':'🎤 Rekam kalimat', 'dv.btn_record_chunk':'🎤 Rekam {chunk}', 'dv.btn_recording':'🔴 Merekam… klik untuk berhenti',
+            'dv.btn_rerecord':'🎤 Rekam ulang', 'dv.btn_rerecord_chunk':'🎤 Rekam ulang ({chunk})', 'dv.btn_rerecord_block':'🎤 Rekam ulang potongan ini', 'dv.btn_next_chunk':'⏭ Potongan berikut',
+            'dv.cmp_you':'✏️ Kamu: ', 'dv.cmp_ref':'✅ Jawaban: ', 'dv.toast_no_record':'🎤 Tekan「Rekam」dan baca kalimat dulu sebelum menekan Enter',
+            'dv.chunk_label':'potongan {a}/{b}', 'dv.unknown_badge':'tidak tahu'
+        },
+        'Slovak': {
+            'lt.tab_dict':'🎧 Diktát počutím', 'lt.tab_ext':'🌊 Extenzívne počúvanie', 'lt.tab_err':'❌ Cvičenie chýb',
+            'ext.subtitle':'AI generuje články na počúvanie rovnakou technológiou ako čítanie (automaticky zahrnie chybové slová a slová cieľovej úrovne, plus tvoje nápovedné slová) a prečíta ich nahlas. Text sa nikdy nezobrazuje — len počúvaj.',
+            'ext.rate_label':'🔉 Rýchlosť prehrávania', 'ext.voice_label':'🗣️ Hlas', 'ext.level_label':'📖 Úroveň', 'ext.topic_label':'📌 Téma (ako pri čítaní):', 'ext.fresh_btn':'🌐 Najnovšie témy',
+            'ext.custom_ph':'✍️ Napíš vlastnú tému (prázdne = vybratá téma)', 'ext.words_label':'🔑 Nápovedné slová:', 'ext.words_ph':'Slová, ktoré musia byť v článku (medzera/čiarka)',
+            'ext.gen_btn':'✨ Generovať článok na počúvanie', 'ext.gen_ing':'⏳ Generujem…', 'ext.gen_fail':'⚠️ Generovanie zlyhalo: ', 'ext.gen_writing':'⏳ AI píše článok na počúvanie…',
+            'ext.progress':'Extenzívne počúvanie: {n} viet · asi {m} znakov · 🔒 text skrytý', 'ext.hidden':'🔒 Text skrytý — len počúvaj.', 'ext.need_gen':'Najprv «✨ Generovať článok na počúvanie»',
+            'ext.play':'▶ Prehrať všetko', 'ext.pause':'⏸ Pauza', 'ext.replay':'🔁 Prehrať od začiatku', 'ext.file_loaded':'✅ Načítané: ',
+            'err.empty':'✅ Zoznam chýb {layer} je prázdny', 'err.preparing':'⏳ Režim opravy: pripravujem 1 pôvodnú vetu + 3 nové vety pre「{word}」… ({a}/{b})',
+            'err.progress':'Režim opravy: 「{word}」veta {a}/{b} ({kind})', 'err.kind_orig':'pôvodná', 'err.kind_new':'nová',
+            'err.done_all':'🎉 「{word}」: všetkých {n} viet správne — oprava hotová, pridané do plánu opakovania', 'err.done_part':'「{word}」: správne {c} z {n} viet, pokračuj', 'err.gen_fail':'⚠️ Generovanie zlyhalo, stlač «Cvičiť» a skús znova',
+            'err.finished':'Cvičenie hotové: slová so 4 správnymi vetami išli do plánu opakovania, zvyšok ostáva v zozname chýb',
+            'dv.mark_hint':'👂 Najprv počúvaj: ←/→ posúva kurzor, medzerník označí, čomu nerozumieš (oranžovo), potom「✅ Označené」',
+            'dv.recording':'🎤 Počúvam… prečítaj {part} nahlas, políčka sa vyplnia samé (pauza = automatický koniec, ďalší klik = manuálny koniec)',
+            'dv.done':'✅ Všetko {part} rozpoznané. Klikni「Skontrolovať」: označené miesta sa vždy počítajú ako chyba, iné zlé znaky tiež. Môžeš nahrať znova.',
+            'dv.after_mark_whole':'🔒 Označených {n} miest. Klikni「🎤 Nahrávať」a prečítaj celú vetu',
+            'dv.after_mark_chunk':'🔒 Označených {n} miest｜{chunk}: {state}', 'dv.chunk_done_state':'tento blok je nahraný — «Ďalší blok» alebo nahrať znova', 'dv.chunk_listen_state':'najprv si vypočuj tento blok, potom「🎤 Nahrávať」a prečítaj',
+            'dv.btn_mark_done':'✅ Označené', 'dv.btn_record':'🎤 Nahrať vetu', 'dv.btn_record_chunk':'🎤 Nahrať {chunk}', 'dv.btn_recording':'🔴 Nahrávam… klik pre stop',
+            'dv.btn_rerecord':'🎤 Nahrať znova', 'dv.btn_rerecord_chunk':'🎤 Nahrať znova ({chunk})', 'dv.btn_rerecord_block':'🎤 Nahrať tento blok znova', 'dv.btn_next_chunk':'⏭ Ďalší blok',
+            'dv.cmp_you':'✏️ Ty: ', 'dv.cmp_ref':'✅ Odpoveď: ', 'dv.toast_no_record':'🎤 Najprv stlač「Nahrávať」a prečítaj vetu, potom Enter',
+            'dv.chunk_label':'blok {a}/{b}', 'dv.unknown_badge':'neviem'
+        }
+    };
     function hideKeyInputsOnServer(){
         if(IS_GITHUB_IO) return;
         const ids = ['apiKeyInput', 'apiKeyStatus', 'tencentKeysInput', 'tencentTtsProxyInput'];
@@ -14210,6 +14527,22 @@ const HSK2_VOCAB = [
         const rcwl = document.getElementById('readingCustomWordsLabel'); if(rcwl) rcwl.textContent = t('reading.custom_words');
         const rcwi = document.getElementById('readingWordsInput'); if(rcwi) rcwi.placeholder = t('reading.custom_words_ph');
         if (document.getElementById('readingTopicSelect')) renderReadingTopicSelect();
+        if (document.getElementById('listenExtTopicSelect') && typeof renderExtTopicSelect === 'function') renderExtTopicSelect();
+        const _ldt3 = document.getElementById('listenDictTabBtn'); if(_ldt3) _ldt3.textContent = t('lt.tab_dict');
+        const _lwt3 = document.getElementById('listenWriteTabBtn'); if(_lwt3) _lwt3.textContent = t('lt.tab_ext');
+        const _let3 = document.getElementById('listenErrorTabBtn'); if(_let3) _let3.textContent = t('lt.tab_err');
+        const _extSub3 = document.getElementById('dictationSubtitle'); if(_extSub3) _extSub3.textContent = t('ext.subtitle');
+        const _extRate3 = document.getElementById('dictRateLabel'); if(_extRate3) _extRate3.textContent = t('ext.rate_label');
+        const _extVoice3 = document.getElementById('dictationVoiceLabel'); if(_extVoice3) _extVoice3.textContent = t('ext.voice_label');
+        const _extLvl3 = document.getElementById('dictationGenLevelLabel'); if(_extLvl3) _extLvl3.textContent = t('ext.level_label');
+        const _extTLabel3 = document.getElementById('listenExtTopicLabel'); if(_extTLabel3) _extTLabel3.textContent = t('ext.topic_label');
+        const _extFresh3 = document.getElementById('listenExtFreshBtn'); if(_extFresh3) _extFresh3.textContent = t('ext.fresh_btn');
+        const _extTopicPh3 = document.getElementById('listenExtTopicInput'); if(_extTopicPh3) _extTopicPh3.placeholder = t('ext.custom_ph');
+        const _extWLabel3 = document.getElementById('listenExtWordsLabel'); if(_extWLabel3) _extWLabel3.textContent = t('ext.words_label');
+        const _extWPh3 = document.getElementById('listenExtWordsInput'); if(_extWPh3) _extWPh3.placeholder = t('ext.words_ph');
+        const _extGen3 = document.getElementById('dictationGenBtn'); if(_extGen3 && !_extGen3.disabled) _extGen3.textContent = t('ext.gen_btn');
+        const _extPlay3 = document.getElementById('dictationPlayBtn'); if(_extPlay3) _extPlay3.textContent = t('ext.play');
+        const _extReplay3 = document.getElementById('dictationReplayBtn'); if(_extReplay3) _extReplay3.textContent = t('ext.replay');
         const rlhint = document.getElementById('readingLevelHint'); if(rlhint) updateReadingLevelHint();
         if (document.getElementById('readingLevelSelect')) renderReadingLevelSelect();
         const rfb = document.getElementById('readingFinishBtn'); if(rfb) rfb.textContent = currentReadingAnalyzed ? t('reading.finish_done') : t('reading.finish_btn');
@@ -14510,6 +14843,7 @@ const HSK2_VOCAB = [
         const secs = { dict: document.getElementById('listenDictSection'), write: document.getElementById('listenWriteSection'), error: document.getElementById('listenErrorSection') };
         for(const k of Object.keys(tabs)){ if(tabs[k]) tabs[k].classList.toggle('active', k === name); if(secs[k]) secs[k].style.display = (k === name) ? '' : 'none'; }
         if(name === 'error'){ try{ renderLayerErrorBar('listening'); }catch(e){} }
+        if(name === 'write'){ try{ if(typeof renderExtTopicSelect === 'function') renderExtTopicSelect(); }catch(e){} }
         window._modeSubTabs.listen = name;
     }
     const _ldtb = document.getElementById('listenDictTabBtn');
@@ -15100,50 +15434,21 @@ const HSK2_VOCAB = [
         return sentences;
     }
     async function handleDictationFileUpload(file){
+        // 泛听模式：上传音频直接播放，不识别、不显示文本
         if(!file) return;
         const status = document.getElementById('dictationFileStatus');
-        const setStatus = function(s){ if(status) status.textContent = s; };
-        try{
-            setStatus(t('dict.upload_status_preparing'));
-            const url = URL.createObjectURL(file);
-            if(!whisperWorker){
-                setStatus(t('dict.upload_status_model'));
-                await loadWhisperRecognizer();
-            }
-            if(!whisperWorkerReady){
-                setStatus(t('dict.upload_status_model'));
-                await whisperWorkerLoad();
-            }
-            setStatus(t('dict.upload_status_recognizing'));
-            const out = await whisperWorkerTranscribe(url);
-            const chunks = (out && out.chunks) || [];
-            let sentences = buildFileSentences(chunks);
-            if(!sentences.length && out && out.text){
-                sentences = [{ text: String(out.text).trim(), clean: String(out.text).replace(/[，。！？；、,.!?;:：\s]/g, ''), start: 0, end: 0 }];
-            }
-            if(!sentences.length){ setStatus('⚠️ ' + t('dict.upload_status_fail').replace('{msg}', '没有识别到内容')); return; }
-            dictationFileState = { url: url, sentences: sentences, currentIdx: 0, results: [], userAnswers: [], totalChars: 0, correctChars: 0, active: true };
-            const textEl = dictationEl('dictationTextInput');
-            if(textEl) textEl.style.display = 'none';
-            dictationEl('dictationStage').style.display = 'block';
-            dictationEl('dictationProgress').style.display = 'block';
-            renderFileDictationProgress();
-            updateDictationButtons();
-            if(!dictationFileAudio){ dictationFileAudio = new Audio(url); dictationFileAudio.preload = 'auto'; }
-            dictationEl('dictationSubmitBtn').style.display = 'inline-block';
-            dictationEl('dictationNextBtn').style.display = 'none';
-            const input = dictationEl('dictationUserInput');
-            input.value = ''; input.disabled = false;
-            setStatus(t('dict.upload_status_done').replace('{n}', sentences.length));
-            playFileSentence(0);
-            input.focus();
-        }catch(e){
-            hideWhisperProgress();
-            const msg = (e && e.message) ? String(e.message) : 'mp3';
-            const hint = /failed to fetch|Failed to fetch|load fail|NetworkError|fetch/i.test(msg) ? t('dict.upload_status_network') : '';
-            setStatus(t('dict.upload_status_fail').replace('{msg}', msg) + hint);
-            showToast(t('dict.upload_fail_toast'));
-        }
+        extListenStop();
+        extListeningState = { type: 'file', name: String(file.name || '') };
+        if(extListeningAudio){ try{ extListeningAudio.pause(); }catch(e){} }
+        extListeningAudio = new Audio(URL.createObjectURL(file));
+        extListeningAudio.preload = 'auto';
+        if(status) status.textContent = t('ext.file_loaded') + String(file.name || '');
+        dictationEl('dictationStage').style.display = 'block';
+        dictationEl('dictationProgress').style.display = 'block';
+        dictationEl('dictationProgress').textContent = '泛听：上传音频 · 🔒 文本不显示';
+        const as = dictationEl('dictationAudioStatus');
+        if(as) as.textContent = '🔒 文本已隐藏，只听不写。';
+        extListenPlay();
     }
     function playFileSentence(idx){
         if(!dictationFileState || !dictationFileAudio) return;
@@ -15379,6 +15684,148 @@ const HSK2_VOCAB = [
     }
     const _dgb = document.getElementById('dictationGenBtn');
     if(_dgb) _dgb.onclick = generateDictationArticle;
+
+    // ==================== 泛听模式（阅读同款生成：话题+提示词+错词+目标等级词；文本不显示，只播放） ====================
+    let extListeningState = null;      // { type:'ai', text, sentences }
+    let extListeningAudio = null;      // 保留（上传已去掉，兼容旧逻辑）
+    let extListenPaused = false;       // 暂停后点播放 → 从暂停处继续，不从头开始
+    function extListenStop(){
+        extListenPaused = false;
+        stopAllSpeech();
+        if(extListeningAudio){ try{ extListeningAudio.pause(); }catch(e){} }
+        extListenUpdateButtons();
+    }
+    function extListenUpdateButtons(){
+        const pb = dictationEl('dictationPlayBtn');
+        if(!pb) return;
+        const aiSpeaking = !!(extListeningState && extListeningState.type === 'ai' && (practiceIsSpeaking || extListenPaused) && currentSpeakingText);
+        const filePlaying = !!(extListeningAudio && !extListeningAudio.paused);
+        pb.textContent = (aiSpeaking || filePlaying) ? t('ext.pause') : t('ext.play');
+    }
+    function extListenPlay(){
+        const st = extListeningState;
+        if(!st){ showToast(t('ext.need_gen')); return; }
+        if(st.type === 'ai'){
+            if(extListenPaused){
+                // 暂停中 → 从暂停处继续（不从头播放）
+                let resumed = false;
+                if(edgeSpeakAudio && !edgeSpeakAudio.ended){
+                    try{ edgeSpeakAudio.play().catch(function(){}); resumed = true; }catch(e){}
+                }
+                if(!resumed){
+                    try{ const synth = window.speechSynthesis; if(synth && synth.paused){ synth.resume(); resumed = true; } }catch(e){}
+                }
+                if(!resumed){ stopAllSpeech(); speakChinese(st.text); }
+                extListenPaused = false;
+            } else if(practiceIsSpeaking){
+                // 播放中 → 暂停（保留进度，不取消）
+                if(edgeSpeakAudio && !edgeSpeakAudio.paused){ try{ edgeSpeakAudio.pause(); }catch(e){} }
+                try{ const synth = window.speechSynthesis; if(synth && synth.speaking){ synth.pause(); } }catch(e){}
+                extListenPaused = true;
+            } else {
+                extListenPaused = false;
+                stopAllSpeech();
+                speakChinese(st.text);
+            }
+            setTimeout(extListenUpdateButtons, 300);
+            return;
+        }
+        if(extListeningAudio){
+            if(!extListeningAudio.paused){ extListeningAudio.pause(); }
+            else {
+                const rate = parseFloat((document.getElementById('dictationRateSlider') || {}).value || '1.0') || 1.0;
+                extListeningAudio.playbackRate = rate;
+                extListeningAudio.play().catch(function(){});
+            }
+            setTimeout(extListenUpdateButtons, 300);
+        }
+    }
+    function renderExtTopicSelect(){
+        const sel = document.getElementById('listenExtTopicSelect');
+        if(!sel) return;
+        const saved = (currentUser && localStorage.getItem('HSK_EXT_TOPIC_' + currentUser)) || 'football';
+        let html = '';
+        if(readingFreshTopic){
+            html += '<option value="fresh_0"' + ('fresh_0' === saved ? ' selected' : '') + '>🌐 ' + escapeHtml(readingFreshTopic.label || readingFreshTopic.v) + '</option>';
+        }
+        for(const tp of READING_TOPICS){
+            html += '<option value="' + tp.v + '"' + (tp.v === saved ? ' selected' : '') + '>' + t(tp.labelKey) + '</option>';
+        }
+        sel.innerHTML = html;
+    }
+    function getExtListenTopic(){
+        const sel = document.getElementById('listenExtTopicSelect');
+        const v = sel ? sel.value : 'football';
+        if(String(v).startsWith('fresh_') && readingFreshTopic) return readingFreshTopic;
+        return READING_TOPICS.find(function(x){ return x.v === v; }) || READING_TOPICS[0];
+    }
+    async function generateExtListeningArticle(){
+        const apiKey = currentApiKey();
+        if(!apiKey){ alert(t('api_key_required')); return; }
+        const level = parseInt((document.getElementById('dictationGenLevelSelect') || {}).value || '3') || 3;
+        const topicRaw = (document.getElementById('listenExtTopicInput') ? document.getElementById('listenExtTopicInput').value : '').trim();
+        const wordsRaw = (document.getElementById('listenExtWordsInput') ? document.getElementById('listenExtWordsInput').value : '').trim();
+        const mustWords = wordsRaw ? wordsRaw.split(/[\s,，、;；]+/).map(function(w){ return w.trim(); }).filter(Boolean).slice(0, 10) : [];
+        const seen = new Set(mustWords.map(stripForCompare));
+        const addW = function(w){ w = String(w || '').replace(/\.\.\./g, '').trim(); if(w && w.length <= 10 && !seen.has(stripForCompare(w))){ mustWords.push(w); seen.add(stripForCompare(w)); } };
+        // 错词（缺口词 + 听力错题栏）与目标等级里「听力还没点亮」的词都自动带上
+        try{ for(const it of gapActiveItems().slice(0, 5)) addW(it.correct || it.text); }catch(e){}
+        try{ for(const it of layerErrList('listening').slice(0, 5)) addW(it.word); }catch(e){}
+        try{ for(const w of wsPickUnlit('listening', 6, level)) addW(w); }catch(e){}
+        let topicInstr;
+        if(topicRaw){
+            topicInstr = '【唯一主题 - 最高优先级】整篇文章只能围绕这一个主题：' + topicRaw + '。';
+        } else {
+            try{
+                const tp = getExtListenTopic();
+                topicInstr = '【主题】' + (tp && tp.label ? (tp.label + '：' + (tp.prompt || tp.label)) : '一个日常生活话题') + '。';
+            }catch(e){ topicInstr = '【主题】一个日常生活话题。'; }
+        }
+        const mustStr = mustWords.length ? ('\n【必须用到的词 - 必须遵守】下面的词必须尽量自然地写进文章（能用的都用上，至少用上 3 个，这些词所在的句子是听力重点）：' + mustWords.join('、') + '。') : '';
+        const prompt = '你是一位 HSK 汉语教师。请写一篇用于【泛听练习】的中文听力小短文。\n要求：\n1. 5-9 句话，每句以。！？结尾；句子简短、口语化、自然，适合 HSK' + level + ' 水平学生听（除必用词外，用词不超过 HSK' + level + '）。\n2. ' + topicInstr + mustStr + '\n3. 不要标题、不要序号、不要拼音、不要解释；只输出纯中文正文。\n4. 内容积极健康、符合现实。';
+        const genBtn = document.getElementById('dictationGenBtn');
+        const status = dictationEl('dictationAudioStatus');
+        if(status) status.textContent = t('ext.gen_writing');
+        if(genBtn){ genBtn.disabled = true; genBtn.textContent = t('ext.gen_ing'); }
+        try{
+            const resp = await fetch(API_BASE, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + apiKey }, body: JSON.stringify({ model: 'deepseek-v4-flash', thinking: { type: 'disabled' }, max_tokens: 2048, messages: [{ role: 'user', content: prompt }], temperature: 0.8 }) });
+            const data = await resp.json();
+            if(data.error) throw new Error(data.error.message || 'API error');
+            if(!data.choices || !data.choices[0] || !data.choices[0].message) throw new Error('API error');
+            let text = String(data.choices[0].message.content || '').trim();
+            text = text.replace(/^#{1,6}\s*/gm, '').replace(/\*\*/g, '');
+            if(!text) throw new Error('空文本');
+            extListenStop();
+            extListeningState = { type: 'ai', text: text, sentences: dictationSplitSentences(text) };
+            dictationEl('dictationStage').style.display = 'block';
+            dictationEl('dictationProgress').style.display = 'block';
+            dictationEl('dictationProgress').textContent = t('ext.progress').replace('{n}', extListeningState.sentences.length).replace('{m}', text.replace(/\s/g, '').length);
+            if(status) status.textContent = t('ext.hidden');
+            if(extListeningState.sentences.length > 0) speakChinese(text);
+            setTimeout(extListenUpdateButtons, 300);
+        }catch(e){
+            if(status) status.textContent = t('ext.gen_fail') + String((e && e.message) || e);
+        }finally{
+            if(genBtn){ genBtn.disabled = false; genBtn.textContent = t('ext.gen_btn'); }
+        }
+    }
+    if(_dgb) _dgb.onclick = generateExtListeningArticle;
+    try{ renderExtTopicSelect(); }catch(e){}
+    const _extTopicSel = document.getElementById('listenExtTopicSelect');
+    if(_extTopicSel) _extTopicSel.onchange = function(){ try{ if(currentUser) localStorage.setItem('HSK_EXT_TOPIC_' + currentUser, _extTopicSel.value); }catch(e){} };
+    const _extFreshBtn = document.getElementById('listenExtFreshBtn');
+    if(_extFreshBtn) _extFreshBtn.onclick = function(){ fetchFreshReadingTopics(); };
+    const _extPb = dictationEl('dictationPlayBtn');
+    if(_extPb) _extPb.onclick = function(){ extListenPlay(); };
+    const _extRpb = dictationEl('dictationReplayBtn');
+    if(_extRpb) _extRpb.onclick = function(){
+        const st = extListeningState;
+        if(!st){ showToast(t('ext.need_gen')); return; }
+        extListenStop();
+        if(st.type === 'ai'){ speakChinese(st.text); }
+        else if(extListeningAudio){ const rate = parseFloat((document.getElementById('dictationRateSlider') || {}).value || '1.0') || 1.0; extListeningAudio.playbackRate = rate; try{ extListeningAudio.currentTime = 0; }catch(e){} extListeningAudio.play().catch(function(){}); }
+        setTimeout(extListenUpdateButtons, 300);
+    };
 
     // ==================== 短文阅读（可理解输入 + 中国新闻主题） ====================
     let readingHistory = [];
@@ -15779,6 +16226,7 @@ const HSK2_VOCAB = [
             renderReadingTopicSelect();
             const sel = document.getElementById('readingTopicSelect');
             if(sel) sel.value = 'fresh_0';
+            try{ renderExtTopicSelect(); const _esel = document.getElementById('listenExtTopicSelect'); if(_esel) _esel.value = 'fresh_0'; }catch(e){}
             saveReadingTopic();
             showToast(t('reading.fresh_topics_done') || '✅ 已获取最新话题');
         }catch(e){}
@@ -16095,10 +16543,17 @@ const HSK2_VOCAB = [
         }
         const searchRule = newsContext ? newsContext : '【联网搜索素材】本次未搜索到新闻素材，文章可以写一个时间明确属于' + nowYear + '年近期的话题，但不要编造具体可查证的假新闻。';
         // 状态卡：把「阅读理解还没点亮」的目标等级词自动加入必用词语（能自然用上的都用上）
+        // 听力错词和目标等级词也出现在阅读中：听打/改错里听错的目标词 + 本等级听力未点亮的词
         const _wsReadingWords = (function(){
             try{ return wsPickUnlit('reading', 8, mix.level); }catch(e){ return []; }
         })();
-        const _effMustWords = Array.from(new Set(mustWords.concat(_wsReadingWords))).slice(0, 14);
+        const _wsListenWords = (function(){
+            try{ return wsPickUnlit('listening', 6, mix.level); }catch(e){ return []; }
+        })();
+        const _listenErrWords = (function(){
+            try{ return layerErrList('listening').slice(0, 6).map(function(x){ return x.word; }); }catch(e){ return []; }
+        })();
+        const _effMustWords = Array.from(new Set(mustWords.concat(_wsReadingWords, _listenErrWords, _wsListenWords))).slice(0, 18);
         const mustWordsRule = _effMustWords.length ? '【必用词语 - 最高优先级】以下词语必须全部自然地出现在正文 content 中（每个词至少出现一次，顺序不限，不要改动这些词；其中部分是学生阅读理解还没点亮的词，尽量让它们在文章里有清楚、可推断的语境）：' + _effMustWords.join('、') + '。写完后逐词自检：如果缺少任何一个，就必须重写正文，直到全部包含为止。' : '';
         const LEN = {1:'全文100-150字，每句4-9字，分2-3段', 2:'全文150-200字，每句5-10字，分2-3段', 3:'全文200-300字，每句6-14字，分3-4段', 4:'全文300-400字，每句8-18字，分3-5段', 5:'全文350-450字，每句10-20字，分3-5段', 6:'全文400-500字，每句10-22字，分4-5段'};
         const levelGuide = LEN[mix.level] || LEN[3];
@@ -20123,6 +20578,206 @@ ${searchRule}
     let tencentAsrEnded = false;
     let tencentAsrMode = 'chat';     // 'chat' | 'reading'（阅读朗读批改复用同一套管线）
     let readingAsrSilenceTimer = null; // 阅读跟读：停顿时自动结束
+    // ===== 听打录音模式：识别结果逐字填入横线格（分块） =====
+    function dictAsrBoxInputs(){
+        const container = document.getElementById('practiceInputContainer');
+        if(!container || !window._dictationMode) return [];
+        return Array.prototype.slice.call(container.querySelectorAll('input'));
+    }
+    // 把句子按语义+字数切成 2-3 块（每块≥4字）：优先标点，其次分词边界，最后按理想点平均切
+    function splitDictationChunks(raw){
+        const rawStr = String(raw || '');
+        const boxCount = (rawStr.match(/[\u4e00-\u9fffA-Za-z0-9]/g) || []).length;
+        if(!boxCount) return [];
+        if(boxCount < 8) return [{ text: rawStr, start: 0, len: boxCount }];
+        // 语块切分：最多 2-3 块，每块 ≥4 字；边界只取标点或分词词尾（不把词切碎）
+        const want = boxCount >= 13 ? 3 : 2;
+        const boxAt = []; let bi = 0;
+        for(let p = 0; p < rawStr.length; p++){ boxAt[p] = bi; if(/[\u4e00-\u9fffA-Za-z0-9]/.test(rawStr[p])) bi++; }
+        const cands = [];
+        const pushCand = function(b, punct){ if(b >= 4 && b <= boxCount - 4 && !cands.some(function(c){ return c.b === b; })) cands.push({ b: b, punct: !!punct }); };
+        for(let p = 0; p < rawStr.length; p++){
+            if(/[，。！？；、,.!?;]/.test(rawStr[p])) pushCand(boxAt[p], true);
+        }
+        try{
+            const toks = segmentForGrammar(rawStr);
+            for(const tk of (toks || [])){ if(tk && tk.end) pushCand(boxAt[Math.min(rawStr.length - 1, tk.end)] || 0, false); }
+        }catch(e){}
+        // 分词完全失败时的兜底：按平均点切（尽量少切，最多 3 块）
+        if(!cands.length){
+            for(let k = 1; k < want; k++) pushCand(Math.round(boxCount * k / want), false);
+        }
+        const score = function(arr){
+            let s = 0;
+            for(let k = 0; k < arr.length; k++) s += Math.abs(arr[k] - Math.round(boxCount * (k + 1) / want));
+            for(const b of arr){ const c = cands.find(function(c2){ return c2.b === b; }); if(c && !c.punct) s += 1.5; }
+            return s;
+        };
+        let chosen = null, bestScore = Infinity;
+        if(want === 2){
+            for(const c of cands){ const s2 = score([c.b]); if(s2 < bestScore){ bestScore = s2; chosen = [c.b]; } }
+        } else {
+            for(const c1 of cands){
+                for(const c2 of cands){
+                    if(c2.b - c1.b < 4) continue;
+                    const s2 = score([c1.b, c2.b]);
+                    if(s2 < bestScore){ bestScore = s2; chosen = [c1.b, c2.b]; }
+                }
+            }
+        }
+        if(!chosen) return [{ text: rawStr, start: 0, len: boxCount }];
+        const charPosFor = function(b){ for(let p = 0; p < rawStr.length; p++){ if(boxAt[p] >= b) return p; } return rawStr.length; };
+        const out = [];
+        let prevB = 0;
+        for(const b of chosen){
+            out.push({ text: rawStr.substring(charPosFor(prevB), charPosFor(b)), start: prevB, len: b - prevB });
+            prevB = b;
+        }
+        out.push({ text: rawStr.substring(charPosFor(prevB)), start: prevB, len: boxCount - prevB });
+        return out.filter(function(c){ return c.len > 0; });
+    }
+    function dictCurrentChunk(){
+        const chunks = window._dictChunks || [];
+        const ci = window._dictChunkIdx || 0;
+        if(chunks.length && ci < chunks.length) return chunks[ci];
+        return null;
+    }
+    function paintDictChunks(){
+        const inputs = dictAsrBoxInputs();
+        if(!inputs.length) return;
+        const chunk = window._dictMarkPhase ? null : dictCurrentChunk();
+        inputs.forEach(function(inp, i){
+            inp.classList.remove('chunk-active', 'chunk-inactive');
+            if(chunk && i >= chunk.start && i < chunk.start + chunk.len) inp.classList.add('chunk-active');
+            else if(chunk) inp.classList.add('chunk-inactive');
+        });
+    }
+    function advanceDictChunk(){
+        if(window._dictAdvanceTimer){ clearTimeout(window._dictAdvanceTimer); window._dictAdvanceTimer = null; }
+        const chunks = window._dictChunks || [];
+        if(!chunks.length) return;
+        const next = Math.min((window._dictChunkIdx || 0) + 1, chunks.length - 1);
+        window._dictChunkIdx = next;
+        window._dictRecorded = false;
+        const chk = document.getElementById('practiceCheckBtn');
+        if(chk) chk.disabled = true;
+        paintDictChunks();
+        try{ updateDictRecordBtn(); }catch(e){}
+        try{ updateDictVoiceHint(); }catch(e){}
+        const chunk = chunks[next];
+        if(chunk && chunk.text){
+            practiceAutoSpeakTimer = setTimeout(function(){ speakChinese(chunk.text); }, 400);
+        }
+    }
+    function fillDictationAsrText(text){
+        if(!window._dictationMode) return;
+        const inputs = dictAsrBoxInputs();
+        if(!inputs.length) return;
+        const chunk = dictCurrentChunk();
+        const start = chunk ? chunk.start : 0;
+        const len = chunk ? chunk.len : inputs.length;
+        const chars = String(text || '').match(/[\u4e00-\u9fffA-Za-z0-9]/g) || [];
+        for(let i = 0; i < len && start + i < inputs.length; i++){
+            const val = chars[i] || '';
+            inputs[start + i].value = val;
+            inputs[start + i].classList.remove('correct', 'incorrect', 'completed', 'unknown-wrong');
+            if(val) inputs[start + i].classList.add('completed');
+        }
+        const extra = chars.slice(len).join('');
+        const resEl = document.getElementById('dictAsrResult');
+        if(resEl){
+            resEl.style.display = '';
+            const chunkNo = (chunk && window._dictChunks && window._dictChunks.length > 1) ? ('第' + ((window._dictChunkIdx || 0) + 1) + '块') : '';
+            let h = '🎧 ' + chunkNo + '识别结果：<b>' + escapeHtml(chars.join('')) + '</b>';
+            if(extra) h += ' <span style="color:#c0392b;">（多出：' + escapeHtml(extra) + '）</span>';
+            if(chars.length < len) h += ' <span style="color:#e67e22;">（少了 ' + (len - chars.length) + ' 个字，少的部分按错算）</span>';
+            resEl.innerHTML = h;
+        }
+    }
+    function updateDictationAsrLive(text){ fillDictationAsrText(text); }
+    function dictChunkLabel(){
+        const chunks = window._dictChunks || [];
+        if(chunks.length > 1) return t('dv.chunk_label').replace('{a}', (window._dictChunkIdx || 0) + 1).replace('{b}', chunks.length);
+        return '';
+    }
+    function updateDictRecordBtn(){
+        const b = document.getElementById('dictRecordBtn');
+        if(!b) return;
+        b.disabled = !!window._dictMarkPhase;
+        if(window._dictRecording){
+            b.classList.add('recording');
+            b.textContent = t('dv.btn_recording');
+        } else {
+            b.classList.remove('recording');
+            const lb = dictChunkLabel();
+            if(window._dictRecorded) b.textContent = lb ? t('dv.btn_rerecord_chunk').replace('{chunk}', lb) : t('dv.btn_rerecord');
+            else if(window._dictChunksDone && window._dictChunksDone[window._dictChunkIdx || 0]) b.textContent = t('dv.btn_rerecord_block');
+            else b.textContent = lb ? t('dv.btn_record_chunk').replace('{chunk}', lb) : t('dv.btn_record');
+        }
+    }
+    function updateDictVoiceHint(){
+        const el = document.getElementById('dictVoiceHint');
+        if(!el) return;
+        if(window._dictMarkPhase){
+            el.textContent = t('dv.mark_hint');
+            el.style.color = '#b45309';
+        } else if(window._dictRecording){
+            const _dvWhole = dictChunkLabel() || ({Chinese:'整句',English:'the sentence',Japanese:'全文',Korean:'문장 전체',French:'la phrase',German:'den Satz',Spanish:'la frase',Russian:'предложение',Thai:'ประโยค',Italian:'la frase',Vietnamese:'câu',Indonesian:'kalimat',Slovak:'vetu'}[targetLangSelect.value] || 'the sentence'); el.textContent = t('dv.recording').replace('{part}', _dvWhole);
+            el.style.color = '#c0392b';
+        } else if(window._dictRecorded){
+            const _dvPart = dictChunkLabel() ? ({Chinese:'语块',English:'chunks',Japanese:'語塊',Korean:'덩어리',French:'les blocs',German:'die Blöcke',Spanish:'los bloques',Russian:'блоки',Thai:'บล็อก',Italian:'i blocchi',Vietnamese:'các cụm',Indonesian:'potongan',Slovak:'bloky'}[targetLangSelect.value] || 'chunks') : ({Chinese:'句子',English:'sentences',Japanese:'文',Korean:'문장',French:'les phrases',German:'die Sätze',Spanish:'las frases',Russian:'предложения',Thai:'ประโยค',Italian:'le frasi',Vietnamese:'các câu',Indonesian:'kalimat',Slovak:'vety'}[targetLangSelect.value] || 'sentences'); el.textContent = t('dv.done').replace('{part}', _dvPart);
+            el.style.color = '#1e8449';
+        } else {
+            const lb = dictChunkLabel();
+            if(!lb){
+                el.textContent = t('dv.after_mark_whole').replace('{n}', window._dictMarked ? window._dictMarked.size : 0);
+            } else {
+                const curDone = window._dictChunksDone && window._dictChunksDone[window._dictChunkIdx || 0];
+                el.textContent = t('dv.after_mark_chunk').replace('{n}', window._dictMarked ? window._dictMarked.size : 0).replace('{chunk}', lb).replace('{state}', curDone ? t('dv.chunk_done_state') : t('dv.chunk_listen_state'));
+            }
+            el.style.color = '#b45309';
+        }
+    }
+    function finishDictationAsrResult(text){
+        window._dictRecording = false;
+        const t = String(text || '').trim();
+        if(!t) showToast('没有识别到内容，请靠近麦克风、说慢一点再试');
+        fillDictationAsrText(t);
+        window._dictChunksDone = window._dictChunksDone || [];
+        window._dictChunksDone[window._dictChunkIdx || 0] = true;
+        const chunks = window._dictChunks || [];
+        const ci = window._dictChunkIdx || 0;
+        if(chunks.length > 1 && ci < chunks.length - 1){
+            if(window._dictAdvanceTimer){ clearTimeout(window._dictAdvanceTimer); }
+            window._dictAdvanceTimer = setTimeout(function(){ window._dictAdvanceTimer = null; advanceDictChunk(); }, 700);
+            window._dictRecorded = false;
+        } else {
+            window._dictRecorded = true;
+            const chk = document.getElementById('practiceCheckBtn');
+            if(chk) chk.disabled = false;
+        }
+        const nb = document.getElementById('dictNextChunkBtn');
+        if(nb){ nb.style.display = (chunks.length > 1 && ci < chunks.length - 1) ? '' : 'none'; }
+        try{ updateDictRecordBtn(); }catch(e){}
+        try{ updateDictVoiceHint(); }catch(e){}
+    }
+    // 目标词在本句中是否听对（含「标不懂」判定）：用于错题栏只记目标词
+    function dictTargetWordOk(inputBoxes, ref, word){
+        const refStr = String(ref || '');
+        if(!word) return false;
+        const idx = refStr.indexOf(word);
+        if(idx < 0) return false;
+        const rawToBox = []; let bi = 0;
+        for(let p = 0; p < refStr.length; p++){
+            if(/[\u4e00-\u9fffA-Za-z0-9]/.test(refStr[p])){ rawToBox[p] = bi; bi++; }
+        }
+        for(let k = 0; k < word.length; k++){
+            const b = rawToBox[idx + k];
+            const inp = b === undefined ? null : inputBoxes[b];
+            if(!inp || inp.dataset.unknown === '1' || inp.value.trim() !== refStr[idx + k]) return false;
+        }
+        return true;
+    }
     async function tencentAsrUrl(keys){
         const host = 'asr.cloud.tencent.com';
         const ts = Math.floor(Date.now() / 1000);
@@ -20155,7 +20810,7 @@ ${searchRule}
     }
     async function startTencentRecording(asrMode, targetText){
         if(voiceIsRecording) return;
-        tencentAsrMode = (asrMode === 'reading') ? 'reading' : ((asrMode === 'speaking') ? 'speaking' : 'chat');
+        tencentAsrMode = (asrMode === 'reading') ? 'reading' : ((asrMode === 'speaking') ? 'speaking' : ((asrMode === 'dictation') ? 'dictation' : 'chat'));
         // 自己服务器/本地：走服务器中转（学生无需填密钥）；GitHub Pages：直连腾讯云（需本机填密钥）
         const useAsrRelay = (typeof IS_GITHUB_IO !== 'undefined') ? !IS_GITHUB_IO : false;
         let keys = null;
@@ -20201,12 +20856,17 @@ ${searchRule}
         function scheduleReadingAsrSilence(){
             if(readingAsrSilenceTimer){ clearTimeout(readingAsrSilenceTimer); }
             readingAsrSilenceTimer = setTimeout(function(){
-                if(tencentAsrMode === 'reading' && tencentAsrLiveActive && voiceIsRecording) stopTencentRecording();
+                if((tencentAsrMode === 'reading' || tencentAsrMode === 'dictation') && tencentAsrLiveActive && voiceIsRecording) stopTencentRecording();
             }, 1500);
         }
         function liveSetText(){
             if(tencentAsrMode === 'reading'){
                 try{ updateReadingAsrLive(tencentAsrPartial || ''); }catch(e){}
+                return;
+            }
+            if(tencentAsrMode === 'dictation'){
+                try{ updateDictationAsrLive(tencentAsrPartial || ''); }catch(e){}
+                scheduleReadingAsrSilence();
                 return;
             }
             const base = tencentAsrBase;
@@ -20305,13 +20965,15 @@ ${searchRule}
             if(hint) hint.textContent = t('voice.hint_recording');
         } else if(tencentAsrMode === 'speaking'){
             try{ updateSpeakingRecordBtn(true); }catch(e){}
+        } else if(tencentAsrMode === 'dictation'){
+            try{ window._dictRecording = true; updateDictRecordBtn(); updateDictVoiceHint(); }catch(e){}
         } else {
             try{ updateReadingAsrLive(''); }catch(e){}
         }
-        tencentAutoStopTimer = setTimeout(function(){ if(voiceIsRecording) stopTencentRecording(); }, (tencentAsrMode === 'reading') ? 25000 : 55000);
+        tencentAutoStopTimer = setTimeout(function(){ if(voiceIsRecording) stopTencentRecording(); }, (tencentAsrMode === 'reading' || tencentAsrMode === 'dictation') ? 25000 : 55000);
     }
     function finalizeAsr(){
-        if(!tencentAsrLiveActive) return;
+        if(!tencentAsrLiveActive){ try{ cleanupTencentAsr(); }catch(e){} return; }
         tencentAsrLiveActive = false;
         const base = tencentAsrBase;
         const text = tencentAsrFinalText || tencentAsrPartial || '';
@@ -20332,6 +20994,12 @@ ${searchRule}
             cleanupTencentAsr();
             return;
         }
+        if(tencentAsrMode === 'dictation'){
+            window._dictRecording = false;
+            try{ finishDictationAsrResult(text); }catch(e){}
+            cleanupTencentAsr();
+            return;
+        }
         userInput.value = text ? (base ? base + '，' : '') + text : base;
         if(text) userInput.focus();
         cleanupTencentAsr();
@@ -20346,6 +21014,8 @@ ${searchRule}
             if(voiceBtn){ voiceBtn.classList.remove('recording'); voiceBtn.textContent = '🎤'; voiceBtn.title = '🎤 语音输入'; }
         } else if(tencentAsrMode === 'speaking'){
             try{ updateSpeakingRecordBtn(false); }catch(e){}
+        } else if(tencentAsrMode === 'dictation'){
+            try{ window._dictRecording = false; updateDictRecordBtn(); }catch(e){}
         }
         if(tencentSendTimer){ clearInterval(tencentSendTimer); tencentSendTimer = null; }
         try{ if(tencentProc) tencentProc.disconnect(); }catch(e){}
@@ -25850,7 +26520,7 @@ async function handleEndConversation(){
                     const boxIdx = rawToBox[idx + k];
                     if(boxIdx === undefined){ isWrong = true; break; }
                     const inp = inputBoxes[boxIdx];
-                    if(!inp || inp.value.trim() !== refStr[idx + k]){ isWrong = true; break; }
+                    if(!inp || inp.dataset.unknown === '1' || inp.value.trim() !== refStr[idx + k]){ isWrong = true; break; }
                 }
                 if(isWrong && !seen.has(w)){ seen.add(w); wrong.push(w); }
                 idx = refStr.indexOf(w, idx + 1);
@@ -25858,7 +26528,7 @@ async function handleEndConversation(){
         }
         if(wrong.length === 0){
             inputBoxes.forEach((inp) => {
-                if(inp.value.trim() !== inp.dataset.correct){
+                if(inp.dataset.unknown === '1' || inp.value.trim() !== inp.dataset.correct){
                     const ch = inp.dataset.correct;
                     if(ch && /[\u4e00-\u9fff]/.test(ch) && !seen.has(ch)){ seen.add(ch); wrong.push(ch); }
                 }
@@ -26131,6 +26801,19 @@ function renderPractice(exerciseData) {
         // 保存当前题目，供 C 选项「重做这道错题」使用
         window._lastPracticeExercise = exerciseData;
         if(!window._dictationRetryMode) window._dictationRetryMode = false;
+        // 听打录音模式：每个新句子重新进入「先标不懂」阶段
+        if (window._dictationMode) {
+            window._dictMarkPhase = true;
+            window._dictMarkCursor = 0;
+            window._dictMarked = new Set();
+            window._dictRecorded = false;
+            window._dictRecording = false;
+            window._dictChunkIdx = 0;
+            window._dictChunksDone = [];
+            if (window._dictAdvanceTimer) { clearTimeout(window._dictAdvanceTimer); window._dictAdvanceTimer = null; }
+            // 分语块听只用于改错模式（1原句+3新句）；听打模式整句录音
+            window._dictChunks = window._listenErrMode ? splitDictationChunks(chineseRaw) : [];
+        }
 
         var _pexId = 'pex_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6); window._correctionStore = window._correctionStore || {}; window._correctionStore[_pexId] = { chinese: chineseRaw, note: briefExplanation || '' };
         var headerHtml = '';
@@ -26158,11 +26841,21 @@ function renderPractice(exerciseData) {
         var collHintStyle = (hasColl && !window._dictationMode) ? ' style="display:none;"' : ''; var hintHtml = hasColl ? ('<div class="practice-hint" id="practiceCollHint"' + collHintStyle + '>' + t('practice.collocation') + escapeHtml(collText) + '</div>') : ('<div class="practice-hint">' + t('practice.hint_prefix') + escapeHtml(hint) + '</div>');
         var examBtns = ('<button class="practice-btn" id="practicePinyinBtn">' + t('practice.pinyin') + '</button>' + '<button class="practice-btn" id="practiceNewBtn">' + t('practice.new') + '</button>');
         var hiddenAdvanceBtns = '<button class="practice-btn" id="practiceNextBtn" style="display:none;"></button><button class="practice-btn" id="practiceNewBtn" style="display:none;"></button>';
+        var dictVoiceHtml = '';
+        if (window._dictationMode) {
+            dictVoiceHtml = '<div class="dict-voice-toolbar">'
+                + '<div class="dict-voice-hint" id="dictVoiceHint">👂 先听句子：←/→ 移动光标，空格把不懂的位置标出来（橙色），标完点「✅ 标好了」</div>'
+                + '<div style="margin-top:8px;"><button class="practice-btn" id="dictMarkDoneBtn" style="background:#f59e0b;">' + t('dv.btn_mark_done') + '</button>'
+                + '<button class="practice-btn" id="dictRecordBtn" style="background:#e74c3c;display:none;">' + t('dv.btn_record') + '</button>'
+                + '<button class="practice-btn" id="dictNextChunkBtn" style="background:#1e2b5e;display:none;">' + t('dv.btn_next_chunk') + '</button></div>'
+                + '<div class="dict-asr-result" id="dictAsrResult" style="display:none;"></div>'
+                + '</div>';
+        }
         var html;
         if (simpleMode) {
-            html = revealHtml + '<div class="practice-input-container" id="practiceInputContainer"></div><div class="practice-feedback" id="practiceFeedback"></div><div style="text-align:center;"><button class="practice-btn" id="practiceCheckBtn">' + t('practice.check') + '</button><button class="practice-btn" id="practiceResetBtn">' + t('practice.reset') + '</button><button class="practice-btn speak-btn" id="practiceSpeakBtn">' + t('practice.speak') + '</button>' + hiddenAdvanceBtns + '</div>';
+            html = revealHtml + dictVoiceHtml + '<div class="practice-input-container" id="practiceInputContainer"></div><div class="practice-feedback" id="practiceFeedback"></div><div class="practice-compare" id="practiceCompare" style="display:none;"></div><div style="text-align:center;"><button class="practice-btn" id="practiceCheckBtn">' + t('practice.check') + '</button><button class="practice-btn" id="practiceResetBtn">' + t('practice.reset') + '</button><button class="practice-btn speak-btn" id="practiceSpeakBtn">' + t('practice.speak') + '</button>' + hiddenAdvanceBtns + '</div>';
         } else {
-            html = headerHtml + revealHtml + '<div class="practice-english-sentence">' + escapeHtml(english) + hintHtml + '</div><div class="practice-input-container" id="practiceInputContainer"></div><div class="practice-feedback" id="practiceFeedback"></div><div style="text-align:center;"><button class="practice-btn" id="practiceCheckBtn">' + t('practice.check') + '</button><button class="practice-btn" id="practiceResetBtn">' + t('practice.reset') + '</button><button class="practice-btn" id="practiceNextBtn">' + t('practice.next') + '</button><button class="practice-btn speak-btn" id="practiceSpeakBtn">' + t('practice.speak') + '</button>' + examBtns + '</div>';
+            html = headerHtml + revealHtml + dictVoiceHtml + '<div class="practice-english-sentence">' + escapeHtml(english) + hintHtml + '</div><div class="practice-input-container" id="practiceInputContainer"></div><div class="practice-feedback" id="practiceFeedback"></div><div class="practice-compare" id="practiceCompare" style="display:none;"></div><div style="text-align:center;"><button class="practice-btn" id="practiceCheckBtn">' + t('practice.check') + '</button><button class="practice-btn" id="practiceResetBtn">' + t('practice.reset') + '</button><button class="practice-btn" id="practiceNextBtn">' + t('practice.next') + '</button><button class="practice-btn speak-btn" id="practiceSpeakBtn">' + t('practice.speak') + '</button>' + examBtns + '</div>';
         }
         
         practiceContent.innerHTML = html;
@@ -26176,7 +26869,14 @@ function renderPractice(exerciseData) {
             input.type = 'text';
             input.removeAttribute('maxlength');
             input.dataset.correct = effChars[i];
+            if (window._dictationMode) input.readOnly = true;
             box.appendChild(input);
+            if (window._dictationMode) {
+                const badge = document.createElement('span');
+                badge.className = 'unknown-badge';
+                badge.textContent = t('dv.unknown_badge');
+                box.appendChild(badge);
+            }
             if (!simpleMode) {
                 const pinyinSpan = document.createElement('div');
                 pinyinSpan.className = 'practice-pinyin';
@@ -26227,9 +26927,39 @@ function renderPractice(exerciseData) {
                     }
                 }
             });
+            input.addEventListener('click', function () {
+                if (window._dictationMode && window._dictMarkPhase) { window._dictMarkCursor = dictWordIndexForBox(i); paintDictMarkCursor(); }
+            });
             input.addEventListener('keydown', function (e) {
                 // 输入法（拼音/假名等）组词期间不拦截任何按键：空格/数字/回车是选字键，不能当成快捷键
                 if (isComposing || e.isComposing || e.keyCode === 229 || e.key === 'Process') return;
+                // 听打录音模式：标记阶段 ←/→ 按词移动、空格/退格 按词标不懂；之后可打字修改识别结果，3/1/-/= 放行给全局快捷键
+                if (window._dictationMode) {
+                    if (window._dictMarkPhase) {
+                        if (e.key === 'ArrowLeft') { e.preventDefault(); e.stopPropagation(); moveDictMarkCursor(-1); }
+                        else if (e.key === 'ArrowRight') { e.preventDefault(); e.stopPropagation(); moveDictMarkCursor(1); }
+                        else if (e.key === ' ') { e.preventDefault(); e.stopPropagation(); toggleDictMarkBox(i); }
+                        else if (e.key === 'Backspace') { e.preventDefault(); e.stopPropagation(); toggleDictMarkBox(i); }
+                        else if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); const _md = document.getElementById('dictMarkDoneBtn'); if (_md) _md.click(); }
+                        return;
+                    }
+                    if (e.key === 'ArrowLeft') { e.preventDefault(); e.stopPropagation(); if (i > 0) inputBoxes[i - 1].focus(); }
+                    else if (e.key === 'ArrowRight') { e.preventDefault(); e.stopPropagation(); if (i + 1 < inputBoxes.length) inputBoxes[i + 1].focus(); }
+                    else if (e.key === ' ') { e.preventDefault(); e.stopPropagation(); }
+                    else if (e.key === 'Backspace') { e.preventDefault(); e.stopPropagation(); if (input.value !== '') { input.value = ''; input.classList.remove('completed', 'correct', 'incorrect'); } else if (i > 0) { inputBoxes[i - 1].value = ''; inputBoxes[i - 1].classList.remove('completed', 'correct', 'incorrect'); inputBoxes[i - 1].focus(); } }
+                    else if (e.key === 'Enter') {
+                        e.preventDefault(); e.stopPropagation();
+                        if (window._practiceCanAdvance) {
+                            window._practiceCanAdvance = false;
+                            const _nxd = document.getElementById('practiceNextBtn');
+                            if (_nxd) _nxd.click();
+                        } else if (window._dictRecorded) {
+                            const _chkd = document.getElementById('practiceCheckBtn');
+                            if (_chkd && !_chkd.disabled) _chkd.click();
+                        } else { showToast(t('dv.toast_no_record')); }
+                    }
+                    return;
+                }
                 if (e.key === 'Backspace') {
                     if (input.value !== '') { input.value = ''; input.classList.remove('completed', 'correct', 'incorrect'); e.preventDefault(); }
                     else if (i > 0) { var prev = inputBoxes[i - 1]; prev.value = ''; prev.classList.remove('completed', 'correct', 'incorrect'); prev.focus(); e.preventDefault(); }
@@ -26249,7 +26979,74 @@ function renderPractice(exerciseData) {
                 }
             });
         }
-        setTimeout(function () { if (inputBoxes.length) inputBoxes[0].focus(); }, 100);
+        // 分词词界：光标和空格按「词」选择/标记
+        if (window._dictationMode) {
+            const _wRanges = [];
+            try{
+                const _toks = segmentForGrammar(chineseRaw || '');
+                const _boxOf = [];
+                let _bi = 0;
+                for(let p = 0; p < (chineseRaw || '').length; p++){ _boxOf[p] = _bi; if(/[\u4e00-\u9fffA-Za-z0-9]/.test(chineseRaw[p])) _bi++; }
+                for(const tk of (_toks || [])){
+                    if(!tk || !tk.word || !/[\u4e00-\u9fff]/.test(tk.word)) continue;
+                    const b0 = _boxOf[tk.start];
+                    let b1 = _bi;
+                    if(tk.end != null && tk.end < (chineseRaw || '').length) b1 = _boxOf[tk.end];
+                    if(b1 > b0) _wRanges.push({ start: b0, len: b1 - b0 });
+                }
+            }catch(e){}
+            if(!_wRanges.length){ for(let i = 0; i < inputBoxes.length; i++) _wRanges.push({ start: i, len: 1 }); }
+            window._dictWords = _wRanges;
+        }
+        // 按分词结果选择/标记：光标和空格都作用在「词」上，不按字
+        function dictWordIndexForBox(boxIdx){
+            const words = window._dictWords || [];
+            for(let wi = 0; wi < words.length; wi++){
+                const w = words[wi];
+                if(boxIdx >= w.start && boxIdx < w.start + w.len) return wi;
+            }
+            return 0;
+        }
+        function paintDictMarkCursor(){
+            const words = window._dictWords || [];
+            inputBoxes.forEach(function (inp, bi) { inp.classList.remove('mark-cursor'); });
+            if(!(window._dictationMode && window._dictMarkPhase)) return;
+            const w = words[window._dictMarkCursor || 0];
+            if(!w) return;
+            for(let k = 0; k < w.len; k++){
+                const inp = inputBoxes[w.start + k];
+                if(inp) inp.classList.add('mark-cursor');
+            }
+            const first = inputBoxes[w.start];
+            if(first){ try{ first.focus({ preventScroll: true }); }catch(e){ first.focus(); } }
+        }
+        function moveDictMarkCursor(d){
+            const n = (window._dictWords || []).length;
+            if (!n) return;
+            window._dictMarkCursor = Math.max(0, Math.min(n - 1, (window._dictMarkCursor || 0) + d));
+            paintDictMarkCursor();
+        }
+        function toggleDictMarkBox(idx){
+            if (!window._dictationMode || !window._dictMarkPhase) return;
+            const wi = dictWordIndexForBox(idx);
+            const w = (window._dictWords || [])[wi];
+            if(!w) return;
+            const on = !window._dictMarked.has(wi);
+            for(let k = 0; k < w.len; k++){
+                const inp = inputBoxes[w.start + k];
+                if(!inp) continue;
+                if(on){ inp.classList.add('unknown-mark'); inp.dataset.unknown = '1'; }
+                else { inp.classList.remove('unknown-mark'); delete inp.dataset.unknown; }
+            }
+            if(on) window._dictMarked.add(wi);
+            else window._dictMarked.delete(wi);
+        }
+        setTimeout(function () {
+            if (window._dictationMode) { paintDictMarkCursor(); }
+            else if (inputBoxes.length) inputBoxes[0].focus();
+        }, 100);
+        const _dictChkInit = document.getElementById('practiceCheckBtn');
+        if (_dictChkInit && window._dictationMode) _dictChkInit.disabled = true;
         // 听打：目标词 / 错词（听力错误栏里的词）的横线标红，其他词不标红
         try{
             if(window._dictationMode && chineseRaw){
@@ -26310,6 +27107,7 @@ function renderPractice(exerciseData) {
         let _thisRoundCounted = false;
         document.getElementById('practiceCheckBtn').onclick = function () {
             if (practiceChecked) return;
+            if (window._dictationMode && !window._dictRecorded) { showToast(t('dv.toast_no_record')); return; }
             practiceChecked = true;
             var allCorrect = true;
             var userTyped = '';
@@ -26317,9 +27115,26 @@ function renderPractice(exerciseData) {
                 var user = inp.value.trim();
                 var correct = inp.dataset.correct;
                 userTyped += (userTyped ? '' : '') + user;
-                if (user === correct) { inp.classList.add('correct'); inp.classList.remove('incorrect'); }
+                inp.classList.remove('unknown-wrong');
+                // 听打录音模式：标了「不懂」的位置默认算错，不管识别出什么字
+                var isUnknown = !!(window._dictationMode && inp.dataset.unknown === '1');
+                if (isUnknown) { inp.classList.add('incorrect', 'unknown-wrong'); inp.classList.remove('correct'); allCorrect = false; }
+                else if (user === correct) { inp.classList.add('correct'); inp.classList.remove('incorrect'); }
                 else { inp.classList.add('incorrect'); inp.classList.remove('correct'); allCorrect = false; }
             });
+            // 听打/改错：点确定（检查）后显示标准答案，并逐字对比错误
+            if (window._dictationMode) {
+                try{
+                    const _arCmp = document.getElementById('practiceAnswerReveal');
+                    if (_arCmp && !window._practiceRevealed && window._togglePracticeReveal) window._togglePracticeReveal();
+                    const _pcCmp = document.getElementById('practiceCompare');
+                    if (_pcCmp) {
+                        const _dcmp = diffDictationSentence(chineseRaw, userTyped);
+                        _pcCmp.style.display = '';
+                        _pcCmp.innerHTML = '<div>' + t('dv.cmp_you') + _dcmp.userHtml + '</div><div>' + t('dv.cmp_ref') + _dcmp.refHtml + '</div>';
+                    }
+                }catch(e){}
+            }
             // 听打测试：记录本组错误数，用于结束时决定是否显示 🎉 完成特效
             if (!allCorrect && window._dictationTestState) window._dictationTestWrongs = (window._dictationTestWrongs || 0) + 1;
             if (!allCorrect && chineseRaw && !simpleMode) {
@@ -26426,31 +27241,44 @@ function renderPractice(exerciseData) {
                 }
             }, 0); }
             if (simpleMode) {
-                // 音形/音义来源于听打/听写句子：打对的词直接记对；打错的词进听力错误栏（反思选择题已取消）
+                // 音形/音义来源于听打/听写句子：打对的词直接记对；打错的词记四维错，但只有目标词听错才进听力错题练习栏
                 window._currentDimSentence = chineseRaw;
                 try{
                     const _wrongWordsAll = collectDictationWrongWords(inputBoxes, chineseRaw);
                     const _wrongSet = new Set(_wrongWordsAll.map(function(x){ return stripForCompare(x); }));
                     const _counts = matchVocabInText(chineseRaw || '');
+                    const _isErrMode = !!window._listenErrMode;
+                    const _targetWord = (currentPracticeVocab && currentPracticeVocab.word) || (window._listenErrCurrent && window._listenErrCurrent.word) || '';
+                    const _targetKey = _targetWord ? stripForCompare(_targetWord) : '';
                     for(const w of Object.keys(_counts)){
                         if(!vocabLevelOfWord(w)) continue;
+                        if(_targetKey && stripForCompare(w) === _targetKey) continue;   // 目标词单独统计（听打走目标块，改错走 layerErrOnCheck）
                         if(!_wrongSet.has(stripForCompare(w))){
                             window._currentDimMode = '听打';
                             recordFourDim(w, ['音','形','义'], true);
                             try{ wsRecord(w, 'listening', { source: 'listen', correct: true, sentence: chineseRaw }); }catch(e){}
                         }
                     }
-                    if(currentPracticeVocab && currentPracticeVocab.word && !_counts[currentPracticeVocab.word] && !_wrongSet.has(stripForCompare(currentPracticeVocab.word))){
-                        recordVocabDim(currentPracticeVocab.word, '音形', true);
-                        recordVocabDim(currentPracticeVocab.word, '音义', true);
-                        try{ wsRecord(currentPracticeVocab.word, 'listening', { source: 'listen', correct: true, sentence: chineseRaw }); }catch(e){}
-                    }
-                    // 打错/漏打/替换的词全部进听力错误栏（不限目标词，可手动删除）
-                    for(const w of _wrongWordsAll){
-                        if(w && /[一-鿿]/.test(w)){
-                            try{ wsRecord(w, 'listening', { source: 'listen', correct: false, sentence: chineseRaw }); }catch(e){}
-                            try{ layerErrAdd('listening', w, chineseRaw); }catch(e){}
+                    // 目标词：听对→听力理解+1；听错→记四维错 + 记录错题（仅目标词进错题栏）
+                    if(_targetWord && !_isErrMode){
+                        const _twOk = dictTargetWordOk(inputBoxes, chineseRaw, _targetWord);
+                        window._currentDimMode = '听打';
+                        if(_twOk){
+                            try{ recordFourDim(_targetWord, ['音','形','义'], true); }catch(e){}
+                            try{ wsRecord(_targetWord, 'listening', { source: 'listen', correct: true, sentence: chineseRaw }); }catch(e){}
+                        } else {
+                            try{ recordFourDim(_targetWord, ['音','形','义'], false); }catch(e){}
+                            try{ wsRecord(_targetWord, 'listening', { source: 'listen', correct: false, sentence: chineseRaw }); }catch(e){}
+                            try{ layerErrAdd('listening', _targetWord, chineseRaw); }catch(e){}
                         }
+                    }
+                    // 其他错字：四维照记（错），但不再进听力错题练习栏
+                    for(const w of _wrongWordsAll){
+                        if(!w || !/[一-鿿]/.test(w)) continue;
+                        if(_targetKey && stripForCompare(w) === _targetKey) continue;   // 目标词已单独记录
+                        window._currentDimMode = '听打';
+                        try{ recordFourDim(w, ['音','形','义'], false); }catch(e){}
+                        try{ wsRecord(w, 'listening', { source: 'listen', correct: false, sentence: chineseRaw }); }catch(e){}
                     }
                 }catch(e){}
                 const _fbS = document.getElementById('practiceFeedback');
@@ -26459,28 +27287,28 @@ function renderPractice(exerciseData) {
                 } else {
                     if(_fbS){ _fbS.textContent = t('dict_test.wrong_enter'); _fbS.style.color = '#e74c3c'; }
                 }
-                // 错词练习：只判断目标错词本身是否打对
+                // 错词练习：只判断目标错词本身是否打对（标不懂的目标词位置也算听错）
                 if(window._listenErrMode && window._listenErrCurrent){
                     const cw = window._listenErrCurrent.word;
-                    let wordOk = allCorrect;
+                    let wordOk = false;
                     try{
                         let idx = chineseRaw.indexOf(cw);
-                        if(idx < 0){ wordOk = false; }
-                        else{
+                        if(idx >= 0){
                             const rawToBox = [];
                             let bi = 0;
                             for(let pos = 0; pos < chineseRaw.length; pos++){
                                 const ch = chineseRaw[pos];
                                 if(/[\u4e00-\u9fffA-Za-z0-9]/.test(ch)){ rawToBox[pos] = bi; bi++; }
                             }
+                            wordOk = true;
                             for(let k = 0; k < cw.length; k++){
                                 const boxIdx = rawToBox[idx + k];
                                 const inp = boxIdx === undefined ? null : inputBoxes[boxIdx];
-                                if(!inp || inp.value.trim() !== chineseRaw[idx + k]){ wordOk = false; break; }
+                                if(!inp || inp.dataset.unknown === '1' || inp.value.trim() !== chineseRaw[idx + k]){ wordOk = false; break; }
                             }
                         }
-                    }catch(e){}
-                    listenErrOnCheck(wordOk);
+                    }catch(e){ wordOk = false; }
+                    listenErrOnCheck(wordOk, allCorrect);
                 }
                 window._practiceFinished = true;
                 window._practiceCanAdvance = true;
@@ -26491,15 +27319,75 @@ function renderPractice(exerciseData) {
         };
         
         document.getElementById('practiceResetBtn').onclick = function () {
+            if (voiceIsRecording) { try{ stopTencentRecording(); }catch(e){} }
+            if (window._dictAdvanceTimer) { clearTimeout(window._dictAdvanceTimer); window._dictAdvanceTimer = null; }
             practiceChecked = false;
             window._practiceCanAdvance = false;
             window._practiceFinished = false;
-            inputBoxes.forEach(function (inp) { inp.value = ''; inp.classList.remove('correct', 'incorrect', 'completed'); });
+            window._dictRecorded = false;
+            window._dictRecording = false;
+            window._dictMarkPhase = !!window._dictationMode;
+            window._dictMarkCursor = 0;
+            window._dictMarked = new Set();
+            window._dictChunkIdx = 0;
+            window._dictChunksDone = [];
+            inputBoxes.forEach(function (inp) { inp.value = ''; inp.classList.remove('correct', 'incorrect', 'completed', 'unknown-wrong', 'unknown-mark', 'mark-cursor', 'chunk-active', 'chunk-inactive'); delete inp.dataset.unknown; if (window._dictationMode) inp.readOnly = true; });
+            const _mdBtn = document.getElementById('dictMarkDoneBtn'); if (_mdBtn) _mdBtn.style.display = '';
+            const _recBtn = document.getElementById('dictRecordBtn'); if (_recBtn) _recBtn.style.display = 'none';
+            const _nxtBtn = document.getElementById('dictNextChunkBtn'); if (_nxtBtn) _nxtBtn.style.display = 'none';
+            const _chkBtn = document.getElementById('practiceCheckBtn'); if (_chkBtn && window._dictationMode) _chkBtn.disabled = true;
+            const _asrRes = document.getElementById('dictAsrResult'); if (_asrRes) { _asrRes.style.display = 'none'; _asrRes.innerHTML = ''; }
+            const _pcReset = document.getElementById('practiceCompare'); if (_pcReset) { _pcReset.style.display = 'none'; _pcReset.innerHTML = ''; }
+            if (window._dictationMode) { try{ updateDictRecordBtn(); }catch(e){} try{ updateDictVoiceHint(); }catch(e){} }
             document.getElementById('practiceFeedback').textContent = '';
             var _collHintReset = document.getElementById('practiceCollHint'); if(_collHintReset && !window._dictationMode) _collHintReset.style.display = 'none';
             var ar3 = document.getElementById('practiceAnswerReveal');
             if (ar3) { ar3.classList.remove('show'); window._practiceRevealed = false; }
-            if (inputBoxes.length) inputBoxes[0].focus();
+            if (window._dictationMode) paintDictMarkCursor();
+            else if (inputBoxes.length) inputBoxes[0].focus();
+        };
+        var _dictMarkDoneBtn = document.getElementById('dictMarkDoneBtn');
+        if (_dictMarkDoneBtn) _dictMarkDoneBtn.onclick = function () {
+            stopAllSpeech();
+            window._dictMarkPhase = false;
+            window._dictMarked = window._dictMarked || new Set();
+            _dictMarkDoneBtn.style.display = 'none';
+            inputBoxes.forEach(function (inp) { inp.classList.remove('mark-cursor'); inp.readOnly = false; });
+            window._dictChunkIdx = 0;
+            window._dictChunksDone = window._dictChunksDone || [];
+            window._dictRecorded = false;
+            const _recBtn2 = document.getElementById('dictRecordBtn');
+            if (_recBtn2) _recBtn2.style.display = '';
+            const _chkBtn2 = document.getElementById('practiceCheckBtn');
+            if (_chkBtn2) _chkBtn2.disabled = true;
+            paintDictChunks();
+            try{ updateDictRecordBtn(); }catch(e){}
+            try{ updateDictVoiceHint(); }catch(e){}
+            const chunk0 = dictCurrentChunk();
+            if (chunk0 && chunk0.text) practiceAutoSpeakTimer = setTimeout(function(){ speakChinese(chunk0.text); }, 400);
+            if (inputBoxes.length) { try{ inputBoxes[0].focus(); }catch(e){} }
+        };
+        var _dictRecordBtn = document.getElementById('dictRecordBtn');
+        if (_dictRecordBtn) _dictRecordBtn.onclick = async function () {
+            if (window._dictMarkPhase) return;
+            if (window._dictRecording || voiceIsRecording) { try{ stopTencentRecording(); }catch(e){} return; }
+            practiceChecked = false;
+            var _fbRec = document.getElementById('practiceFeedback'); if (_fbRec) _fbRec.textContent = '';
+            window._dictRecording = true;
+            try{ updateDictRecordBtn(); }catch(e){}
+            try{ updateDictVoiceHint(); }catch(e){}
+            try{ await startTencentRecording('dictation', ''); }catch(e){}
+            if (!voiceIsRecording) {
+                window._dictRecording = false;
+                try{ updateDictRecordBtn(); }catch(e){}
+                try{ updateDictVoiceHint(); }catch(e){}
+            }
+        };
+        var _dictNextChunkBtn = document.getElementById('dictNextChunkBtn');
+        if (_dictNextChunkBtn) _dictNextChunkBtn.onclick = function () {
+            if (window._dictMarkPhase) return;
+            if (voiceIsRecording) { try{ stopTencentRecording(); }catch(e){} }
+            advanceDictChunk();
         };
         
         var _oldNewBtn = document.getElementById('practiceNewBtn');
@@ -26515,6 +27403,7 @@ function renderPractice(exerciseData) {
         };
         
         document.getElementById('practiceNextBtn').onclick = function () {
+            if (voiceIsRecording) { try{ stopTencentRecording(); }catch(e){} }
             // 错词练习：进入下一个错词
             if (window._listenErrMode) {
                 window._practiceFinished = false;
@@ -26588,13 +27477,15 @@ function renderPractice(exerciseData) {
         };
         
         // 语法练习/词语练习朗读统一走腾讯云音色：speakChinese 内部先腾讯云合成（跟随聊天所选音色），失败才回退 Edge/浏览器语音
-        document.getElementById('practiceSpeakBtn').onclick = function () { if (window._dictationMode && hasColl && collText && !simpleMode) { speakChinese(collText); setTimeout(function () { speakChinese(chineseRaw); }, 800); } else { speakChinese(chineseRaw); } };
+        document.getElementById('practiceSpeakBtn').onclick = function () { if (window._dictationMode && !window._dictMarkPhase && dictCurrentChunk() && dictCurrentChunk().text) { speakChinese(dictCurrentChunk().text); } else if (window._dictationMode && hasColl && collText && !simpleMode) { speakChinese(collText); setTimeout(function () { speakChinese(chineseRaw); }, 800); } else { speakChinese(chineseRaw); } };
         var _pinyinBtn = document.getElementById('practicePinyinBtn'); if(_pinyinBtn) _pinyinBtn.onmousedown = function (e) { e.preventDefault(); document.getElementById('practiceInputContainer').classList.toggle('show-pinyin'); };
         var _revealBtn = document.getElementById('practiceRevealBtn'); if(_revealBtn) _revealBtn.onmousedown = function (e) { e.preventDefault(); if(window._togglePracticeReveal) window._togglePracticeReveal(); };
         
         practiceContent.classList.remove('revealed');
         var kh = document.getElementById('practiceKeyHints');
-        if (simpleMode) {
+        if (window._dictationMode) {
+            if (kh) { kh.style.display = ''; kh.textContent = '⌨️ ←/→ 移动光标 / 空格 标不懂 / 回车 检查 / 1 重来 / 3 朗读（录音阶段读当前块）'; }
+        } else if (simpleMode) {
             if (kh) kh.style.display = 'none';
         } else {
             if (kh) kh.style.display = '';
@@ -26621,7 +27512,12 @@ async function generateAndShowPractice(grammarPattern, grammarLevel, forceNew=fa
         else if (key === '=') { e.preventDefault(); document.getElementById('practiceNewBtn')?.click(); }
         else if (key === 'Enter') {
             e.preventDefault();
-            if (window._practiceCanAdvance) {
+            if (window._dictationMode) {
+                if (window._dictMarkPhase) { const _md = document.getElementById('dictMarkDoneBtn'); if (_md) _md.click(); }
+                else if (window._practiceCanAdvance) { window._practiceCanAdvance = false; document.getElementById('practiceNextBtn')?.click(); }
+                else if (window._dictRecorded) { const _chk = document.getElementById('practiceCheckBtn'); if (_chk && !_chk.disabled) _chk.click(); }
+                else if (!window._dictMarkPhase) { showToast(t('dv.toast_no_record')); }
+            } else if (window._practiceCanAdvance) {
                 window._practiceCanAdvance = false;
                 document.getElementById('practiceNextBtn')?.click();
             } else {
@@ -29307,9 +30203,9 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
             yong: { c: 0, w: 0, t: 0, firstCorrect: '' }
         };
         const DIM_NAME = { '音':'yin', '形':'xing', '义':'yi', '用':'yong' };
-        // 技能层：听/说/读/写 + 对话（对话只记录，不影响掌握）
+        // 技能层：听/说/读/写 + 对话 + 翻译（对话/翻译只记录，不影响掌握）
         const sk = {};
-        for(const lk of ['listening','speaking','reading','writing','dialog']){
+        for(const lk of ['listening','speaking','reading','writing','dialog','translation']){
             sk[lk] = { total: 0, correct: 0, wrong: 0, unknown: 0, firstSeen: '', firstCorrect: '', lastCorrect: '', lastWrong: '' };
         }
         let mcqT = 0, mcqC = 0, mcqW = 0;
@@ -29486,14 +30382,20 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
         const allBtn = document.getElementById(ui.all);
         if(allBtn) allBtn.style.display = items.length ? '' : 'none';
         if(!items.length){
-            listEl.innerHTML = '<div style="color:#94a3b8;font-size:0.85rem;padding:8px 4px;">✅ ' + layerErrLabel(layer) + '错误栏是空的</div>';
+            listEl.innerHTML = '<div style="color:#94a3b8;font-size:0.85rem;padding:8px 4px;">' + escapeHtml(t('err.empty').replace('{layer}', layerErrLabel(layer))) + '</div>';
             return;
         }
         let h = '';
-        for(const it of items){
+        for(let i = 0; i < items.length; i++){
+            const it = items[i];
             const ex = (it.entry.examples && it.entry.examples[0]) ? ('<div class="ex">例：' + escapeHtml(it.entry.examples[0]) + '</div>') : '';
+            const no = (layer === 'listening') ? ('<span class="err-no">' + (i + 1) + '.</span>') : '';
+            const wordEl = (layer === 'listening')
+                ? '<button class="err-word-btn" style="font-weight:800;color:#c0392b;font-size:1rem;min-width:56px;text-align:left;" title="先练错句，再练新句" onclick="window._layerErrPracticeWord(\'' + layer + '\',\'' + escapeHtml(it.word).replace(/'/g, "\\'") + '\')">' + escapeHtml(it.word) + '</button>'
+                : '<span class="w">' + escapeHtml(it.word) + '</span>';
             h += '<div class="listen-err-item">' +
-                '<span class="w">' + escapeHtml(it.word) + '</span>' +
+                no +
+                wordEl +
                 '<span class="meta">错 ' + it.entry.count + ' 次 · 最近 ' + escapeHtml(it.entry.last || '') + '</span>' +
                 '<button class="listen-err-practice-btn" onclick="window._layerErrPracticeWord(\'' + layer + '\',\'' + escapeHtml(it.word).replace(/'/g, "\\'") + '\')">🎧 练</button>' +
                 '<button class="listen-err-del-btn" onclick="window._layerErrDelete(\'' + layer + '\',\'' + escapeHtml(it.word).replace(/'/g, "\\'") + '\')">✕ 删除</button>' +
@@ -29519,11 +30421,19 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
         window._layerErrLayer = layer;
         window._layerErrQueue = words.slice(0, 12);
         window._layerErrIndex = 0;
+        window._layerErrStage = 0;
+        window._layerErrSentences = null;
+        window._layerErrCorrectCount = 0;
         window._layerErrDoneCount = 0;
         window._layerErrToken = (window._layerErrToken || 0) + 1;
         layerErrNext();
     }
     function startListenErrorPractice(words){ startLayerErrorPractice('listening', words); }
+    function layerErrOldSentence(word){
+        const layer = window._layerErrLayer || 'listening';
+        const entry = layerErrorData[layer] && layerErrorData[layer][word];
+        return !!(entry && entry.examples && entry.examples[0]);
+    }
     async function layerErrNext(){
         const layer = window._layerErrLayer || 'listening';
         const ui = LAYER_ERR_UI[layer] || LAYER_ERR_UI.listening;
@@ -29532,9 +30442,12 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
         const area = document.getElementById(ui.area);
         if(idx >= q.length){
             if(area) area.innerHTML = '';
-            showToast('错题练习完成：打对的词已进入复习计划，打错的词还在错误栏');
+            showToast(t('err.finished'));
             window._layerErrQueue = [];
             window._layerErrIndex = 0;
+            window._layerErrStage = 0;
+            window._layerErrSentences = null;
+            window._layerErrCorrectCount = 0;
             window._listenErrMode = false;
             window._listenErrCurrent = null;
             window._layerErrCurrent = null;
@@ -29547,17 +30460,46 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
             return;
         }
         const word = q[idx];
-        if(area) area.innerHTML = '⏳ AI 正在生成包含「' + escapeHtml(word) + '」的句子…（' + (idx + 1) + '/' + q.length + '）';
-        const myToken = window._layerErrToken;
-        const ex = await generateListenErrorSentence(word);
-        if(myToken !== window._layerErrToken) return;
-        if(!ex){
-            if(area) area.innerHTML = '⚠️ 生成失败，点「练」重试';
+        const stage = window._layerErrStage || 0;
+        // 听力改错模式：1 个原句 + 3 个含目标词的新句（生成一次缓存，逐句练习）
+        let st = window._layerErrSentences;
+        if(!st || st.word !== word){
+            const entry = layerErrorData[layer] && layerErrorData[layer][word];
+            const oldSent = entry && entry.examples && entry.examples[0] ? String(entry.examples[0]) : '';
+            if(area) area.innerHTML = escapeHtml(t('err.preparing').replace('{word}', word).replace('{a}', idx + 1).replace('{b}', q.length));
+            const myToken = window._layerErrToken;
+            const avoid = oldSent ? [oldSent] : [];
+            const news = [];
+            for(let i = 0; i < 3; i++){
+                const ex = await generateListenErrorSentence(word, avoid.concat(news.map(function(x){ return x.chineseRaw; })));
+                if(myToken !== window._layerErrToken) return;
+                if(ex) news.push(ex);
+            }
+            const list = [];
+            if(oldSent) list.push(oldSent);
+            for(const n of news){ if(n && n.chineseRaw && !list.some(function(s){ return stripForCompare(s) === stripForCompare(n.chineseRaw); })) list.push(n.chineseRaw); }
+            if(!list.length){
+                if(area) area.innerHTML = escapeHtml(t('err.gen_fail'));
+                return;
+            }
+            st = window._layerErrSentences = { word: word, list: list, old: oldSent };
+            window._layerErrStage = 0;
+            window._layerErrCorrectCount = 0;
+        }
+        const list = st.list || [];
+        const sent = list[stage];
+        if(!sent){
+            // 句子不够（极端情况）：跳过本词
+            window._layerErrStage = 0;
+            window._layerErrSentences = null;
+            window._layerErrIndex = idx + 1;
+            layerErrNext();
             return;
         }
-        window._layerErrCurrent = { word: word, chineseRaw: ex.chineseRaw, chars: ex.chars, pinyins: ex.pinyins };
+        const sentLabel = t((stage === 0 && st.old) ? 'err.kind_orig' : 'err.kind_new');
+        if(area) area.innerHTML = escapeHtml(t('err.progress').replace('{word}', word).replace('{a}', stage + 1).replace('{b}', list.length).replace('{kind}', sentLabel));
+        window._layerErrCurrent = { word: word, chineseRaw: sent, chars: sent.split(''), pinyins: [] };
         window._listenErrCurrent = window._layerErrCurrent;
-        // 复用听打练习界面（听句子 + 打汉字，只显示中文）
         window._dictationMode = true;
         window._dictationOnly = true;
         window._listenErrMode = true;
@@ -29567,54 +30509,78 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
             grammarLevel: vocabLevelOfWord(word) || wsTargetLevel(),
             english: '',
             hint: '词汇: ' + word,
-            chineseRaw: ex.chineseRaw,
-            chars: ex.chars,
-            pinyins: ex.pinyins,
+            chineseRaw: sent,
+            chars: sent.split(''),
+            pinyins: [],
             isVocab: true,
             briefExplanation: ''
         });
     }
-    async function generateListenErrorSentence(word){
+    async function generateListenErrorSentence(word, avoidList){
         const apiKey = currentApiKey();
         if(!apiKey || !word) return null;
         const level = vocabLevelOfWord(word) || wsTargetLevel();
-        const prompt = '你是一位 HSK 汉语教师。请生成一句用于【听力错词听写练习】的中文句子，必须包含词语「' + word + '」。\\n要求：\\n1. 句子简短自然（HSK' + level + ' 水平，8-16 字），口语常用。\\n2. 句中除「' + word + '」外的用词尽量简单（不超过 HSK' + level + ' 水平）。\\n3. chinese 字段带逐字拼音（每个汉字单独用括号标拼音，如：我(wǒ) 是(shì) 学(xué) 生(shēng)），chineseRaw 字段为纯汉字。\\n4. 每次生成不同的句子。\\n输出 JSON：{\\"chinese\\":\\"带拼音的中文\\",\\"chineseRaw\\":\\"纯汉字\\"}，只输出 JSON。';
-        try{
-            const resp = await fetch(API_BASE, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + apiKey }, body: JSON.stringify({ model: 'deepseek-v4-flash', thinking: { type: 'disabled' }, max_tokens: 2048, messages: [{ role: 'user', content: prompt }], temperature: 0.9, response_format: { type: 'json_object' } }) });
-            const data = await resp.json();
-            if(data.error) return null;
-            if(!data.choices || !data.choices[0] || !data.choices[0].message) return null;
-            let c = data.choices[0].message.content;
-            c = c.replace(/```json/g, '').replace(/```/g, '').trim();
-            const r = safeJsonParse(c);
-            const chineseRaw = (r && (r.chineseRaw || String(r.chinese || '').replace(/\\([^)]+\\)/g, ''))) || '';
-            if(!chineseRaw.includes(word)) return null;
-            const parsed = parsePinyinString(r.chinese || '');
-            return { chineseRaw: chineseRaw, chars: parsed.chars.length ? parsed.chars : chineseRaw.split(''), pinyins: parsed.pinyins };
-        }catch(e){ return null; }
+        const avoid = (avoidList || []).map(String).filter(Boolean);
+        const avoidStr = avoid.length ? ('\\n5. 不要与以下任何句子相同：' + avoid.join('；') + '。') : '';
+        const prompt = '你是一位 HSK 汉语教师。请生成一句用于【听力错词改错练习】的中文句子，必须包含词语「' + word + '」。\\n要求：\\n1. 句子简短自然（HSK' + level + ' 水平，8-16 字），口语常用。\\n2. 句中除「' + word + '」外的用词尽量简单（不超过 HSK' + level + ' 水平）。\\n3. chinese 字段带逐字拼音（每个汉字单独用括号标拼音，如：我(wǒ) 是(shì) 学(xué) 生(shēng)），chineseRaw 字段为纯汉字。\\n4. 每次生成不同的句子。' + avoidStr + '\\n输出 JSON：{"chinese":"带拼音的中文","chineseRaw":"纯汉字"}，只输出 JSON。';
+        for(let attempt = 0; attempt < 4; attempt++){
+            try{
+                const resp = await fetch(API_BASE, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + apiKey }, body: JSON.stringify({ model: 'deepseek-v4-flash', thinking: { type: 'disabled' }, max_tokens: 2048, messages: [{ role: 'user', content: prompt }], temperature: 0.9, response_format: { type: 'json_object' } }) });
+                const data = await resp.json();
+                if(data.error) continue;
+                if(!data.choices || !data.choices[0] || !data.choices[0].message) continue;
+                let c = data.choices[0].message.content;
+                c = c.replace(/```json/g, '').replace(/```/g, '').trim();
+                const r = safeJsonParse(c);
+                const chineseRaw = (r && (r.chineseRaw || String(r.chinese || '').replace(/\\([^)]+\\)/g, ''))) || '';
+                if(!chineseRaw.includes(word)) continue;
+                if(avoid.some(function(a){ return stripForCompare(a) === stripForCompare(chineseRaw); })) continue;
+                const parsed = parsePinyinString(r.chinese || '');
+                return { chineseRaw: chineseRaw, chars: parsed.chars.length ? parsed.chars : chineseRaw.split(''), pinyins: parsed.pinyins };
+            }catch(e){}
+        }
+        return null;
     }
-    // 错题练习答题结果处理（在 renderPractice 检查时调用）
-    function layerErrOnCheck(wordCorrect, userText){
+    // 改错模式答题结果处理（在 renderPractice 检查时调用）：1 原句 + 3 新句，4 句全对才算改错完成
+    function layerErrOnCheck(wordCorrect, sentenceCorrect, userText){
         const cur = window._layerErrCurrent || window._listenErrCurrent;
         if(!cur) return;
         const layer = window._layerErrLayer || 'listening';
         const word = cur.word;
-        if(wordCorrect){
-            // 打对 → 进入艾宾浩斯复习计划并移出错误栏
-            const v = vocabEntryForWord(word);
-            const lvl = (v && v.l) || vocabLevelOfWord(word) || wsTargetLevel();
-            addWordToReviewQueue(word, lvl);
-            layerErrRemove(layer, word);
-            wsRecord(word, layer, { source: 'layer_err', correct: true, sentence: cur.chineseRaw });
-            showToast('「' + word + '」打对了，已进入复习计划');
-        } else {
-            // 打错 → 留在错误栏，次数+1
-            layerErrAdd(layer, word, cur.chineseRaw);
-            wsRecord(word, layer, { source: 'layer_err', correct: false, sentence: cur.chineseRaw });
+        const st = window._layerErrSentences;
+        const list = (st && st.word === word && st.list && st.list.length) ? st.list : [cur.chineseRaw];
+        const stage = Math.min(window._layerErrStage || 0, list.length - 1);
+        // 两个模式都记录词语状态次数：目标词听对 +1 / 听错记录
+        window._currentDimMode = '听打';
+        window._currentDimSentence = cur.chineseRaw;
+        try{ recordFourDim(word, ['音','形','义'], !!wordCorrect); }catch(e){}
+        try{ wsRecord(word, 'listening', { source: 'layer_err', correct: !!wordCorrect, sentence: cur.chineseRaw }); }catch(e){}
+        if(!sentenceCorrect){
+            try{ layerErrAdd(layer, word, cur.chineseRaw); }catch(e){}
         }
-        window._layerErrIndex = (window._layerErrIndex || 0) + 1;
+        const done = stage + 1 >= list.length;
+        if(done){
+            const correctCount = (window._layerErrCorrectCount || 0) + (sentenceCorrect ? 1 : 0);
+            if(list.length >= 4 && correctCount >= list.length){
+                // 4 句全对 → 改错完成
+                const v = vocabEntryForWord(word);
+                const lvl = (v && v.l) || vocabLevelOfWord(word) || wsTargetLevel();
+                addWordToReviewQueue(word, lvl);
+                layerErrRemove(layer, word);
+                showToast(t('err.done_all').replace('{word}', word).replace('{n}', list.length));
+            } else {
+                showToast(t('err.done_part').replace('{word}', word).replace('{n}', list.length).replace('{c}', correctCount));
+            }
+            window._layerErrStage = 0;
+            window._layerErrCorrectCount = 0;
+            window._layerErrSentences = null;
+            window._layerErrIndex = (window._layerErrIndex || 0) + 1;
+        } else {
+            window._layerErrCorrectCount = (window._layerErrCorrectCount || 0) + (sentenceCorrect ? 1 : 0);
+            window._layerErrStage = stage + 1;
+        }
     }
-    function listenErrOnCheck(wordCorrect, userText){ layerErrOnCheck(wordCorrect, userText); }
+    function listenErrOnCheck(wordCorrect, sentenceCorrect, userText){ layerErrOnCheck(wordCorrect, sentenceCorrect, userText); }
     // AI 逐词判定：判断学生在句子里用这个词对不对、意思是否与标准词义一致（看翻译）
     async function wsJudgeWordUsageBatch(items){
         const apiKey = currentApiKey();
@@ -29903,7 +30869,7 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
         const fbox = document.getElementById('wordStatusFilters');
         if(!fbox) return;
         const tlv = wsTargetLevel();
-        let lvOpts = '<option value="' + tlv + '">' + escapeHtml(vocabLevelLabel(tlv)) + escapeHtml(t('ws.board_target')) + '</option><option value="0">' + escapeHtml(t('ws.board_all_levels')) + '</option>';
+        let lvOpts = '<option value="' + tlv + '">' + escapeHtml(vocabLevelLabel(tlv)) + escapeHtml(t('ws.board_target')) + '</option><option value="-1">📂 非目标等级</option><option value="0">' + escapeHtml(t('ws.board_all_levels')) + '</option>';
         for(let lv = 1; lv <= 6; lv++){ if(lv !== tlv) lvOpts += '<option value="' + lv + '">' + escapeHtml(vocabLevelLabel(lv)) + '</option>'; }
         const cur = window._wsBoardFilter || { level: tlv, mastery: 0, onlyRecorded: false, search: '' };
         const searchVal = (document.getElementById('wsBoardSearchInput') && document.activeElement === document.getElementById('wsBoardSearchInput'))
@@ -29992,14 +30958,9 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
                 chip('✏️', t('ws.layer_writing_short'), wOk, 'writing') +
                 '</div>';
         }
-        // 各层错误栏词数
+        // 各层错误栏词数已删除：错词记录在词语状态里（点技能 → 点词语 → 看该技能标签）
         const layerEl = document.getElementById('wsLayerSummary');
-        if(layerEl){
-            const errs = [['🧠', t('ws.layer_knowledge_short'), layerErrCount('knowledge')], ['👂', t('ws.layer_listening_short'), layerErrCount('listening')], ['🗣️', t('ws.layer_speaking_short'), layerErrCount('speaking')], ['👀', t('ws.layer_reading_short'), layerErrCount('reading')], ['✏️', t('ws.layer_writing_short'), layerErrCount('writing')], ['📖', '翻译', layerErrCount('translation')]];
-            layerEl.innerHTML = '<div class="ws-summary-row">' + errs.map(function(e){
-                return '<div class="ws-stage-chip"><div class="n">' + e[2] + '</div><div class="l">' + e[0] + ' ' + escapeHtml(e[1]) + ' 错词</div></div>';
-            }).join('') + '</div>';
-        }
+        if(layerEl){ layerEl.innerHTML = ''; }
     }
     window._wsOpenBoardAll = function(){ window._wsBoardFilter = { level: wsTargetLevel(), mastery: 0, onlyRecorded: false, search: '', dim: null }; const m = document.getElementById('wordStatusModal'); if(m){ m.style.display = 'block'; document.body.style.overflow = 'hidden'; } renderWordStatusBoard(); };
     window._wsOpenBoardDim = function(dim){ window._wsBoardFilter = { level: wsTargetLevel(), mastery: 0, onlyRecorded: false, search: '', dim: dim }; const m = document.getElementById('wordStatusModal'); if(m){ m.style.display = 'block'; document.body.style.overflow = 'hidden'; } renderWordStatusBoard(); };
@@ -30035,6 +30996,8 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
     function renderWordStatusBoard(){
         const box = document.getElementById('wordStatusBoard');
         if(!box) return;
+        // 筛选栏缺失时兜底重建（保证总览在任何环境下都能用）
+        if(!document.getElementById('wsBoardLevelSel')){ try{ wsBuildBoardFilters(); }catch(e){} }
         const f = window._wsBoardFilter || { level: wsTargetLevel(), mastery: 0, onlyRecorded: false, search: '' };
         // 同步静态筛选控件（不重建它们，保证搜索框焦点和拼音输入法正常）
         const lvSel = document.getElementById('wsBoardLevelSel');
@@ -30049,6 +31012,10 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
             const set = new Set(Object.keys(wordStatusData.words));
             for(let lv = 1; lv <= 6; lv++){ for(const v of (VOCAB_LEVEL_MAP[lv] || [])) set.add(v.w); }
             words = Array.from(set);
+        } else if(f.level === -1){
+            // 非目标等级：听打/改错里做对或做错的、不属于目标等级的词（记录到非目标词状态）
+            const tlv2 = wsTargetLevel();
+            words = Object.keys(wordStatusData.words).filter(function(w){ return vocabLevelOfWord(w) !== tlv2; });
         } else {
             words = (VOCAB_LEVEL_MAP[f.level] || []).map(function(v){ return v.w; });
             for(const w of Object.keys(wordStatusData.words)){ if(vocabLevelOfWord(w) === f.level && !words.includes(w)) words.push(w); }
@@ -30079,7 +31046,7 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
             list.push({ w: w, s: s });
         }
         list.sort(function(a, b){ return (hasRec(a.s) ? 0 : 1) - (hasRec(b.s) ? 0 : 1) || (b.s.mastered ? 1 : 0) - (a.s.mastered ? 1 : 0) || a.w.localeCompare(b.w, 'zh'); });
-        const lvName = f.level === 0 ? t('ws.board_all_levels') : vocabLevelLabel(f.level);
+        const lvName = f.level === 0 ? t('ws.board_all_levels') : (f.level === -1 ? '非目标等级' : vocabLevelLabel(f.level));
         const dimName = f.dim ? ({ mastered: '🏆' + t('ws.board_mastered'), knowledge: '🧠' + t('ws.layer_knowledge_short'), listening: '👂' + t('ws.layer_listening_short'), speaking: '🗣️' + t('ws.layer_speaking_short'), reading: '👀' + t('ws.layer_reading_short'), writing: '✏️' + t('ws.layer_writing_short') })[f.dim] : '';
         let h = '<div style="font-size:0.75rem;color:#64748b;margin-bottom:6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;"><span>' + escapeHtml(t('ws.board_count').replace('{level}', lvName).replace('{n}', list.length)) + '</span>' +
             (dimName ? '<span class="ws-stage-badge ws-tag-ok" style="cursor:default;">' + escapeHtml(dimName) + '</span><button class="ws-del-btn" onclick="window._wsClearBoardDim()">✕ ' + escapeHtml(t('ws.updates_close')) + '</button>' : '') +
@@ -30117,7 +31084,16 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
         const m = document.getElementById('wordCardModal');
         if(m){ m.style.display = 'block'; document.body.style.overflow = 'hidden'; }
         window._wsCurrentWord = word;
-        window._wsCardTab = 'knowledge';
+        // 从某个技能点进去 → 只显示该技能的标签；从总览/掌握进去 → 显示全部技能标签
+        const fDim = (window._wsBoardFilter && window._wsBoardFilter.dim) || null;
+        const skillDims = ['knowledge', 'listening', 'speaking', 'reading', 'writing'];
+        if(skillDims.indexOf(fDim) !== -1){
+            window._wsCardOnlyTab = fDim;
+            window._wsCardTab = fDim;
+        } else {
+            window._wsCardOnlyTab = null;
+            window._wsCardTab = 'knowledge';
+        }
         const title = document.getElementById('wordCardTitle');
         if(title) title.textContent = t('ws.card_word_title').replace('{word}', word);
         renderWordCard(word);
@@ -30129,7 +31105,8 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
         const s = wsStatus(word);
         const v = vocabEntryForWord(word);
         const lv = card.level || 0;
-        const tab = (window._wsCardTab && ['knowledge','listening','speaking','reading','writing','dialog'].includes(window._wsCardTab)) ? window._wsCardTab : 'knowledge';
+        const onlyTab = window._wsCardOnlyTab || null;
+        const tab = onlyTab || ((window._wsCardTab && ['knowledge','listening','speaking','reading','writing','dialog','translation'].includes(window._wsCardTab)) ? window._wsCardTab : 'knowledge');
         let h = '<div class="ws-card">';
         // 头部：词 + 词性 + 词义 + 等级 + 已学成分/目标/超纲 + 掌握状态
         h += '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px;">' +
@@ -30140,42 +31117,86 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
             wsLevelBadge(word) +
             (s.mastered ? '<span class="ws-stage-badge ws-tag-ok">✅ ' + escapeHtml(t('ws.board_mastered')) + (s.masteredDate ? ' ' + escapeHtml(s.masteredDate) : '') + '</span>' : '<span class="ws-stage-badge ws-tag-off">' + escapeHtml(t('ws.board_unmastered')) + ' ' + wsMasteryParts(word).length + '/5</span>') +
             '</div>';
-        // 五个层标签：点标签看该层的事件/例句
+        // 技能标签：从技能点进来只显示本身技能，不放一排标签
         const tabs = [
             ['knowledge', '🧠', t('ws.layer_knowledge_short')],
             ['listening', '👂', t('ws.layer_listening_short')],
             ['speaking', '🗣️', t('ws.layer_speaking_short')],
             ['reading', '👀', t('ws.layer_reading_short')],
             ['writing', '✏️', t('ws.layer_writing_short')],
-            ['dialog', '💬', t('ws.layer_dialog_short')]
+            ['dialog', '💬', t('ws.layer_dialog_short')],
+            ['translation', '🌐', '翻译']
         ];
-        h += '<div class="browser-tabs" style="margin-bottom:10px;">';
-        for(const tb of tabs){
-            h += '<button class="browser-tab' + (tab === tb[0] ? ' active' : '') + '" onclick="window._wsCardTabSwitch(\'' + escapeHtml(word).replace(/'/g, "\\'") + '\',\'' + tb[0] + '\')">' + tb[1] + ' ' + escapeHtml(tb[2]) + '</button>';
-        }
-        h += '</div>';
-        // 统计胶囊（对/错/总，无亮灯/复测）
-        const statPill = function(label, d, ok){
-            const icon = ok ? '✅' : '—';
-            const color = d.t > 0 ? '#1e2b5e' : '#94a3b8';
-            return '<span class="ws-dim-pill">' + icon + ' ' + label + ' <b style="color:' + color + ';">' + d.c + '/' + d.t + '</b>' + (d.w > 0 ? '<span style="color:#c0392b;">（' + escapeHtml(t('ws.wrong')) + d.w + '）</span>' : '') + '</span>';
-        };
-        h += '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">';
-        if(tab === 'knowledge'){
-            h += statPill(t('dim.yin'), { c: s.dims.yin.c, w: s.dims.yin.w, t: s.dims.yin.t }, s.dims.yin.c > 0) +
-                 statPill(t('dim.xing'), { c: s.dims.xing.c, w: s.dims.xing.w, t: s.dims.xing.t }, s.dims.xing.c > 0) +
-                 statPill(t('dim.yi'), { c: s.dims.yi.c, w: s.dims.yi.w, t: s.dims.yi.t }, s.dims.yi.c > 0) +
-                 statPill(t('dim.yong'), { c: s.dims.yong.c, w: s.dims.yong.w, t: s.dims.yong.t }, s.dims.yong.c > 0);
-            h += '<span class="ws-dim-pill">' + (s.knowledge ? '✅' : '—') + ' ' + escapeHtml(t('ws.board_mastered')) + '（' + escapeHtml(t('ws.layer_knowledge_short')) + '）</span>';
-        } else {
-            const s2 = s.sk[tab];
-            if(s2){
-                h += statPill(t('ws.correct'), { c: s2.correct, w: s2.wrong, t: s2.total }, s2.correct > 0);
-                if(s2.firstCorrect) h += '<span class="ws-dim-pill">✅ ' + escapeHtml(t('ws.first_correct_date')) + ' ' + escapeHtml(s2.firstCorrect) + '</span>';
-                if(s2.lastWrong) h += '<span class="ws-dim-pill">❌ ' + escapeHtml(t('ws.last_wrong_date')) + ' ' + escapeHtml(s2.lastWrong) + '</span>';
+        if(!onlyTab){
+            h += '<div class="browser-tabs" style="margin-bottom:10px;">';
+            for(const tb of tabs){
+                h += '<button class="browser-tab' + (tab === tb[0] ? ' active' : '') + '" onclick="window._wsCardTabSwitch(\'' + escapeHtml(word).replace(/'/g, "\\'") + '\',\'' + tb[0] + '\')">' + tb[1] + ' ' + escapeHtml(tb[2]) + '</button>';
             }
+            h += '</div>';
         }
-        h += '</div>';
+        // 顶部两栏：左=正确统计，右=错误统计（含错句），翻译并入两栏；从技能进来只显示该技能
+        const trSk = s.sk.translation || { correct: 0, wrong: 0, total: 0 };
+        const goodRow = function(label, n){ return '<div class="ws-col-row"><span>' + label + '</span><b>对 ' + n + '</b></div>'; };
+        const badRow = function(label, n){ return '<div class="ws-col-row"><span>' + label + '</span><b>错 ' + n + '</b></div>'; };
+        const wrongSents = [];
+        if(card.events){ for(const e of card.events){ if(e.correct === false && e.sentence && wrongSents.indexOf(e.sentence) === -1) wrongSents.push(e.sentence); } }
+        while(wrongSents.length > 3) wrongSents.shift();
+        const sentsHtml = wrongSents.length ? ('<div class="ws-col-sents">' + wrongSents.map(function(x){ return '<div>❌ ' + escapeHtml(x) + '</div>'; }).join('') + '</div>') : '';
+        const trErrEntry = (layerErrorData.translation && layerErrorData.translation[word]) || null;
+        const trErrSent = trErrEntry && trErrEntry.examples && trErrEntry.examples[0] ? String(trErrEntry.examples[0]) : '';
+        const rowGood = function(label, c){ return goodRow(label, c); };
+        const rowBad = function(label, w){ return badRow(label, w); };
+        const onlyRows = function(){
+            // 从某个技能点进来：只显示该技能的行
+            if(onlyTab === 'knowledge'){
+                return {
+                    g: rowGood('🔊 ' + escapeHtml(t('dim.yin')), s.dims.yin.c) + rowGood('✍️ ' + escapeHtml(t('dim.xing')), s.dims.xing.c) + rowGood('💡 ' + escapeHtml(t('dim.yi')), s.dims.yi.c) + rowGood('🔗 ' + escapeHtml(t('dim.yong')), s.dims.yong.c),
+                    b: rowBad('🔊 ' + escapeHtml(t('dim.yin')), s.dims.yin.w) + rowBad('✍️ ' + escapeHtml(t('dim.xing')), s.dims.xing.w) + rowBad('💡 ' + escapeHtml(t('dim.yi')), s.dims.yi.w) + rowBad('🔗 ' + escapeHtml(t('dim.yong')), s.dims.yong.w)
+                };
+            }
+            if(onlyTab === 'listening'){ return { g: rowGood('👂 ' + escapeHtml(t('ws.layer_listening_short')), s.sk.listening.correct), b: rowBad('👂 ' + escapeHtml(t('ws.layer_listening_short')), s.sk.listening.wrong) }; }
+            if(onlyTab === 'speaking'){ return { g: rowGood('🗣️ ' + escapeHtml(t('ws.layer_speaking_short')), s.sk.speaking.correct), b: rowBad('🗣️ ' + escapeHtml(t('ws.layer_speaking_short')), s.sk.speaking.wrong) }; }
+            if(onlyTab === 'reading'){ return { g: rowGood('👀 ' + escapeHtml(t('ws.layer_reading_short')), s.sk.reading.correct), b: rowBad('👀 ' + escapeHtml(t('ws.layer_reading_short')), s.sk.reading.wrong) }; }
+            if(onlyTab === 'writing'){ return { g: rowGood('✏️ ' + escapeHtml(t('ws.layer_writing_short')), s.sk.writing.correct), b: rowBad('✏️ ' + escapeHtml(t('ws.layer_writing_short')), s.sk.writing.wrong) }; }
+            if(onlyTab === 'translation'){ return { g: rowGood('🌐 翻译', trSk.correct), b: rowBad('🌐 翻译', trSk.wrong) }; }
+            return null;
+        };
+        const _onlyRows = onlyRows();
+        if(_onlyRows){
+            h += '<div class="ws-cols">' +
+                '<div class="ws-col good"><div class="ws-col-title">✅ ' + escapeHtml(t('ws.correct')) + '统计</div>' + _onlyRows.g + '</div>' +
+                '<div class="ws-col bad"><div class="ws-col-title">❌ ' + escapeHtml(t('ws.wrong')) + '统计</div>' + _onlyRows.b +
+                (onlyTab === 'translation' && trErrSent ? '<div class="ws-col-sents"><div>🌐 翻译错例：' + escapeHtml(trErrSent) + '</div></div>' : '') +
+                sentsHtml + '</div>' +
+                '</div>';
+        } else {
+        h += '<div class="ws-cols">' +
+            '<div class="ws-col good"><div class="ws-col-title">✅ ' + escapeHtml(t('ws.correct')) + '统计</div>' +
+            goodRow('🔊 ' + escapeHtml(t('dim.yin')), s.dims.yin.c) +
+            goodRow('✍️ ' + escapeHtml(t('dim.xing')), s.dims.xing.c) +
+            goodRow('💡 ' + escapeHtml(t('dim.yi')), s.dims.yi.c) +
+            goodRow('🔗 ' + escapeHtml(t('dim.yong')), s.dims.yong.c) +
+            goodRow('👂 ' + escapeHtml(t('ws.layer_listening_short')), s.sk.listening.correct) +
+            goodRow('🗣️ ' + escapeHtml(t('ws.layer_speaking_short')), s.sk.speaking.correct) +
+            goodRow('👀 ' + escapeHtml(t('ws.layer_reading_short')), s.sk.reading.correct) +
+            goodRow('✏️ ' + escapeHtml(t('ws.layer_writing_short')), s.sk.writing.correct) +
+            goodRow('🌐 翻译', trSk.correct) +
+            '</div>' +
+            '<div class="ws-col bad"><div class="ws-col-title">❌ ' + escapeHtml(t('ws.wrong')) + '统计</div>' +
+            badRow('🔊 ' + escapeHtml(t('dim.yin')), s.dims.yin.w) +
+            badRow('✍️ ' + escapeHtml(t('dim.xing')), s.dims.xing.w) +
+            badRow('💡 ' + escapeHtml(t('dim.yi')), s.dims.yi.w) +
+            badRow('🔗 ' + escapeHtml(t('dim.yong')), s.dims.yong.w) +
+            badRow('👂 ' + escapeHtml(t('ws.layer_listening_short')), s.sk.listening.wrong) +
+            badRow('🗣️ ' + escapeHtml(t('ws.layer_speaking_short')), s.sk.speaking.wrong) +
+            badRow('👀 ' + escapeHtml(t('ws.layer_reading_short')), s.sk.reading.wrong) +
+            badRow('✏️ ' + escapeHtml(t('ws.layer_writing_short')), s.sk.writing.wrong) +
+            badRow('🌐 翻译', trSk.wrong) +
+            (trErrSent ? '<div class="ws-col-sents"><div>🌐 翻译错例：' + escapeHtml(trErrSent) + '</div></div>' : '') +
+            sentsHtml +
+            '</div>' +
+            '</div>';
+        }
         // 该层的事件/例句列表
         const evFilter = function(layer, extraFilter){
             return (card.events || []).filter(function(e){ return e.layer === layer && (!extraFilter || extraFilter(e)); }).slice().reverse();
@@ -30500,7 +31521,7 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
             };
             bindEl(userInput);
             bindEl(document.getElementById('zenmeshuoInput'));
-        })(); grammarViewLevel.addEventListener('change',()=>{ const _gsi2=document.getElementById('grammarSearchInput'); if(_gsi2) _gsi2.value=''; updateGrammarDisplayByLevel(parseInt(grammarViewLevel.value)); }); const _gsi=document.getElementById('grammarSearchInput'); if(_gsi) _gsi.addEventListener('input',()=>updateGrammarDisplayByLevel(parseInt(grammarViewLevel.value))); closeModalSpan.onclick=()=>{modal.style.display='none';document.body.style.overflow='';}; closePracticeSpan.onclick=()=>{const _wasSelfPractice = window._selfPractice; practiceModal.style.display='none';stopAllSpeech();practiceGenerating=false;practiceSessionToken++;window._selfPractice=false;document.body.style.overflow=''; if(_wasSelfPractice) setTimeout(finishPracticeReflection, 400); window._dictationMode = false; window._dictationOnly = false; window._listenErrMode = false; window._listenErrCurrent = null; window._layerErrLayer = null; window._layerErrQueue = []; window._layerErrIndex = 0; window._layerErrCurrent = null; window._reviewMode = false; window._reviewQueue = null; window._learnMode = false; window._learnQueue = null; window._currentReviewItem = null; window._reviewRound = 0; window._practiceRevealed = false; window._practiceFinished = false; window._pendingLearnWord = null; window._learnRound = 0; window._dictationReflectQueue = []; window._dictationReflectDone = null; const _dro = document.getElementById('dictationReflectOverlay'); if(_dro) _dro.remove(); unbindDictReflectKeys(); window._dictationTestState = null; window._dictationTestWrongs = 0; window._practiceCanAdvance = false; practiceContent.classList.remove('dictation-active','revealed'); const drb=document.getElementById('dictationRevealBtn'); if(drb) drb.classList.remove('show'); const _kh2 = document.getElementById('practiceKeyHints'); if(_kh2) _kh2.style.display = ''; }; window.onclick=e=>{ if(e.target===modal){modal.style.display='none';document.body.style.overflow='';} if(e.target===practiceModal){const _wasSelfPractice2 = window._selfPractice; practiceModal.style.display='none';stopAllSpeech();practiceGenerating=false;practiceSessionToken++;window._selfPractice=false;window._listenErrMode=false;window._listenErrCurrent=null;window._layerErrLayer=null;window._layerErrQueue=[];window._layerErrIndex=0;window._layerErrCurrent=null;document.body.style.overflow=''; if(_wasSelfPractice2) setTimeout(finishPracticeReflection, 400);} const _wsm=document.getElementById('wordStatusModal'); if(_wsm && e.target===_wsm){_wsm.style.display='none';document.body.style.overflow='';} const _wcm=document.getElementById('wordCardModal'); if(_wcm && e.target===_wcm){_wcm.style.display='none';document.body.style.overflow='';} }; function commitUsageMinutes(){ if(!currentUser) return; let delta=(Date.now()-sessionStart)/60000; if(delta>0){ totalMinutes+=delta; sessionStart=Date.now(); saveFullState(); updateStatsUI(); } } if(!window._usageTimerInit){ window._usageTimerInit=true; document.addEventListener('visibilitychange',()=>{ if(document.hidden){ commitUsageMinutes(); } else { sessionStart=Date.now(); } }); window.addEventListener('pagehide',()=>{ commitUsageMinutes(); }); setInterval(()=>{ if(document.hidden){ sessionStart=Date.now(); return; } commitUsageMinutes(); },60000); } /* Chrome speech synthesis keep-alive: resume every 15s to prevent the synthesizer from sleeping (known Chrome bug) */ setInterval(()=>{ try { if('speechSynthesis' in window && window.speechSynthesis && !window.speechSynthesis.speaking) { window.speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(''); u.volume=0; speechSynthesis.speak(u); } } catch(_) {} },15000); }
+        })(); grammarViewLevel.addEventListener('change',()=>{ const _gsi2=document.getElementById('grammarSearchInput'); if(_gsi2) _gsi2.value=''; updateGrammarDisplayByLevel(parseInt(grammarViewLevel.value)); }); const _gsi=document.getElementById('grammarSearchInput'); if(_gsi) _gsi.addEventListener('input',()=>updateGrammarDisplayByLevel(parseInt(grammarViewLevel.value))); closeModalSpan.onclick=()=>{modal.style.display='none';document.body.style.overflow='';}; closePracticeSpan.onclick=()=>{const _wasSelfPractice = window._selfPractice; practiceModal.style.display='none';stopAllSpeech();try{ if(voiceIsRecording) stopTencentRecording(); }catch(e){} practiceGenerating=false;practiceSessionToken++;window._selfPractice=false;document.body.style.overflow=''; if(_wasSelfPractice) setTimeout(finishPracticeReflection, 400); window._dictationMode = false; window._dictationOnly = false; window._listenErrMode = false; window._listenErrCurrent = null; window._layerErrLayer = null; window._layerErrQueue = []; window._layerErrIndex = 0; window._layerErrCurrent = null; window._reviewMode = false; window._reviewQueue = null; window._learnMode = false; window._learnQueue = null; window._currentReviewItem = null; window._reviewRound = 0; window._practiceRevealed = false; window._practiceFinished = false; window._pendingLearnWord = null; window._learnRound = 0; window._dictationReflectQueue = []; window._dictationReflectDone = null; const _dro = document.getElementById('dictationReflectOverlay'); if(_dro) _dro.remove(); unbindDictReflectKeys(); window._dictationTestState = null; window._dictationTestWrongs = 0; window._dictMarkPhase = false; window._dictMarkCursor = 0; window._dictMarked = new Set(); window._dictRecorded = false; window._dictRecording = false; window._dictChunkIdx = 0; window._dictChunks = []; window._dictChunksDone = []; if(window._dictAdvanceTimer){ clearTimeout(window._dictAdvanceTimer); window._dictAdvanceTimer = null; } window._practiceCanAdvance = false; practiceContent.classList.remove('dictation-active','revealed'); const drb=document.getElementById('dictationRevealBtn'); if(drb) drb.classList.remove('show'); const _kh2 = document.getElementById('practiceKeyHints'); if(_kh2) _kh2.style.display = ''; }; window.onclick=e=>{ if(e.target===modal){modal.style.display='none';document.body.style.overflow='';} if(e.target===practiceModal){const _wasSelfPractice2 = window._selfPractice; practiceModal.style.display='none';stopAllSpeech();try{ if(voiceIsRecording) stopTencentRecording(); }catch(e){} practiceGenerating=false;practiceSessionToken++;window._selfPractice=false;window._listenErrMode=false;window._listenErrCurrent=null;window._layerErrLayer=null;window._layerErrQueue=[];window._layerErrIndex=0;window._layerErrCurrent=null;document.body.style.overflow=''; if(_wasSelfPractice2) setTimeout(finishPracticeReflection, 400);} const _wsm=document.getElementById('wordStatusModal'); if(_wsm && e.target===_wsm){_wsm.style.display='none';document.body.style.overflow='';} const _wcm=document.getElementById('wordCardModal'); if(_wcm && e.target===_wcm){_wcm.style.display='none';document.body.style.overflow='';} }; function commitUsageMinutes(){ if(!currentUser) return; let delta=(Date.now()-sessionStart)/60000; if(delta>0){ totalMinutes+=delta; sessionStart=Date.now(); saveFullState(); updateStatsUI(); } } if(!window._usageTimerInit){ window._usageTimerInit=true; document.addEventListener('visibilitychange',()=>{ if(document.hidden){ commitUsageMinutes(); } else { sessionStart=Date.now(); } }); window.addEventListener('pagehide',()=>{ commitUsageMinutes(); }); setInterval(()=>{ if(document.hidden){ sessionStart=Date.now(); return; } commitUsageMinutes(); },60000); } /* Chrome speech synthesis keep-alive: resume every 15s to prevent the synthesizer from sleeping (known Chrome bug) */ setInterval(()=>{ try { if('speechSynthesis' in window && window.speechSynthesis && !window.speechSynthesis.speaking) { window.speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(''); u.volume=0; speechSynthesis.speak(u); } } catch(_) {} },15000); }
     window._dictationMode = false;
     window._dictationOnly = false;
     window.revealDictation = function(){ const pc=document.getElementById('practiceContent'); if(pc){ pc.classList.toggle('revealed'); const btn=document.getElementById('dictationRevealBtn'); if(btn) btn.classList.toggle('show', !pc.classList.contains('revealed')); } };
@@ -30525,13 +31546,20 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
         document.getElementById('loginOverlay').classList.remove('hidden');
         updateHeaderUser();
     }
-    // 翻译练习错题记录：AI 逐句对照结果 → 译错/漏译/多译的词进「翻译错题练习」
+    // 翻译练习错题记录：AI 逐句对照结果 → 译错/漏译/多译的词进「翻译错题练习」；对/错都记到词语状态翻译层
     function recordTranslationErrors(items){
         if(!currentUser || !items || !items.length) return;
         const addWord = function(w, sentence){
             w = String(w || '').trim();
             if(!w || !/[\u4e00-\u9fff]/.test(w)) return;
             try{ layerErrAdd('translation', w, sentence); }catch(e){}
+            try{ wsRecord(w, 'translation', { source: 'translation', correct: false, sentence: sentence }); }catch(e){}
+        };
+        const addCorrectWords = function(text){
+            try{
+                const counts = matchVocabInText(String(text || ''));
+                for(const w of Object.keys(counts)){ try{ wsRecord(w, 'translation', { source: 'translation', correct: true, sentence: text }); }catch(e){} }
+            }catch(e){}
         };
         const wordsMissingIn = function(aText, bText){
             const out = [];
@@ -30551,6 +31579,8 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
             const verdict = String(it.verdict || '');
             const orig = String(it.orig || '').trim();
             const back = String(it.back || '').trim();
+            // 一致：整句纲内词记「翻译对」
+            if(verdict === 'match' && orig) addCorrectWords(orig);
             // 优先用 AI 给出的 errWords（原样词），没有就本地按原文/回译差异取词
             const errWords = Array.isArray(it.errWords) ? it.errWords.map(String).filter(Boolean) : [];
             const pool = errWords.length ? errWords : (function(){
@@ -30571,7 +31601,7 @@ function saveLearnCustomData(){ if(currentUser) localStorage.setItem('LS_CUSTOM_
         try{ renderWsSummary(); }catch(e){}
     }
     // 给独立模块文件（如翻译练习）使用的桥接钩子：主程序内部函数不暴露到全局作用域
-    window.__xhyHooks = { t: t, showToast: showToast, currentApiKey: currentApiKey, apiBase: API_BASE, diffHighlightHtml: diffHighlightHtml, safeJsonParse: safeJsonParse, layerErrAdd: layerErrAdd, matchVocabInText: matchVocabInText, recordTranslationErrors: recordTranslationErrors };
+    window.__xhyHooks = { t: t, showToast: showToast, currentApiKey: currentApiKey, apiBase: API_BASE, diffHighlightHtml: diffHighlightHtml, safeJsonParse: safeJsonParse, layerErrAdd: layerErrAdd, matchVocabInText: matchVocabInText, recordTranslationErrors: recordTranslationErrors, dictFill: fillDictationAsrText, dictFinish: finishDictationAsrResult, dictNextChunk: advanceDictChunk, dictSplit: splitDictationChunks };
     init();
 })();
 </script>
