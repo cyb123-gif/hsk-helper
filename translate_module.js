@@ -553,7 +553,11 @@ const I18N_NEW16 = {
     function trT(key) {
         const hooks = trHooks();
         if (hooks && typeof hooks.t === 'function') {
-            try { return hooks.t(key); } catch (e) {}
+            try {
+                const v = hooks.t(key);
+                // 主程序字典里没有 tr.* 词条时会原样返回键名（如 "tr.tab"），此时回退到本模块字典
+                if (v && v !== key) return v;
+            } catch (e) {}
         }
         // 兜底：直接按界面语言选择器查本模块词条（不依赖主程序内部函数）
         let lang = 'English';
